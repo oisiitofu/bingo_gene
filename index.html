@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ビンゴカードジェネレーター</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <header>
+        <h1>ビンゴカードジェネレーター</h1>
+    </header>
+    <main>
+        <div id="bingo-cards">
+            <div class="bingo-card-container">
+                <button class="generate-btn" onclick="generateBingoCard('left-card')">ビンゴカードを生成</button>
+                <div class="bingo-card left-card"></div>
+                <div class="team-name" id="team1">
+                    <div id="team1-member1"></div>
+                    <div id="team1-member2"></div>
+                </div>
+            </div>
+            <div class="bingo-card-container">
+                <button class="generate-btn" onclick="generateBingoCard('right-card')">ビンゴカードを生成</button>
+                <div class="bingo-card right-card"></div>
+                <div class="team-name" id="team2">
+                    <div id="team2-member1"></div>
+                    <div id="team2-member2"></div>
+                </div>
+            </div>
+        </div>
+        <button onclick="shuffleTeams()">チーム分けシャッフル</button>
+        <div id="name-inputs">
+            <input type="text" id="name1" placeholder="名前1">
+            <input type="text" id="name2" placeholder="名前2">
+            <input type="text" id="name3" placeholder="名前3">
+            <input type="text" id="name4" placeholder="名前4">
+        </div>
+    </main>
+    <script src="script.js"></script>
+</body>
+</html>

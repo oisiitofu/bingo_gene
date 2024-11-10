@@ -1,0 +1,113 @@
+body {
+    font-family: Arial, sans-serif;
+    text-align: center;
+    background-color: #f0f0f0;
+    margin: 0;
+    padding: 20px;
+}
+
+header {
+    margin-bottom: 20px;
+}
+
+button {
+    padding: 10px 20px;
+    font-size: 16px;
+    cursor: pointer;
+}
+
+#bingo-cards {
+    display: flex;
+    justify-content: center;
+    flex-wrap: nowrap; /* フレックスラップを無効にする */
+    gap: 40px; /* カード間のスペースを設定 */
+}
+
+.bingo-card-container {
+    margin: 10px;
+    flex: 0 1 220px; /* 固定幅に設定 */
+}
+
+.bingo-card {
+    border: 5px solid; /* 境界線を太く設定 */
+    padding: 10px;
+    background-color: #fff;
+    width: 100%; /* 固定幅に従う */
+    height: auto;
+}
+
+.left-card {
+    border-color: red; /* 左のカードの縁を赤に設定 */
+}
+
+.right-card {
+    border-color: blue; /* 右のカードの縁を青に設定 */
+}
+
+.bingo-card table {
+    border-collapse: collapse;
+    width: 100%;
+}
+
+.bingo-card th, .bingo-card td {
+    border: 1px solid #000;
+    padding: 0;
+    text-align: center;
+    cursor: pointer;
+    position: relative;
+    width: 40px;
+    height: 40px;
+    box-sizing: border-box; /* ボックスサイズを境界線とパディングを含むように設定 */
+}
+
+.left-card td {
+    background-color: #fff;
+}
+
+.left-card .marked {
+    background-color: red;
+}
+
+.right-card td {
+    background-color: #fff;
+}
+
+.right-card .marked {
+    background-color: blue;
+}
+
+img {
+    width: 40px; /* 固定幅に設定 */
+    height: 40px; /* 固定高さに設定 */
+    display: block;
+    margin: 0;
+    object-fit: contain; /* 画像のアスペクト比を維持 */
+}
+
+.team-name {
+    margin-top: 10px;
+    font-size: 18px;
+    max-width: 220px; /* 最大幅を設定 */
+    white-space: nowrap; /* テキストが折り返されないようにする */
+    overflow: hidden; /* テキストがオーバーフローする場合の処理 */
+    text-overflow: ellipsis; /* オーバーフロー時に省略記号を表示 */
+}
+
+#team1, #team2 {
+    display: flex;
+    flex-direction: column;
+}
+
+#name-inputs {
+    margin-top: 20px;
+}
+
+#name-inputs input {
+    margin: 5px;
+    padding: 10px;
+    font-size: 16px;
+}
+
+.generate-btn {
+    margin-bottom: 10px;
+}
