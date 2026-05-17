@@ -12202,5 +12202,90 @@ body.theme-comic { background: radial-gradient(circle at 20% 20%, #fff46b, trans
   }
 </style>
 
+<script id="firstBingoThenReachFixPatch">
+(function(){
+  const TEAM_LABELS = { red: "赤チーム", blue: "青チーム" };
+
+  function getFirstBingoDisplayDuration(){
+    try {
+      if (typeof window.getLightBingoDuration === "function") {
+        return Math.max(1500, window.getLightBingoDuration());
+      }
+    } catch (error) {}
+    return 1800;
+  }
+
+  function clearReachOverlaysBeforeDeferredReach(){
+    const reachFlash = document.getElementById("reachFlash");
+    if (reachFlash) reachFlash.classList.remove("show");
+
+    const hardReach = document.getElementById("hardReachCutin");
+    if (hardReach) hardReach.classList.remove("show");
+
+    document.body.classList.remove("reach-shake");
+  }
+
+  function scheduleSecondReachAfterFirstBingo(team, label){
+    clearTimeout(window.__firstBingoThenReachTimers?.[team]);
+
+    window.__firstBingoThenReachTimers = window.__firstBingoThenReachTimers || {};
+
+    const delay = getFirstBingoDisplayDuration() + 260;
+
+    window.__firstBingoThenReachTimers[team] = setTimeout(() => {
+      try {
+        if (!state?.gameStarted || state?.winner) return;
+        if (!state?.[team]?.marked || typeof getBingoResult !== "function") return;
+
+        const result = getBingoResult(state[team].marked);
+
+        // 1ビンゴ成立直後に、さらに2本目への残り2マスリーチがある時だけ後追いで出す。
+        if (result.count === 1 && result.reachCount > 0) {
+          clearReachOverlaysBeforeDeferredReach();
+
+          if (state.shownReach?.[team]) {
+            // 1ビンゴ演出中に裏で消費された「表示済み」扱いを一度戻す。
+            state.shownReach[team].normal = false;
+          }
+
+          setTimeout(() => {
+            if (!state?.gameStarted || state?.winner) return;
+
+            const latest = getBingoResult(state[team].marked);
+            if (latest.count === 1 && latest.reachCount > 0) {
+              if (state.shownReach?.[team]) state.shownReach[team].normal = true;
+              if (typeof window.showReach === "function") {
+                window.showReach(team, label || TEAM_LABELS[team] || team, false, false);
+              } else if (typeof showReach === "function") {
+                showReach(team, label || TEAM_LABELS[team] || team, false, false);
+              }
+            }
+          }, 80);
+        }
+      } catch (error) {
+        console.error("firstBingoThenReachFix", error);
+      }
+    }, delay);
+  }
+
+  if (typeof window.showBingo === "function") {
+    const previousShowBingoForFirstBingoThenReach = window.showBingo;
+
+    window.showBingo = function showBingoThenDeferredReach(team, label, bingoCount = 2){
+      const count = Number(bingoCount || 0);
+      const result = previousShowBingoForFirstBingoThenReach.apply(this, arguments);
+
+      if (count === 1) {
+        scheduleSecondReachAfterFirstBingo(team, label || TEAM_LABELS[team] || team);
+      }
+
+      return result;
+    };
+
+    try { showBingo = window.showBingo; } catch (error) {}
+  }
+})();
+</script>
+
 </body>
 </html>
