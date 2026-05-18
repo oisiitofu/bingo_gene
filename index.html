@@ -15642,7 +15642,7 @@ body.theme-comic { background: radial-gradient(circle at 20% 20%, #fff46b, trans
 
 <script id="rareUnchiTeamNamePatch">
 (function(){
-  const RARE_TEAM_NAME = "うんっちちーむ";
+  const RARE_TEAM_NAME = "うんちっちーむ";
   const RARE_RATE = 0.01;
 
   /*
@@ -15924,6 +15924,797 @@ body.theme-comic { background: radial-gradient(circle at 20% 20%, #fff46b, trans
   }
 
   warmupAudios();
+})();
+</script>
+
+<script id="gameStartAudioFastFixPatch">
+(function(){
+  /*
+    GAME START音だけ遅れがちな対策：
+    - start音候補を最優先でプリロード
+    - ユーザー操作イベントの capture 段階で先に音声アンロック
+    - GAME STARTボタン押下時、既存startGame処理より先に start 音を即再生
+    - 既存処理側で二重再生しにくいよう短時間ガード
+  */
+  const START_AUDIO_CANDIDATES = [
+    "start.mp3",
+    "start.wav",
+    "start.ogg",
+    "sounds/start.mp3",
+    "sounds/start.wav",
+    "sounds/start.ogg",
+    "audio/start.mp3",
+    "audio/start.wav",
+    "audio/start.ogg",
+    "assets/start.mp3",
+    "assets/start.wav",
+    "assets/start.ogg",
+    "assets/audio/start.mp3",
+    "assets/audio/start.wav",
+    "assets/audio/start.ogg"
+  ];
+
+  const startAudioCache = [];
+  let startAudioUnlocked = false;
+  let lastManualStartSoundAt = 0;
+
+  function preloadStartAudio(){
+    START_AUDIO_CANDIDATES.forEach((src) => {
+      if (startAudioCache.some(a => a.dataset && a.dataset.src === src)) return;
+      try {
+        const audio = new Audio();
+        audio.dataset.src = src;
+        audio.preload = "auto";
+        audio.src = src;
+        audio.volume = 0;
+        audio.load();
+        startAudioCache.push(audio);
+
+        if (typeof window.preloadAudioPathFast === "function") {
+          window.preloadAudioPathFast(src);
+        }
+      } catch (error) {}
+    });
+  }
+
+  function unlockStartAudio(){
+    if (startAudioUnlocked) return;
+    startAudioUnlocked = true;
+
+    preloadStartAudio();
+
+    startAudioCache.slice(0, 4).forEach((audio) => {
+      try {
+        const clone = audio.cloneNode(true);
+        clone.volume = 0;
+        clone.muted = true;
+        const p = clone.play();
+        if (p && typeof p.then === "function") {
+          p.then(() => {
+            try {
+              clone.pause();
+              clone.currentTime = 0;
+              clone.remove();
+            } catch (error) {}
+          }).catch(() => {});
+        }
+      } catch (error) {}
+    });
+
+    if (typeof window.unlockAudioFast === "function") {
+      try { window.unlockAudioFast(); } catch (error) {}
+    }
+  }
+
+  function getStartVolume(){
+    try {
+      if (typeof window.getAssetVolume === "function") return window.getAssetVolume("start");
+    } catch (error) {}
+    return 0.5;
+  }
+
+  function playStartSoundImmediately(){
+    const now = Date.now();
+    if (now - lastManualStartSoundAt < 900) return true;
+    lastManualStartSoundAt = now;
+    window.__suppressDuplicateStartSoundUntil = now + 1100;
+
+    unlockStartAudio();
+
+    if (typeof window.playCachedAudioFast === "function") {
+      try {
+        if (window.playCachedAudioFast("start.mp3", { volume: getStartVolume() })) return true;
+        if (window.playCachedAudioFast("start", { volume: getStartVolume() })) return true;
+      } catch (error) {}
+    }
+
+    const base = startAudioCache.find((audio) => {
+      const src = audio.dataset?.src || "";
+      return src.endsWith("start.mp3") || src.endsWith("start.wav") || src.endsWith("start.ogg");
+    });
+
+    if (!base) return false;
+
+    try {
+      const audio = base.cloneNode(true);
+      audio.volume = getStartVolume();
+      audio.currentTime = 0;
+      const p = audio.play();
+      if (p && typeof p.then === "function") p.catch(() => {});
+      audio.addEventListener("ended", () => {
+        try { audio.remove(); } catch (error) {}
+      }, { once: true });
+      return true;
+    } catch (error) {
+      return false;
+    }
+  }
+
+  // 既存の playSound 等が start を二重で鳴らそうとした時の抑制
+  ["playSound", "playAudio", "playAssetAudio"].forEach((fnName) => {
+    if (typeof window[fnName] !== "function") return;
+    const previous = window[fnName];
+    window[fnName] = function suppressDuplicateStartSound(name, ...args){
+      const key = String(name || "").replace(/^.*\//, "").replace(/\.(mp3|wav|ogg)$/i, "");
+      if (key === "start" && Date.now() < (window.__suppressDuplicateStartSoundUntil || 0)) {
+        return;
+      }
+      return previous.apply(this, [name, ...args]);
+    };
+    try { window[fnName.replace(/^window\./, "")] = window[fnName]; } catch (error) {}
+  });
+
+  function isGameStartElement(target){
+    const el = target?.closest?.("button, .button, [role='button']");
+    if (!el) return false;
+    const text = (el.textContent || "").trim().toUpperCase();
+    const aria = (el.getAttribute("aria-label") || "").trim().toUpperCase();
+    const id = (el.id || "").toUpperCase();
+    const cls = (el.className || "").toString().toUpperCase();
+    return text.includes("GAME START")
+      || aria.includes("GAME START")
+      || id.includes("GAMESTART")
+      || id.includes("GAME_START")
+      || cls.includes("GAME-START")
+      || cls.includes("GAMESTART");
+  }
+
+  document.addEventListener("pointerdown", (event) => {
+    unlockStartAudio();
+    if (isGameStartElement(event.target)) {
+      playStartSoundImmediately();
+    }
+  }, { capture: true, passive: true });
+
+  document.addEventListener("click", (event) => {
+    if (isGameStartElement(event.target)) {
+      playStartSoundImmediately();
+    }
+  }, { capture: true, passive: true });
+
+  if (typeof window.startGame === "function") {
+    const previousStartGameForFastStartAudio = window.startGame;
+    window.startGame = function startGameWithFastStartAudio(){
+      playStartSoundImmediately();
+      return previousStartGameForFastStartAudio.apply(this, arguments);
+    };
+    try { startGame = window.startGame; } catch (error) {}
+  }
+
+  if (typeof window.startPlayRound === "function") {
+    const previousStartPlayRoundForFastStartAudio = window.startPlayRound;
+    window.startPlayRound = function startPlayRoundWithFastStartAudio(){
+      playStartSoundImmediately();
+      return previousStartPlayRoundForFastStartAudio.apply(this, arguments);
+    };
+    try { startPlayRound = window.startPlayRound; } catch (error) {}
+  }
+
+  document.addEventListener("DOMContentLoaded", preloadStartAudio);
+  window.addEventListener("load", preloadStartAudio);
+  preloadStartAudio();
+})();
+</script>
+
+<style id="plainWhiteCardResetPatchStyle">
+  .team-reset-button {
+    color: #fff !important;
+    border: 1px solid rgba(255,255,255,.74) !important;
+    background: rgba(255,255,255,.06) !important;
+    box-shadow: inset 0 1px 0 rgba(255,255,255,.10), 0 6px 14px rgba(0,0,0,.14) !important;
+  }
+
+  .board-card.red .team-reset-button,
+  .board-card.blue .team-reset-button {
+    border-color: rgba(255,255,255,.74) !important;
+    background: rgba(255,255,255,.06) !important;
+  }
+
+  .team-reset-button:hover {
+    background: rgba(255,255,255,.12) !important;
+    border-color: rgba(255,255,255,.92) !important;
+  }
+</style>
+
+<script id="plainWhiteCardResetPatch">
+(function(){
+  function relabelTeamResetButtons(){
+    const red = document.getElementById("redTeamResetButton");
+    const blue = document.getElementById("blueTeamResetButton");
+    if (red) red.textContent = "RESET";
+    if (blue) blue.textContent = "RESET";
+  }
+
+  document.addEventListener("DOMContentLoaded", relabelTeamResetButtons);
+  relabelTeamResetButtons();
+
+  if (typeof window.renderAll === "function") {
+    const previousRenderAllForPlainResetLabel = window.renderAll;
+    window.renderAll = function renderAllWithPlainResetLabel(){
+      const result = previousRenderAllForPlainResetLabel.apply(this, arguments);
+      relabelTeamResetButtons();
+      return result;
+    };
+    try { renderAll = window.renderAll; } catch (error) {}
+  }
+})();
+</script>
+
+<style id="matchCardResetButtonSizePatch">
+  /* カード内RESETを隣のシャッフルボタンと同じサイズ感に統一 */
+  .board-actions .team-reset-button {
+    min-width: 0 !important;
+    height: auto !important;
+    padding: 10px 16px !important;
+    border-radius: 999px !important;
+    font-size: 12px !important;
+    line-height: 1 !important;
+    font-weight: 1000 !important;
+    letter-spacing: .08em !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    box-sizing: border-box !important;
+    white-space: nowrap !important;
+  }
+
+  /* シャッフル側と同じ行で揃える */
+  .board-actions {
+    align-items: center !important;
+  }
+
+  .board-actions .team-reset-button,
+  .board-actions button {
+    vertical-align: middle !important;
+  }
+
+  @media (max-width: 900px) {
+    .board-actions .team-reset-button {
+      padding: 9px 14px !important;
+      font-size: 11px !important;
+    }
+  }
+
+  @media (max-width: 720px) {
+    .board-actions .team-reset-button {
+      padding: 8px 12px !important;
+      font-size: 10px !important;
+    }
+  }
+</style>
+
+<style id="matchCardResetButtonVisualPatch">
+  /*
+    RESETだけ白枠が強すぎて浮いていたので、
+    隣のシャッフル系ボタンと同じ「薄い枠・薄い背景・同じ影」に寄せる。
+  */
+  .board-actions .team-reset-button {
+    padding: 10px 16px !important;
+    min-height: 34px !important;
+    border-radius: 999px !important;
+    border-width: 1px !important;
+    border-style: solid !important;
+    border-color: rgba(255,255,255,.18) !important;
+    background: rgba(255,255,255,.08) !important;
+    color: #fff !important;
+    box-shadow:
+      inset 0 1px 0 rgba(255,255,255,.08),
+      0 6px 14px rgba(0,0,0,.16) !important;
+    font-size: 12px !important;
+    line-height: 1 !important;
+    font-weight: 1000 !important;
+    letter-spacing: .08em !important;
+    transform: none !important;
+  }
+
+  .board-card.red .board-actions .team-reset-button,
+  .board-card.blue .board-actions .team-reset-button {
+    border-color: rgba(255,255,255,.18) !important;
+    background: rgba(255,255,255,.08) !important;
+  }
+
+  .board-actions .team-reset-button:hover {
+    border-color: rgba(255,255,255,.26) !important;
+    background: rgba(255,255,255,.12) !important;
+    box-shadow:
+      inset 0 1px 0 rgba(255,255,255,.10),
+      0 7px 16px rgba(0,0,0,.18) !important;
+    transform: translateY(-1px) !important;
+  }
+
+  .board-actions .team-reset-button:active {
+    transform: translateY(0) !important;
+  }
+
+  /* RESETと隣ボタンの縦位置を完全に揃える */
+  .board-actions {
+    align-items: center !important;
+  }
+
+  .board-actions > button {
+    min-height: 34px !important;
+    box-sizing: border-box !important;
+  }
+
+  @media (max-width: 900px) {
+    .board-actions .team-reset-button,
+    .board-actions > button {
+      min-height: 32px !important;
+    }
+
+    .board-actions .team-reset-button {
+      padding: 9px 14px !important;
+      font-size: 11px !important;
+    }
+  }
+
+  @media (max-width: 720px) {
+    .board-actions .team-reset-button,
+    .board-actions > button {
+      min-height: 30px !important;
+    }
+
+    .board-actions .team-reset-button {
+      padding: 8px 12px !important;
+      font-size: 10px !important;
+    }
+  }
+</style>
+
+<style id="rankingTop3HighlightPatch">
+  /* ランキングTOP3を少し目立たせる */
+  .open-rank-card.rank-1 {
+    border-color: rgba(255, 215, 0, .72) !important;
+    background:
+      radial-gradient(circle at 16% 18%, rgba(255, 233, 128, .24), transparent 42%),
+      linear-gradient(180deg, rgba(255, 215, 0, .16), rgba(255,255,255,.045)) !important;
+    box-shadow:
+      inset 0 1px 0 rgba(255,255,255,.14),
+      0 0 18px rgba(255, 215, 0, .24),
+      0 8px 18px rgba(0,0,0,.18) !important;
+  }
+
+  .open-rank-card.rank-2 {
+    border-color: rgba(210, 224, 242, .66) !important;
+    background:
+      radial-gradient(circle at 16% 18%, rgba(220, 235, 255, .20), transparent 42%),
+      linear-gradient(180deg, rgba(210, 224, 242, .13), rgba(255,255,255,.04)) !important;
+    box-shadow:
+      inset 0 1px 0 rgba(255,255,255,.12),
+      0 0 15px rgba(190, 210, 235, .18),
+      0 8px 18px rgba(0,0,0,.16) !important;
+  }
+
+  .open-rank-card.rank-3 {
+    border-color: rgba(255, 174, 90, .66) !important;
+    background:
+      radial-gradient(circle at 16% 18%, rgba(255, 184, 105, .20), transparent 42%),
+      linear-gradient(180deg, rgba(255, 154, 74, .13), rgba(255,255,255,.04)) !important;
+    box-shadow:
+      inset 0 1px 0 rgba(255,255,255,.12),
+      0 0 15px rgba(255, 145, 65, .16),
+      0 8px 18px rgba(0,0,0,.16) !important;
+  }
+
+  .open-rank-card.rank-1 .open-rank-place::before {
+    content: "🏆 ";
+  }
+
+  .open-rank-card.rank-2 .open-rank-place::before {
+    content: "🥈 ";
+  }
+
+  .open-rank-card.rank-3 .open-rank-place::before {
+    content: "🥉 ";
+  }
+
+  .open-rank-card.rank-1 .open-rank-place,
+  .open-rank-card.rank-2 .open-rank-place,
+  .open-rank-card.rank-3 .open-rank-place {
+    color: #fff4b8 !important;
+    text-shadow: 0 1px 8px rgba(0,0,0,.34);
+  }
+
+  .open-rank-card.rank-1 .open-rank-count,
+  .open-rank-card.rank-2 .open-rank-count,
+  .open-rank-card.rank-3 .open-rank-count {
+    color: #ffffff !important;
+    text-shadow: 0 1px 8px rgba(0,0,0,.36);
+  }
+
+  .open-rank-card.rank-1 .open-rank-thumb,
+  .open-rank-card.rank-2 .open-rank-thumb,
+  .open-rank-card.rank-3 .open-rank-thumb {
+    transform: scale(1.04);
+    box-shadow: 0 0 12px rgba(255,255,255,.12);
+  }
+
+  .open-rank-card.rank-1 {
+    width: 158px !important;
+    min-width: 158px !important;
+    max-width: 158px !important;
+  }
+
+  @media (max-width: 1100px) {
+    .open-rank-card.rank-1 {
+      width: 144px !important;
+      min-width: 144px !important;
+      max-width: 144px !important;
+    }
+  }
+
+  @media (max-width: 720px) {
+    .open-rank-card.rank-1 {
+      width: 124px !important;
+      min-width: 124px !important;
+      max-width: 124px !important;
+    }
+
+    .open-rank-card.rank-1 .open-rank-place::before,
+    .open-rank-card.rank-2 .open-rank-place::before,
+    .open-rank-card.rank-3 .open-rank-place::before {
+      content: "";
+    }
+  }
+</style>
+
+<style id="resetExactShuffleStylePatch">
+  /*
+    RESETを「似せる」ではなく、カード内の他ボタンと完全に同じ系統へ。
+    これまでの白枠・専用背景・専用影を全部打ち消す。
+  */
+  .board-actions .team-reset-button,
+  .board-card.red .board-actions .team-reset-button,
+  .board-card.blue .board-actions .team-reset-button {
+    appearance: none !important;
+    -webkit-appearance: none !important;
+
+    /* 隣のSHUFFLE系ボタンに合わせる */
+    padding: 10px 16px !important;
+    min-height: 34px !important;
+    border-radius: 999px !important;
+    font-size: 12px !important;
+    line-height: 1 !important;
+    font-weight: 1000 !important;
+    letter-spacing: .08em !important;
+    white-space: nowrap !important;
+
+    /* 白枠をやめて、既存ボタンの薄い線へ */
+    border: 1px solid rgba(255,255,255,.16) !important;
+    background:
+      linear-gradient(180deg, rgba(255,255,255,.10), rgba(255,255,255,.045)) !important;
+    color: rgba(255,255,255,.92) !important;
+
+    box-shadow:
+      inset 0 1px 0 rgba(255,255,255,.10),
+      0 7px 16px rgba(0,0,0,.18) !important;
+
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    box-sizing: border-box !important;
+    transform: none !important;
+    filter: none !important;
+  }
+
+  .board-actions .team-reset-button:hover,
+  .board-card.red .board-actions .team-reset-button:hover,
+  .board-card.blue .board-actions .team-reset-button:hover {
+    border-color: rgba(255,255,255,.22) !important;
+    background:
+      linear-gradient(180deg, rgba(255,255,255,.13), rgba(255,255,255,.06)) !important;
+    box-shadow:
+      inset 0 1px 0 rgba(255,255,255,.12),
+      0 8px 18px rgba(0,0,0,.20) !important;
+    transform: translateY(-1px) !important;
+    filter: none !important;
+  }
+
+  .board-actions .team-reset-button:active {
+    transform: translateY(0) !important;
+  }
+
+  /* 念のため、過去パッチの赤青専用RESET色を完全に無効化 */
+  .team-reset-button {
+    border-color: rgba(255,255,255,.16) !important;
+    background:
+      linear-gradient(180deg, rgba(255,255,255,.10), rgba(255,255,255,.045)) !important;
+  }
+
+  /* 周辺ボタンと高さを合わせる */
+  .board-actions > button {
+    min-height: 34px !important;
+    box-sizing: border-box !important;
+  }
+</style>
+
+<script id="resetExactShuffleClassPatch">
+(function(){
+  function matchResetButtonToShuffle(){
+    const resets = [
+      document.getElementById("redTeamResetButton"),
+      document.getElementById("blueTeamResetButton")
+    ].filter(Boolean);
+
+    resets.forEach((reset) => {
+      reset.textContent = "RESET";
+
+      const actions = reset.closest(".board-actions");
+      const reference = actions ? [...actions.querySelectorAll("button")].find(btn => btn !== reset) : null;
+
+      // シャッフル側に付いているクラスをコピーして、見た目差を減らす
+      if (reference) {
+        const keep = ["team-reset-button"];
+        reset.className = `${reference.className || ""} ${keep.join(" ")}`.trim();
+      }
+
+      reset.style.borderColor = "";
+      reset.style.background = "";
+      reset.style.boxShadow = "";
+    });
+  }
+
+  document.addEventListener("DOMContentLoaded", matchResetButtonToShuffle);
+  matchResetButtonToShuffle();
+
+  if (typeof window.renderAll === "function") {
+    const previousRenderAllForExactResetStyle = window.renderAll;
+    window.renderAll = function renderAllWithExactResetStyle(){
+      const result = previousRenderAllForExactResetStyle.apply(this, arguments);
+      setTimeout(matchResetButtonToShuffle, 0);
+      return result;
+    };
+    try { renderAll = window.renderAll; } catch (error) {}
+  }
+})();
+</script>
+
+<style id="rankingTop3NoEmojiPatch">
+  .open-rank-card.rank-1 .open-rank-place::before,
+  .open-rank-card.rank-2 .open-rank-place::before,
+  .open-rank-card.rank-3 .open-rank-place::before {
+    content: "" !important;
+  }
+</style>
+
+<script id="resetCloneShuffleButtonPatch">
+(function(){
+  /*
+    RESETの見た目を完全にシャッフルと同じにするため、
+    既存RESETを「CSSで似せる」のではなく、隣のシャッフルボタンをcloneして作り直す。
+  */
+  function getTeamFromBoard(board){
+    if (!board) return null;
+    if (board.classList.contains("red")) return "red";
+    if (board.classList.contains("blue")) return "blue";
+    return null;
+  }
+
+  function resetTeam(team){
+    if (typeof window.resetTeamMarks === "function") {
+      window.resetTeamMarks(team);
+      return;
+    }
+
+    if (!state?.[team]?.marked) return;
+    state[team].marked = state[team].marked.map((_, index) => state?.[team]?.card?.[index] === "FREE");
+    if (state.bingoCounts) state.bingoCounts[team] = 0;
+    if (state.shownReach?.[team]) {
+      state.shownReach[team].normal = false;
+      state.shownReach[team].double = false;
+    }
+    if (state.shownBingo?.[team]) {
+      state.shownBingo[team].one = false;
+      state.shownBingo[team].win = false;
+    }
+    state.winner = null;
+    if (typeof window.renderAll === "function") window.renderAll();
+    else if (typeof renderAll === "function") renderAll();
+  }
+
+  function cloneResetFromShuffle(){
+    document.querySelectorAll(".board-card").forEach((board) => {
+      const team = getTeamFromBoard(board);
+      if (!team) return;
+
+      const actions = board.querySelector(".board-actions");
+      if (!actions) return;
+
+      const oldReset = actions.querySelector(`#${team}TeamResetButton, .team-reset-button`);
+      const shuffle = [...actions.querySelectorAll("button")].find((button) => {
+        if (button.classList.contains("team-reset-button")) return false;
+        const text = (button.textContent || "").toUpperCase();
+        return text.includes("SHUFFLE") || text.includes("CARD") || text.includes("DECK") || text.length > 0;
+      });
+
+      if (!shuffle) return;
+
+      // すでにクローン済みなら、見た目だけ再同期
+      if (oldReset?.dataset?.cloneReset === "true") {
+        oldReset.className = shuffle.className;
+        oldReset.textContent = "RESET";
+        oldReset.removeAttribute("style");
+        oldReset.dataset.cloneReset = "true";
+        return;
+      }
+
+      const reset = shuffle.cloneNode(true);
+      reset.id = `${team}TeamResetButton`;
+      reset.textContent = "RESET";
+      reset.dataset.cloneReset = "true";
+      reset.removeAttribute("onclick");
+      reset.removeAttribute("style");
+
+      // cloneNodeで不要な子要素がある場合でも文字だけにする
+      while (reset.firstChild) reset.removeChild(reset.firstChild);
+      reset.appendChild(document.createTextNode("RESET"));
+
+      reset.addEventListener("click", (event) => {
+        event.preventDefault();
+        event.stopPropagation();
+        resetTeam(team);
+      });
+
+      if (oldReset) {
+        oldReset.replaceWith(reset);
+      } else {
+        shuffle.insertAdjacentElement("afterend", reset);
+      }
+    });
+  }
+
+  document.addEventListener("DOMContentLoaded", cloneResetFromShuffle);
+  cloneResetFromShuffle();
+
+  if (typeof window.renderAll === "function") {
+    const previousRenderAllForResetCloneShuffle = window.renderAll;
+    window.renderAll = function renderAllWithResetCloneShuffle(){
+      const result = previousRenderAllForResetCloneShuffle.apply(this, arguments);
+      setTimeout(cloneResetFromShuffle, 0);
+      return result;
+    };
+    try { renderAll = window.renderAll; } catch (error) {}
+  }
+})();
+</script>
+
+<style id="resetCloneShuffleCleanupStyle">
+  /*
+    過去パッチのRESET専用CSSを全部打ち消す。
+    cloneしたRESETはシャッフルボタン自身のクラスだけで見た目を決める。
+  */
+  .board-actions button[data-clone-reset="true"] {
+    border: inherit;
+    background: inherit;
+    box-shadow: inherit;
+    color: inherit;
+    padding: inherit;
+    border-radius: inherit;
+    font-size: inherit;
+    font-weight: inherit;
+    letter-spacing: inherit;
+    min-height: inherit;
+  }
+</style>
+
+<style id="resetWhiteFrameFinalMatchPatch">
+  /*
+    RESETの白枠を復活。
+    シャッフルボタンと並べた時に浮きにくいよう、
+    サイズ・角丸・背景・影は同系統にしつつ、枠だけ白で統一。
+  */
+  .board-actions button[data-clone-reset="true"],
+  .board-actions .team-reset-button,
+  #redTeamResetButton,
+  #blueTeamResetButton {
+    color: #ffffff !important;
+    border: 1px solid rgba(255,255,255,.72) !important;
+    background:
+      linear-gradient(180deg, rgba(255,255,255,.10), rgba(255,255,255,.045)) !important;
+    box-shadow:
+      inset 0 1px 0 rgba(255,255,255,.10),
+      0 7px 16px rgba(0,0,0,.18) !important;
+    padding: 10px 16px !important;
+    min-height: 34px !important;
+    border-radius: 999px !important;
+    font-size: 12px !important;
+    line-height: 1 !important;
+    font-weight: 1000 !important;
+    letter-spacing: .08em !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    box-sizing: border-box !important;
+    white-space: nowrap !important;
+  }
+
+  .board-actions button[data-clone-reset="true"]:hover,
+  .board-actions .team-reset-button:hover,
+  #redTeamResetButton:hover,
+  #blueTeamResetButton:hover {
+    border-color: rgba(255,255,255,.92) !important;
+    background:
+      linear-gradient(180deg, rgba(255,255,255,.14), rgba(255,255,255,.06)) !important;
+    box-shadow:
+      inset 0 1px 0 rgba(255,255,255,.12),
+      0 8px 18px rgba(0,0,0,.20) !important;
+    transform: translateY(-1px) !important;
+  }
+
+  .board-actions button[data-clone-reset="true"]:active,
+  .board-actions .team-reset-button:active,
+  #redTeamResetButton:active,
+  #blueTeamResetButton:active {
+    transform: translateY(0) !important;
+  }
+
+  /* 周辺ボタンとの高さズレ防止 */
+  .board-actions > button {
+    min-height: 34px !important;
+    box-sizing: border-box !important;
+  }
+</style>
+
+<script id="rareTeamNameTextFixPatch">
+(function(){
+  const BAD = "うんっちちーむ";
+  const GOOD = "うんちっちーむ";
+
+  function fixRareTeamNameText(){
+    [
+      "versusRedName",
+      "versusBlueName",
+      "redBoardAutoTeamName",
+      "blueBoardAutoTeamName"
+    ].forEach((id) => {
+      const el = document.getElementById(id);
+      if (el && el.textContent && el.textContent.includes(BAD)) {
+        el.textContent = el.textContent.replaceAll(BAD, GOOD);
+      }
+    });
+
+    try {
+      const raw = localStorage.getItem("team_bingo_board_team_titles_v1");
+      if (raw && raw.includes(BAD)) {
+        localStorage.setItem("team_bingo_board_team_titles_v1", raw.replaceAll(BAD, GOOD));
+      }
+    } catch (error) {}
+  }
+
+  document.addEventListener("DOMContentLoaded", fixRareTeamNameText);
+  fixRareTeamNameText();
+
+  if (typeof window.showVersusIntro === "function") {
+    const previousShowVersusIntroForRareTextFix = window.showVersusIntro;
+    window.showVersusIntro = function showVersusIntroRareTextFix(){
+      const result = previousShowVersusIntroForRareTextFix.apply(this, arguments);
+      setTimeout(fixRareTeamNameText, 0);
+      setTimeout(fixRareTeamNameText, 80);
+      setTimeout(fixRareTeamNameText, 200);
+      return result;
+    };
+    try { showVersusIntro = window.showVersusIntro; } catch (error) {}
+  }
 })();
 </script>
 
