@@ -15699,5 +15699,233 @@ body.theme-comic { background: radial-gradient(circle at 20% 20%, #fff46b, trans
 })();
 </script>
 
+<script id="audioLatencyPreloadFixPatch">
+(function(){
+  /*
+    Web公開時に音が遅れて鳴る対策：
+    - 主要音声をページ読み込み時に preload
+    - 初回ユーザー操作で audio context / HTMLAudio をアンロック
+    - 再生時はキャッシュ済みAudioを cloneNode して即再生
+    - 既存の playSound / playAudio があれば横取りして高速化
+  */
+  const AUDIO_EXTS = ["mp3", "wav", "ogg"];
+
+  const AUDIO_KEYS = [
+    "open",
+    "shuffle",
+    "reach",
+    "reach-zero",
+    "reach-one",
+    "first-bingo",
+    "bingo",
+    "bingo-win",
+    "cheer",
+    "start",
+    "open-red-zero",
+    "open-red-one",
+    "open-blue-zero",
+    "open-blue-one"
+  ];
+
+  const AUDIO_PATH_CANDIDATES = [];
+
+  AUDIO_KEYS.forEach((key) => {
+    AUDIO_EXTS.forEach((ext) => {
+      AUDIO_PATH_CANDIDATES.push(`${key}.${ext}`);
+      AUDIO_PATH_CANDIDATES.push(`sounds/${key}.${ext}`);
+      AUDIO_PATH_CANDIDATES.push(`audio/${key}.${ext}`);
+      AUDIO_PATH_CANDIDATES.push(`assets/${key}.${ext}`);
+      AUDIO_PATH_CANDIDATES.push(`assets/audio/${key}.${ext}`);
+    });
+  });
+
+  const audioCache = new Map();
+  let audioUnlocked = false;
+
+  function normalizeKey(name){
+    return String(name || "")
+      .replace(/^.*\//, "")
+      .replace(/\.(mp3|wav|ogg)$/i, "")
+      .trim();
+  }
+
+  function getAssetVolumeSafe(key){
+    try {
+      if (typeof window.getAssetVolume === "function") return window.getAssetVolume(key);
+    } catch (error) {}
+    return 0.5;
+  }
+
+  function preloadAudioPath(path){
+    if (audioCache.has(path)) return audioCache.get(path);
+
+    try {
+      const audio = new Audio();
+      audio.preload = "auto";
+      audio.src = path;
+      audio.volume = 0;
+      audio.load();
+      audioCache.set(path, audio);
+      return audio;
+    } catch (error) {
+      return null;
+    }
+  }
+
+  function warmupAudios(){
+    AUDIO_PATH_CANDIDATES.forEach(preloadAudioPath);
+  }
+
+  function unlockAudios(){
+    if (audioUnlocked) return;
+    audioUnlocked = true;
+
+    // iOS/Chrome系の自動再生制限対策。ユーザー操作内で一瞬だけ再生予約する。
+    const samples = [...audioCache.values()].slice(0, 10);
+    samples.forEach((audio) => {
+      try {
+        const clone = audio.cloneNode(true);
+        clone.volume = 0;
+        clone.muted = true;
+        const p = clone.play();
+        if (p && typeof p.then === "function") {
+          p.then(() => {
+            try {
+              clone.pause();
+              clone.currentTime = 0;
+              clone.remove();
+            } catch (error) {}
+          }).catch(() => {});
+        }
+      } catch (error) {}
+    });
+  }
+
+  function resolveAudioCandidate(name){
+    const raw = String(name || "");
+    const key = normalizeKey(raw);
+
+    const directCandidates = [];
+
+    if (/\.(mp3|wav|ogg)$/i.test(raw)) {
+      directCandidates.push(raw);
+    }
+
+    AUDIO_EXTS.forEach((ext) => {
+      directCandidates.push(`${key}.${ext}`);
+      directCandidates.push(`sounds/${key}.${ext}`);
+      directCandidates.push(`audio/${key}.${ext}`);
+      directCandidates.push(`assets/${key}.${ext}`);
+      directCandidates.push(`assets/audio/${key}.${ext}`);
+    });
+
+    for (const path of directCandidates) {
+      if (audioCache.has(path)) return path;
+    }
+
+    // キャッシュになければ、とりあえず一番ありそうなものを即作る
+    const fallback = directCandidates[0];
+    preloadAudioPath(fallback);
+    return fallback;
+  }
+
+  function playCachedAudio(name, options = {}){
+    const key = normalizeKey(name);
+    const path = resolveAudioCandidate(name);
+    const base = audioCache.get(path) || preloadAudioPath(path);
+    if (!base) return false;
+
+    try {
+      const audio = base.cloneNode(true);
+      audio.preload = "auto";
+      audio.currentTime = 0;
+      audio.volume = Math.max(0, Math.min(1, options.volume ?? getAssetVolumeSafe(key)));
+      audio.muted = false;
+
+      const p = audio.play();
+      if (p && typeof p.then === "function") {
+        p.catch(() => {
+          // 失敗しても既存処理へフォールバックできるよう false 扱い
+        });
+      }
+
+      audio.addEventListener("ended", () => {
+        try { audio.remove(); } catch (error) {}
+      }, { once: true });
+
+      return true;
+    } catch (error) {
+      return false;
+    }
+  }
+
+  window.__audioLatencyCache = audioCache;
+  window.preloadAudioPathFast = preloadAudioPath;
+  window.playCachedAudioFast = playCachedAudio;
+  window.unlockAudioFast = unlockAudios;
+
+  document.addEventListener("DOMContentLoaded", warmupAudios);
+  window.addEventListener("load", warmupAudios);
+
+  ["pointerdown", "mousedown", "touchstart", "keydown", "click"].forEach((eventName) => {
+    document.addEventListener(eventName, unlockAudios, { once: true, passive: true });
+  });
+
+  // 既存の playSound を高速化
+  if (typeof window.playSound === "function") {
+    const previousPlaySoundForLatencyFix = window.playSound;
+    window.playSound = function playSoundLatencyFixed(name, ...args){
+      const ok = playCachedAudio(name);
+      if (ok) return;
+      return previousPlaySoundForLatencyFix.apply(this, [name, ...args]);
+    };
+    try { playSound = window.playSound; } catch (error) {}
+  }
+
+  // 既存の playAudio を高速化
+  if (typeof window.playAudio === "function") {
+    const previousPlayAudioForLatencyFix = window.playAudio;
+    window.playAudio = function playAudioLatencyFixed(name, ...args){
+      const ok = playCachedAudio(name);
+      if (ok) return;
+      return previousPlayAudioForLatencyFix.apply(this, [name, ...args]);
+    };
+    try { playAudio = window.playAudio; } catch (error) {}
+  }
+
+  // 既存の playAssetAudio を高速化
+  if (typeof window.playAssetAudio === "function") {
+    const previousPlayAssetAudioForLatencyFix = window.playAssetAudio;
+    window.playAssetAudio = function playAssetAudioLatencyFixed(name, ...args){
+      const ok = playCachedAudio(name);
+      if (ok) return;
+      return previousPlayAssetAudioForLatencyFix.apply(this, [name, ...args]);
+    };
+    try { playAssetAudio = window.playAssetAudio; } catch (error) {}
+  }
+
+  // よく使うクリック音はクリック直前にさらにウォームアップ
+  if (typeof window.toggleCell === "function") {
+    const previousToggleCellForAudioWarmup = window.toggleCell;
+    window.toggleCell = function toggleCellWithAudioWarmup(team, index){
+      try {
+        const bingoCount = state?.bingoCounts?.[team] || 0;
+        const prefix = team === "blue" ? "open-blue" : "open-red";
+        preloadAudioPath(`${prefix}-${bingoCount > 0 ? "one" : "zero"}.mp3`);
+        preloadAudioPath(`${prefix}-${bingoCount > 0 ? "one" : "zero"}.wav`);
+        preloadAudioPath(`${prefix}-${bingoCount > 0 ? "one" : "zero"}.ogg`);
+        preloadAudioPath("open.mp3");
+        preloadAudioPath("open.wav");
+        preloadAudioPath("open.ogg");
+      } catch (error) {}
+      return previousToggleCellForAudioWarmup.apply(this, arguments);
+    };
+    try { toggleCell = window.toggleCell; } catch (error) {}
+  }
+
+  warmupAudios();
+})();
+</script>
+
 </body>
 </html>
