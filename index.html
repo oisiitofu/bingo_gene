@@ -12287,5 +12287,3417 @@ body.theme-comic { background: radial-gradient(circle at 20% 20%, #fff46b, trans
 })();
 </script>
 
+<style id="oisiitofuCopyrightStyle">
+  .oisiitofu-copyright {
+    position: fixed;
+    right: 10px;
+    bottom: 8px;
+    z-index: 70;
+    pointer-events: none;
+    font-size: 12px;
+    font-weight: 800;
+    letter-spacing: .08em;
+    color: rgba(255,255,255,.72);
+    text-shadow: 0 1px 6px rgba(0,0,0,.45);
+    opacity: .9;
+  }
+
+  body:not(.playing) .oisiitofu-copyright {
+    bottom: 10px;
+  }
+
+  @media (max-width: 720px) {
+    .oisiitofu-copyright {
+      right: 8px;
+      bottom: 6px;
+      font-size: 10px;
+    }
+  }
+</style>
+
+<script id="victoryStyleVoiceCommentsPatch">
+(function(){
+  const VICTORY_LIKE_VOICE_LINES = {
+    neutral: [
+      "このまま勝ち切る！",
+      "いいぞ、その勢い！",
+      "よっしゃ、流れきた！",
+      "勝ちの空気が出てきた！",
+      "もう止まらない！",
+      "これは気持ちいい！",
+      "ナイス！その調子！",
+      "いい波きてる！",
+      "勝利が近づいてる！",
+      "この流れ、もらった！",
+      "会場わいてる！",
+      "最高のテンション！",
+      "これはアガる！",
+      "いける、いける！",
+      "その一手、めっちゃいい！",
+      "勝ち筋、かなり見えてる！",
+      "決めにいけるぞ！",
+      "テンション上がる！",
+      "今のは強い！",
+      "盛り上がってきた！",
+      "これはノってる！",
+      "もう一段ギア上げよう！",
+      "いま完全に勢いある！",
+      "勝つ時の空気だ！",
+      "拍手が聞こえる！",
+      "これ、かなり熱い！",
+      "そのまま押し切れ！",
+      "ナイスムーブ！",
+      "この勢いは本物！",
+      "よし、主役きた！",
+      "この勝負、取れる！",
+      "勝ち顔になってきた！",
+      "いまの気持ちよすぎる！",
+      "テンポ完璧！",
+      "乗ってきた乗ってきた！",
+      "ここから決めるぞ！",
+      "強い！その一言！",
+      "これが勝者の流れ！",
+      "完全に盛り上がってきた！",
+      "ナイス！勝利が見える！",
+      "一気に持っていこう！",
+      "今のはごきげん！",
+      "いいぞ、その笑顔！",
+      "これは勝ちたい音がする！",
+      "よっしゃ、景色変わった！",
+      "このままフィニッシュまで！",
+      "いまのは大歓声！",
+      "すでに勝ちムード！",
+      "おいしい展開！",
+      "よし、ついてる！",
+      "これは嬉しい！",
+      "強気でいける！",
+      "そのまま前へ！",
+      "勝利へのスピード上がった！",
+      "この試合、アツすぎる！",
+      "気分はもうヒーロー！",
+      "決まったら最高やぞ！",
+      "よしよし、いい流れ！",
+      "ここから伝説にしよう！",
+      "勝ちを呼んでる！",
+      "いまの一言でさらにノれる！",
+      "これは笑顔になる！",
+      "今日イチのノリ！",
+      "めっちゃ気持ちいい！",
+      "いいぞ、勝ち切ろう！",
+      "ここで一気に仕上げたい！",
+      "いま完全に来てる！",
+      "いい勢い、離さない！",
+      "それ、勝者の一手！",
+      "歓声が似合う！",
+      "よし、勝ちへの道が光ってる！",
+      "テンション、爆上がり！",
+      "この流れは強い！",
+      "これはもう盛り上がるしかない！",
+      "そのまま決め顔でいこう！",
+      "勢い、最高潮！",
+      "勝利の匂いが濃い！",
+      "もう一歩で歓喜だ！",
+      "これはうれしすぎる！",
+      "GGの空気、出てきた！",
+      "このままエンディング見にいこう！",
+      "勝ちに寄ってる！",
+      "次も決めてしまえ！",
+      "お祭りモード入った！",
+      "これぞ主役の流れ！",
+      "流れ、完全に味方！",
+      "いける、マジでいける！",
+      "会場の温度上がった！",
+      "勢いで持っていける！",
+      "そのまま優勝コメントまで！",
+      "笑って勝ちたい！",
+      "最高の空気！",
+      "決まったらかっこよすぎる！",
+      "今日は勝ちたい日！",
+      "うれしい流れが来た！",
+      "ここで魅せたい！",
+      "決めたらヒーローだ！",
+      "勝ち切る準備、できてる！",
+      "このまま祝勝会いこう！",
+      "相手もしんどいやろこれ！",
+      "もう相手の顔が曇ってる！",
+      "ちょっと相手、焦ってない？",
+      "この勢い、相手は止めづらい！",
+      "相手には悪いけど最高！",
+      "このまま相手を置いていく！",
+      "相手目線だとイヤすぎる！",
+      "相手、今のでヒヤッとしたはず！",
+      "この流れは相手に重い！",
+      "悪いけど、こっちの時間です！",
+      "相手さん、受け止めきれる？",
+      "じわっと効いてるぞこれ！",
+      "その一手、相手には刺さる！",
+      "相手のメンタル揺らしたい！",
+      "もうちょい煽ってもいい流れ！",
+      "これは相手も苦笑い！",
+      "相手の心にスマッシュ！",
+      "勝利ポーズの準備しとこ！",
+      "バースト圏内、見えてきた！",
+      "そのまま撃墜まで持っていく！",
+      "最後はスマッシュ級に決めたい！",
+      "今のノリ、完全にラストストック！",
+      "これ、ほぼ撃墜演出！",
+      "まだ飛ばない？じゃあもう一発！",
+      "その勢い、VIP部屋の勝ち方！",
+      "相手、復帰したいけど苦しい！",
+      "このまま場外まで連れていけ！",
+      "会心の一撃、見えてきた！",
+      "次はフィニッシュブローだ！",
+      "ここから逆転なんてさせない！",
+      "その一手、完全に勝者の火力！",
+      "よし、勝利BGMが聞こえる！",
+      "今のはテンションMAX！"
+    ],
+    red: [
+      "赤、勝ちに燃えてる！",
+      "赤チーム、このまま祝勝会だ！",
+      "赤、歓喜の流れきた！",
+      "赤、これは決めたい！",
+      "赤の勢い、派手でいい！",
+      "赤、相手を飲み込む勢い！",
+      "赤、勝利インタビュー見えてる！",
+      "赤、主役ムーブ入った！",
+      "赤、気持ちよく勝ちにいけ！",
+      "赤、このままフィニッシュだ！",
+      "赤、めちゃくちゃアツい！",
+      "赤、笑って終わろう！",
+      "赤、相手にプレッシャーかけてる！",
+      "赤、バースト級のノリ！",
+      "赤、完全に決めにいってる！"
+    ],
+    blue: [
+      "青、勝利の風が吹いてる！",
+      "青チーム、この流れをものにしたい！",
+      "青、いいぞ、そのまま行け！",
+      "青、歓喜の瞬間が近い！",
+      "青、かなり気持ちいい流れ！",
+      "青、相手が嫌がる勢い！",
+      "青、勝ち切る顔してる！",
+      "青、テンション高めでいこう！",
+      "青、ここで一気に主役だ！",
+      "青、このまま決めたい！",
+      "青、ノリノリで勝ちにいく！",
+      "青、笑顔で締めたい！",
+      "青、相手には重たい流れ！",
+      "青、フィニッシュ見えてる！",
+      "青、完全に歓声の中心！"
+    ]
+  };
+
+  function pickVictoryLikeVoiceLine(team){
+    const teamPool = VICTORY_LIKE_VOICE_LINES[team] || [];
+    const pool = [...VICTORY_LIKE_VOICE_LINES.neutral, ...teamPool];
+    return pool[Math.floor(Math.random() * pool.length)];
+  }
+
+  function rewriteLatestVoiceVictoryStyle(team){
+    const lane = document.getElementById(team === "red" ? "voiceLogLaneLeft" : "voiceLogLaneRight");
+    if (!lane) return;
+    const item = lane.querySelector(".voice-log-item");
+    if (!item) return;
+
+    const text = item.querySelector(".voice-log-text");
+    if (text) text.textContent = pickVictoryLikeVoiceLine(team);
+
+    const kicker = item.querySelector(".voice-log-kicker");
+    const sub = item.querySelector(".voice-log-sub");
+    if (kicker) kicker.remove();
+    if (sub) sub.remove();
+  }
+
+  function ensureCopyright(){
+    if (document.querySelector(".oisiitofu-copyright")) return;
+    const el = document.createElement("div");
+    el.className = "oisiitofu-copyright";
+    el.textContent = "© 2026 Oisiitofu";
+    document.body.appendChild(el);
+  }
+
+  document.addEventListener("DOMContentLoaded", ensureCopyright);
+  ensureCopyright();
+
+  if (typeof window.toggleCell === "function") {
+    const previousToggleCellForVictoryVoice = window.toggleCell;
+    window.toggleCell = function toggleCellWithVictoryStyleVoice(team, index){
+      const beforeMarked = !!state?.[team]?.marked?.[index];
+      const cellValue = state?.[team]?.card?.[index];
+      const result = previousToggleCellForVictoryVoice.apply(this, arguments);
+      const afterMarked = !!state?.[team]?.marked?.[index];
+      const openedNewCell = !beforeMarked && afterMarked && cellValue && cellValue !== "FREE";
+      if (openedNewCell && !state?.winner) {
+        setTimeout(() => rewriteLatestVoiceVictoryStyle(team), 25);
+      }
+      return result;
+    };
+    try { toggleCell = window.toggleCell; } catch (error) {}
+  }
+})();
+</script>
+
+<style id="commentaryThirtySecondDisplayStyle">
+  /* 中央実況を約30秒表示 */
+  .commentary-burst.show {
+    animation:
+      commentaryIn .34s cubic-bezier(.16,1.2,.2,1) both,
+      commentaryOut .36s 29.6s ease forwards !important;
+  }
+</style>
+
+<script id="commentaryThirtySecondDisplayPatch">
+(function(){
+  const COMMENTARY_DISPLAY_MS = 30000;
+
+  function extendCommentaryDisplay(){
+    const burst = document.getElementById("commentaryBurst");
+    if (!burst || !burst.classList.contains("show")) return;
+
+    clearTimeout(window.__commentaryThirtySecondTimer);
+    window.__commentaryThirtySecondTimer = setTimeout(() => {
+      burst.classList.remove("show");
+    }, COMMENTARY_DISPLAY_MS);
+  }
+
+  if (typeof window.showSituationCommentary === "function") {
+    const previousShowSituationCommentaryForThirtySeconds = window.showSituationCommentary;
+
+    window.showSituationCommentary = function showSituationCommentaryThirtySeconds(){
+      const result = previousShowSituationCommentaryForThirtySeconds.apply(this, arguments);
+      setTimeout(extendCommentaryDisplay, 20);
+      return result;
+    };
+
+    try { showSituationCommentary = window.showSituationCommentary; } catch (error) {}
+  }
+
+  if (typeof window.showVersusIntro === "function") {
+    const previousShowVersusIntroForThirtySeconds = window.showVersusIntro;
+
+    window.showVersusIntro = function showVersusIntroThirtySeconds(){
+      const result = previousShowVersusIntroForThirtySeconds.apply(this, arguments);
+      setTimeout(extendCommentaryDisplay, 20);
+      return result;
+    };
+
+    try { showVersusIntro = window.showVersusIntro; } catch (error) {}
+  }
+})();
+</script>
+
+<style id="persistentBoardTeamNameStyle">
+  .board-team-members-wrap {
+    display: flex !important;
+    flex-direction: column !important;
+    align-items: flex-start !important;
+    gap: 3px !important;
+    min-width: 0 !important;
+  }
+
+  .board-auto-team-name {
+    display: block;
+    max-width: 100%;
+    font-size: clamp(14px, 1.55vw, 22px);
+    font-weight: 1000;
+    letter-spacing: .04em;
+    line-height: 1.04;
+    color: #ffffff;
+    text-shadow: 0 2px 8px rgba(0,0,0,.28);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .board-card.red .board-auto-team-name {
+    color: #ffe3e8;
+  }
+
+  .board-card.blue .board-auto-team-name {
+    color: #dceaff;
+  }
+
+  .board-members-name {
+    margin-top: 0 !important;
+  }
+
+  @media (max-width: 900px) {
+    .board-auto-team-name {
+      font-size: clamp(12px, 2.5vw, 18px);
+    }
+  }
+</style>
+
+<script id="persistentBoardTeamNameScript">
+(function(){
+  function ensureBoardTeamNameDom(){
+    const redWrap = document.querySelector(".board-card.red .board-team-members-wrap");
+    const blueWrap = document.querySelector(".board-card.blue .board-team-members-wrap");
+
+    if (redWrap && !document.getElementById("redBoardAutoTeamName")) {
+      const el = document.createElement("div");
+      el.id = "redBoardAutoTeamName";
+      el.className = "board-auto-team-name";
+      el.textContent = "紅の挑戦者";
+      redWrap.insertBefore(el, redWrap.firstChild);
+    }
+
+    if (blueWrap && !document.getElementById("blueBoardAutoTeamName")) {
+      const el = document.createElement("div");
+      el.id = "blueBoardAutoTeamName";
+      el.className = "board-auto-team-name";
+      el.textContent = "蒼の刺客";
+      blueWrap.insertBefore(el, blueWrap.firstChild);
+    }
+  }
+
+  function setPersistentBoardTeamNames(redName, blueName){
+    ensureBoardTeamNameDom();
+
+    const redEl = document.getElementById("redBoardAutoTeamName");
+    const blueEl = document.getElementById("blueBoardAutoTeamName");
+
+    if (redEl) redEl.textContent = redName || "紅の挑戦者";
+    if (blueEl) blueEl.textContent = blueName || "蒼の刺客";
+
+    window.__persistentBoardTeamNames = {
+      red: redName || "紅の挑戦者",
+      blue: blueName || "蒼の刺客"
+    };
+  }
+
+  function getPersistentBoardTeamNames(){
+    const saved = window.__persistentBoardTeamNames || {};
+    return {
+      red: saved.red || "紅の挑戦者",
+      blue: saved.blue || "蒼の刺客"
+    };
+  }
+
+  document.addEventListener("DOMContentLoaded", () => {
+    ensureBoardTeamNameDom();
+    const saved = getPersistentBoardTeamNames();
+    setPersistentBoardTeamNames(saved.red, saved.blue);
+  });
+
+  if (typeof window.showVersusIntro === "function") {
+    const previousShowVersusIntroForBoardNames = window.showVersusIntro;
+
+    window.showVersusIntro = function showVersusIntroWithPersistentBoardNames(){
+      ensureBoardTeamNameDom();
+
+      const redName = (typeof window.makeAutoTeamName === "function")
+        ? window.makeAutoTeamName("red")
+        : "紅の挑戦者";
+      const blueName = (typeof window.makeAutoTeamName === "function")
+        ? window.makeAutoTeamName("blue")
+        : "蒼の刺客";
+
+      const versusRedName = document.getElementById("versusRedName");
+      const versusBlueName = document.getElementById("versusBlueName");
+
+      if (versusRedName) versusRedName.textContent = redName;
+      if (versusBlueName) versusBlueName.textContent = blueName;
+
+      setPersistentBoardTeamNames(redName, blueName);
+
+      return previousShowVersusIntroForBoardNames.apply(this, arguments);
+    };
+
+    try { showVersusIntro = window.showVersusIntro; } catch (error) {}
+  }
+
+  if (typeof window.replayTeamIntro === "function") {
+    const previousReplayTeamIntroForBoardNames = window.replayTeamIntro;
+    window.replayTeamIntro = function replayTeamIntroWithPersistentBoardNames(){
+      ensureBoardTeamNameDom();
+      const result = previousReplayTeamIntroForBoardNames.apply(this, arguments);
+      const saved = getPersistentBoardTeamNames();
+      setPersistentBoardTeamNames(saved.red, saved.blue);
+      return result;
+    };
+    try { replayTeamIntro = window.replayTeamIntro; } catch (error) {}
+  }
+})();
+</script>
+
+<script id="uniqueMatchVoiceLinesPatch">
+(function(){
+  const UNIQUE_MATCH_VOICE_LINES = {
+    neutral: [
+      "このまま勝ち切る！",
+      "いいぞ、その勢い！",
+      "よっしゃ、流れきた！",
+      "勝ちの空気が出てきた！",
+      "もう止まらない！",
+      "これは気持ちいい！",
+      "ナイス！その調子！",
+      "いい波きてる！",
+      "勝利が近づいてる！",
+      "この流れ、もらった！",
+      "会場わいてる！",
+      "最高のテンション！",
+      "これはアガる！",
+      "いける、いける！",
+      "その一手、めっちゃいい！",
+      "勝ち筋、かなり見えてる！",
+      "決めにいけるぞ！",
+      "テンション上がる！",
+      "今のは強い！",
+      "盛り上がってきた！",
+      "これはノってる！",
+      "もう一段ギア上げよう！",
+      "いま完全に勢いある！",
+      "勝つ時の空気だ！",
+      "拍手が聞こえる！",
+      "これ、かなり熱い！",
+      "そのまま押し切れ！",
+      "ナイスムーブ！",
+      "この勢いは本物！",
+      "よし、主役きた！",
+      "この勝負、取れる！",
+      "勝ち顔になってきた！",
+      "いまの気持ちよすぎる！",
+      "テンポ完璧！",
+      "乗ってきた乗ってきた！",
+      "ここから決めるぞ！",
+      "強い！その一言！",
+      "これが勝者の流れ！",
+      "完全に盛り上がってきた！",
+      "ナイス！勝利が見える！",
+      "一気に持っていこう！",
+      "今のはごきげん！",
+      "いいぞ、その笑顔！",
+      "これは勝ちたい音がする！",
+      "よっしゃ、景色変わった！",
+      "このままフィニッシュまで！",
+      "いまのは大歓声！",
+      "すでに勝ちムード！",
+      "おいしい展開！",
+      "よし、ついてる！",
+      "これは嬉しい！",
+      "強気でいける！",
+      "そのまま前へ！",
+      "勝利へのスピード上がった！",
+      "この試合、アツすぎる！",
+      "気分はもうヒーロー！",
+      "決まったら最高やぞ！",
+      "よしよし、いい流れ！",
+      "ここから伝説にしよう！",
+      "勝ちを呼んでる！",
+      "いまの一言でさらにノれる！",
+      "これは笑顔になる！",
+      "今日イチのノリ！",
+      "めっちゃ気持ちいい！",
+      "いいぞ、勝ち切ろう！",
+      "ここで一気に仕上げたい！",
+      "いま完全に来てる！",
+      "いい勢い、離さない！",
+      "それ、勝者の一手！",
+      "歓声が似合う！",
+      "よし、勝ちへの道が光ってる！",
+      "テンション、爆上がり！",
+      "この流れは強い！",
+      "これはもう盛り上がるしかない！",
+      "そのまま決め顔でいこう！",
+      "勢い、最高潮！",
+      "勝利の匂いが濃い！",
+      "もう一歩で歓喜だ！",
+      "これはうれしすぎる！",
+      "GGの空気、出てきた！",
+      "このままエンディング見にいこう！",
+      "勝ちに寄ってる！",
+      "次も決めてしまえ！",
+      "お祭りモード入った！",
+      "これぞ主役の流れ！",
+      "流れ、完全に味方！",
+      "いける、マジでいける！",
+      "会場の温度上がった！",
+      "勢いで持っていける！",
+      "そのまま優勝コメントまで！",
+      "笑って勝ちたい！",
+      "最高の空気！",
+      "決まったらかっこよすぎる！",
+      "今日は勝ちたい日！",
+      "うれしい流れが来た！",
+      "ここで魅せたい！",
+      "決めたらヒーローだ！",
+      "勝ち切る準備、できてる！",
+      "このまま祝勝会いこう！",
+      "相手には悪いけど最高！",
+      "このまま相手を置いていく！",
+      "相手目線だとイヤすぎる！",
+      "相手、今のでヒヤッとしたはず！",
+      "この流れは相手に重い！",
+      "悪いけど、こっちの時間です！",
+      "相手さん、受け止めきれる？",
+      "じわっと効いてるぞこれ！",
+      "その一手、相手には刺さる！",
+      "相手のメンタル揺らしたい！",
+      "もうちょい煽ってもいい流れ！",
+      "これは相手も苦笑い！",
+      "相手の心にスマッシュ！",
+      "勝利ポーズの準備しとこ！",
+      "バースト圏内、見えてきた！",
+      "そのまま撃墜まで持っていく！",
+      "最後はスマッシュ級に決めたい！",
+      "今のノリ、完全にラストストック！",
+      "これ、ほぼ撃墜演出！",
+      "まだ飛ばない？じゃあもう一発！",
+      "その勢い、VIP部屋の勝ち方！",
+      "相手、復帰したいけど苦しい！",
+      "このまま場外まで連れていけ！",
+      "会心の一撃、見えてきた！",
+      "次はフィニッシュブローだ！",
+      "ここから逆転なんてさせない！",
+      "その一手、完全に勝者の火力！",
+      "よし、勝利BGMが聞こえる！",
+      "今のはテンションMAX！",
+      "歓喜の準備、始めよう！",
+      "いよいよ決着の匂い！",
+      "ノリが勝利側に傾いた！",
+      "見てるこっちまでうれしい！",
+      "勝ちのドラマが動いてる！",
+      "この勢い、実況も止まらない！",
+      "最高に景気がいい！",
+      "祝福の拍手が似合う！",
+      "相手を置き去りにするテンポ！",
+      "その一声でさらに強くなる！",
+      "気持ちよく勝ちに行ける！",
+      "雰囲気が完全に追い風！",
+      "勝者の笑いが聞こえる！",
+      "一気に祝福モードへ！",
+      "今のは景色が変わる一手！",
+      "流れの色が変わった！",
+      "そのままエースになれ！",
+      "歓声、もう準備できてる！",
+      "勝利の火種が大きくなった！",
+      "ここから名場面ができる！",
+      "テンションの回転数が高い！",
+      "いいぞ、もっと盛り上げろ！",
+      "このノリ、相手には重い！",
+      "完全に勢いの主導権！",
+      "今のは心が跳ねる！",
+      "会場の期待も上がってる！",
+      "そのまま主役で突き抜けろ！",
+      "これは勝ちへの追い風！",
+      "一歩ずつ歓喜に近づく！",
+      "相手からしたらいやすぎる！",
+      "ここで笑えるのが強い！",
+      "盛り上がり方が勝者側！",
+      "勢いの差が出てきた！",
+      "ちょい煽りたくなる流れ！",
+      "そのまま勝ち越しまで！",
+      "試合の空気を持っていった！",
+      "この瞬間、かなり好き！",
+      "良すぎてニヤける！",
+      "お祝いの準備をしたい！",
+      "気持ちよく前進できる！",
+      "ここから一気呵成だ！",
+      "祝勝ムードを呼び込んだ！",
+      "勝利のアクセルが入った！",
+      "強者の追い込みが始まる！",
+      "ここで景気よく決めたい！",
+      "完全にチャンスの表情！",
+      "相手も嫌な汗かいてそう！",
+      "今日は勝ち運が笑ってる！",
+      "もう歓喜の予感しかしない！",
+      "ビクトリーの文字が見える！",
+      "次で決まってもおかしくない！",
+      "空気が全部こちら向き！",
+      "これは祝いたくなる展開！",
+      "相手の表情、見たい流れ！",
+      "決め台詞の準備しよう！",
+      "勝ちの拍車がかかってる！",
+      "フィニッシュに向けて上々！",
+      "勢いだけで拍手が起きる！",
+      "こっちの勢い、気持ちいい！",
+      "強気のまま押し込みたい！",
+      "喜びが先に来てる！",
+      "勝者側のオーラが出てる！",
+      "これ、めちゃくちゃいい風！",
+      "次の一歩がさらに楽しみ！",
+      "相手にプレッシャー届いてる！"
+    ],
+    red: [
+      "赤、勝ちに燃えてる！",
+      "赤チーム、このまま祝勝会だ！",
+      "赤、歓喜の流れきた！",
+      "赤、これは決めたい！",
+      "赤の勢い、派手でいい！",
+      "赤、相手を飲み込む勢い！",
+      "赤、勝利インタビュー見えてる！",
+      "赤、主役ムーブ入った！",
+      "赤、気持ちよく勝ちにいけ！",
+      "赤、このままフィニッシュだ！",
+      "赤、めちゃくちゃアツい！",
+      "赤、笑って終わろう！",
+      "赤、相手にプレッシャーかけてる！",
+      "赤、バースト級のノリ！",
+      "赤、完全に決めにいってる！",
+      "赤、歓声を持っていった！",
+      "赤、勝ちの顔になってる！",
+      "赤、今が見せ場だ！",
+      "赤、ノリノリで押し切れ！",
+      "赤、完全に会場の中心！",
+      "赤、この勢いは危険なくらい強い！",
+      "赤、相手を焦らせてる！",
+      "赤、ここから祝福一直線！",
+      "赤、やること全部アツい！",
+      "赤、勢いで勝利に飛び込め！",
+      "赤、かなりおいしい流れ！",
+      "赤、決め台詞が似合う！",
+      "赤、フィニッシュの匂いがする！",
+      "赤、今のノリは主役級！",
+      "赤、会場のボルテージ上げてる！",
+      "赤、強気がハマってる！",
+      "赤、今のは嬉しすぎる！",
+      "赤、相手の心を削ってる！",
+      "赤、勝ちのテンポに入った！",
+      "赤、最後まで笑っていこう！",
+      "赤、流れの火力が高い！",
+      "赤、景気よくいこう！",
+      "赤、そのままヒーローだ！",
+      "赤、勝利BGMを呼んでる！",
+      "赤、今なら何でも決まりそう！"
+    ],
+    blue: [
+      "青、勝利の風が吹いてる！",
+      "青チーム、この流れをものにしたい！",
+      "青、いいぞ、そのまま行け！",
+      "青、歓喜の瞬間が近い！",
+      "青、かなり気持ちいい流れ！",
+      "青、相手が嫌がる勢い！",
+      "青、勝ち切る顔してる！",
+      "青、テンション高めでいこう！",
+      "青、ここで一気に主役だ！",
+      "青、このまま決めたい！",
+      "青、ノリノリで勝ちにいく！",
+      "青、笑顔で締めたい！",
+      "青、相手には重たい流れ！",
+      "青、フィニッシュ見えてる！",
+      "青、完全に歓声の中心！",
+      "青、会場の空気を支配してる！",
+      "青、勝ちの景色がきれいだ！",
+      "青、今が決め時だ！",
+      "青、スマートに勝ちへ向かう！",
+      "青、この勢いは強い！",
+      "青、相手を静かに追い詰める！",
+      "青、かなりおいしい流れ！",
+      "青、歓喜に向けて一直線！",
+      "青、全部が勝ち側のノリ！",
+      "青、ここから一気に花を咲かせる！",
+      "青、勝者のテンポを刻んでる！",
+      "青、相手の表情を曇らせてる！",
+      "青、今のはうれしさ満点！",
+      "青、そのまま主役になれ！",
+      "青、会場も味方につけた！",
+      "青、景気よく押し込め！",
+      "青、勝ち切る空気が濃い！",
+      "青、最後まで気持ちよくいこう！",
+      "青、今のは拍手もの！",
+      "青、流れの作り方がうまい！",
+      "青、このまま笑って締めたい！",
+      "青、歓声を背負ってる！",
+      "青、ヒーローの流れに乗った！",
+      "青、祝勝会が見えてきた！",
+      "青、勝利BGMに近づいた！"
+    ]
+  };
+
+  function shuffleArray(array){
+    const copy = [...array];
+    for (let i = copy.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [copy[i], copy[j]] = [copy[j], copy[i]];
+    }
+    return copy;
+  }
+
+  function resetUniqueMatchVoiceLineState(){
+    window.__usedMatchVoiceLines = new Set();
+    window.__usedMatchVoiceLineOrder = [];
+  }
+
+  function pickUniqueMatchVoiceLine(team){
+    const used = window.__usedMatchVoiceLines || new Set();
+    const pool = [
+      ...UNIQUE_MATCH_VOICE_LINES.neutral,
+      ...(UNIQUE_MATCH_VOICE_LINES[team] || [])
+    ];
+    let available = pool.filter(line => !used.has(line));
+
+    if (!available.length) {
+      // 基本は枯れない想定。万一尽きたら一度だけリセットして再利用。
+      resetUniqueMatchVoiceLineState();
+      available = [...pool];
+    }
+
+    const line = available[Math.floor(Math.random() * available.length)];
+    window.__usedMatchVoiceLines.add(line);
+    window.__usedMatchVoiceLineOrder.push(line);
+    return line;
+  }
+
+  function rewriteLatestVoiceUnique(team){
+    const lane = document.getElementById(team === "red" ? "voiceLogLaneLeft" : "voiceLogLaneRight");
+    if (!lane) return;
+
+    const item = lane.querySelector(".voice-log-item");
+    if (!item) return;
+
+    const text = item.querySelector(".voice-log-text");
+    if (text) text.textContent = pickUniqueMatchVoiceLine(team);
+
+    const kicker = item.querySelector(".voice-log-kicker");
+    const sub = item.querySelector(".voice-log-sub");
+    if (kicker) kicker.remove();
+    if (sub) sub.remove();
+  }
+
+  resetUniqueMatchVoiceLineState();
+  window.resetUniqueMatchVoiceLineState = resetUniqueMatchVoiceLineState;
+
+  if (typeof window.startGame === "function") {
+    const previousStartGameForUniqueVoiceLines = window.startGame;
+    window.startGame = function startGameWithUniqueVoiceLineReset(){
+      resetUniqueMatchVoiceLineState();
+      return previousStartGameForUniqueVoiceLines.apply(this, arguments);
+    };
+    try { startGame = window.startGame; } catch (error) {}
+  }
+
+  if (typeof window.startPlayRound === "function") {
+    const previousStartPlayRoundForUniqueVoiceLines = window.startPlayRound;
+    window.startPlayRound = function startPlayRoundWithUniqueVoiceLineReset(){
+      resetUniqueMatchVoiceLineState();
+      return previousStartPlayRoundForUniqueVoiceLines.apply(this, arguments);
+    };
+    try { startPlayRound = window.startPlayRound; } catch (error) {}
+  }
+
+  if (typeof window.toggleCell === "function") {
+    const previousToggleCellForUniqueVoiceLines = window.toggleCell;
+    window.toggleCell = function toggleCellWithUniqueVoiceLines(team, index){
+      const beforeMarked = !!state?.[team]?.marked?.[index];
+      const cellValue = state?.[team]?.card?.[index];
+      const result = previousToggleCellForUniqueVoiceLines.apply(this, arguments);
+      const afterMarked = !!state?.[team]?.marked?.[index];
+      const openedNewCell = !beforeMarked && afterMarked && cellValue && cellValue !== "FREE";
+
+      if (openedNewCell && !state?.winner) {
+        setTimeout(() => rewriteLatestVoiceUnique(team), 35);
+      }
+      return result;
+    };
+    try { toggleCell = window.toggleCell; } catch (error) {}
+  }
+})();
+</script>
+
+<style id="teamTitlesRankingRoomIdCharacterVoiceStyle">
+  #playScreen {
+    position: relative !important;
+  }
+
+  .room-id-panel {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    z-index: 55;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 10px;
+    border-radius: 14px;
+    border: 1px solid rgba(255,255,255,.16);
+    background: linear-gradient(180deg, rgba(8,12,24,.92), rgba(4,6,16,.88));
+    box-shadow: 0 8px 20px rgba(0,0,0,.22);
+    backdrop-filter: blur(6px);
+  }
+
+  .room-id-label {
+    color: rgba(255,255,255,.82);
+    font-size: 11px;
+    font-weight: 900;
+    letter-spacing: .12em;
+    white-space: nowrap;
+  }
+
+  .room-id-input {
+    width: 124px;
+    min-width: 0;
+    padding: 7px 10px;
+    border-radius: 10px;
+    border: 1px solid rgba(255,255,255,.18);
+    background: rgba(255,255,255,.08);
+    color: #fff;
+    font-size: 13px;
+    font-weight: 900;
+    outline: none;
+  }
+
+  .room-id-input::placeholder {
+    color: rgba(255,255,255,.38);
+  }
+
+  .open-ranking-panel {
+    margin: 14px auto 0;
+    width: min(1220px, 96%);
+    padding: 12px 12px 10px;
+    border-radius: 20px;
+    border: 1px solid rgba(255,255,255,.14);
+    background: linear-gradient(180deg, rgba(7,11,21,.90), rgba(4,6,15,.86));
+    box-shadow: 0 12px 26px rgba(0,0,0,.18);
+  }
+
+  .open-ranking-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+    margin-bottom: 10px;
+  }
+
+  .open-ranking-title {
+    color: #fff;
+    font-size: clamp(16px, 1.8vw, 24px);
+    font-weight: 1000;
+    letter-spacing: .04em;
+  }
+
+  .open-ranking-sub {
+    color: rgba(255,255,255,.62);
+    font-size: 11px;
+    font-weight: 800;
+    letter-spacing: .10em;
+  }
+
+  .open-ranking-list {
+    display: grid;
+    grid-template-columns: repeat(5, minmax(0, 1fr));
+    gap: 10px;
+  }
+
+  .open-rank-card {
+    min-width: 0;
+    display: grid;
+    grid-template-columns: 58px minmax(0, 1fr);
+    gap: 10px;
+    align-items: center;
+    padding: 9px 10px;
+    border-radius: 16px;
+    border: 1px solid rgba(255,255,255,.14);
+    background: linear-gradient(180deg, rgba(255,255,255,.06), rgba(255,255,255,.03));
+    box-shadow: inset 0 1px 0 rgba(255,255,255,.05);
+  }
+
+  .open-rank-card.rank-1 {
+    border-color: rgba(255,215,0,.46);
+    box-shadow: inset 0 1px 0 rgba(255,255,255,.06), 0 0 18px rgba(255,215,0,.12);
+  }
+
+  .open-rank-card.rank-2 {
+    border-color: rgba(180,194,214,.42);
+  }
+
+  .open-rank-card.rank-3 {
+    border-color: rgba(255,179,92,.42);
+  }
+
+  .open-rank-thumb {
+    width: 58px;
+    height: 58px;
+    border-radius: 14px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+    background: radial-gradient(circle at top, rgba(255,255,255,.12), rgba(15,23,42,.96));
+    border: 1px solid rgba(255,255,255,.12);
+  }
+
+  .open-rank-thumb img {
+    width: 110%;
+    height: 110%;
+    object-fit: contain;
+    filter: drop-shadow(0 6px 8px rgba(0,0,0,.28));
+  }
+
+  .open-rank-thumb-fallback {
+    display: none;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    height: 100%;
+    color: #fff;
+    font-size: 20px;
+    font-weight: 1000;
+  }
+
+  .open-rank-body {
+    min-width: 0;
+    display: grid;
+    gap: 2px;
+  }
+
+  .open-rank-place {
+    color: #fde68a;
+    font-size: 12px;
+    font-weight: 1000;
+    letter-spacing: .12em;
+  }
+
+  .open-rank-count {
+    color: #fff;
+    font-size: clamp(18px, 2vw, 26px);
+    font-weight: 1000;
+    line-height: 1.06;
+  }
+
+  .open-rank-count small {
+    font-size: .64em;
+    opacity: .72;
+    margin-left: 4px;
+  }
+
+  .open-rank-char {
+    color: rgba(255,255,255,.62);
+    font-size: 11px;
+    font-weight: 800;
+    letter-spacing: .08em;
+  }
+
+  @media (max-width: 1100px) {
+    .open-ranking-list {
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+    }
+  }
+
+  @media (max-width: 720px) {
+    .room-id-panel {
+      top: 8px;
+      right: 8px;
+      padding: 6px 8px;
+      gap: 6px;
+      border-radius: 12px;
+    }
+    .room-id-label {
+      font-size: 10px;
+    }
+    .room-id-input {
+      width: 90px;
+      padding: 6px 8px;
+      font-size: 12px;
+    }
+    .open-ranking-panel {
+      width: min(97%, 97%);
+      padding: 10px 8px 8px;
+      border-radius: 16px;
+    }
+    .open-ranking-list {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 8px;
+    }
+    .open-rank-card {
+      grid-template-columns: 48px minmax(0, 1fr);
+      gap: 8px;
+      padding: 7px 8px;
+      border-radius: 14px;
+    }
+    .open-rank-thumb {
+      width: 48px;
+      height: 48px;
+      border-radius: 12px;
+    }
+    .open-rank-count {
+      font-size: clamp(16px, 4vw, 20px);
+    }
+  }
+</style>
+
+<script id="teamTitlesRankingRoomIdCharacterVoiceScript">
+(function(){
+  const ROOM_ID_KEY = "team_bingo_room_id_v1";
+  const OPEN_STATS_KEY = "team_bingo_open_stats_v1";
+  const TEAM_TITLE_KEY = "team_bingo_board_team_titles_v1";
+  const RANKING_LIMIT = 5;
+
+  const FIRST_PERSON_VOICE_LINES = [
+    
+      "ざこおつｗ",
+      "スマッシュぶっぱでかちましたｗ",
+      "ぶりっ！",
+      "💩",
+      "ぎゃははははは",
+      "弱すぎ？",
+      "強すぎ？",
+      "うんぴ！",
+      "よっしゃ勝ったー！","おれうめー！","これ、完全にきた！","このままもらうぞ！","勝ちの流れきたー！",
+    "やったぜー！","まだまだいける！","この調子で押し切る！","気持ちよすぎる！","おれ、ノってる！",
+    "次も決めるぞ！","よしよし、最高！","おれ強すぎない？","この勢い、止まらん！","いまのオレ、かなりイイ！",
+    "勝ちが見えてきた！","きたきたきたー！","テンション上がるー！","このまま優勝で！","よーし、流れこっち！",
+    "オレのターンだ！","勝利の匂いがする！","ノってきたぞー！","このまま決めたい！","やるやん、おれ！",
+    "いい感じいい感じ！","次もいけるって！","これは気分いい！","勝ち筋あるある！","うれしすぎる！",
+    "オレ、今日仕上がってる！","そのまま前に出るぞ！","いけるいける、勝てる！","調子乗ってきた！","今のはデカい！",
+    "これ、かなりアツい！","主役はオレだ！","このまま笑って終わる！","まだまだ暴れるぞ！","お先にいただきます！",
+    "勝ちを呼んでる！","最高の流れ！","よっしゃ、景色変わった！","次で決めてもええな！","こっから祭りや！",
+    "気持ちよく勝ちたい！","笑いが止まらん！","オレに風きてる！","よーし、まだ伸びる！","これはうますぎ！",
+    "勝ちの顔してるわ！","この勢い、好き！","いま完全に来てる！","もっと盛り上がるぞ！","うまっ、オレうまっ！",
+    "もう止められん！","これは会場わくやつ！","見せ場きたー！","勝ち切る準備できた！","このままフィニッシュいこ！",
+    "よっしゃ、追い風！","オレ、持ってる！","嬉しさしかない！","次も気持ちよくいく！","これぞ勝ちムード！",
+    "え、今のオレ強くない？","まだギア上げるぞ！","このまま主人公になる！","笑顔で勝ちたい！","かなりおいしい流れ！",
+    "優勝コメント考えとくわ！","よーし、全部持っていく！","気分はもう勝者！","これがオレの流れ！","次も決め顔でいく！",
+    "勝利BGM聞こえてきた！","ははっ、めっちゃ気持ちいい！","このまま祝勝会や！","オレ、今日やれてる！","もう一発いったる！",
+    "いいぞー、全部ハマる！","次でさらに沸かすぞ！","勝ちのアクセル入った！","オレを止めんなよ！","やば、楽しくなってきた！",
+    "この流れ、手放さん！","勝ちに寄ってる寄ってる！","相手、ちょっと焦ってる？","悪いな、今こっちの時間！","この勢いは刺さるやろ！",
+    "おれ、ちょっとエグいかも！","まだ飛ばすぞー！","そのまま押しつぶす！","相手はしんどいやろな！","ここから逆転はさせん！",
+    "おいおい、仕上がってる！","気持ちよく前進！","会心の流れや！","このノリ、最高すぎる！","次も歓声もらうぞ！",
+    "ほら、勝ちの音してる！","やっとるやんオレ！","相手さん、見えてますかー？","まだまだこっから！","おれが一番うまい！",
+    "このまま全部もらう！","一気にいくぞー！","よし、完全に波きた！","もっと喜んでいいやつ！","お祭りスタート！",
+    "かっこよく決めたい！","オレの見せ場まだある！","相手の心にスマッシュ！","このノリ、VIPや！","ラストまで飛ばすぞ！",
+    "うれしっ！","勝てる空気しかない！","ここでヒーローになる！","まだ笑える、まだ勝てる！","完璧に近い！",
+    "よっしゃ、流れ全部こっち！","決めたら最高やん！","オレ、今日ついてる！","勢いで置いていくぞ！","もう祝福の拍手してええで！",
+    "気分よすぎるー！","次で仕上げる気満々！","相手に悪いけど楽しい！","決着まで一直線！","強すぎて笑う！",
+    "ここから名場面つくる！","もう歓喜が見えてる！","勝ちのドラマ始まってる！","オレの火力、見とけ！","まだまだ主役ムーブ！",
+    "相手も苦笑いしてそう！","これが勝者のテンション！","うれしくてニヤける！","完全に追い風やん！","まだまだ勝ち足りん！",
+    "オレ、今日キレてる！","全部うまくいく日！","よっしゃ、前進前進！","勝ちを置きにいく！","会場の温度上げたる！",
+    "このまま有終の美！","よし、拍手もらった！","次も気持ちよく勝負！","オレの時間、続行！","うおー、楽しい！"
+  ];
+
+  function loadJson(key, fallback){
+    try {
+      const raw = localStorage.getItem(key);
+      return raw ? JSON.parse(raw) : fallback;
+    } catch (error) {
+      return fallback;
+    }
+  }
+
+  function saveJson(key, value){
+    try { localStorage.setItem(key, JSON.stringify(value)); } catch (error) {}
+  }
+
+  function ensureRoomAndRankingDom(){
+    const playScreen = document.getElementById("playScreen");
+    if (!playScreen) return;
+
+    if (!document.getElementById("roomIdPanel")) {
+      const panel = document.createElement("div");
+      panel.id = "roomIdPanel";
+      panel.className = "room-id-panel";
+      panel.innerHTML = `
+        <div class="room-id-label">ROOM ID</div>
+        <input id="roomIdInput" class="room-id-input" type="text" maxlength="24" placeholder="入力" />
+      `;
+      playScreen.appendChild(panel);
+      const input = panel.querySelector("#roomIdInput");
+      if (input) {
+        input.value = localStorage.getItem(ROOM_ID_KEY) || "";
+        input.addEventListener("input", () => {
+          localStorage.setItem(ROOM_ID_KEY, input.value);
+        });
+      }
+    }
+
+    if (!document.getElementById("openRankingPanel")) {
+      const panel = document.createElement("div");
+      panel.id = "openRankingPanel";
+      panel.className = "open-ranking-panel";
+      panel.innerHTML = `
+        <div class="open-ranking-header">
+          <div class="open-ranking-title">OPEN RANKING</div>
+          <div class="open-ranking-sub">総開封数 / リセットなし</div>
+        </div>
+        <div class="open-ranking-list" id="openRankingList"></div>
+      `;
+      const boards = playScreen.querySelector(".boards");
+      if (boards && boards.parentNode) {
+        boards.insertAdjacentElement("afterend", panel);
+      } else {
+        playScreen.appendChild(panel);
+      }
+    }
+  }
+
+  function ensureBoardNameDom(){
+    const redWrap = document.querySelector(".board-card.red .board-team-members-wrap");
+    const blueWrap = document.querySelector(".board-card.blue .board-team-members-wrap");
+    if (redWrap && !document.getElementById("redBoardAutoTeamName")) {
+      const el = document.createElement("div");
+      el.id = "redBoardAutoTeamName";
+      el.className = "board-auto-team-name";
+      redWrap.insertBefore(el, redWrap.firstChild);
+    }
+    if (blueWrap && !document.getElementById("blueBoardAutoTeamName")) {
+      const el = document.createElement("div");
+      el.id = "blueBoardAutoTeamName";
+      el.className = "board-auto-team-name";
+      blueWrap.insertBefore(el, blueWrap.firstChild);
+    }
+  }
+
+  function setBoardTitles(redTitle, blueTitle){
+    ensureBoardNameDom();
+    const redEl = document.getElementById("redBoardAutoTeamName");
+    const blueEl = document.getElementById("blueBoardAutoTeamName");
+    const titles = {
+      red: redTitle || "チーム名未設定",
+      blue: blueTitle || "チーム名未設定"
+    };
+    if (redEl) redEl.textContent = titles.red;
+    if (blueEl) blueEl.textContent = titles.blue;
+    saveJson(TEAM_TITLE_KEY, titles);
+  }
+
+  function restoreBoardTitles(){
+    const titles = loadJson(TEAM_TITLE_KEY, { red: "チーム名未設定", blue: "チーム名未設定" });
+    setBoardTitles(titles.red, titles.blue);
+  }
+
+  function loadOpenStats(){
+    return loadJson(OPEN_STATS_KEY, {});
+  }
+
+  function saveOpenStats(stats){
+    saveJson(OPEN_STATS_KEY, stats);
+  }
+
+  function incrementOpenStat(charId){
+    if (!charId || charId === "FREE") return;
+    const stats = loadOpenStats();
+    const key = String(charId);
+    stats[key] = Number(stats[key] || 0) + 1;
+    saveOpenStats(stats);
+  }
+
+  function topOpenStats(limit = RANKING_LIMIT){
+    const stats = loadOpenStats();
+    return Object.entries(stats)
+      .map(([charId, count]) => ({ charId, count: Number(count || 0) }))
+      .sort((a, b) => b.count - a.count || Number(a.charId) - Number(b.charId))
+      .slice(0, limit);
+  }
+
+  function renderOpenRanking(){
+    ensureRoomAndRankingDom();
+    const list = document.getElementById("openRankingList");
+    if (!list) return;
+
+    const ranking = topOpenStats(RANKING_LIMIT);
+    if (!ranking.length) {
+      list.innerHTML = Array.from({ length: RANKING_LIMIT }).map((_, i) => `
+        <div class="open-rank-card rank-${i+1}">
+          <div class="open-rank-thumb"><div class="open-rank-thumb-fallback" style="display:flex;">-</div></div>
+          <div class="open-rank-body">
+            <div class="open-rank-place">${i+1}位</div>
+            <div class="open-rank-count">0<small>回</small></div>
+            <div class="open-rank-char">キャラ -</div>
+          </div>
+        </div>
+      `).join("");
+      return;
+    }
+
+    const html = [];
+    for (let i = 0; i < RANKING_LIMIT; i++) {
+      const item = ranking[i];
+      if (!item) {
+        html.push(`
+          <div class="open-rank-card rank-${i+1}">
+            <div class="open-rank-thumb"><div class="open-rank-thumb-fallback" style="display:flex;">-</div></div>
+            <div class="open-rank-body">
+              <div class="open-rank-place">${i+1}位</div>
+              <div class="open-rank-count">0<small>回</small></div>
+              <div class="open-rank-char">キャラ -</div>
+            </div>
+          </div>
+        `);
+        continue;
+      }
+      html.push(`
+        <div class="open-rank-card rank-${i+1}">
+          <div class="open-rank-thumb">
+            <img src="images/characters/${item.charId}.png" alt="キャラ${item.charId}" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';" />
+            <div class="open-rank-thumb-fallback">${item.charId}</div>
+          </div>
+          <div class="open-rank-body">
+            <div class="open-rank-place">${i+1}位</div>
+            <div class="open-rank-count">${item.count}<small>回</small></div>
+            <div class="open-rank-char">キャラ ${item.charId}</div>
+          </div>
+        </div>
+      `);
+    }
+    list.innerHTML = html.join("");
+  }
+
+  function resetCharacterVoiceState(){
+    window.__usedCharacterVoiceLines = new Set();
+  }
+
+  function pickUniqueCharacterVoiceLine(){
+    const used = window.__usedCharacterVoiceLines || new Set();
+    let available = FIRST_PERSON_VOICE_LINES.filter(line => !used.has(line));
+    if (!available.length) {
+      resetCharacterVoiceState();
+      available = [...FIRST_PERSON_VOICE_LINES];
+    }
+    const line = available[Math.floor(Math.random() * available.length)];
+    window.__usedCharacterVoiceLines.add(line);
+    return line;
+  }
+
+  function rewriteLatestVoiceAsCharacterVoice(team){
+    const lane = document.getElementById(team === "red" ? "voiceLogLaneLeft" : "voiceLogLaneRight");
+    if (!lane) return;
+    const item = lane.querySelector(".voice-log-item");
+    if (!item) return;
+    const text = item.querySelector(".voice-log-text");
+    if (text) text.textContent = pickUniqueCharacterVoiceLine();
+  }
+
+  document.addEventListener("DOMContentLoaded", () => {
+    ensureRoomAndRankingDom();
+    ensureBoardNameDom();
+    restoreBoardTitles();
+    renderOpenRanking();
+    const input = document.getElementById("roomIdInput");
+    if (input && !input.value) input.value = localStorage.getItem(ROOM_ID_KEY) || "";
+    resetCharacterVoiceState();
+  });
+
+  ensureRoomAndRankingDom();
+  ensureBoardNameDom();
+  restoreBoardTitles();
+  renderOpenRanking();
+
+  if (typeof window.showVersusIntro === "function") {
+    const previousShowVersusIntroForTrueBoardTitles = window.showVersusIntro;
+    window.showVersusIntro = function showVersusIntroSyncBoardTitles(){
+      const result = previousShowVersusIntroForTrueBoardTitles.apply(this, arguments);
+      setTimeout(() => {
+        const redText = document.getElementById("versusRedName")?.textContent?.trim() || "チーム名未設定";
+        const blueText = document.getElementById("versusBlueName")?.textContent?.trim() || "チーム名未設定";
+        setBoardTitles(redText, blueText);
+      }, 20);
+      return result;
+    };
+    try { showVersusIntro = window.showVersusIntro; } catch (error) {}
+  }
+
+  if (typeof window.replayTeamIntro === "function") {
+    const previousReplayTeamIntroForTrueBoardTitles = window.replayTeamIntro;
+    window.replayTeamIntro = function replayTeamIntroSyncBoardTitles(){
+      const result = previousReplayTeamIntroForTrueBoardTitles.apply(this, arguments);
+      setTimeout(() => {
+        const redText = document.getElementById("versusRedName")?.textContent?.trim() || "チーム名未設定";
+        const blueText = document.getElementById("versusBlueName")?.textContent?.trim() || "チーム名未設定";
+        setBoardTitles(redText, blueText);
+      }, 20);
+      return result;
+    };
+    try { replayTeamIntro = window.replayTeamIntro; } catch (error) {}
+  }
+
+  resetCharacterVoiceState();
+  window.resetCharacterVoiceState = resetCharacterVoiceState;
+
+  if (typeof window.startGame === "function") {
+    const previousStartGameForCharacterVoice = window.startGame;
+    window.startGame = function startGameCharacterVoiceReset(){
+      resetCharacterVoiceState();
+      return previousStartGameForCharacterVoice.apply(this, arguments);
+    };
+    try { startGame = window.startGame; } catch (error) {}
+  }
+
+  if (typeof window.startPlayRound === "function") {
+    const previousStartPlayRoundForCharacterVoice = window.startPlayRound;
+    window.startPlayRound = function startPlayRoundCharacterVoiceReset(){
+      resetCharacterVoiceState();
+      return previousStartPlayRoundForCharacterVoice.apply(this, arguments);
+    };
+    try { startPlayRound = window.startPlayRound; } catch (error) {}
+  }
+
+  if (typeof window.toggleCell === "function") {
+    const previousToggleCellForRankingAndCharacterVoice = window.toggleCell;
+    window.toggleCell = function toggleCellWithRankingAndCharacterVoice(team, index){
+      const beforeMarked = !!state?.[team]?.marked?.[index];
+      const charId = state?.[team]?.card?.[index];
+      const result = previousToggleCellForRankingAndCharacterVoice.apply(this, arguments);
+      const afterMarked = !!state?.[team]?.marked?.[index];
+      const openedNewCell = !beforeMarked && afterMarked && charId && charId !== "FREE";
+
+      if (openedNewCell) {
+        incrementOpenStat(charId);
+        renderOpenRanking();
+        if (!state?.winner) {
+          setTimeout(() => rewriteLatestVoiceAsCharacterVoice(team), 120);
+        }
+      }
+
+      return result;
+    };
+    try { toggleCell = window.toggleCell; } catch (error) {}
+  }
+
+  window.renderOpenRanking = renderOpenRanking;
+})();
+</script>
+
+<style id="rankingTickerTop10Style">
+  .open-ranking-panel {
+    margin: 12px auto 0 !important;
+    width: min(1220px, 96%) !important;
+    padding: 8px 0 !important;
+    border-radius: 16px !important;
+    overflow: hidden !important;
+  }
+
+  .open-ranking-header {
+    display: none !important;
+  }
+
+  .open-ranking-list {
+    display: flex !important;
+    flex-wrap: nowrap !important;
+    align-items: center !important;
+    gap: 10px !important;
+    width: max-content !important;
+    min-width: 100% !important;
+    will-change: transform;
+    animation: openRankingTickerLoop 42s linear infinite !important;
+  }
+
+  .open-rank-card {
+    width: 148px !important;
+    min-width: 148px !important;
+    max-width: 148px !important;
+    display: grid !important;
+    grid-template-columns: 42px minmax(0, 1fr) !important;
+    gap: 8px !important;
+    align-items: center !important;
+    padding: 7px 8px !important;
+    border-radius: 14px !important;
+  }
+
+  .open-rank-thumb {
+    width: 42px !important;
+    height: 42px !important;
+    border-radius: 11px !important;
+  }
+
+  .open-rank-place {
+    font-size: 11px !important;
+    line-height: 1 !important;
+    margin-bottom: 2px !important;
+  }
+
+  .open-rank-count {
+    font-size: clamp(15px, 1.45vw, 20px) !important;
+    line-height: 1.04 !important;
+  }
+
+  .open-rank-count small {
+    font-size: .68em !important;
+    margin-left: 3px !important;
+  }
+
+  .open-rank-char {
+    display: none !important;
+  }
+
+  @keyframes openRankingTickerLoop {
+    0% { transform: translateX(0); }
+    100% { transform: translateX(-50%); }
+  }
+
+  @media (max-width: 1100px) {
+    .open-ranking-panel {
+      width: min(98%, 98%) !important;
+    }
+    .open-rank-card {
+      width: 134px !important;
+      min-width: 134px !important;
+      max-width: 134px !important;
+      grid-template-columns: 38px minmax(0, 1fr) !important;
+      gap: 7px !important;
+      padding: 6px 7px !important;
+    }
+    .open-rank-thumb {
+      width: 38px !important;
+      height: 38px !important;
+    }
+    .open-rank-count {
+      font-size: clamp(14px, 1.5vw, 18px) !important;
+    }
+  }
+
+  @media (max-width: 720px) {
+    .open-ranking-panel {
+      margin-top: 10px !important;
+      padding: 6px 0 !important;
+      border-radius: 14px !important;
+    }
+    .open-ranking-list {
+      gap: 8px !important;
+      animation-duration: 34s !important;
+    }
+    .open-rank-card {
+      width: 118px !important;
+      min-width: 118px !important;
+      max-width: 118px !important;
+      grid-template-columns: 34px minmax(0, 1fr) !important;
+      gap: 6px !important;
+      padding: 5px 6px !important;
+      border-radius: 12px !important;
+    }
+    .open-rank-thumb {
+      width: 34px !important;
+      height: 34px !important;
+      border-radius: 9px !important;
+    }
+    .open-rank-place {
+      font-size: 10px !important;
+    }
+    .open-rank-count {
+      font-size: 14px !important;
+    }
+  }
+</style>
+
+<script id="rankingTickerTop10Script">
+(function(){
+  const OPEN_STATS_KEY = "team_bingo_open_stats_v1";
+  const RANKING_LIMIT = 10;
+
+  function loadStats(){
+    try {
+      return JSON.parse(localStorage.getItem(OPEN_STATS_KEY) || "{}") || {};
+    } catch (error) {
+      return {};
+    }
+  }
+
+  function ensureRankingDom(){
+    const playScreen = document.getElementById("playScreen");
+    if (!playScreen) return null;
+
+    let panel = document.getElementById("openRankingPanel");
+    if (!panel) {
+      panel = document.createElement("div");
+      panel.id = "openRankingPanel";
+      panel.className = "open-ranking-panel";
+      panel.innerHTML = '<div class="open-ranking-list" id="openRankingList"></div>';
+      const boards = playScreen.querySelector(".boards");
+      if (boards) boards.insertAdjacentElement("afterend", panel);
+      else playScreen.appendChild(panel);
+    }
+
+    let list = document.getElementById("openRankingList");
+    if (!list) {
+      list = document.createElement("div");
+      list.id = "openRankingList";
+      list.className = "open-ranking-list";
+      panel.innerHTML = "";
+      panel.appendChild(list);
+    }
+
+    const header = panel.querySelector(".open-ranking-header");
+    if (header) header.remove();
+
+    return list;
+  }
+
+  function getTopRanking(limit = RANKING_LIMIT){
+    const stats = loadStats();
+    const sorted = Object.entries(stats)
+      .map(([charId, count]) => ({ charId: String(charId), count: Number(count || 0) }))
+      .sort((a, b) => b.count - a.count || Number(a.charId) - Number(b.charId))
+      .slice(0, limit);
+
+    while (sorted.length < limit) {
+      sorted.push({ charId: "", count: 0 });
+    }
+    return sorted;
+  }
+
+  function rankItemHtml(item, rank){
+    const place = `${rank}位`;
+    if (!item.charId) {
+      return `
+        <div class="open-rank-card rank-${rank}">
+          <div class="open-rank-thumb">
+            <div class="open-rank-thumb-fallback" style="display:flex;">-</div>
+          </div>
+          <div class="open-rank-body">
+            <div class="open-rank-place">${place}</div>
+            <div class="open-rank-count">0<small>回</small></div>
+          </div>
+        </div>
+      `;
+    }
+    return `
+      <div class="open-rank-card rank-${rank}">
+        <div class="open-rank-thumb">
+          <img src="images/characters/${item.charId}.png" alt="キャラ${item.charId}" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';" />
+          <div class="open-rank-thumb-fallback">${item.charId}</div>
+        </div>
+        <div class="open-rank-body">
+          <div class="open-rank-place">${place}</div>
+          <div class="open-rank-count">${item.count}<small>回</small></div>
+        </div>
+      </div>
+    `;
+  }
+
+  function renderRankingTicker(){
+    const list = ensureRankingDom();
+    if (!list) return;
+
+    const ranking = getTopRanking(RANKING_LIMIT);
+    const oneSet = ranking.map((item, idx) => rankItemHtml(item, idx + 1)).join("");
+    list.innerHTML = oneSet + oneSet;
+
+    list.style.animation = "none";
+    void list.offsetWidth;
+    list.style.animation = "";
+  }
+
+  document.addEventListener("DOMContentLoaded", renderRankingTicker);
+  renderRankingTicker();
+  window.renderOpenRanking = renderRankingTicker;
+
+  if (typeof window.toggleCell === "function") {
+    const previousToggleCellForTickerRanking = window.toggleCell;
+    window.toggleCell = function toggleCellWithTickerRanking(team, index){
+      const result = previousToggleCellForTickerRanking.apply(this, arguments);
+      setTimeout(renderRankingTicker, 40);
+      return result;
+    };
+    try { toggleCell = window.toggleCell; } catch (error) {}
+  }
+})();
+</script>
+
+<style id="commentaryTenSecondDisplayOverrideStyle">
+  .commentary-burst.show {
+    animation:
+      commentaryIn .34s cubic-bezier(.16,1.2,.2,1) both,
+      commentaryOut .36s 9.6s ease forwards !important;
+  }
+</style>
+
+<script id="commentaryTenSecondDisplayOverridePatch">
+(function(){
+  const COMMENTARY_DISPLAY_MS = 10000;
+
+  function applyCommentaryTenSeconds(){
+    const burst = document.getElementById("commentaryBurst");
+    if (!burst || !burst.classList.contains("show")) return;
+
+    clearTimeout(window.__commentaryThirtySecondTimer);
+    clearTimeout(window.__commentaryTenSecondTimer);
+
+    window.__commentaryTenSecondTimer = setTimeout(() => {
+      burst.classList.remove("show");
+    }, COMMENTARY_DISPLAY_MS);
+  }
+
+  if (typeof window.showSituationCommentary === "function") {
+    const previousShowSituationCommentaryForTenSeconds = window.showSituationCommentary;
+
+    window.showSituationCommentary = function showSituationCommentaryTenSeconds(){
+      const result = previousShowSituationCommentaryForTenSeconds.apply(this, arguments);
+      setTimeout(applyCommentaryTenSeconds, 20);
+      return result;
+    };
+
+    try { showSituationCommentary = window.showSituationCommentary; } catch (error) {}
+  }
+
+  if (typeof window.showVersusIntro === "function") {
+    const previousShowVersusIntroForTenSeconds = window.showVersusIntro;
+
+    window.showVersusIntro = function showVersusIntroTenSeconds(){
+      const result = previousShowVersusIntroForTenSeconds.apply(this, arguments);
+      setTimeout(applyCommentaryTenSeconds, 20);
+      return result;
+    };
+
+    try { showVersusIntro = window.showVersusIntro; } catch (error) {}
+  }
+})();
+</script>
+
+
+
+<style id="safeCompactLayoutNoShiftPatch">
+  /*
+    右ズレ原因になった transform/width/margin 系は使わない。
+    画面を90%に見せるため、カード幅・余白・セル内余白を少しずつ縮める方式。
+  */
+  body.playing .app,
+  body.playing #playScreen {
+    transform: none !important;
+    zoom: normal !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    margin-left: 0 !important;
+    margin-right: 0 !important;
+    left: auto !important;
+    right: auto !important;
+  }
+
+  body.playing .play-screen {
+    padding-top: 6px !important;
+  }
+
+  body.playing .boards {
+    width: min(1180px, 94vw) !important;
+    max-width: min(1180px, 94vw) !important;
+    margin-left: auto !important;
+    margin-right: auto !important;
+    gap: 16px !important;
+  }
+
+  body.playing .board-head {
+    padding: 8px 11px !important;
+  }
+
+  body.playing .board-body {
+    padding: 9px !important;
+  }
+
+  body.playing .grid {
+    gap: 3px !important;
+  }
+
+  body.playing .board-actions {
+    margin-top: 8px !important;
+  }
+
+  body.playing .play-top-control-strip {
+    margin-bottom: 2px !important;
+    gap: 8px !important;
+  }
+
+  body.playing .play-top-control-strip button,
+  body.playing .play-control-strip button {
+    padding: 8px 13px !important;
+    font-size: 12px !important;
+  }
+
+  body.playing .room-id-panel {
+    top: 8px !important;
+    right: 8px !important;
+    transform: none !important;
+  }
+
+  .open-ranking-panel {
+    margin-top: 8px !important;
+    width: min(1180px, 94vw) !important;
+  }
+
+  /*
+    実況はランキングに被りすぎないよう、カード下〜ランキング上寄りへ。
+  */
+  .commentary-burst {
+    top: auto !important;
+    left: 50% !important;
+    bottom: clamp(96px, 13vh, 145px) !important;
+    transform: translateX(-50%) !important;
+    width: min(820px, 84vw) !important;
+    max-width: min(820px, 84vw) !important;
+    z-index: 170 !important;
+  }
+
+  .commentary-burst.show {
+    animation:
+      commentarySafeIn .34s cubic-bezier(.16,1.2,.2,1) both,
+      commentarySafeOut .36s 9.6s ease forwards !important;
+  }
+
+  @keyframes commentarySafeIn {
+    0% { opacity: 0; transform: translateX(-50%) translateY(14px) scale(.97); }
+    100% { opacity: 1; transform: translateX(-50%) translateY(0) scale(1); }
+  }
+
+  @keyframes commentarySafeOut {
+    0% { opacity: 1; transform: translateX(-50%) translateY(0) scale(1); }
+    100% { opacity: 0; transform: translateX(-50%) translateY(8px) scale(.98); }
+  }
+
+  .commentary-card {
+    padding: 10px 16px 12px !important;
+  }
+
+  .commentary-text {
+    font-size: clamp(17px, 2vw, 28px) !important;
+    line-height: 1.12 !important;
+  }
+
+  @media (max-width: 900px) {
+    body.playing .boards,
+    .open-ranking-panel {
+      width: min(96vw, 96vw) !important;
+      max-width: min(96vw, 96vw) !important;
+      gap: 12px !important;
+    }
+
+    .commentary-burst {
+      bottom: clamp(88px, 12vh, 130px) !important;
+      width: min(88vw, 88vw) !important;
+      max-width: min(88vw, 88vw) !important;
+    }
+  }
+
+  @media (max-width: 720px) {
+    .commentary-burst {
+      bottom: 86px !important;
+      width: min(94vw, 94vw) !important;
+      max-width: min(94vw, 94vw) !important;
+    }
+  }
+</style>
+
+<style id="resetBackTopLeftCommentaryLowerPatch">
+  /* RESET / BACK を画面左上へ */
+  body.playing .play-control-strip {
+    position: fixed !important;
+    top: 10px !important;
+    left: 10px !important;
+    right: auto !important;
+    bottom: auto !important;
+    z-index: 210 !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: flex-start !important;
+    gap: 8px !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    transform: none !important;
+    width: auto !important;
+  }
+
+  body.playing .play-control-strip button {
+    padding: 8px 12px !important;
+    font-size: 12px !important;
+    border-radius: 999px !important;
+    box-shadow: 0 8px 20px rgba(0,0,0,.24) !important;
+    backdrop-filter: blur(6px);
+  }
+
+  /* 左上ボタンと上部操作列が近すぎないように少し余白 */
+  body.playing .play-top-control-strip {
+    padding-left: 120px !important;
+  }
+
+  /* 実況を少しだけ下へ */
+  .commentary-burst {
+    bottom: clamp(76px, 10.5vh, 120px) !important;
+  }
+
+  @media (max-width: 900px) {
+    body.playing .play-control-strip {
+      top: 8px !important;
+      left: 8px !important;
+      gap: 6px !important;
+    }
+
+    body.playing .play-control-strip button {
+      padding: 7px 10px !important;
+      font-size: 11px !important;
+    }
+
+    body.playing .play-top-control-strip {
+      padding-left: 104px !important;
+    }
+
+    .commentary-burst {
+      bottom: clamp(72px, 10vh, 108px) !important;
+    }
+  }
+
+  @media (max-width: 720px) {
+    body.playing .play-control-strip {
+      top: 6px !important;
+      left: 6px !important;
+    }
+
+    body.playing .play-top-control-strip {
+      padding-left: 0 !important;
+      padding-top: 34px !important;
+    }
+
+    .commentary-burst {
+      bottom: 74px !important;
+    }
+  }
+</style>
+
+<style id="teamResetButtonsInsideCardsPatchStyle">
+  /* 左上のRESETだけ非表示、BACKは残す */
+  body.playing .play-control-strip button[onclick="resetMarks()"] {
+    display: none !important;
+  }
+
+  body.playing .play-control-strip {
+    gap: 0 !important;
+  }
+
+  /* カード内のチーム別RESET */
+  .team-reset-button {
+    min-width: 0 !important;
+    padding: 8px 12px !important;
+    border-radius: 999px !important;
+    font-size: 11px !important;
+    font-weight: 1000 !important;
+    letter-spacing: .08em !important;
+    border: 1px solid rgba(255,255,255,.18) !important;
+    color: #fff !important;
+    background: rgba(255,255,255,.08) !important;
+    box-shadow: inset 0 1px 0 rgba(255,255,255,.08), 0 6px 14px rgba(0,0,0,.16) !important;
+  }
+
+  .board-card.red .team-reset-button {
+    border-color: rgba(255,77,109,.42) !important;
+    background: rgba(255,77,109,.14) !important;
+  }
+
+  .board-card.blue .team-reset-button {
+    border-color: rgba(86,163,255,.42) !important;
+    background: rgba(86,163,255,.14) !important;
+  }
+
+  .team-reset-button:hover {
+    transform: translateY(-1px);
+    filter: brightness(1.12);
+  }
+
+  .board-actions {
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    flex-wrap: wrap !important;
+    gap: 8px !important;
+  }
+</style>
+
+<script id="teamResetButtonsInsideCardsPatch">
+(function(){
+  function resetTeamMarks(team){
+    if (!state?.[team]?.marked) return;
+
+    state[team].marked = state[team].marked.map((_, index) => {
+      const value = state?.[team]?.card?.[index];
+      return value === "FREE";
+    });
+
+    if (state.bingoCounts) state.bingoCounts[team] = 0;
+    if (state.shownReach?.[team]) {
+      state.shownReach[team].normal = false;
+      state.shownReach[team].double = false;
+    }
+    if (state.shownBingo?.[team]) {
+      state.shownBingo[team].one = false;
+      state.shownBingo[team].win = false;
+    }
+
+    state.winner = null;
+
+    const flash = document.getElementById("bingoFlash");
+    if (flash) flash.classList.remove("show", "first-bingo-bubble", "winner-screen", "victory-mvp-active");
+
+    const reachFlash = document.getElementById("reachFlash");
+    if (reachFlash) reachFlash.classList.remove("show");
+
+    const hardReach = document.getElementById("hardReachCutin");
+    if (hardReach) hardReach.classList.remove("show");
+
+    document.body.classList.remove("bingo-shake", "reach-shake", "first-bingo-alert");
+
+    if (typeof window.renderAll === "function") window.renderAll();
+    else if (typeof renderAll === "function") renderAll();
+  }
+
+  window.resetTeamMarks = resetTeamMarks;
+
+  function addTeamResetButtons(){
+    const configs = [
+      { team: "red", selector: ".board-card.red .board-actions", label: "RED RESET" },
+      { team: "blue", selector: ".board-card.blue .board-actions", label: "BLUE RESET" }
+    ];
+
+    configs.forEach(({ team, selector, label }) => {
+      const actions = document.querySelector(selector);
+      if (!actions || document.getElementById(`${team}TeamResetButton`)) return;
+
+      const button = document.createElement("button");
+      button.id = `${team}TeamResetButton`;
+      button.type = "button";
+      button.className = "ghost team-reset-button";
+      button.textContent = label;
+      button.addEventListener("click", () => resetTeamMarks(team));
+
+      const shuffleButton = actions.querySelector("button");
+      if (shuffleButton && shuffleButton.nextSibling) {
+        actions.insertBefore(button, shuffleButton.nextSibling);
+      } else {
+        actions.appendChild(button);
+      }
+    });
+  }
+
+  document.addEventListener("DOMContentLoaded", addTeamResetButtons);
+  addTeamResetButtons();
+
+  if (typeof window.renderAll === "function") {
+    const previousRenderAllForTeamResetButtons = window.renderAll;
+    window.renderAll = function renderAllWithTeamResetButtons(){
+      const result = previousRenderAllForTeamResetButtons.apply(this, arguments);
+      addTeamResetButtons();
+      return result;
+    };
+    try { renderAll = window.renderAll; } catch (error) {}
+  }
+})();
+</script>
+
+<script id="moreFightingTeamTitlesPatch">
+(function(){
+  const FIGHTING_TEAM_TITLES = {
+    red: [
+      "紅蓮のラストストッカー",
+      "赤き撃墜ライン",
+      "炎上スマッシュ部隊",
+      "灼熱の横スマ連合",
+      "赤コーナーの復帰阻止班",
+      "紅のメテオ職人",
+      "バーストラインの番人",
+      "赤き空後マスターズ",
+      "灼熱コンボスターター",
+      "炎の差し返し軍団",
+      "赤のジャスガ研究会",
+      "紅蓮カウンターズ",
+      "火力全振りファイターズ",
+      "赤きラストヒット部隊",
+      "撃墜王候補生",
+      "赤の崖狩り職人",
+      "炎の読み合い番長",
+      "紅蓮スマッシュホールド",
+      "赤きVIP部屋予備軍",
+      "赤コーナーの暴れん坊",
+      "灼熱フィニッシャーズ",
+      "紅のワンチャン製造機",
+      "赤きコンボ職人",
+      "炎の逆転ファイターズ",
+      "紅蓮バーストメーカー",
+      "赤の台上支配者",
+      "赤きシールドブレイカー",
+      "灼熱のメインキャラ軍",
+      "紅の撃墜請負人",
+      "赤コーナーの勝負師",
+      "スマッシュ赤組",
+      "紅蓮の空N置き隊",
+      "赤きメテオチャンス",
+      "炎のフルホールド隊",
+      "紅蓮の終点ファイターズ",
+      "赤の小ジャンプ軍団",
+      "撃墜圏内レッド",
+      "赤き火力おばけ",
+      "紅の復帰ルート破壊班",
+      "炎のバースト予報士",
+      "紅蓮の差し込み隊",
+      "赤の横強クリニック",
+      "赤コーナーの超反応",
+      "灼熱の上スマ係",
+      "紅のコンボ継続班",
+      "赤きスマブラ道場",
+      "炎のラストストック",
+      "紅蓮の勝利ポーズ",
+      "赤の撃墜演出班",
+      "紅き格ゲー魂",
+      "赤の中段見えない組",
+      "炎の起き攻め研究所",
+      "紅蓮の確反マスターズ",
+      "赤き波動拳部隊",
+      "灼熱の昇龍会",
+      "紅の投げ抜け職人",
+      "赤コーナーのコンボ火力",
+      "紅蓮の読み合いジャンキー",
+      "赤のゲージ全部使う隊",
+      "炎の最終ラウンド"
+    ],
+    blue: [
+      "蒼きラストストッカー",
+      "青の差し返しマスターズ",
+      "蒼天スマッシュ部隊",
+      "青き復帰阻止ライン",
+      "蒼の空後クリニック",
+      "青コーナーのメテオ職人",
+      "蒼きバーストメーカー",
+      "青の崖狩り研究所",
+      "冷静コンボスターター",
+      "蒼のジャスガ職人",
+      "青き読み合い軍団",
+      "蒼天カウンターズ",
+      "青の撃墜請負人",
+      "蒼きラストヒット部隊",
+      "差し返し王候補生",
+      "青の台上支配者",
+      "蒼きシールドブレイカー",
+      "青コーナーの勝負師",
+      "蒼天スマッシュホールド",
+      "青きVIP部屋予備軍",
+      "青のワンチャン製造機",
+      "蒼きコンボ職人",
+      "青の逆転ファイターズ",
+      "蒼天バースト予報士",
+      "青の小ジャンプ軍団",
+      "蒼き空N置き隊",
+      "撃墜圏内ブルー",
+      "青き火力おばけ",
+      "蒼の復帰ルート破壊班",
+      "青コーナーの超反応",
+      "蒼天の上スマ係",
+      "青のコンボ継続班",
+      "蒼きスマブラ道場",
+      "青のラストストック",
+      "蒼天の勝利ポーズ",
+      "青の撃墜演出班",
+      "蒼き差し込み隊",
+      "青の横強クリニック",
+      "冷静なフルホールド隊",
+      "蒼天の終点ファイターズ",
+      "青き格ゲー魂",
+      "青の中段見えない組",
+      "蒼天の起き攻め研究所",
+      "青の確反マスターズ",
+      "蒼き波動拳部隊",
+      "冷静すぎる昇龍会",
+      "青の投げ抜け職人",
+      "青コーナーのコンボ火力",
+      "蒼天の読み合いジャンキー",
+      "青のゲージ全部使う隊",
+      "蒼き最終ラウンド",
+      "青の逆択ファイターズ",
+      "蒼きガード崩し隊",
+      "青コーナーの判定勝ち",
+      "冷静な撃墜プランナー",
+      "蒼天のリバーサル部隊",
+      "青の対空職人",
+      "蒼きコンボムービー班",
+      "青のフレーム有利研究会",
+      "蒼天の置き技マスターズ"
+    ],
+    shared: [
+      "終点の支配者たち",
+      "戦場のラストストック",
+      "バーストライン観測隊",
+      "復帰阻止株式会社",
+      "メテオ待機勢",
+      "横スマ信仰会",
+      "空後で語る者たち",
+      "コンボ始動探検隊",
+      "ジャスガできた気がする会",
+      "撃墜圏内警備隊",
+      "崖展開で飯を食う会",
+      "VIP部屋まであと一歩",
+      "小ジャンプ練習中",
+      "スマッシュホールドしすぎ隊",
+      "ラストストック症候群",
+      "差し返しで勝ちたい部",
+      "復帰ルート迷子センター",
+      "勝利ポーズ予約済み",
+      "撃墜演出を見たい会",
+      "火力だけは一流",
+      "対戦台の問題児",
+      "読み合いの沼",
+      "フレーム有利愛好会",
+      "確反取りたい同好会",
+      "起き攻め警察",
+      "逆択の申し子",
+      "中段見えないクラブ",
+      "投げ抜け祈願隊",
+      "ゲージ全部使う派",
+      "最終ラウンド芸人",
+      "コンボムービー未遂",
+      "対空だけうまい組",
+      "リバーサル信者",
+      "ガード崩し研究班",
+      "判定勝ち狙い隊",
+      "波動拳から始める会",
+      "昇龍拳を信じる者",
+      "置き技で世界を取る",
+      "火力計算ミスり隊",
+      "ワンチャンから全部取る",
+      "台パン寸前ファイターズ",
+      "勝ったら実力負けたらラグ",
+      "空N擦り研究所",
+      "上スマに夢を見る会",
+      "メインキャラ迷子隊",
+      "サブキャラの方が強い説",
+      "崖の読み合い相談所",
+      "撃墜拒否うまい組",
+      "ベク変だけはプロ",
+      "復帰だけVIP級",
+      "スマッシュ王国",
+      "乱闘の覇者たち",
+      "終点アイテムなし勢",
+      "ストック溶かし職人",
+      "ラスト一機の集中力",
+      "勝利BGM予約席",
+      "会心の一撃ファイターズ",
+      "超反応カウンター班",
+      "攻めすぎ防衛軍",
+      "守りたいけど攻めたい隊",
+      "今日だけ最強軍団"
+    ]
+  };
+
+  function pickTitle(team){
+    const teamList = FIGHTING_TEAM_TITLES[team] || [];
+    const pool = [...teamList, ...FIGHTING_TEAM_TITLES.shared];
+    return pool[Math.floor(Math.random() * pool.length)];
+  }
+
+  function applyBoardTitlesFromIntro(){
+    const redText = document.getElementById("versusRedName")?.textContent?.trim();
+    const blueText = document.getElementById("versusBlueName")?.textContent?.trim();
+    const redEl = document.getElementById("redBoardAutoTeamName");
+    const blueEl = document.getElementById("blueBoardAutoTeamName");
+
+    if (redEl && redText) redEl.textContent = redText;
+    if (blueEl && blueText) blueEl.textContent = blueText;
+
+    try {
+      localStorage.setItem("team_bingo_board_team_titles_v1", JSON.stringify({
+        red: redText || redEl?.textContent || "",
+        blue: blueText || blueEl?.textContent || ""
+      }));
+    } catch (error) {}
+  }
+
+  if (typeof window.makeAutoTeamName === "function") {
+    const previousMakeAutoTeamNameForFightingTitles = window.makeAutoTeamName;
+    window.makeAutoTeamName = function makeAutoTeamNameMoreFighting(team){
+      // ほぼ格ゲー/スマブラ寄り。万一エラー時だけ元の生成へ。
+      try {
+        return pickTitle(team);
+      } catch (error) {
+        return previousMakeAutoTeamNameForFightingTitles.apply(this, arguments);
+      }
+    };
+    try { makeAutoTeamName = window.makeAutoTeamName; } catch (error) {}
+  } else {
+    window.makeAutoTeamName = function(team){ return pickTitle(team); };
+    try { makeAutoTeamName = window.makeAutoTeamName; } catch (error) {}
+  }
+
+  if (typeof window.showVersusIntro === "function") {
+    const previousShowVersusIntroForFightingTitles = window.showVersusIntro;
+    window.showVersusIntro = function showVersusIntroWithMoreFightingTitles(){
+      const result = previousShowVersusIntroForFightingTitles.apply(this, arguments);
+      setTimeout(applyBoardTitlesFromIntro, 40);
+      return result;
+    };
+    try { showVersusIntro = window.showVersusIntro; } catch (error) {}
+  }
+})();
+</script>
+
+<style id="rankingResetAndTeamNamePolishStyle">
+  /* チーム称号というよりチーム名として見えるように少し強調 */
+  .board-auto-team-name {
+    position: relative;
+    display: inline-flex !important;
+    align-items: center;
+    max-width: 100%;
+    padding: 3px 9px 4px;
+    border-radius: 999px;
+    border: 1px solid rgba(255,255,255,.14);
+    background: rgba(255,255,255,.07);
+    font-size: clamp(13px, 1.4vw, 20px) !important;
+  }
+
+  .board-card.red .board-auto-team-name {
+    border-color: rgba(255,77,109,.32);
+    background: rgba(255,77,109,.10);
+  }
+
+  .board-card.blue .board-auto-team-name {
+    border-color: rgba(86,163,255,.32);
+    background: rgba(86,163,255,.10);
+  }
+
+  .ranking-reset-button {
+    position: fixed;
+    left: 10px;
+    bottom: 10px;
+    z-index: 230;
+    padding: 8px 12px;
+    border-radius: 999px;
+    border: 1px solid rgba(255,255,255,.18);
+    background: linear-gradient(180deg, rgba(12,16,30,.88), rgba(4,6,16,.84));
+    color: rgba(255,255,255,.88);
+    font-size: 11px;
+    font-weight: 1000;
+    letter-spacing: .08em;
+    box-shadow: 0 8px 20px rgba(0,0,0,.28);
+    backdrop-filter: blur(8px);
+  }
+
+  .ranking-reset-button:hover {
+    filter: brightness(1.12);
+    transform: translateY(-1px);
+  }
+
+  .ranking-reset-modal {
+    position: fixed;
+    inset: 0;
+    z-index: 420;
+    display: none;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+    background: rgba(0,0,0,.62);
+    backdrop-filter: blur(6px);
+  }
+
+  .ranking-reset-modal.show {
+    display: flex;
+  }
+
+  .ranking-reset-dialog {
+    width: min(460px, 92vw);
+    border-radius: 24px;
+    border: 2px solid rgba(255,255,255,.16);
+    background:
+      radial-gradient(circle at top, rgba(255,77,109,.14), transparent 38%),
+      linear-gradient(180deg, rgba(12,16,30,.98), rgba(5,7,16,.98));
+    box-shadow: 0 28px 70px rgba(0,0,0,.46);
+    padding: 22px;
+    color: #fff;
+    text-align: center;
+  }
+
+  .ranking-reset-dialog-title {
+    font-size: clamp(22px, 4vw, 34px);
+    font-weight: 1000;
+    letter-spacing: .02em;
+    margin-bottom: 8px;
+  }
+
+  .ranking-reset-dialog-text {
+    color: rgba(255,255,255,.76);
+    font-size: 14px;
+    font-weight: 800;
+    line-height: 1.6;
+    margin-bottom: 18px;
+  }
+
+  .ranking-reset-dialog-actions {
+    display: flex;
+    justify-content: center;
+    gap: 10px;
+    flex-wrap: wrap;
+  }
+
+  .ranking-reset-dialog-actions button {
+    min-width: 140px;
+    padding: 11px 16px;
+    border-radius: 999px;
+    font-size: 13px;
+    font-weight: 1000;
+    letter-spacing: .08em;
+    border: 1px solid rgba(255,255,255,.18);
+  }
+
+  .ranking-reset-cancel {
+    background: rgba(255,255,255,.08);
+    color: #fff;
+  }
+
+  .ranking-reset-confirm {
+    background: linear-gradient(135deg, #ff334f, #8b1020);
+    color: #fff;
+    box-shadow: 0 0 22px rgba(255,51,79,.22);
+  }
+
+  @media (max-width: 720px) {
+    .ranking-reset-button {
+      left: 8px;
+      bottom: 8px;
+      padding: 7px 10px;
+      font-size: 10px;
+    }
+
+    .ranking-reset-dialog {
+      padding: 18px;
+      border-radius: 20px;
+    }
+
+    .ranking-reset-dialog-actions button {
+      min-width: 120px;
+    }
+  }
+</style>
+
+<script id="rankingResetAndTeamNamePolishScript">
+(function(){
+  const OPEN_STATS_KEY = "team_bingo_open_stats_v1";
+
+  function ensureRankingResetUI(){
+    if (!document.getElementById("rankingResetButton")) {
+      const button = document.createElement("button");
+      button.id = "rankingResetButton";
+      button.type = "button";
+      button.className = "ranking-reset-button";
+      button.textContent = "RANK RESET";
+      button.addEventListener("click", openRankingResetModal);
+      document.body.appendChild(button);
+    }
+
+    if (!document.getElementById("rankingResetModal")) {
+      const modal = document.createElement("div");
+      modal.id = "rankingResetModal";
+      modal.className = "ranking-reset-modal";
+      modal.innerHTML = `
+        <div class="ranking-reset-dialog" role="dialog" aria-modal="true" aria-labelledby="rankingResetTitle">
+          <div class="ranking-reset-dialog-title" id="rankingResetTitle">ランキングを消す？</div>
+          <div class="ranking-reset-dialog-text">
+            累計の開封ランキングをリセットします。<br>
+            この操作は元に戻せません。
+          </div>
+          <div class="ranking-reset-dialog-actions">
+            <button type="button" class="ranking-reset-cancel" id="rankingResetCancel">やめる</button>
+            <button type="button" class="ranking-reset-confirm" id="rankingResetConfirm">消す</button>
+          </div>
+        </div>
+      `;
+      document.body.appendChild(modal);
+
+      modal.addEventListener("click", (event) => {
+        if (event.target === modal) closeRankingResetModal();
+      });
+
+      const cancel = modal.querySelector("#rankingResetCancel");
+      const confirm = modal.querySelector("#rankingResetConfirm");
+
+      if (cancel) cancel.addEventListener("click", closeRankingResetModal);
+      if (confirm) confirm.addEventListener("click", resetOpenRankingStats);
+
+      document.addEventListener("keydown", (event) => {
+        if (event.key === "Escape") closeRankingResetModal();
+      });
+    }
+  }
+
+  function openRankingResetModal(){
+    const modal = document.getElementById("rankingResetModal");
+    if (modal) modal.classList.add("show");
+  }
+
+  function closeRankingResetModal(){
+    const modal = document.getElementById("rankingResetModal");
+    if (modal) modal.classList.remove("show");
+  }
+
+  function resetOpenRankingStats(){
+    try {
+      localStorage.removeItem(OPEN_STATS_KEY);
+    } catch (error) {}
+
+    closeRankingResetModal();
+
+    if (typeof window.renderOpenRanking === "function") {
+      window.renderOpenRanking();
+    }
+
+    // 旧レンダーが残っていても確実に0表示へ更新
+    setTimeout(() => {
+      if (typeof window.renderOpenRanking === "function") window.renderOpenRanking();
+    }, 80);
+  }
+
+  function polishBoardTeamNameLabels(){
+    const red = document.getElementById("redBoardAutoTeamName");
+    const blue = document.getElementById("blueBoardAutoTeamName");
+
+    [red, blue].forEach((el) => {
+      if (!el) return;
+      el.title = el.textContent || "";
+      // 「称号」っぽい補足は出さず、表示自体をチーム名として扱う
+      el.setAttribute("aria-label", "チーム名");
+    });
+  }
+
+  document.addEventListener("DOMContentLoaded", () => {
+    ensureRankingResetUI();
+    polishBoardTeamNameLabels();
+  });
+
+  ensureRankingResetUI();
+  polishBoardTeamNameLabels();
+
+  if (typeof window.showVersusIntro === "function") {
+    const previousShowVersusIntroForTeamNamePolish = window.showVersusIntro;
+    window.showVersusIntro = function showVersusIntroWithTeamNamePolish(){
+      const result = previousShowVersusIntroForTeamNamePolish.apply(this, arguments);
+      setTimeout(polishBoardTeamNameLabels, 60);
+      return result;
+    };
+    try { showVersusIntro = window.showVersusIntro; } catch (error) {}
+  }
+
+  if (typeof window.renderAll === "function") {
+    const previousRenderAllForRankingResetUI = window.renderAll;
+    window.renderAll = function renderAllWithRankingResetUI(){
+      const result = previousRenderAllForRankingResetUI.apply(this, arguments);
+      ensureRankingResetUI();
+      polishBoardTeamNameLabels();
+      return result;
+    };
+    try { renderAll = window.renderAll; } catch (error) {}
+  }
+})();
+</script>
+
+<script id="forceIntroTeamNameMorePatternsPatch">
+(function(){
+  const INTRO_TEAM_NAME_PATTERNS = {
+    red: [
+      "紅蓮スマッシュユニオン",
+      "赤きラストストッカーズ",
+      "灼熱メテオクラブ",
+      "レッドバーストライン",
+      "炎上コンボメーカーズ",
+      "赤コーナーの復帰阻止班",
+      "紅の横スマ信仰会",
+      "赤き空後ファイターズ",
+      "灼熱の撃墜請負人",
+      "紅蓮の崖狩り部隊",
+      "赤のジャスガ研究所",
+      "レッドVIPチャレンジャーズ",
+      "紅き終点ファイターズ",
+      "赤コーナーの確反マスターズ",
+      "炎のラストラウンド",
+      "紅蓮リバーサルズ",
+      "赤き昇龍会",
+      "灼熱の起き攻め道場",
+      "レッドフレーム有利会",
+      "紅のゲージ全消費隊",
+      "赤き台パン寸前軍",
+      "炎のワンチャン製造所",
+      "紅蓮の勝利ポーズ",
+      "赤の撃墜演出班",
+      "紅きコンボムービーズ",
+      "灼熱スマッシュ王国",
+      "赤の上スマ相談所",
+      "紅蓮の差し返し番長",
+      "レッドメインキャラ軍団",
+      "赤き火力おばけ連合",
+      "炎の逆択ファイターズ",
+      "紅の投げ抜け職人会",
+      "赤コーナーの波動拳部",
+      "灼熱シールドブレイカーズ",
+      "紅蓮バースト予報士",
+      "赤き復帰ルート破壊班",
+      "炎の小ジャンプ練習会",
+      "レッド撃墜圏内クラブ",
+      "紅の読み合いジャンキーズ",
+      "赤き最終ストック委員会",
+      "スマッシュ赤備え",
+      "紅蓮カウンターズ",
+      "赤の空N擦り研究室",
+      "炎のガード崩し隊",
+      "紅のフルホールド軍",
+      "赤コーナーのコンボ火力",
+      "灼熱バーストメーカーズ",
+      "紅き勝負師連合",
+      "赤の対空職人組",
+      "炎のフィニッシャーズ"
+    ],
+    blue: [
+      "蒼天スマッシュユニオン",
+      "青きラストストッカーズ",
+      "冷静メテオクラブ",
+      "ブルーバーストライン",
+      "蒼のコンボメーカーズ",
+      "青コーナーの復帰阻止班",
+      "蒼き横スマ信仰会",
+      "青の空後ファイターズ",
+      "蒼天の撃墜請負人",
+      "青の崖狩り部隊",
+      "蒼のジャスガ研究所",
+      "ブルーVIPチャレンジャーズ",
+      "蒼き終点ファイターズ",
+      "青コーナーの確反マスターズ",
+      "冷静なラストラウンド",
+      "蒼天リバーサルズ",
+      "青き昇龍会",
+      "蒼の起き攻め道場",
+      "ブルーフレーム有利会",
+      "青のゲージ全消費隊",
+      "青き台パン寸前軍",
+      "蒼のワンチャン製造所",
+      "蒼天の勝利ポーズ",
+      "青の撃墜演出班",
+      "蒼きコンボムービーズ",
+      "蒼天スマッシュ王国",
+      "青の上スマ相談所",
+      "蒼の差し返し番長",
+      "ブルーメインキャラ軍団",
+      "青き火力おばけ連合",
+      "蒼の逆択ファイターズ",
+      "青の投げ抜け職人会",
+      "青コーナーの波動拳部",
+      "冷静シールドブレイカーズ",
+      "蒼天バースト予報士",
+      "青き復帰ルート破壊班",
+      "蒼の小ジャンプ練習会",
+      "ブルー撃墜圏内クラブ",
+      "蒼の読み合いジャンキーズ",
+      "青き最終ストック委員会",
+      "スマッシュ青備え",
+      "蒼天カウンターズ",
+      "青の空N擦り研究室",
+      "蒼のガード崩し隊",
+      "青のフルホールド軍",
+      "青コーナーのコンボ火力",
+      "蒼天バーストメーカーズ",
+      "蒼き勝負師連合",
+      "青の対空職人組",
+      "蒼のフィニッシャーズ"
+    ],
+    shared: [
+      "終点アイテムなし連合",
+      "戦場ラストストック隊",
+      "復帰阻止株式会社",
+      "メテオ待機勢",
+      "横スマぶっぱ組合",
+      "空後で語る者たち",
+      "コンボ始動探検隊",
+      "ジャスガできた気がする会",
+      "撃墜圏内警備隊",
+      "崖展開で飯を食う会",
+      "VIP部屋まであと一歩",
+      "スマッシュホールドしすぎ隊",
+      "差し返しで勝ちたい部",
+      "復帰ルート迷子センター",
+      "勝利ポーズ予約済み",
+      "撃墜演出を見たい会",
+      "火力だけは一流",
+      "対戦台の問題児",
+      "読み合いの沼",
+      "フレーム有利愛好会",
+      "確反取りたい同好会",
+      "起き攻め警察",
+      "逆択の申し子",
+      "中段見えないクラブ",
+      "投げ抜け祈願隊",
+      "ゲージ全部使う派",
+      "最終ラウンド芸人",
+      "コンボムービー未遂",
+      "対空だけうまい組",
+      "リバーサル信者",
+      "ガード崩し研究班",
+      "判定勝ち狙い隊",
+      "波動拳から始める会",
+      "昇龍拳を信じる者",
+      "置き技で世界を取る",
+      "火力計算ミスり隊",
+      "ワンチャンから全部取る",
+      "台パン寸前ファイターズ",
+      "勝ったら実力負けたらラグ",
+      "空N擦り研究所",
+      "上スマに夢を見る会",
+      "メインキャラ迷子隊",
+      "サブキャラの方が強い説",
+      "崖の読み合い相談所",
+      "撃墜拒否うまい組",
+      "ベク変だけはプロ",
+      "復帰だけVIP級",
+      "スマッシュ王国",
+      "乱闘の覇者たち",
+      "ストック溶かし職人",
+      "会心の一撃ファイターズ",
+      "超反応カウンター班",
+      "攻めすぎ防衛軍",
+      "守りたいけど攻めたい隊",
+      "今日だけ最強軍団",
+      "差し込みたい年頃",
+      "掴みを信じる者たち",
+      "暴れ読み失敗同好会",
+      "空中回避狩り本部",
+      "最後は気合い勢",
+      "スマブラ筋肉部",
+      "格ゲー魂保存会",
+      "読み合い全敗からの逆転隊",
+      "謎の強判定軍団",
+      "実況泣かせの荒らし部",
+      "勝利BGM待機列",
+      "ガチ勢のふり部",
+      "ノリだけVIP",
+      "メンタルだけ重量級",
+      "復帰弱者救済会",
+      "全員フィニッシャー",
+      "逆転演出製作委員会",
+      "崖端生活向上委員会",
+      "終点の問題児たち",
+      "判定強めの集団",
+      "コンボより気合い隊",
+      "スマッシュ温存できない会",
+      "ラストストック神頼み",
+      "勝利ポーズ練習済み",
+      "全員メインキャラ不明",
+      "読み合いより勢い派",
+      "バースト拒否研究班",
+      "場外ホームランズ",
+      "撃墜ライン管理局",
+      "確反逃し常習班",
+      "起き攻めされる側",
+      "昇龍擦り委員会",
+      "ゲージ管理できない隊",
+      "今日だけフレーム有利",
+      "勝利のガッツポーズ部",
+      "対戦ゲーム大好き連合",
+      "ワンチャン信仰会",
+      "乱闘生まれ終点育ち",
+      "全員ラスボス候補"
+    ]
+  };
+
+  function pickIntroTeamName(team){
+    const pool = [
+      ...(INTRO_TEAM_NAME_PATTERNS[team] || []),
+      ...INTRO_TEAM_NAME_PATTERNS.shared
+    ];
+    return pool[Math.floor(Math.random() * pool.length)];
+  }
+
+  /*
+    既存のshowVersusIntroが内部でmakeAutoTeamNameを呼ぶので、
+    紹介演出の直前だけチーム名生成を強制的にこの大量パターンへ差し替える。
+  */
+  const originalMakeAutoTeamName = window.makeAutoTeamName || function(team){
+    return team === "red" ? "赤コーナー" : "青コーナー";
+  };
+
+  window.makeAutoTeamName = function makeAutoTeamNameForcedIntroPatterns(team){
+    return pickIntroTeamName(team);
+  };
+  try { makeAutoTeamName = window.makeAutoTeamName; } catch (error) {}
+
+  function syncBoardNamesFromIntro(){
+    const red = document.getElementById("versusRedName")?.textContent?.trim();
+    const blue = document.getElementById("versusBlueName")?.textContent?.trim();
+    const redBoard = document.getElementById("redBoardAutoTeamName");
+    const blueBoard = document.getElementById("blueBoardAutoTeamName");
+
+    if (red && redBoard) redBoard.textContent = red;
+    if (blue && blueBoard) blueBoard.textContent = blue;
+
+    try {
+      localStorage.setItem("team_bingo_board_team_titles_v1", JSON.stringify({
+        red: red || redBoard?.textContent || "",
+        blue: blue || blueBoard?.textContent || ""
+      }));
+    } catch (error) {}
+  }
+
+  if (typeof window.showVersusIntro === "function") {
+    const previousShowVersusIntroForceIntroPatterns = window.showVersusIntro;
+    window.showVersusIntro = function showVersusIntroForceMoreTeamNames(){
+      const result = previousShowVersusIntroForceIntroPatterns.apply(this, arguments);
+      setTimeout(syncBoardNamesFromIntro, 30);
+      setTimeout(syncBoardNamesFromIntro, 120);
+      return result;
+    };
+    try { showVersusIntro = window.showVersusIntro; } catch (error) {}
+  }
+
+  if (typeof window.startPlayRound === "function") {
+    const previousStartPlayRoundForceIntroPatterns = window.startPlayRound;
+    window.startPlayRound = function startPlayRoundForceMoreTeamNames(){
+      window.makeAutoTeamName = function(team){ return pickIntroTeamName(team); };
+      try { makeAutoTeamName = window.makeAutoTeamName; } catch (error) {}
+      return previousStartPlayRoundForceIntroPatterns.apply(this, arguments);
+    };
+    try { startPlayRound = window.startPlayRound; } catch (error) {}
+  }
+
+  if (typeof window.startGame === "function") {
+    const previousStartGameForceIntroPatterns = window.startGame;
+    window.startGame = function startGameForceMoreTeamNames(){
+      window.makeAutoTeamName = function(team){ return pickIntroTeamName(team); };
+      try { makeAutoTeamName = window.makeAutoTeamName; } catch (error) {}
+      return previousStartGameForceIntroPatterns.apply(this, arguments);
+    };
+    try { startGame = window.startGame; } catch (error) {}
+  }
+})();
+</script>
+
+<script id="forceVisibleIntroTeamNamePoolPatch">
+(function(){
+  const FORCE_VISIBLE_INTRO_TEAM_NAMES = [
+    "終点アイテムなし連合",
+    "復帰阻止株式会社",
+    "横スマぶっぱ組合",
+    "VIP部屋まであと一歩",
+    "勝ったら実力負けたらラグ",
+    "台パン寸前ファイターズ",
+    "昇龍拳を信じる者",
+    "全員ラスボス候補",
+    "メテオ待機勢",
+    "空後で語る者たち",
+    "撃墜圏内警備隊",
+    "崖展開で飯を食う会",
+    "スマッシュホールドしすぎ隊",
+    "差し返しで勝ちたい部",
+    "復帰ルート迷子センター",
+    "勝利ポーズ予約済み",
+    "撃墜演出を見たい会",
+    "火力だけは一流",
+    "対戦台の問題児",
+    "読み合いの沼",
+    "フレーム有利愛好会",
+    "確反取りたい同好会",
+    "起き攻め警察",
+    "逆択の申し子",
+    "中段見えないクラブ",
+    "投げ抜け祈願隊",
+    "ゲージ全部使う派",
+    "最終ラウンド芸人",
+    "コンボムービー未遂",
+    "対空だけうまい組",
+    "リバーサル信者",
+    "ガード崩し研究班",
+    "判定勝ち狙い隊",
+    "波動拳から始める会",
+    "置き技で世界を取る",
+    "ワンチャンから全部取る",
+    "空N擦り研究所",
+    "上スマに夢を見る会",
+    "メインキャラ迷子隊",
+    "サブキャラの方が強い説",
+    "崖の読み合い相談所",
+    "撃墜拒否うまい組",
+    "ベク変だけはプロ",
+    "復帰だけVIP級",
+    "スマッシュ王国",
+    "乱闘の覇者たち",
+    "ストック溶かし職人",
+    "ラスト一機の集中力",
+    "勝利BGM予約席",
+    "会心の一撃ファイターズ",
+    "超反応カウンター班",
+    "攻めすぎ防衛軍",
+    "守りたいけど攻めたい隊",
+    "今日だけ最強軍団",
+    "差し込みたい年頃",
+    "掴みを信じる者たち",
+    "空中回避狩り本部",
+    "最後は気合い勢",
+    "スマブラ筋肉部",
+    "格ゲー魂保存会",
+    "謎の強判定軍団",
+    "実況泣かせの荒らし部",
+    "勝利BGM待機列",
+    "ガチ勢のふり部",
+    "ノリだけVIP",
+    "メンタルだけ重量級",
+    "復帰弱者救済会",
+    "全員フィニッシャー",
+    "逆転演出製作委員会",
+    "崖端生活向上委員会",
+    "終点の問題児たち",
+    "判定強めの集団",
+    "コンボより気合い隊",
+    "スマッシュ温存できない会",
+    "ラストストック神頼み",
+    "勝利ポーズ練習済み",
+    "全員メインキャラ不明",
+    "読み合いより勢い派",
+    "バースト拒否研究班",
+    "場外ホームランズ",
+    "撃墜ライン管理局",
+    "確反逃し常習班",
+    "起き攻めされる側",
+    "昇龍擦り委員会",
+    "ゲージ管理できない隊",
+    "今日だけフレーム有利",
+    "勝利のガッツポーズ部",
+    "対戦ゲーム大好き連合",
+    "ワンチャン信仰会",
+    "乱闘生まれ終点育ち"
+  ];
+
+  let lastIntroNames = { red: "", blue: "" };
+
+  function pickDifferentName(except){
+    const pool = FORCE_VISIBLE_INTRO_TEAM_NAMES.filter(name => name !== except);
+    return pool[Math.floor(Math.random() * pool.length)];
+  }
+
+  function applyForcedIntroNames(){
+    const redName = pickDifferentName("");
+    const blueName = pickDifferentName(redName);
+
+    lastIntroNames = { red: redName, blue: blueName };
+
+    const versusRedName = document.getElementById("versusRedName");
+    const versusBlueName = document.getElementById("versusBlueName");
+    const redBoard = document.getElementById("redBoardAutoTeamName");
+    const blueBoard = document.getElementById("blueBoardAutoTeamName");
+
+    if (versusRedName) versusRedName.textContent = redName;
+    if (versusBlueName) versusBlueName.textContent = blueName;
+    if (redBoard) redBoard.textContent = redName;
+    if (blueBoard) blueBoard.textContent = blueName;
+
+    try {
+      localStorage.setItem("team_bingo_board_team_titles_v1", JSON.stringify(lastIntroNames));
+    } catch (error) {}
+  }
+
+  // makeAutoTeamNameもこのプールへ寄せる
+  window.makeAutoTeamName = function makeAutoTeamNameForceVisiblePool(team){
+    const name = pickDifferentName(team === "blue" ? lastIntroNames.red : "");
+    if (team === "red") lastIntroNames.red = name;
+    if (team === "blue") lastIntroNames.blue = name;
+    return name;
+  };
+  try { makeAutoTeamName = window.makeAutoTeamName; } catch (error) {}
+
+  if (typeof window.showVersusIntro === "function") {
+    const previousShowVersusIntroForForcedVisiblePool = window.showVersusIntro;
+    window.showVersusIntro = function showVersusIntroForcedVisiblePool(){
+      const result = previousShowVersusIntroForForcedVisiblePool.apply(this, arguments);
+
+      // 既存処理が後から文字を入れる場合に備えて複数回上書き
+      setTimeout(applyForcedIntroNames, 0);
+      setTimeout(applyForcedIntroNames, 40);
+      setTimeout(applyForcedIntroNames, 140);
+
+      return result;
+    };
+    try { showVersusIntro = window.showVersusIntro; } catch (error) {}
+  }
+})();
+</script>
+
+<script id="mixedGenreIntroTeamNamesPatch">
+(function(){
+  const MIXED_GENRE_TEAM_NAMES = [
+    // スマブラ・格ゲー系
+    "終点アイテムなし連合",
+    "復帰阻止株式会社",
+    "横スマぶっぱ組合",
+    "VIP部屋まであと一歩",
+    "勝ったら実力負けたらラグ",
+    "台パン寸前ファイターズ",
+    "昇龍拳を信じる者",
+    "全員ラスボス候補",
+    "メテオ待機勢",
+    "空後で語る者たち",
+    "撃墜圏内警備隊",
+    "崖展開で飯を食う会",
+    "確反取りたい同好会",
+    "起き攻め警察",
+    "逆択の申し子",
+    "中段見えないクラブ",
+    "投げ抜け祈願隊",
+    "最終ラウンド芸人",
+    "波動拳から始める会",
+    "ワンチャンから全部取る",
+
+    // FPS・TPS系
+    "ヘッドショット研究会",
+    "エイムだけは一流",
+    "弾切れ特攻隊",
+    "索敵ガバガバ部隊",
+    "裏取り成功し隊",
+    "スモークの中の英雄",
+    "リロード忘れがち連合",
+    "開幕ラッシュ株式会社",
+    "芋って勝ちたい同盟",
+    "ピーク勝負の申し子",
+    "グレネード芸術部",
+    "最後の一人から本気出す",
+    "撃ち合い気合い勢",
+    "クリアリング忘れ隊",
+    "キルログに載りたい会",
+    "エリア制圧委員会",
+    "フルパのふりした野良",
+    "足音聞こえた気がする隊",
+    "勝利のリコイル制御班",
+    "弾幕で解決する会",
+
+    // RPG・ファンタジー系
+    "ラスボス前セーブ組",
+    "伝説の村人たち",
+    "勇者パーティー仮採用",
+    "全員レベル上げ不足",
+    "回復役が一番強い隊",
+    "会心の一撃待機列",
+    "宝箱は全部開ける派",
+    "魔王城の常連客",
+    "序盤の強敵ファンクラブ",
+    "状態異常で勝ちたい部",
+    "ポーション温存しすぎ隊",
+    "全滅からの再挑戦",
+    "経験値おいしい連合",
+    "装備だけ最強軍団",
+    "隠しボス発見隊",
+    "クエスト受けすぎ組合",
+    "エンカウント多すぎ問題",
+    "クリティカル祈願会",
+    "勇者より目立つ仲間たち",
+    "村を救いがちな一行",
+
+    // スポーツ・大会系
+    "延長戦に強い人たち",
+    "逆転満塁ホームランズ",
+    "ロスタイムの奇跡",
+    "全員エース候補",
+    "ベンチから声で勝つ隊",
+    "気合いの円陣クラブ",
+    "優勝インタビュー待機組",
+    "勝利のガッツポーズ部",
+    "決勝だけ強い軍団",
+    "応援団長だらけのチーム",
+    "ホームラン予告委員会",
+    "ドリブルで全部抜く会",
+    "ゴール前の問題児",
+    "守備から流れ作る隊",
+    "一点差を楽しむ者たち",
+    "勝ち越し狙いの職人",
+    "試合後ハイタッチ同盟",
+    "チャンスに集まる人々",
+    "勝利の胴上げ予約席",
+    "フィールドの暴れん坊",
+
+    // 麻雀・カード・ボードゲーム系
+                                                            
+    // 仕事・日常ネタ系
+    "定時退社ファイターズ",
+    "会議5分で終わらせ隊",
+    "月曜に勝ちたい連合",
+    "朝イチから本気出す部",
+    "昼休みの覇者たち",
+    "締切前だけ覚醒する会",
+    "資料だけは強い軍団",
+    "コーヒーで動く人々",
+    "謎の集中力クラブ",
+    "今日だけやる気勢",
+    "帰ったら本気出す組",
+    "休憩中のラスボス",
+    "社内最強じゃんけん部",
+    "通知オフの勝負師",
+    "タスクを倒す勇者たち",
+
+    // シュール・おちゃらけ系
+    "謎の強者集団",
+    "だいたい雰囲気で勝つ会",
+    "勝利の予感だけは一流",
+    "全員なんか持ってる",
+    "急に強くなる人たち",
+    "笑いながら勝ちたい組",
+    "作戦名はまだない",
+    "なんか勝てそう連合",
+    "勢いだけで来た軍団",
+    "全員主役希望",
+    "よくわからんけど強い",
+    "拍手されたい協会",
+    "今日の運を使い切る会",
+    "勝ったら全部作戦",
+    "負けても名勝負委員会",
+    "空気だけはチャンピオン",
+    "奇跡待ちプロジェクト",
+    "突然の覚醒待機勢",
+    "なぜか勝つタイプ",
+    "実況が困る軍団",
+
+    // かっこいい汎用
+    "勝利の開拓者たち",
+    "逆転の狼煙",
+    "蒼紅のチャレンジャーズ",
+    "一撃必勝ユニオン",
+    "未来を奪う者たち",
+    "流れを変える一手",
+    "勝負所の支配者",
+    "歓声を呼ぶ者たち",
+    "決着のトリガー",
+    "勝利への最短距離",
+    "熱狂のフィニッシャーズ",
+    "限界突破クラブ",
+    "奇跡の起動部隊",
+    "一瞬の勝負師たち",
+    "最後に笑う軍団"
+  ];
+
+  let lastMixedNames = { red: "", blue: "" };
+
+  function pickMixedTeamName(except){
+    const pool = MIXED_GENRE_TEAM_NAMES.filter(name => name !== except);
+    return pool[Math.floor(Math.random() * pool.length)];
+  }
+
+  function applyMixedIntroNames(){
+    const redName = pickMixedTeamName("");
+    const blueName = pickMixedTeamName(redName);
+
+    lastMixedNames = { red: redName, blue: blueName };
+
+    const versusRedName = document.getElementById("versusRedName");
+    const versusBlueName = document.getElementById("versusBlueName");
+    const redBoard = document.getElementById("redBoardAutoTeamName");
+    const blueBoard = document.getElementById("blueBoardAutoTeamName");
+
+    if (versusRedName) versusRedName.textContent = redName;
+    if (versusBlueName) versusBlueName.textContent = blueName;
+    if (redBoard) redBoard.textContent = redName;
+    if (blueBoard) blueBoard.textContent = blueName;
+
+    try {
+      localStorage.setItem("team_bingo_board_team_titles_v1", JSON.stringify(lastMixedNames));
+    } catch (error) {}
+  }
+
+  window.makeAutoTeamName = function makeAutoTeamNameMixedGenres(team){
+    const name = pickMixedTeamName(team === "blue" ? lastMixedNames.red : "");
+    if (team === "red") lastMixedNames.red = name;
+    if (team === "blue") lastMixedNames.blue = name;
+    return name;
+  };
+  try { makeAutoTeamName = window.makeAutoTeamName; } catch (error) {}
+
+  if (typeof window.showVersusIntro === "function") {
+    const previousShowVersusIntroForMixedGenres = window.showVersusIntro;
+    window.showVersusIntro = function showVersusIntroMixedGenres(){
+      const result = previousShowVersusIntroForMixedGenres.apply(this, arguments);
+      setTimeout(applyMixedIntroNames, 0);
+      setTimeout(applyMixedIntroNames, 50);
+      setTimeout(applyMixedIntroNames, 150);
+      return result;
+    };
+    try { showVersusIntro = window.showVersusIntro; } catch (error) {}
+  }
+})();
+</script>
+
+<script id="smashFightingHalfIntroTeamNamesPatch">
+(function(){
+  const SMASH_FIGHTING_NAMES = [
+    "終点アイテムなし連合",
+    "復帰阻止株式会社",
+    "横スマぶっぱ組合",
+    "VIP部屋まであと一歩",
+    "勝ったら実力負けたらラグ",
+    "台パン寸前ファイターズ",
+    "昇龍拳を信じる者",
+    "全員ラスボス候補",
+    "メテオ待機勢",
+    "空後で語る者たち",
+    "撃墜圏内警備隊",
+    "崖展開で飯を食う会",
+    "スマッシュホールドしすぎ隊",
+    "差し返しで勝ちたい部",
+    "復帰ルート迷子センター",
+    "勝利ポーズ予約済み",
+    "撃墜演出を見たい会",
+    "火力だけは一流",
+    "対戦台の問題児",
+    "読み合いの沼",
+    "フレーム有利愛好会",
+    "確反取りたい同好会",
+    "起き攻め警察",
+    "逆択の申し子",
+    "中段見えないクラブ",
+    "投げ抜け祈願隊",
+    "ゲージ全部使う派",
+    "最終ラウンド芸人",
+    "コンボムービー未遂",
+    "対空だけうまい組",
+    "リバーサル信者",
+    "ガード崩し研究班",
+    "判定勝ち狙い隊",
+    "波動拳から始める会",
+    "昇龍拳を擦る者たち",
+    "置き技で世界を取る",
+    "火力計算ミスり隊",
+    "ワンチャンから全部取る",
+    "空N擦り研究所",
+    "上スマに夢を見る会",
+    "メインキャラ迷子隊",
+    "サブキャラの方が強い説",
+    "崖の読み合い相談所",
+    "撃墜拒否うまい組",
+    "ベク変だけはプロ",
+    "復帰だけVIP級",
+    "スマッシュ王国",
+    "乱闘の覇者たち",
+    "ストック溶かし職人",
+    "ラスト一機の集中力",
+    "勝利BGM予約席",
+    "会心の一撃ファイターズ",
+    "超反応カウンター班",
+    "攻めすぎ防衛軍",
+    "守りたいけど攻めたい隊",
+    "差し込みたい年頃",
+    "掴みを信じる者たち",
+    "暴れ読み失敗同好会",
+    "空中回避狩り本部",
+    "最後は気合い勢",
+    "スマブラ筋肉部",
+    "格ゲー魂保存会",
+    "謎の強判定軍団",
+    "実況泣かせの荒らし部",
+    "勝利BGM待機列",
+    "ガチ勢のふり部",
+    "ノリだけVIP",
+    "メンタルだけ重量級",
+    "復帰弱者救済会",
+    "全員フィニッシャー",
+    "逆転演出製作委員会",
+    "崖端生活向上委員会",
+    "終点の問題児たち",
+    "判定強めの集団",
+    "コンボより気合い隊",
+    "スマッシュ温存できない会",
+    "ラストストック神頼み",
+    "勝利ポーズ練習済み",
+    "全員メインキャラ不明",
+    "読み合いより勢い派",
+    "バースト拒否研究班",
+    "場外ホームランズ",
+    "撃墜ライン管理局",
+    "確反逃し常習班",
+    "起き攻めされる側",
+    "昇龍擦り委員会",
+    "ゲージ管理できない隊",
+    "今日だけフレーム有利",
+    "ワンチャン信仰会",
+    "乱闘生まれ終点育ち",
+    "崖上がり狩り職人",
+    "空ダできた気がする会",
+    "下スマに愛された者",
+    "掴み抜け祈願クラブ",
+    "反確見逃し協会",
+    "投げコン始動班",
+    "ラストストック芸術部",
+    "撃墜拒否だけうまい",
+    "その場回避読み隊",
+    "暴れ択保存会"
+  ];
+
+  const GENERAL_SURREAL_DAILY_NAMES = [
+    "勝利の開拓者たち",
+    "逆転の狼煙",
+    "一撃必勝ユニオン",
+    "未来を奪う者たち",
+    "流れを変える一手",
+    "勝負所の支配者",
+    "歓声を呼ぶ者たち",
+    "決着のトリガー",
+    "勝利への最短距離",
+    "熱狂のフィニッシャーズ",
+    "限界突破クラブ",
+    "奇跡の起動部隊",
+    "一瞬の勝負師たち",
+    "最後に笑う軍団",
+    "今日だけ最強軍団",
+    "謎の強者集団",
+    "だいたい雰囲気で勝つ会",
+    "勝利の予感だけは一流",
+    "全員なんか持ってる",
+    "急に強くなる人たち",
+    "笑いながら勝ちたい組",
+    "作戦名はまだない",
+    "なんか勝てそう連合",
+    "勢いだけで来た軍団",
+    "全員主役希望",
+    "よくわからんけど強い",
+    "拍手されたい協会",
+    "今日の運を使い切る会",
+    "勝ったら全部作戦",
+    "負けても名勝負委員会",
+    "空気だけはチャンピオン",
+    "奇跡待ちプロジェクト",
+    "突然の覚醒待機勢",
+    "なぜか勝つタイプ",
+    "実況が困る軍団",
+    "定時退社ファイターズ",
+    "会議5分で終わらせ隊",
+    "月曜に勝ちたい連合",
+    "朝イチから本気出す部",
+    "昼休みの覇者たち",
+    "締切前だけ覚醒する会",
+    "資料だけは強い軍団",
+    "コーヒーで動く人々",
+    "謎の集中力クラブ",
+    "今日だけやる気勢",
+    "帰ったら本気出す組",
+    "休憩中のラスボス",
+    "社内最強じゃんけん部",
+    "通知オフの勝負師",
+    "タスクを倒す勇者たち",
+                                                                "全員ちょっと眠い",
+    "勢いだけ課",
+    "だいたいノリで突破",
+    "今日は勝てる気がする部",
+    "謎に自信ある連合",
+    "小声の強者たち",
+    "集中したら強い組",
+    "気配だけチャンピオン",
+    "勝利予報は晴れ",
+    "なんか仕上がってる隊",
+    "作戦会議なし軍団",
+    "全員笑顔で圧をかける",
+    "勝てば官軍クラブ",
+    "結果オーライ委員会",
+    "流れを食べる者たち",
+    "会場を味方につける会",
+    "拍手待ちファイターズ",
+    "祝勝会だけ予約済み",
+    "いい感じの人たち",
+    "やればできる連合",
+    "勝利に寄ってる会",
+    "勢いの専門家たち",
+    "ミラクル製造委員会",
+    "最後だけ強いタイプ",
+    "急に空気を変える者",
+    "今日は持ってる軍団",
+    "なんとなく名門",
+    "全員センター希望",
+    "一旦勝ってから考える",
+    "謎の勝負強さ研究会"
+  ];
+
+  let lastNames = { red: "", blue: "" };
+  let toggleBucket = Math.random() < 0.5 ? "smash" : "general";
+
+  function pickFrom(list, except){
+    const pool = list.filter(name => name !== except);
+    return pool[Math.floor(Math.random() * pool.length)];
+  }
+
+  function pickBalancedName(except){
+    // チーム2つで「片方スマブラ/格ゲー、片方その他」になりやすいよう交互にする
+    const useSmash = toggleBucket === "smash";
+    toggleBucket = useSmash ? "general" : "smash";
+    return useSmash
+      ? pickFrom(SMASH_FIGHTING_NAMES, except)
+      : pickFrom(GENERAL_SURREAL_DAILY_NAMES, except);
+  }
+
+  function applyBalancedIntroNames(){
+    const redName = pickBalancedName("");
+    const blueName = pickBalancedName(redName);
+
+    lastNames = { red: redName, blue: blueName };
+
+    const versusRedName = document.getElementById("versusRedName");
+    const versusBlueName = document.getElementById("versusBlueName");
+    const redBoard = document.getElementById("redBoardAutoTeamName");
+    const blueBoard = document.getElementById("blueBoardAutoTeamName");
+
+    if (versusRedName) versusRedName.textContent = redName;
+    if (versusBlueName) versusBlueName.textContent = blueName;
+    if (redBoard) redBoard.textContent = redName;
+    if (blueBoard) blueBoard.textContent = blueName;
+
+    try {
+      localStorage.setItem("team_bingo_board_team_titles_v1", JSON.stringify(lastNames));
+    } catch (error) {}
+  }
+
+  window.makeAutoTeamName = function makeAutoTeamNameSmashFightingHalf(team){
+    const name = pickBalancedName(team === "blue" ? lastNames.red : "");
+    if (team === "red") lastNames.red = name;
+    if (team === "blue") lastNames.blue = name;
+    return name;
+  };
+  try { makeAutoTeamName = window.makeAutoTeamName; } catch (error) {}
+
+  if (typeof window.showVersusIntro === "function") {
+    const previousShowVersusIntroForBalancedNames = window.showVersusIntro;
+    window.showVersusIntro = function showVersusIntroBalancedTeamNames(){
+      const result = previousShowVersusIntroForBalancedNames.apply(this, arguments);
+      setTimeout(applyBalancedIntroNames, 0);
+      setTimeout(applyBalancedIntroNames, 50);
+      setTimeout(applyBalancedIntroNames, 150);
+      return result;
+    };
+    try { showVersusIntro = window.showVersusIntro; } catch (error) {}
+  }
+})();
+</script>
+
+<script id="rareUnchiTeamNamePatch">
+(function(){
+  const RARE_TEAM_NAME = "うんっちちーむ";
+  const RARE_RATE = 0.01;
+
+  /*
+    最新のチーム名生成に1%レア枠を追加。
+    既存のスマブラ/格ゲー5割・その他5割のバランスはそのまま。
+  */
+  if (typeof window.makeAutoTeamName === "function") {
+    const previousMakeAutoTeamNameForRareUnchi = window.makeAutoTeamName;
+
+    window.makeAutoTeamName = function makeAutoTeamNameWithRareUnchi(team){
+      if (Math.random() < RARE_RATE) {
+        return RARE_TEAM_NAME;
+      }
+      return previousMakeAutoTeamNameForRareUnchi.apply(this, arguments);
+    };
+
+    try { makeAutoTeamName = window.makeAutoTeamName; } catch (error) {}
+  }
+
+  function maybeReplaceIntroNameWithRare(){
+    // 紹介演出側を後から直接上書きしているパッチ対策。
+    // 1%だけ、赤青どちらか片方をレア名に差し替える。
+    if (Math.random() >= RARE_RATE) return;
+
+    const target = Math.random() < 0.5 ? "red" : "blue";
+    const versus = document.getElementById(target === "red" ? "versusRedName" : "versusBlueName");
+    const board = document.getElementById(target === "red" ? "redBoardAutoTeamName" : "blueBoardAutoTeamName");
+
+    if (versus) versus.textContent = RARE_TEAM_NAME;
+    if (board) board.textContent = RARE_TEAM_NAME;
+
+    try {
+      const red = document.getElementById("versusRedName")?.textContent?.trim()
+        || document.getElementById("redBoardAutoTeamName")?.textContent?.trim()
+        || "";
+      const blue = document.getElementById("versusBlueName")?.textContent?.trim()
+        || document.getElementById("blueBoardAutoTeamName")?.textContent?.trim()
+        || "";
+      localStorage.setItem("team_bingo_board_team_titles_v1", JSON.stringify({ red, blue }));
+    } catch (error) {}
+  }
+
+  if (typeof window.showVersusIntro === "function") {
+    const previousShowVersusIntroForRareUnchi = window.showVersusIntro;
+
+    window.showVersusIntro = function showVersusIntroWithRareUnchi(){
+      const result = previousShowVersusIntroForRareUnchi.apply(this, arguments);
+      setTimeout(maybeReplaceIntroNameWithRare, 180);
+      return result;
+    };
+
+    try { showVersusIntro = window.showVersusIntro; } catch (error) {}
+  }
+})();
+</script>
+
 </body>
 </html>
