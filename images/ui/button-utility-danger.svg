@@ -1,0 +1,20 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 86" role="img" aria-label="danger utility button">
+  <defs>
+    <linearGradient id="panel" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#40141a"/>
+      <stop offset=".52" stop-color="#1c0710"/>
+      <stop offset="1" stop-color="#050711"/>
+    </linearGradient>
+    <linearGradient id="edge" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0" stop-color="#7f1d1d"/>
+      <stop offset=".5" stop-color="#ffe4e6"/>
+      <stop offset="1" stop-color="#7f1d1d"/>
+    </linearGradient>
+  </defs>
+  <path d="M18 10h284l12 14v38l-12 14H18L6 62V24z" fill="url(#panel)" stroke="#020617" stroke-width="4"/>
+  <path d="M20 14h280l9 11v36l-9 11H20L11 61V25z" fill="none" stroke="url(#edge)" stroke-width="2"/>
+  <path d="M31 24h258" stroke="#fecdd3" stroke-width="2" opacity=".54"/>
+  <path d="M31 63h258" stroke="#000" stroke-width="2" opacity=".48"/>
+  <path d="M26 20h58l-16 10H31z" fill="#ffffff" opacity=".08"/>
+  <path d="M252 57h38l8-10h-38z" fill="#ff304d" opacity=".18"/>
+</svg>

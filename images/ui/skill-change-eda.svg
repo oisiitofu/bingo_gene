@@ -1,0 +1,45 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 520 190" role="img" aria-label="EDA CHANGE">
+  <defs>
+    <linearGradient id="edaPanel" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0" stop-color="#ff2d45"/>
+      <stop offset=".42" stop-color="#8c1020"/>
+      <stop offset=".43" stop-color="#050711"/>
+      <stop offset=".54" stop-color="#050711"/>
+      <stop offset=".55" stop-color="#145cff"/>
+      <stop offset="1" stop-color="#0632a8"/>
+    </linearGradient>
+    <linearGradient id="edaSteel" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#ffffff"/>
+      <stop offset=".44" stop-color="#dbeafe"/>
+      <stop offset="1" stop-color="#94a3b8"/>
+    </linearGradient>
+    <linearGradient id="edaChangeText" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0" stop-color="#ff4157"/>
+      <stop offset=".36" stop-color="#ffd0d8"/>
+      <stop offset=".54" stop-color="#ffffff"/>
+      <stop offset="1" stop-color="#4da3ff"/>
+    </linearGradient>
+    <filter id="edaGlow" x="-30%" y="-45%" width="160%" height="190%">
+      <feDropShadow dx="0" dy="8" stdDeviation="0" flood-color="#020617" flood-opacity=".78"/>
+      <feDropShadow dx="-4" dy="0" stdDeviation="4" flood-color="#ff2d45" flood-opacity=".82"/>
+      <feDropShadow dx="4" dy="0" stdDeviation="4" flood-color="#145cff" flood-opacity=".78"/>
+    </filter>
+  </defs>
+  <path d="M18 118 70 30h338l34 36 58-2-46 45 34 34-70 5-39 25H52z" fill="#04050a" opacity=".97"/>
+  <path d="M42 110 84 45h314l27 29 42-2-34 34 26 25-49 4-34 20H66z" fill="url(#edaPanel)"/>
+  <path d="M58 110 84 45h140l-38 111H66z" fill="#ff2d45" opacity=".78"/>
+  <path d="M292 45h106l27 29 42-2-34 34 26 25-49 4-34 20H244z" fill="#145cff" opacity=".78"/>
+  <path d="M73 58h293l24 26 28-1-23 24 19 18-33 3-24 14H88l-31-31z" fill="#070914" opacity=".93"/>
+  <g stroke="url(#edaSteel)" stroke-width="9" stroke-linecap="round" filter="url(#edaGlow)">
+    <path d="M82 140 157 63"/>
+    <path d="M438 51 365 129"/>
+    <path d="M384 55h70"/>
+    <path d="M91 142h70"/>
+  </g>
+  <g fill="none" stroke="#ffdde4" stroke-width="5" opacity=".76">
+    <circle cx="419" cy="95" r="24"/>
+    <path d="M419 63v64M387 95h64"/>
+  </g>
+  <text x="260" y="111" text-anchor="middle" font-family="Impact, Arial Black, sans-serif" font-size="64" font-style="italic" letter-spacing="2" fill="url(#edaChangeText)" stroke="#050711" stroke-width="7" paint-order="stroke fill" filter="url(#edaGlow)">EDA CHANGE</text>
+  <text x="260" y="145" text-anchor="middle" font-family="Arial Black, sans-serif" font-size="22" letter-spacing="8" fill="#dbeafe" stroke="#050711" stroke-width="2" paint-order="stroke fill">SPECIAL CELL</text>
+</svg>

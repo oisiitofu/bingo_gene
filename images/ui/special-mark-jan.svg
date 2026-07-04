@@ -1,0 +1,22 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 220 84" role="img" aria-label="JAN SPECIAL">
+  <defs>
+    <linearGradient id="janBadge" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#fffce1"/>
+      <stop offset=".34" stop-color="#ffe45e"/>
+      <stop offset=".7" stop-color="#f59e0b"/>
+      <stop offset="1" stop-color="#6b3d00"/>
+    </linearGradient>
+    <filter id="janBadgeGlow" x="-25%" y="-40%" width="150%" height="180%">
+      <feDropShadow dx="0" dy="4" stdDeviation="0" flood-color="#020617" flood-opacity=".72"/>
+      <feDropShadow dx="0" dy="0" stdDeviation="6" flood-color="#ffd84a" flood-opacity=".92"/>
+      <feDropShadow dx="0" dy="0" stdDeviation="12" flood-color="#ff9f1c" flood-opacity=".72"/>
+    </filter>
+  </defs>
+  <path d="M9 43 35 10h137l13 13 28-5-20 25 18 15-31 5-14 12H24z" fill="#050711"/>
+  <path d="M20 41 41 18h127l11 11 18-3-14 17 13 10-22 4-12 9H31z" fill="url(#janBadge)" filter="url(#janBadgeGlow)"/>
+  <path d="M34 26h118l10 9 11-2-10 11 8 6-14 2-8 6H42l-12-15z" fill="#2a1700" opacity=".92"/>
+  <path d="M31 16 38 29 52 32 39 39 37 54 30 40 15 37 29 29z" fill="#fff7ad" filter="url(#janBadgeGlow)"/>
+  <path d="M67 23h83l12 10-11 18H58l-8-14z" fill="#060710" opacity=".78"/>
+  <text x="108" y="48" text-anchor="middle" font-family="Impact, Arial Black, sans-serif" font-size="35" font-style="italic" fill="#ffd84a" stroke="#050711" stroke-width="6" paint-order="stroke fill">JAN</text>
+  <text x="108" y="65" text-anchor="middle" font-family="Arial Black, sans-serif" font-size="15" letter-spacing="2" fill="#fff6c7" stroke="#050711" stroke-width="2" paint-order="stroke fill">SPECIAL</text>
+</svg>

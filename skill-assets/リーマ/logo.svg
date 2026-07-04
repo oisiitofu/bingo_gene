@@ -1,0 +1,60 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1400 420" role="img" aria-label="RIMA RAMEN ENERGY RUSH">
+  <defs>
+    <linearGradient id="panel" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#200b04"/>
+      <stop offset=".34" stop-color="#8d2a0a"/>
+      <stop offset=".68" stop-color="#173f18"/>
+      <stop offset="1" stop-color="#050711"/>
+    </linearGradient>
+    <linearGradient id="noodle" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#fff8b8"/>
+      <stop offset=".45" stop-color="#f9c74f"/>
+      <stop offset="1" stop-color="#ff7a18"/>
+    </linearGradient>
+    <linearGradient id="energy" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#eaff7b"/>
+      <stop offset=".42" stop-color="#22c55e"/>
+      <stop offset=".76" stop-color="#06b6d4"/>
+      <stop offset="1" stop-color="#14532d"/>
+    </linearGradient>
+    <linearGradient id="text" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#fffdf2"/>
+      <stop offset=".32" stop-color="#ffe76a"/>
+      <stop offset=".68" stop-color="#ff8a18"/>
+      <stop offset="1" stop-color="#ef4444"/>
+    </linearGradient>
+    <filter id="glow" x="-30%" y="-35%" width="160%" height="170%">
+      <feDropShadow dx="0" dy="12" stdDeviation="0" flood-color="#000" flood-opacity=".84"/>
+      <feDropShadow dx="0" dy="0" stdDeviation="18" flood-color="#f9c74f" flood-opacity=".82"/>
+      <feDropShadow dx="0" dy="0" stdDeviation="42" flood-color="#22c55e" flood-opacity=".54"/>
+    </filter>
+  </defs>
+  <path d="M56 120 1234 36l126 86-98 188-1138 66L18 266z" fill="url(#panel)" stroke="#fff6b0" stroke-width="16"/>
+  <path d="M118 150 1162 74l-44 54 140-10-60 110 86 48-1090 62 44-58-142 12 68-122z" fill="#050711" opacity=".64"/>
+  <g filter="url(#glow)">
+    <ellipse cx="252" cy="274" rx="166" ry="62" fill="#fff6b0" stroke="#3b1606" stroke-width="11"/>
+    <path d="M96 244c26 94 300 94 326 0l-42 86H138z" fill="#d93816" stroke="#fff6b0" stroke-width="9"/>
+    <ellipse cx="252" cy="226" rx="182" ry="78" fill="#521506" stroke="#fff6b0" stroke-width="10"/>
+    <path d="M116 222c52-44 110-10 160-40 54-32 116-14 158 14-48 54-124 46-184 68-66 24-134 8-134-42z" fill="url(#noodle)"/>
+    <path d="M142 218c78 24 172-20 270 10M150 250c88 26 178-22 286 6" fill="none" stroke="#fff6b0" stroke-width="9" stroke-linecap="round" opacity=".84"/>
+    <circle cx="190" cy="198" r="20" fill="#ef4444"/>
+    <circle cx="320" cy="190" r="18" fill="#22c55e"/>
+    <path d="M194 134c-42-50 28-60-10-106M260 126c-34-48 34-58 0-106M326 136c-40-48 36-58 4-106" fill="none" stroke="#fffdf2" stroke-width="12" stroke-linecap="round" opacity=".76"/>
+    <g transform="translate(416 72) rotate(-10)">
+      <rect x="0" y="0" width="108" height="224" rx="22" fill="url(#energy)" stroke="#eaff7b" stroke-width="9"/>
+      <path d="M30 24h50l-28 72h40l-64 110 22-84H16z" fill="#fffdf2" stroke="#062b1b" stroke-width="6"/>
+      <text x="54" y="184" text-anchor="middle" font-family="Arial Black, sans-serif" font-size="28" font-weight="900" fill="#05140f">MAX</text>
+    </g>
+    <path d="M96 350c148-64 340-48 520 0" fill="none" stroke="url(#energy)" stroke-width="14" stroke-linecap="round"/>
+  </g>
+  <g opacity=".38" stroke="#eaff7b" stroke-width="11">
+    <path d="M612 94 562 330"/>
+    <path d="M760 78 710 318"/>
+    <path d="M908 64 858 306"/>
+    <path d="M1056 54 1006 294"/>
+    <path d="M1204 48 1154 282"/>
+  </g>
+  <text x="858" y="168" text-anchor="middle" font-family="Impact, Arial Black, sans-serif" font-size="116" font-style="italic" font-weight="900" fill="url(#text)" stroke="#050711" stroke-width="14" paint-order="stroke" filter="url(#glow)">RIMA</text>
+  <text x="862" y="276" text-anchor="middle" font-family="Impact, Arial Black, sans-serif" font-size="100" font-style="italic" font-weight="900" fill="url(#noodle)" stroke="#050711" stroke-width="12" paint-order="stroke" filter="url(#glow)">RAMEN ENERGY RUSH</text>
+  <text x="862" y="338" text-anchor="middle" font-family="Arial Black, sans-serif" font-size="32" font-weight="900" fill="#eaff7b">NOODLES + ENERGY DRINK</text>
+</svg>

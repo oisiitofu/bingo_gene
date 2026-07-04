@@ -1,0 +1,45 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1400 420" role="img" aria-label="LICKEY BUPPA KINGDOM">
+  <defs>
+    <linearGradient id="royalPanel" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#061124"/>
+      <stop offset=".38" stop-color="#173a8a"/>
+      <stop offset=".72" stop-color="#14182e"/>
+      <stop offset="1" stop-color="#050711"/>
+    </linearGradient>
+    <linearGradient id="gold" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#fff8c2"/>
+      <stop offset=".42" stop-color="#f9c74f"/>
+      <stop offset=".78" stop-color="#d88917"/>
+      <stop offset="1" stop-color="#8c4a0a"/>
+    </linearGradient>
+    <linearGradient id="blue" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#e0fbff"/>
+      <stop offset=".38" stop-color="#8ad7ff"/>
+      <stop offset=".72" stop-color="#2f80ff"/>
+      <stop offset="1" stop-color="#183a9f"/>
+    </linearGradient>
+    <filter id="glow" x="-30%" y="-35%" width="160%" height="170%">
+      <feDropShadow dx="0" dy="12" stdDeviation="0" flood-color="#000" flood-opacity=".84"/>
+      <feDropShadow dx="0" dy="0" stdDeviation="18" flood-color="#f9c74f" flood-opacity=".78"/>
+      <feDropShadow dx="0" dy="0" stdDeviation="42" flood-color="#2f80ff" flood-opacity=".5"/>
+    </filter>
+  </defs>
+  <path d="M54 126 1228 34l130 78-94 196-1132 68L20 266z" fill="url(#royalPanel)" stroke="#fff8c2" stroke-width="16"/>
+  <path d="M118 154 1158 76l-50 58 138-12-54 104 84 48-1090 62 42-52-138 12 66-120z" fill="#050711" opacity=".66"/>
+  <g filter="url(#glow)">
+    <path d="M104 278h270v58H104z" fill="url(#gold)" stroke="#fff8c2" stroke-width="9"/>
+    <path d="M134 188h78v90h-78zM254 154h86v124h-86z" fill="#1b2c64" stroke="#fff8c2" stroke-width="9"/>
+    <path d="M112 186h254l-44-56-54 48-58-84-58 88-54-52z" fill="url(#gold)" stroke="#fff8c2" stroke-width="9"/>
+    <circle cx="210" cy="92" r="15" fill="#38bdf8"/>
+    <path d="M158 226h38v52h-38zM278 220h38v58h-38z" fill="#fff8c2"/>
+    <path d="M386 94 530 56l-100 122 140 14-172 140 50-114-134-10z" fill="#fff8c2" opacity=".95" stroke="#050711" stroke-width="9"/>
+    <path d="M88 342c124-58 278-44 424 0" fill="none" stroke="url(#blue)" stroke-width="13" stroke-linecap="round"/>
+  </g>
+  <g opacity=".34" stroke="#8ad7ff" stroke-width="13">
+    <path d="M586 104c130-52 250 26 386-32 94-40 190-28 286-52"/>
+    <path d="M550 310c150-46 256 28 404-42 96-44 182-20 270-46"/>
+  </g>
+  <text x="848" y="168" text-anchor="middle" font-family="Impact, Arial Black, sans-serif" font-size="112" font-style="italic" font-weight="900" fill="url(#gold)" stroke="#050711" stroke-width="14" paint-order="stroke" filter="url(#glow)">LICKEY</text>
+  <text x="852" y="276" text-anchor="middle" font-family="Impact, Arial Black, sans-serif" font-size="106" font-style="italic" font-weight="900" fill="url(#blue)" stroke="#050711" stroke-width="13" paint-order="stroke" filter="url(#glow)">BUPPA KINGDOM</text>
+  <text x="852" y="338" text-anchor="middle" font-family="Arial Black, sans-serif" font-size="32" font-weight="900" fill="#fff8c2">THE KING OF SMASH BUPPA</text>
+</svg>

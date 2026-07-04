@@ -1,0 +1,40 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 220 84" role="img" aria-label="EDA SPECIAL">
+  <defs>
+    <linearGradient id="edaBadge" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0" stop-color="#ff2d45"/>
+      <stop offset=".46" stop-color="#b31224"/>
+      <stop offset=".47" stop-color="#050711"/>
+      <stop offset=".53" stop-color="#050711"/>
+      <stop offset=".54" stop-color="#145cff"/>
+      <stop offset="1" stop-color="#0632a8"/>
+    </linearGradient>
+    <linearGradient id="edaBadgeSteel" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#ffffff"/>
+      <stop offset=".54" stop-color="#dbeafe"/>
+      <stop offset="1" stop-color="#94a3b8"/>
+    </linearGradient>
+    <linearGradient id="edaText" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0" stop-color="#ff4b5f"/>
+      <stop offset=".45" stop-color="#ffb7c2"/>
+      <stop offset=".55" stop-color="#ffffff"/>
+      <stop offset="1" stop-color="#4da3ff"/>
+    </linearGradient>
+    <filter id="edaBadgeGlow" x="-25%" y="-40%" width="150%" height="180%">
+      <feDropShadow dx="0" dy="4" stdDeviation="0" flood-color="#020617" flood-opacity=".75"/>
+      <feDropShadow dx="-3" dy="0" stdDeviation="3" flood-color="#ff2d45" flood-opacity=".82"/>
+      <feDropShadow dx="3" dy="0" stdDeviation="3" flood-color="#145cff" flood-opacity=".78"/>
+    </filter>
+  </defs>
+  <path d="M8 48 34 11h139l15 15 25-2-22 24 17 16-31 3-17 9H22z" fill="#050711"/>
+  <path d="M20 44 42 19h126l12 12 17-1-15 17 12 11-22 2-13 7H32z" fill="url(#edaBadge)" filter="url(#edaBadgeGlow)"/>
+  <path d="M22 44 42 20h61l-13 47H32z" fill="#ff2d45" opacity=".84"/>
+  <path d="M118 20h50l12 12 17-1-15 17 12 11-22 2-13 7h-55z" fill="#145cff" opacity=".84"/>
+  <path d="M35 28h116l11 10 10-1-10 11 8 7-14 1-9 5H44l-14-15z" fill="#070914" opacity=".9"/>
+  <g stroke="url(#edaBadgeSteel)" stroke-width="5" stroke-linecap="round" filter="url(#edaBadgeGlow)">
+    <path d="M34 63 71 24"/>
+    <path d="M187 21 151 60"/>
+  </g>
+  <path d="M67 23h86l12 10-12 19H58l-8-15z" fill="#050711" opacity=".82"/>
+  <text x="110" y="48" text-anchor="middle" font-family="Impact, Arial Black, sans-serif" font-size="35" font-style="italic" fill="url(#edaText)" stroke="#050711" stroke-width="7" paint-order="stroke fill">EDA</text>
+  <text x="110" y="65" text-anchor="middle" font-family="Arial Black, sans-serif" font-size="15" letter-spacing="2" fill="#eaf2ff" stroke="#050711" stroke-width="2" paint-order="stroke fill">SPECIAL</text>
+</svg>

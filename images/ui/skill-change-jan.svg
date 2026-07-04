@@ -1,0 +1,34 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 520 190" role="img" aria-label="JAN CHANGE">
+  <defs>
+    <linearGradient id="janPanel" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#fffce1"/>
+      <stop offset=".32" stop-color="#ffe45e"/>
+      <stop offset=".68" stop-color="#f59e0b"/>
+      <stop offset="1" stop-color="#321b00"/>
+    </linearGradient>
+    <linearGradient id="janGold" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#fffef2"/>
+      <stop offset=".45" stop-color="#ffd84a"/>
+      <stop offset="1" stop-color="#ff8f00"/>
+    </linearGradient>
+    <filter id="janGlow" x="-30%" y="-45%" width="160%" height="190%">
+      <feDropShadow dx="0" dy="8" stdDeviation="0" flood-color="#020617" flood-opacity=".72"/>
+      <feDropShadow dx="0" dy="0" stdDeviation="8" flood-color="#ffd84a" flood-opacity=".95"/>
+      <feDropShadow dx="0" dy="0" stdDeviation="18" flood-color="#ff9f1c" flood-opacity=".78"/>
+    </filter>
+  </defs>
+  <path d="M22 102 82 24h316l33 29 65-12-44 56 40 31-75 10-33 28H62z" fill="#050713" opacity=".96"/>
+  <path d="M43 97 92 38h298l28 24 48-8-34 42 31 23-56 7-29 25H76z" fill="url(#janPanel)"/>
+  <path d="M75 53h294l24 20 29-5-24 29 20 15-35 5-22 19H91l-27-35z" fill="#1f1200" opacity=".92"/>
+  <g opacity=".7" fill="#fff">
+    <path d="M65 74h35v7H65zM409 95h44v8h-44zM101 132h70v6h-70z"/>
+    <circle cx="120" cy="48" r="4"/><circle cx="438" cy="75" r="5"/><circle cx="365" cy="139" r="3"/>
+  </g>
+  <g fill="#fff5a0" filter="url(#janGlow)">
+    <path d="M42 45 54 67 78 72 56 83 52 108 40 85 15 80 38 68z"/>
+    <path d="M454 119 464 138 486 142 466 153 462 175 451 155 430 151 449 140z"/>
+    <path d="M408 18 416 33 433 36 418 44 415 62 406 46 389 43 405 34z"/>
+  </g>
+  <text x="260" y="111" text-anchor="middle" font-family="Impact, Arial Black, sans-serif" font-size="62" font-style="italic" letter-spacing="2" fill="url(#janGold)" stroke="#050711" stroke-width="7" paint-order="stroke fill" filter="url(#janGlow)">JAN CHANGE</text>
+  <text x="260" y="145" text-anchor="middle" font-family="Arial Black, sans-serif" font-size="22" letter-spacing="8" fill="#fff6c7" stroke="#050711" stroke-width="2" paint-order="stroke fill">SPECIAL CELL</text>
+</svg>

@@ -1,0 +1,27 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="300" height="82" viewBox="0 0 300 82" role="img" aria-label="card shuffle button frame">
+  <defs>
+    <linearGradient id="body" x1="0" x2="1" y1="0" y2="1">
+      <stop offset="0" stop-color="#202637"/>
+      <stop offset=".62" stop-color="#080b14"/>
+      <stop offset="1" stop-color="#191d29"/>
+    </linearGradient>
+    <linearGradient id="edge" x1="0" x2="1">
+      <stop offset="0" stop-color="#fff1a6"/>
+      <stop offset=".5" stop-color="#f3bd44"/>
+      <stop offset="1" stop-color="#a87422"/>
+    </linearGradient>
+    <filter id="shadow" x="-20%" y="-50%" width="140%" height="200%">
+      <feDropShadow dx="0" dy="5" stdDeviation="3" flood-color="#000000" flood-opacity=".45"/>
+    </filter>
+  </defs>
+  <path d="M16 12 H284 L294 24 V58 L278 72 H8 L16 12 Z" fill="#050711" opacity=".75" filter="url(#shadow)"/>
+  <path d="M23 15 H280 L289 25 V56 L274 68 H14 L23 15 Z" fill="url(#edge)"/>
+  <path d="M29 21 H270 L279 30 V53 L269 62 H24 L29 21 Z" fill="url(#body)"/>
+  <path d="M39 30 H82 C93 30 99 50 110 50 H128" fill="none" stroke="#fff3b4" stroke-width="5" stroke-linecap="round" opacity=".78"/>
+  <path d="M116 41 L132 50 L116 59 Z" fill="#fff3b4" opacity=".78"/>
+  <path d="M39 53 H82 C93 53 99 33 110 33 H128" fill="none" stroke="#8dd8ff" stroke-width="4" stroke-linecap="round" opacity=".55"/>
+  <path d="M116 24 L132 33 L116 42 Z" fill="#8dd8ff" opacity=".55"/>
+  <path d="M152 25 H260" stroke="#ffffff" stroke-width="2" opacity=".08"/>
+  <path d="M152 60 H246" stroke="#ffffff" stroke-width="2" opacity=".08"/>
+  <path d="M29 21 H270 L279 30 V53 L269 62 H24 L29 21 Z" fill="none" stroke="#fff8cc" stroke-width="2" opacity=".72"/>
+</svg>
