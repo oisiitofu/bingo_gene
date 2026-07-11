@@ -11626,7 +11626,7 @@
 
     function bootOnlineMode() {
       if ("serviceWorker" in navigator && /^https?:$/.test(location.protocol)) {
-        navigator.serviceWorker.register("./sw.js").catch((error) => console.warn("Service worker registration failed", error));
+        navigator.serviceWorker.register("./sw.js").then((registration) => registration.update()).catch((error) => console.warn("Service worker registration failed", error));
       }
       import("./online/online-room.js")
         .then(({ initOnlineRoom }) => initOnlineRoom(createOnlineBridge()))

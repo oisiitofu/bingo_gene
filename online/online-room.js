@@ -39,6 +39,10 @@ function normalizeName(value) {
   return String(value || "").trim().replace(/\s+/g, " ").slice(0, 32);
 }
 
+function normalizeRoomTitle(value) {
+  return String(value || "").trim().replace(/\s+/g, " ").slice(0, 40);
+}
+
 function playerKey(value) {
   return normalizeName(value).toLocaleLowerCase("ja-JP").replace(/[.#$\[\]/]/g, "_");
 }
@@ -255,7 +259,8 @@ function applyStatsDelta(globalStats = {}, delta = {}) {
 class MockBackend {
   constructor(config) {
     this.config = config;
-    this.uid = sessionStorage.getItem("teamBingo.mockUid") || randomId("mock-user");
+    const requestedUid = new URLSearchParams(location.search).get("onlineMockUser");
+    this.uid = requestedUid ? `mock-user-${requestedUid.replace(/[^a-zA-Z0-9_-]/g, "").slice(0, 40)}` : (sessionStorage.getItem("teamBingo.mockUid") || randomId("mock-user"));
     sessionStorage.setItem("teamBingo.mockUid", this.uid);
     this.channel = typeof BroadcastChannel !== "undefined" ? new BroadcastChannel(MOCK_CHANNEL) : null;
     this.listeners = new Set();
@@ -381,7 +386,10 @@ class FirebaseBackend {
   }
 
   async transaction(path, updater) {
-    const result = await this.api.runTransaction(this.makeRef(path), updater, { applyLocally: false });
+    const result = await this.api.runTransaction(this.makeRef(path), (current) => {
+      const next = updater(clone(current));
+      return next === undefined ? undefined : clone(next);
+    }, { applyLocally: false });
     return { committed: result.committed, value: result.snapshot.exists() ? result.snapshot.val() : null };
   }
 
@@ -421,6 +429,8 @@ class OnlineCoordinator {
     this.globalStatsSnapshot = null;
     this.masterHandoverTimer = 0;
     this.heartbeatTimer = 0;
+    this.localMode = false;
+    this.adminMode = false;
     this.legacyStats = clone(bridge.getLegacyStats?.() || {});
     this.deviceId = localStorage.getItem("teamBingo.onlineDeviceId") || randomId("device");
     localStorage.setItem("teamBingo.onlineDeviceId", this.deviceId);
@@ -468,14 +478,53 @@ class OnlineCoordinator {
             <div class="online-lobby-actions">
               <span class="online-mode-badge connecting" id="onlineLobbyStatus">CONNECTING</span>
               <button type="button" class="online-simple-button primary" id="onlineCreateRoom">部屋を作る</button>
+              <button type="button" class="online-simple-button" id="onlineLocalMode">LOCAL MODE</button>
+              <button type="button" class="online-simple-button" id="onlineAdminMode">ADMIN</button>
               <button type="button" class="online-simple-button" id="onlineLobbyClose">戻る</button>
             </div>
           </header>
+          <div class="online-error-banner" id="onlineErrorBanner" role="alert" hidden></div>
           <div class="online-lobby-body">
             <div class="online-room-list" id="onlineRoomList"></div>
           </div>
         </section>
       </div>
+      <dialog class="online-seat-dialog online-create-dialog" id="onlineCreateDialog">
+        <header class="online-seat-head">
+          <div>
+            <div class="online-seat-title">部屋を作る</div>
+            <div class="online-lobby-sub">部屋名・参加メンバー・チームを設定</div>
+          </div>
+          <button type="button" class="online-simple-button" id="onlineCreateClose">CLOSE</button>
+        </header>
+        <form class="online-create-form" id="onlineCreateForm">
+          <label class="online-field"><span>ROOM NAME</span><input id="onlineRoomTitle" maxlength="40" autocomplete="off"></label>
+          <fieldset class="online-create-size">
+            <legend>CARD SIZE</legend>
+            <label><input type="radio" name="onlineGridSize" value="5">5x5</label>
+            <label><input type="radio" name="onlineGridSize" value="7">7x7</label>
+          </fieldset>
+          <div class="online-create-members" id="onlineCreateMembers"></div>
+          <div class="online-create-footer">
+            <span class="online-form-error" id="onlineCreateError" role="alert"></span>
+            <button type="submit" class="online-simple-button primary">この設定で作成</button>
+          </div>
+        </form>
+      </dialog>
+      <dialog class="online-seat-dialog online-admin-dialog" id="onlineAdminDialog">
+        <header class="online-seat-head">
+          <div>
+            <div class="online-seat-title">ADMIN MODE</div>
+            <div class="online-lobby-sub">幽霊部屋を管理・削除</div>
+          </div>
+          <button type="button" class="online-simple-button" id="onlineAdminClose">CLOSE</button>
+        </header>
+        <form class="online-admin-form" id="onlineAdminForm">
+          <label class="online-field"><span>PASSWORD</span><input id="onlineAdminPassword" type="password" inputmode="numeric" maxlength="12" autocomplete="off"></label>
+          <span class="online-form-error" id="onlineAdminError" role="alert"></span>
+          <button type="submit" class="online-simple-button primary">管理者として入る</button>
+        </form>
+      </dialog>
       <dialog class="online-seat-dialog" id="onlineSeatDialog">
         <header class="online-seat-head">
           <div>
@@ -484,6 +533,7 @@ class OnlineCoordinator {
           </div>
           <button type="button" class="online-simple-button" id="onlineSeatClose">CLOSE</button>
         </header>
+        <div class="online-dialog-error" id="onlineSeatError" role="alert" hidden></div>
         <div class="online-seat-list" id="onlineSeatList"></div>
       </dialog>
       <div class="online-session-bar" id="onlineSessionBar">
@@ -501,9 +551,24 @@ class OnlineCoordinator {
       lobbyStatus: document.getElementById("onlineLobbyStatus"),
       roomList: document.getElementById("onlineRoomList"),
       createRoom: document.getElementById("onlineCreateRoom"),
+      localMode: document.getElementById("onlineLocalMode"),
+      adminMode: document.getElementById("onlineAdminMode"),
       lobbyClose: document.getElementById("onlineLobbyClose"),
+      errorBanner: document.getElementById("onlineErrorBanner"),
+      createDialog: document.getElementById("onlineCreateDialog"),
+      createForm: document.getElementById("onlineCreateForm"),
+      createClose: document.getElementById("onlineCreateClose"),
+      roomTitle: document.getElementById("onlineRoomTitle"),
+      createMembers: document.getElementById("onlineCreateMembers"),
+      createError: document.getElementById("onlineCreateError"),
+      adminDialog: document.getElementById("onlineAdminDialog"),
+      adminForm: document.getElementById("onlineAdminForm"),
+      adminClose: document.getElementById("onlineAdminClose"),
+      adminPassword: document.getElementById("onlineAdminPassword"),
+      adminError: document.getElementById("onlineAdminError"),
       seatDialog: document.getElementById("onlineSeatDialog"),
       seatTitle: document.getElementById("onlineSeatTitle"),
+      seatError: document.getElementById("onlineSeatError"),
       seatList: document.getElementById("onlineSeatList"),
       seatClose: document.getElementById("onlineSeatClose"),
       sessionBar: document.getElementById("onlineSessionBar"),
@@ -515,15 +580,40 @@ class OnlineCoordinator {
       closeRoom: document.getElementById("onlineCloseRoom"),
       leaveRoom: document.getElementById("onlineLeaveRoom")
     };
-    this.ui.createRoom.addEventListener("click", () => this.createRoom());
+    this.ui.createRoom.addEventListener("click", () => this.openCreateDialog());
+    this.ui.localMode.addEventListener("click", () => this.enterLocalMode());
+    this.ui.adminMode.addEventListener("click", () => {
+      this.ui.adminPassword.value = "";
+      this.ui.adminError.textContent = "";
+      if (!this.ui.adminDialog.open) this.ui.adminDialog.showModal();
+    });
+    this.ui.adminClose.addEventListener("click", () => this.ui.adminDialog.close());
+    this.ui.adminForm.addEventListener("submit", (event) => {
+      event.preventDefault();
+      this.enableAdminMode(this.ui.adminPassword.value);
+    });
+    this.ui.createClose.addEventListener("click", () => this.ui.createDialog.close());
+    this.ui.createForm.addEventListener("submit", (event) => {
+      event.preventDefault();
+      this.createRoomFromForm();
+    });
     this.ui.lobbyClose.addEventListener("click", () => this.hideLobby());
     this.ui.seatClose.addEventListener("click", () => this.ui.seatDialog.close());
-    this.ui.openLobby.addEventListener("click", () => this.showLobby());
+    this.ui.openLobby.addEventListener("click", () => {
+      this.localMode = false;
+      this.setStatus("online", this.mock ? "MOCK ONLINE" : "ONLINE");
+      this.showLobby();
+    });
     this.ui.closeRoom.addEventListener("click", () => {
       if (window.confirm("この部屋を終了しますか？")) this.closeRoom();
     });
     this.ui.leaveRoom.addEventListener("click", () => this.leaveRoom());
     this.ui.roomList.addEventListener("click", (event) => {
+      const deleteButton = event.target.closest("[data-online-delete-room]");
+      if (deleteButton) {
+        this.adminDeleteRoom(deleteButton.dataset.onlineDeleteRoom);
+        return;
+      }
       const button = event.target.closest("[data-online-room]");
       if (button) this.openSeatDialog(button.dataset.onlineRoom);
     });
@@ -548,6 +638,7 @@ class OnlineCoordinator {
 
   showLobby() {
     if (!this.enabled) return;
+    this.clearError();
     this.ui.lobby.classList.add("show");
     this.ui.lobby.setAttribute("aria-hidden", "false");
   }
@@ -555,6 +646,29 @@ class OnlineCoordinator {
   hideLobby() {
     this.ui.lobby.classList.remove("show");
     this.ui.lobby.setAttribute("aria-hidden", "true");
+  }
+
+  showError(title, error) {
+    const message = String(error?.message || error || "不明なエラー");
+    if (this.ui?.errorBanner) {
+      this.ui.errorBanner.hidden = false;
+      this.ui.errorBanner.textContent = `${title}: ${message}`;
+    }
+    if (this.ui?.seatError && this.ui.seatDialog?.open) {
+      this.ui.seatError.hidden = false;
+      this.ui.seatError.textContent = message;
+    }
+    this.bridge.showOnlineMessage?.(title, message);
+  }
+
+  clearError() {
+    if (!this.ui?.errorBanner) return;
+    this.ui.errorBanner.hidden = true;
+    this.ui.errorBanner.textContent = "";
+    if (this.ui.seatError) {
+      this.ui.seatError.hidden = true;
+      this.ui.seatError.textContent = "";
+    }
   }
 
   subscribeLobby() {
@@ -593,28 +707,84 @@ class OnlineCoordinator {
           </div>
           <div class="online-room-card-foot">
             <span class="online-room-meta">${Number(room.onlineCount) || 0} ONLINE</span>
-            <button type="button" class="online-simple-button primary" data-online-room="${id}">ENTER</button>
+            <div class="online-room-actions">
+              ${this.adminMode ? `<button type="button" class="online-simple-button danger" data-online-delete-room="${id}">DELETE</button>` : ""}
+              <button type="button" class="online-simple-button primary" data-online-room="${id}">ENTER</button>
+            </div>
           </div>
         </article>
       `;
     }).join("");
   }
 
-  async createRoom() {
+  openCreateDialog() {
+    const setup = clone(this.bridge.getOnlineSetupSnapshot?.() || {});
+    const players = Array.from({ length: 8 }, (_, index) => normalizeName(setup.players?.[index]) || `Player ${index + 1}`);
+    const redNames = new Set((setup.redMembers || []).map(normalizeName));
+    const blueNames = new Set((setup.blueMembers || []).map(normalizeName));
+    this.ui.roomTitle.value = setup.roomTitle || `${players[0]}たちの部屋`;
+    const size = Number(setup.gridSize) === 7 ? "7" : "5";
+    const sizeInput = this.ui.createForm.querySelector(`input[name="onlineGridSize"][value="${size}"]`);
+    if (sizeInput) sizeInput.checked = true;
+    this.ui.createMembers.innerHTML = players.map((name, index) => {
+      const team = redNames.has(name) ? "red" : (blueNames.has(name) ? "blue" : (index < 2 ? "red" : index < 4 ? "blue" : "none"));
+      return `
+        <div class="online-create-member">
+          <span>${index + 1}</span>
+          <input data-create-player="${index}" maxlength="32" value="${this.bridge.escapeHtml?.(name) || name}" aria-label="PLAYER ${index + 1}">
+          <select data-create-team="${index}" aria-label="PLAYER ${index + 1} TEAM">
+            <option value="red" ${team === "red" ? "selected" : ""}>RED</option>
+            <option value="blue" ${team === "blue" ? "selected" : ""}>BLUE</option>
+            <option value="none" ${team === "none" ? "selected" : ""}>WAIT</option>
+          </select>
+        </div>
+      `;
+    }).join("");
+    this.ui.createError.textContent = "";
+    if (!this.ui.createDialog.open) this.ui.createDialog.showModal();
+  }
+
+  async createRoomFromForm() {
+    const current = clone(this.bridge.getOnlineSetupSnapshot?.() || {});
+    const players = Array.from(this.ui.createMembers.querySelectorAll("[data-create-player]"), (input) => normalizeName(input.value));
+    const teams = Array.from(this.ui.createMembers.querySelectorAll("[data-create-team]"), (select) => select.value);
+    const assigned = players.filter((name, index) => name && teams[index] !== "none");
+    const unique = new Set(assigned.map(playerKey));
+    const redMembers = players.filter((name, index) => name && teams[index] === "red");
+    const blueMembers = players.filter((name, index) => name && teams[index] === "blue");
+    const title = normalizeRoomTitle(this.ui.roomTitle.value);
+    if (!title) return void (this.ui.createError.textContent = "部屋名を入力してください");
+    if (!redMembers.length || !blueMembers.length) return void (this.ui.createError.textContent = "RED・BLUEに1人以上設定してください");
+    if (unique.size !== assigned.length) return void (this.ui.createError.textContent = "同じプレイヤー名は使用できません");
+    const gridSize = Number(this.ui.createForm.querySelector('input[name="onlineGridSize"]:checked')?.value) === 7 ? 7 : 5;
+    const setup = {
+      ...current,
+      gridSize,
+      players,
+      redMembers,
+      blueMembers,
+      roomTitle: title
+    };
+    this.bridge.applyOnlineSetupSnapshot?.(setup);
+    await this.createRoom(setup, title);
+  }
+
+  async createRoom(setupOverride = null, titleOverride = "") {
     if (!this.enabled || this.busy) return;
     this.setBusy(true);
     try {
-      const setup = clone(this.bridge.getOnlineSetupSnapshot?.() || {});
+      const setup = clone(setupOverride || this.bridge.getOnlineSetupSnapshot?.() || {});
       const roomId = randomId("room");
       const now = this.backend.serverNow();
-      const title = setup.redMembers?.[0]
+      const title = normalizeRoomTitle(titleOverride || setup.roomTitle) || (setup.redMembers?.[0]
         ? `${setup.redMembers[0]}たちの部屋`
-        : "新しいTEAM BINGO";
+        : "新しいTEAM BINGO");
       const room = {
         meta: {
           id: roomId,
           active: true,
           title,
+          customTitle: Boolean(titleOverride || setup.roomTitle),
           phase: "setup",
           masterUid: this.backend.uid,
           revision: 0,
@@ -644,6 +814,8 @@ class OnlineCoordinator {
         [this.lobbyPath(roomId)]: this.createLobbySummary(room)
       });
       this.roomId = roomId;
+      this.localMode = false;
+      this.setStatus("online", this.mock ? "MOCK ONLINE" : "ONLINE");
       this.role = "master";
       this.team = "";
       this.memberName = "";
@@ -654,13 +826,72 @@ class OnlineCoordinator {
         await this.backend.setPresenceDisconnect(this.roomPath(roomId, `participants/${this.backend.uid}`));
       }
       await this.importLegacyStats();
+      if (this.ui.createDialog.open) this.ui.createDialog.close();
       this.hideLobby();
       this.bridge.onRoomCreated?.(roomId);
     } catch (error) {
       console.error(error);
-      this.bridge.showOnlineMessage?.("ROOM CREATE ERROR", String(error?.message || error));
+      this.showError("ROOM CREATE ERROR", error);
+      this.ui.createError.textContent = String(error?.message || error);
     } finally {
       this.setBusy(false);
+    }
+  }
+
+  async enterLocalMode() {
+    if (this.roomId) await this.leaveRoom({ switching: true });
+    this.localMode = true;
+    this.hideLobby();
+    this.ui.sessionBar.classList.add("show");
+    this.ui.sessionStatus.classList.remove("online", "connecting", "error");
+    this.ui.sessionStatus.textContent = "LOCAL";
+    this.ui.sessionName.textContent = "LOCAL MODE";
+    this.ui.sessionRole.textContent = "この端末だけでプレイ";
+    this.ui.sessionPresence.textContent = "";
+    this.ui.openLobby.textContent = "ONLINE ROOMS";
+    this.ui.closeRoom.hidden = true;
+    this.ui.leaveRoom.hidden = true;
+    document.body.classList.remove("online-active", "online-readonly", "online-spectator", "online-team-red", "online-team-blue");
+    this.bridge.setOnlineSession?.({ roomId: "", role: "local", team: "", memberName: "LOCAL", master: true });
+    window.setTimeout(() => {
+      const target = document.querySelector("#setupScreen.active .setup-top-right") || document.body;
+      if (this.ui.sessionBar.parentElement !== target) target.appendChild(this.ui.sessionBar);
+    }, 0);
+  }
+
+  async enableAdminMode(pin) {
+    if (pin !== "9071") {
+      this.ui.adminError.textContent = "パスワードが違います";
+      return;
+    }
+    try {
+      const expiresAt = this.backend.serverNow() + 30 * 60 * 1000;
+      await this.backend.set(this.path(`adminSessions/${this.backend.uid}`), {
+        pinHash: "6440e6a91202aeddb45b070a80533f65a689c37d0cf1842ab2bd962e33377880",
+        expiresAt
+      });
+      this.adminMode = true;
+      this.ui.adminMode.textContent = "ADMIN ON";
+      this.ui.adminDialog.close();
+      this.clearError();
+      this.renderRooms();
+    } catch (error) {
+      this.showError("ADMIN ERROR", error);
+    }
+  }
+
+  async adminDeleteRoom(roomId) {
+    if (!this.adminMode || !roomId) return;
+    const title = this.rooms?.[roomId]?.title || "この部屋";
+    if (!window.confirm(`${title}を完全に削除しますか？`)) return;
+    try {
+      await this.backend.update({
+        [this.roomPath(roomId)]: null,
+        [this.lobbyPath(roomId)]: null
+      });
+      this.clearError();
+    } catch (error) {
+      this.showError("ROOM DELETE ERROR", error);
     }
   }
 
@@ -683,6 +914,10 @@ class OnlineCoordinator {
     const lobby = this.rooms[roomId];
     if (!lobby) return;
     this.ui.seatTitle.textContent = lobby.title || "メンバーを選択";
+    if (this.ui.seatError) {
+      this.ui.seatError.hidden = true;
+      this.ui.seatError.textContent = "";
+    }
     const groups = [
       ["red", lobby.redMembers || []],
       ["blue", lobby.blueMembers || []]
@@ -754,6 +989,8 @@ class OnlineCoordinator {
       if (!result.committed) throw new Error("その名前は別の参加者が使用中です");
       await this.backend.set(this.lobbyPath(roomId), this.createLobbySummary(result.value));
       this.roomId = roomId;
+      this.localMode = false;
+      this.setStatus("online", this.mock ? "MOCK ONLINE" : "ONLINE");
       this.role = selection.spectator ? "spectator" : "player";
       this.team = selection.spectator ? "" : selection.team;
       this.memberName = selection.spectator ? "観戦" : name;
@@ -770,8 +1007,8 @@ class OnlineCoordinator {
       this.hideLobby();
     } catch (error) {
       console.error(error);
-      this.bridge.showOnlineMessage?.("JOIN ERROR", String(error?.message || error));
       if (roomId) this.openSeatDialog(roomId);
+      window.setTimeout(() => this.showError("JOIN ERROR", error), 0);
     } finally {
       this.setBusy(false);
     }
@@ -913,6 +1150,8 @@ class OnlineCoordinator {
       return;
     }
     this.ui.sessionBar.classList.add("show");
+    this.ui.openLobby.textContent = "ROOMS";
+    this.ui.leaveRoom.hidden = false;
     const master = this.room?.meta?.masterUid === this.backend?.uid;
     if (master) this.role = "master";
     this.ui.sessionName.textContent = master ? "MASTER" : (this.memberName || "ONLINE");
@@ -1062,7 +1301,9 @@ class OnlineCoordinator {
       if (!room || room.meta?.masterUid !== this.backend.uid || room.game?.gameStarted) return undefined;
       room.setup = clone(setup);
       room.meta.updatedAt = now;
-      room.meta.title = setup.redMembers?.[0] ? `${setup.redMembers[0]}たちの部屋` : room.meta.title;
+      if (!room.meta.customTitle) {
+        room.meta.title = setup.redMembers?.[0] ? `${setup.redMembers[0]}たちの部屋` : room.meta.title;
+      }
       return room;
     });
     if (result.committed) {
@@ -1122,7 +1363,7 @@ class OnlineCoordinator {
       console.error(error);
       const current = await this.backend.get(this.roomPath()).catch(() => null);
       if (current) this.applyRoom(current, { initial: true });
-      this.bridge.showOnlineMessage?.("SYNC RETRY", String(error?.message || error));
+      this.showError("SYNC RETRY", error);
       return false;
     } finally {
       await this.releaseActionLock(actionId).catch(() => {});

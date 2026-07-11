@@ -61,6 +61,13 @@ authEmulatorPort: 9099
 3. 以後、全ルームが同じランキング・STATSを参照します。
 4. RANK RESETとSTATS RESETは、この管理ブラウザだけがUI上から実行できます。
 
+## 部屋作成・管理
+
+- 「部屋を作る」から、部屋名、5x5/7x7、最大8人の名前、RED/BLUE/WAITを設定して作成できます。
+- 「LOCAL MODE」を選ぶと、Firebaseへ接続せず従来どおりその端末だけでプレイできます。「ONLINE ROOMS」でロビーへ戻れます。
+- 幽霊部屋を削除する場合は、ロビーの「ADMIN」へ管理者パスワードを入力します。30分間だけ各部屋にDELETEボタンが表示されます。
+- 管理者削除を使うには、最新版の`firebase-database.rules.json`を`firebase deploy --only database`で反映してください。Cloudflare PagesへのGitデプロイだけではRealtime Database Rulesは更新されません。
+
 ## 制約
 
 無料優先版のため、参加者は信頼できるメンバーを想定しています。Security Rulesで匿名ユーザー以外を拒否し、ルーム参加者の操作を制限していますが、改造したクライアントによる完全な不正防止にはサーバー処理が必要です。
