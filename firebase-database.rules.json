@@ -1,0 +1,33 @@
+{
+  "rules": {
+    ".read": false,
+    ".write": false,
+    "teamBingoV1": {
+      ".read": "auth != null",
+      "rooms": {
+        "$roomId": {
+          ".write": "auth != null && (!data.exists() || data.child('meta').child('masterUid').val() === auth.uid || data.child('participants').child(auth.uid).exists() || newData.child('participants').child(auth.uid).exists())",
+          ".validate": "!newData.exists() || (newData.hasChildren(['meta', 'setup', 'participants']) && newData.child('meta').hasChildren(['id', 'masterUid', 'revision', 'eventSeq', 'active']))"
+        }
+      },
+      "lobby": {
+        "$roomId": {
+          ".write": "auth != null",
+          ".validate": "!newData.exists() || newData.hasChildren(['active', 'phase', 'updatedAt'])"
+        }
+      },
+      "globalStats": {
+        ".write": "auth != null"
+      },
+      "legacyImports": {
+        "$deviceId": {
+          ".write": "auth != null && (!data.exists() || data.child('uid').val() === auth.uid)",
+          ".validate": "newData.hasChildren(['importedAt', 'uid']) && newData.child('uid').val() === auth.uid"
+        }
+      },
+      "adminUid": {
+        ".write": "auth != null && ((!data.exists() && newData.val() === auth.uid) || data.val() === auth.uid)"
+      }
+    }
+  }
+}

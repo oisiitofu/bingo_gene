@@ -1,0 +1,351 @@
+.online-mode-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  min-width: 0;
+  padding: 7px 10px;
+  border: 1px solid rgba(255, 255, 255, .2);
+  background: rgba(5, 8, 16, .82);
+  color: #d8e3f2;
+  font-size: 11px;
+  font-weight: 900;
+  line-height: 1;
+}
+
+.online-mode-badge::before {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #788294;
+  box-shadow: 0 0 0 3px rgba(120, 130, 148, .15);
+  content: "";
+}
+
+.online-mode-badge.online::before {
+  background: #43e08c;
+  box-shadow: 0 0 10px rgba(67, 224, 140, .82);
+}
+
+.online-mode-badge.connecting::before {
+  background: #f4cf5d;
+  animation: onlineStatusPulse .9s ease-in-out infinite alternate;
+}
+
+.online-mode-badge.error::before {
+  background: #ff5269;
+}
+
+@keyframes onlineStatusPulse {
+  from { opacity: .45; }
+  to { opacity: 1; }
+}
+
+.online-lobby {
+  position: fixed;
+  inset: 0;
+  z-index: 250;
+  display: none;
+  place-items: center;
+  padding: 18px;
+  background:
+    linear-gradient(rgba(4, 7, 14, .88), rgba(4, 7, 14, .94)),
+    url("../images/ui/bg-arena-stage.png") center / cover no-repeat;
+  color: #f7f9fc;
+}
+
+.online-lobby.show { display: grid; }
+
+.online-lobby-shell {
+  width: min(1040px, 100%);
+  max-height: calc(100vh - 36px);
+  overflow: auto;
+  border: 1px solid rgba(255, 255, 255, .2);
+  background: rgba(8, 12, 22, .96);
+  box-shadow: 0 24px 80px rgba(0, 0, 0, .66);
+}
+
+.online-lobby-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+  padding: 16px 18px;
+  border-bottom: 1px solid rgba(255, 255, 255, .14);
+  background: linear-gradient(90deg, rgba(235, 45, 74, .2), rgba(15, 21, 36, .9) 44%, rgba(48, 123, 255, .2));
+}
+
+.online-lobby-title {
+  min-width: 0;
+  font-size: clamp(20px, 3vw, 32px);
+  font-weight: 1000;
+  line-height: 1;
+}
+
+.online-lobby-sub {
+  margin-top: 6px;
+  color: #9eabc0;
+  font-size: 12px;
+  font-weight: 800;
+}
+
+.online-lobby-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.online-simple-button {
+  min-height: 38px;
+  padding: 0 16px;
+  border: 1px solid rgba(255, 255, 255, .26);
+  border-radius: 4px;
+  background: #171d2a;
+  color: #fff;
+  font: inherit;
+  font-size: 12px;
+  font-weight: 950;
+  cursor: pointer;
+}
+
+.online-simple-button:hover,
+.online-simple-button:focus-visible {
+  border-color: #fff;
+  background: #242d3e;
+  outline: none;
+}
+
+.online-simple-button.primary {
+  border-color: #f2c74f;
+  background: linear-gradient(180deg, #f8db78, #b77b10);
+  color: #15100a;
+}
+
+.online-simple-button.danger {
+  border-color: rgba(255, 82, 105, .72);
+  background: #35131a;
+}
+
+.online-lobby-body { padding: 16px 18px 20px; }
+
+.online-room-list {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.online-room-empty {
+  grid-column: 1 / -1;
+  padding: 44px 20px;
+  border: 1px dashed rgba(255, 255, 255, .22);
+  color: #9ca9bb;
+  text-align: center;
+  font-size: 14px;
+  font-weight: 850;
+}
+
+.online-room-card {
+  display: grid;
+  gap: 11px;
+  min-width: 0;
+  padding: 14px;
+  border: 1px solid rgba(255, 255, 255, .18);
+  background: linear-gradient(145deg, rgba(34, 42, 59, .94), rgba(12, 17, 28, .96));
+}
+
+.online-room-card-head,
+.online-room-card-foot {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.online-room-card-title {
+  overflow: hidden;
+  font-size: 16px;
+  font-weight: 1000;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.online-room-phase {
+  flex: 0 0 auto;
+  padding: 4px 7px;
+  border: 1px solid rgba(255, 255, 255, .2);
+  background: rgba(0, 0, 0, .3);
+  color: #f1d777;
+  font-size: 10px;
+  font-weight: 950;
+}
+
+.online-room-teams {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+}
+
+.online-room-team {
+  min-width: 0;
+  padding: 8px 9px;
+  border-left: 3px solid #ff405d;
+  background: rgba(255, 64, 93, .1);
+  color: #e9edf5;
+  font-size: 11px;
+  font-weight: 850;
+  line-height: 1.45;
+}
+
+.online-room-team.blue {
+  border-left-color: #408cff;
+  background: rgba(64, 140, 255, .1);
+}
+
+.online-room-team b {
+  display: block;
+  margin-bottom: 3px;
+  color: #fff;
+  font-size: 10px;
+}
+
+.online-room-meta {
+  color: #99a6b8;
+  font-size: 10px;
+  font-weight: 800;
+}
+
+.online-seat-dialog {
+  width: min(680px, calc(100% - 28px));
+  max-height: calc(100vh - 40px);
+  overflow: auto;
+  border: 1px solid rgba(255, 255, 255, .22);
+  border-radius: 4px;
+  background: #0d1320;
+  color: #fff;
+  box-shadow: 0 24px 80px rgba(0, 0, 0, .72);
+}
+
+.online-seat-dialog::backdrop { background: rgba(0, 0, 0, .76); }
+
+.online-seat-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 14px 16px;
+  border-bottom: 1px solid rgba(255, 255, 255, .14);
+}
+
+.online-seat-title { font-size: 19px; font-weight: 1000; }
+.online-seat-list { display: grid; gap: 10px; padding: 16px; }
+
+.online-seat-team-label {
+  padding: 6px 9px;
+  border-left: 4px solid #ff405d;
+  background: rgba(255, 64, 93, .12);
+  font-size: 12px;
+  font-weight: 950;
+}
+
+.online-seat-team-label.blue {
+  border-left-color: #408cff;
+  background: rgba(64, 140, 255, .12);
+}
+
+.online-seat-buttons {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.online-seat-button {
+  min-height: 46px;
+  padding: 8px 10px;
+  border: 1px solid rgba(255, 255, 255, .2);
+  border-radius: 4px;
+  background: #1a2231;
+  color: #fff;
+  font: inherit;
+  font-size: 13px;
+  font-weight: 950;
+  cursor: pointer;
+}
+
+.online-seat-button:hover:not(:disabled) { border-color: #f4cf5d; background: #263247; }
+.online-seat-button:disabled { cursor: default; opacity: .42; }
+.online-seat-button small { display: block; margin-top: 3px; color: #9fabbc; font-size: 9px; }
+
+.online-session-bar {
+  position: fixed;
+  left: 50%;
+  top: 8px;
+  z-index: 120;
+  display: none;
+  align-items: center;
+  gap: 8px;
+  max-width: calc(100vw - 24px);
+  padding: 6px 8px;
+  border: 1px solid rgba(255, 255, 255, .2);
+  background: rgba(6, 10, 18, .9);
+  color: #e8edf5;
+  transform: translateX(-50%);
+  box-shadow: 0 6px 22px rgba(0, 0, 0, .4);
+}
+
+.online-session-bar.show { display: flex; }
+.setup-top-right .online-session-bar,
+.top-right .online-session-bar {
+  position: static;
+  max-width: 100%;
+  transform: none;
+}
+.online-session-name { flex: 0 1 74px; min-width: 30px; overflow: hidden; font-size: 11px; font-weight: 950; text-overflow: ellipsis; white-space: nowrap; }
+.online-session-role { color: #f1d777; font-size: 9px; font-weight: 950; }
+.online-session-presence { color: #8ee3b1; font-size: 9px; font-weight: 900; }
+.online-session-bar .online-simple-button { min-height: 28px; padding: 0 9px; font-size: 9px; }
+
+.online-readonly [data-online-master-only],
+.online-readonly #playerInputs input,
+.online-readonly #fixedMemberList,
+.online-readonly #setupStartButton,
+.online-readonly #setupShuffleButton,
+.online-readonly #deckModeButton,
+.online-readonly #mode5,
+.online-readonly #mode7,
+.online-readonly #playStartButton,
+.online-readonly #playShuffleButton,
+.online-readonly [data-shuffle-team] {
+  pointer-events: none;
+  opacity: .34;
+}
+
+.online-active .room-wrap { display: none; }
+
+.online-spectator .cell,
+.online-team-red .board-card.blue .cell,
+.online-team-blue .board-card.red .cell {
+  cursor: default;
+}
+
+.online-sync-busy::after {
+  position: fixed;
+  right: 12px;
+  top: 12px;
+  z-index: 210;
+  padding: 6px 9px;
+  border: 1px solid rgba(244, 207, 93, .55);
+  background: rgba(22, 17, 7, .9);
+  color: #f4cf5d;
+  content: "SYNC";
+  font-size: 9px;
+  font-weight: 1000;
+}
+
+@media (max-width: 720px) {
+  .online-lobby { padding: 8px; }
+  .online-lobby-shell { max-height: calc(100vh - 16px); }
+  .online-lobby-head { align-items: flex-start; flex-direction: column; }
+  .online-room-list { grid-template-columns: 1fr; }
+  .online-room-teams { grid-template-columns: 1fr; }
+  .online-seat-buttons { grid-template-columns: 1fr; }
+  .online-session-bar { top: 4px; }
+}
