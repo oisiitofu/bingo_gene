@@ -4,6 +4,8 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>TEAM BINGO CHAMPIONSHIP</title>
+  <link rel="stylesheet" href="online/online-room.css" />
+  <script src="online/firebase-config.js"></script>
   <link rel="preload" as="image" href="images/ui/fg-team-intro.png" />
   <link rel="preload" as="image" href="images/ui/commentator-intro.png" />
   <link rel="preload" as="image" href="images/ui/commentator-face-1.png" />
@@ -6965,8 +6967,9 @@
       updateGridButtons();
       updateDeckStatus();
       loadCustomOpenSoundManifest();
-      preloadCustomOpenSounds();
+      if (!usesOnlineAssetLoading()) preloadCustomOpenSounds();
       scheduleSetupThemeAutoplay();
+      bootOnlineMode();
     }
 
     function cacheElements() {
@@ -7059,7 +7062,12 @@
         if (done && els.openedByPopover.contains(done)) hideOpenedByPopover();
       });
       els.closeVictoryButton.addEventListener("click", closeVictoryOverlay);
-      els.players.forEach((input) => input.addEventListener("input", () => { divideTeams(); renderSetupPreview(); }));
+      els.players.forEach((input) => input.addEventListener("input", () => {
+        if (onlineCoordinator?.isOnline?.() && !onlineCoordinator.canEditSetup?.()) return;
+        divideTeams();
+        renderSetupPreview();
+        scheduleOnlineSetupPublish();
+      }));
       const onFirstAudioGesture = () => {
         unlockAudio();
         syncSetupTheme();
@@ -7079,13 +7087,20 @@
       });
     }
 
-    function shuffleTeamsOnly() {
+    function shuffleTeamsOnly(options = {}) {
+      if (shouldUseOnlineAction(options)) {
+        return runOnlineAction(
+          { type: "shuffle-teams", masterOnly: true, payload: {} },
+          () => shuffleTeamsOnly({ ...options, onlineBypass: true })
+        );
+      }
       unlockAudio();
       divideTeams(true);
       renderSetupPreview();
       playAudio("shuffle");
       renderAll();
       showCommentary("TEAM SHUFFLE", "メンバーだけを入れ替えました。", 6000);
+      scheduleOnlineSetupPublish(40);
     }
 
     function playHypeVoice() {
@@ -7093,7 +7108,21 @@
       playAudio("hype");
     }
 
-    function activateTeamSkill(team, skillId = "") {
+    function activateTeamSkill(team, skillId = "", options = {}) {
+      const requestedSkill = getTeamSkill(team, skillId);
+      if (
+        onlineSession.roomId && !onlineSession.master && onlineSession.role === "player" &&
+        (!requestedSkill || onlineSession.team !== team || playerStatsKey(requestedSkill.member) !== playerStatsKey(onlineSession.memberName))
+      ) {
+        showCommentary("YOUR SKILL ONLY", "参加者は自分の固有スキルだけ発動できます。", 5000);
+        return;
+      }
+      if (shouldUseOnlineAction(options)) {
+        return runOnlineAction(
+          { type: "activate-skill", payload: { team, skillId } },
+          () => activateTeamSkill(team, skillId, { ...options, onlineBypass: true })
+        );
+      }
       if (!state.gameStarted || state.inputLocked || state.winner || state.pendingSkill || state.nextOpenSkill) return;
       const skill = getTeamSkill(team, skillId);
       if (!skill || isSkillUsed(skill) || !canActivateTeamSkill(team, skill)) return;
@@ -7106,6 +7135,7 @@
           state.inputLocked = false;
           applySkillBehavior(team, skill);
           renderAll();
+          scheduleOnlineStateSync("skill-effect", 40);
           return;
           showCommentary("SPECIAL CELL READY", `${skill.member}の運命のマスを選べ。`, 8000);
           renderAll();
@@ -7274,6 +7304,7 @@
     }
 
     function addFixedMember(name) {
+      if (onlineCoordinator?.isOnline?.() && !onlineCoordinator.canEditSetup?.()) return;
       const exists = getPlayerInputs().includes(name);
       if (exists) return;
       const target = els.players.find((input) => !input.value.trim());
@@ -7281,6 +7312,7 @@
         target.value = name;
         divideTeams();
         renderSetupPreview();
+        scheduleOnlineSetupPublish();
       }
     }
 
@@ -7323,13 +7355,20 @@
       els.blueSetupMembers.textContent = state.blue.members.join(" / ") || "-";
     }
 
-    function setGridSize(size) {
+    function setGridSize(size, options = {}) {
+      if (shouldUseOnlineAction(options)) {
+        return runOnlineAction(
+          { type: "set-grid-size", masterOnly: true, payload: { size } },
+          () => setGridSize(size, { ...options, onlineBypass: true })
+        );
+      }
       state.gridSize = size;
       localStorage.setItem(STORAGE.gridSize, String(size));
       updateGridButtons();
       clearDeckSelection();
       renderDeckGrid();
-      if (state.gameStarted) startGame();
+      if (state.gameStarted) startGame({ onlineBypass: options.onlineBypass });
+      scheduleOnlineSetupPublish();
     }
 
     function updateGridButtons() {
@@ -7337,9 +7376,15 @@
       els.mode7.classList.toggle("active", state.gridSize === 7);
     }
 
-    function startGame() {
+    function startGame(options = {}) {
+      if (shouldUseOnlineAction(options)) {
+        return runOnlineAction(
+          { type: "start-game", masterOnly: true, payload: {} },
+          () => startGame({ ...options, onlineBypass: true })
+        );
+      }
       unlockAudio();
-      preloadCustomOpenSounds(true);
+      if (!usesOnlineAssetLoading()) preloadCustomOpenSounds(true);
       stopSkillKaraoke();
       stopManagedBgm();
       stopSetupTheme();
@@ -7361,6 +7406,7 @@
         state.inputLocked = false;
         renderAll();
         showCommentary("MATCH START！", "マスを開けて2ライン先取。");
+        scheduleOnlineStateSync("match-ready", 40);
       });
     }
 
@@ -7514,7 +7560,13 @@
       return card.map((cell) => Boolean(cell.free));
     }
 
-    function backToSetup() {
+    function backToSetup(options = {}) {
+      if (shouldUseOnlineAction(options)) {
+        return runOnlineAction(
+          { type: "back-to-setup", masterOnly: true, payload: {} },
+          () => backToSetup({ ...options, onlineBypass: true })
+        );
+      }
       state.gameStarted = false;
       state.inputLocked = false;
       state.pendingSkill = null;
@@ -7534,6 +7586,7 @@
       hideOverlay(els.startBlackoutOverlay);
       hideOverlay(els.finishFlashOverlay);
       clearVoiceLogs();
+      scheduleOnlineStateSync("back-to-setup", 40);
       showCommentary("GAME STARTを押して開幕。", "勝利条件は先に2ライン。");
       renderSetupPreview();
       syncSetupTheme();
@@ -7684,9 +7737,27 @@
       if (els.openedByPopover) els.openedByPopover.hidden = true;
     }
 
-    function updateOpenedBySelection(memberIndex) {
+    function updateOpenedBySelection(memberIndex, options = {}) {
       const current = state.currentOpenAttribution;
       if (!current) return;
+      const requestedMember = state[current.team]?.members?.[memberIndex] || "";
+      if (
+        onlineSession.roomId && !onlineSession.master && onlineSession.role === "player" &&
+        (onlineSession.team !== current.team || playerStatsKey(requestedMember) !== playerStatsKey(onlineSession.memberName))
+      ) {
+        showCommentary("YOUR NAME ONLY", "参加者は自分の名前だけ担当者に設定できます。", 5000);
+        return;
+      }
+      if (shouldUseOnlineAction(options)) {
+        const captured = { ...current };
+        return runOnlineAction(
+          { type: "change-opened-by", payload: { team: captured.team, index: captured.index, memberIndex } },
+          () => {
+            state.currentOpenAttribution = captured;
+            return updateOpenedBySelection(memberIndex, { ...options, onlineBypass: true });
+          }
+        );
+      }
       const side = state[current.team];
       const cell = side.card[current.index];
       if (!cell || !side.marked[current.index]) {
@@ -7762,7 +7833,9 @@
     function renderSkillButton(team, skill) {
       const available = canActivateTeamSkill(team, skill);
       const used = isSkillUsed(skill);
-      const disabled = !available || used || !state.gameStarted || state.inputLocked || state.winner || state.pendingSkill || state.nextOpenSkill;
+      const identityLocked = Boolean(onlineSession.roomId && !onlineSession.master && onlineSession.role === "player");
+      const ownSkill = onlineSession.team === team && playerStatsKey(onlineSession.memberName) === playerStatsKey(skill.member);
+      const disabled = !available || used || !state.gameStarted || state.inputLocked || state.winner || state.pendingSkill || state.nextOpenSkill || (identityLocked && !ownSkill);
       const title = used
         ? "USED THIS MATCH"
         : (available ? `${skill.member} SKILL READY` : getSkillUnavailableTitle(team, skill));
@@ -7975,7 +8048,9 @@
           ${members.map((member, memberIndex) => {
             const key = playerStatsKey(member);
             const active = selected.has(key);
-            const disabled = !active && maxReached;
+            const identityLocked = Boolean(onlineSession.roomId && !onlineSession.master && onlineSession.role === "player");
+            const isOwnIdentity = playerStatsKey(onlineSession.memberName) === key && onlineSession.team === team;
+            const disabled = (!active && maxReached) || (identityLocked && !isOwnIdentity);
             return `<button type="button" class="cell-player-choice${active ? " active" : ""}" data-cell-player-index="${memberIndex}" ${disabled ? "disabled" : ""} title="${escapeHtml(member)}">${escapeHtml(member)}</button>`;
           }).join("")}
         </div>
@@ -8018,7 +8093,22 @@
       toggleCell(cellElement.dataset.team, Number(cellElement.dataset.index), cellElement);
     }
 
-    function toggleCellPlayer(team, index, memberIndex, element) {
+    function toggleCellPlayer(team, index, memberIndex, element, options = {}) {
+      const requestedMember = state[team]?.members?.[memberIndex] || "";
+      if (
+        onlineSession.roomId && !onlineSession.master && onlineSession.role === "player" &&
+        (onlineSession.team !== team || playerStatsKey(requestedMember) !== playerStatsKey(onlineSession.memberName))
+      ) {
+        showCommentary("YOUR NAME ONLY", "参加者は自分の名前だけ担当者に設定できます。", 5000);
+        return;
+      }
+      if (shouldUseOnlineAction(options)) {
+        const member = requestedMember;
+        return runOnlineAction(
+          { type: "toggle-cell-player", payload: { team, index, memberIndex, openerName: member, expectedMarked: Boolean(state[team]?.marked?.[index]) } },
+          () => toggleCellPlayer(team, index, memberIndex, element, { ...options, onlineBypass: true })
+        );
+      }
       if (!state.gameStarted || state.inputLocked) return;
       const side = state[team];
       const cell = side?.card?.[index];
@@ -8030,13 +8120,25 @@
       const member = side.members[memberIndex];
       if (!member) return;
       if (!side.marked[index]) {
-        toggleCell(team, index, element, { openerName: member, advanceOpener: false });
+        toggleCell(team, index, element, { openerName: member, advanceOpener: false, onlineBypass: options.onlineBypass });
         return;
       }
       updateCellOpenedBySelection(team, index, memberIndex);
     }
 
     function toggleCell(team, index, element, options = {}) {
+      if (shouldUseOnlineAction(options)) {
+        const onlineName = onlineCoordinator?.currentMemberName?.();
+        const openerName = options.openerName || (
+          onlineSession.role === "player" && onlineSession.team === team && onlineName && onlineName !== "観戦"
+            ? onlineName
+            : getActivePlayerName(team)
+        );
+        return runOnlineAction(
+          { type: "toggle-cell", payload: { team, index, openerName, expectedMarked: Boolean(state[team]?.marked?.[index]) } },
+          () => toggleCell(team, index, element, { ...options, openerName, onlineBypass: true })
+        );
+      }
       if (!state.gameStarted || state.inputLocked) return;
       const side = state[team];
       const cell = side.card[index];
@@ -8442,7 +8544,13 @@
       showCommentary(`${getTeamLabel(team)} RESET`, "カードを初期状態に戻した。", 6000);
     }
 
-    function shuffleTeamCard(team) {
+    function shuffleTeamCard(team, options = {}) {
+      if (shouldUseOnlineAction(options)) {
+        return runOnlineAction(
+          { type: "shuffle-card", masterOnly: true, payload: { team } },
+          () => shuffleTeamCard(team, { ...options, onlineBypass: true })
+        );
+      }
       if (!state[team].card.length) return;
       state[team].card = makeDifferentCardForTeam(team);
       state[team].marked = initialMarked(state[team].card);
@@ -8548,7 +8656,14 @@
     function loadCustomOpenSoundManifest() {
       Object.entries(OPEN_SOUND_MANIFEST).forEach(([key, urls]) => {
         urls.forEach((url) => cacheCustomOpenSoundUrl(key, url));
+        if (urls.length) customOpenSoundProbeCache.add(String(key));
       });
+    }
+
+    function usesOnlineAssetLoading() {
+      const configured = Boolean(window.TEAM_BINGO_ONLINE_CONFIG?.enabled);
+      const mock = new URLSearchParams(window.location.search).get("onlineMock") === "1";
+      return configured || mock;
     }
 
     async function discoverCustomOpenSounds() {
@@ -8757,7 +8872,7 @@
     function unlockOpenSoundAudio() {
       const context = getOpenSoundAudioContext();
       if (context?.state === "suspended") context.resume().catch(() => {});
-      primeCustomOpenSoundBuffers();
+      if (!usesOnlineAssetLoading()) primeCustomOpenSoundBuffers();
     }
 
     function primeCustomOpenSoundBuffers(map = customOpenSoundMap) {
@@ -8866,6 +8981,7 @@
 
     function showReach(team) {
       state[team].reachAnnounced = true;
+      scheduleOnlineStateSync("reach-announced", 40);
       const side = state[team];
       const victoryReach = side.winnerReachCells.size > 0;
       const finalReach = side.bingoCount >= 1 || victoryReach;
@@ -8989,6 +9105,7 @@
       clearReachTargets();
       state[team].winningCells = new Set(completedLines(team).flat());
       const mvp = normalizeVictoryMvp(team, mvpHint) || pickMvp(team);
+      onlineLastVictory = { team, victoryKind, mvp: cloneOnlineValue(mvp) };
       addMatchHighlight("victory", `${getTeamLabel(team)} VICTORY`, `${mvp.name} がMVP`, team, mvp.imageId);
       recordVictory(team, victoryKind, mvp.name);
       renderAll();
@@ -9008,6 +9125,7 @@
       });
       state.inputLocked = false;
       renderAll();
+      scheduleOnlineStateSync("victory", 40);
     }
 
     function closeVictoryOverlay() {
@@ -9754,6 +9872,7 @@
 
     function showFeverTime(team) {
       state.feverTeam = team;
+      scheduleOnlineStateSync("fever", 40);
       addMatchHighlight("fever", `${getTeamLabel(team)} FEVER TIME`, "HYPE MAXで流れが爆発", team);
       setFeverAura(team);
       clearFlowBanners();
@@ -10683,6 +10802,10 @@
 
     function resetPlayerStats() {
       if (!window.confirm("プレイヤー戦績をリセットしますか？ランキングとは別の戦績だけ消えます。")) return;
+      if (onlineCoordinator?.isOnline?.()) {
+        onlineCoordinator.resetGlobalStats("playerStats").catch((error) => console.error(error));
+        return;
+      }
       state.playerStats = { players: {}, rivalries: {}, recentMatches: [] };
       localStorage.removeItem(STORAGE.playerStats);
       renderStatsPage();
@@ -10711,6 +10834,11 @@
     }
 
     function resetOpenRankingStats() {
+      if (onlineCoordinator?.isOnline?.()) {
+        onlineCoordinator.resetGlobalStats("ranking").catch((error) => console.error(error));
+        hideModal(els.rankingResetModal);
+        return;
+      }
       state.ranking = {};
       localStorage.removeItem(STORAGE.ranking);
       renderRankingTicker();
@@ -10730,6 +10858,7 @@
     }
 
     function toggleDeckCharacter(id) {
+      if (onlineCoordinator?.isOnline?.() && !onlineCoordinator.canEditSetup?.()) return;
       const max = getDeckSizeForGrid();
       if (state.selectedDeck.has(id)) {
         state.selectedDeck.delete(id);
@@ -10738,6 +10867,7 @@
       }
       renderDeckGrid();
       updateDeckStatus();
+      scheduleOnlineSetupPublish();
     }
 
     function updateDeckStatus() {
@@ -10752,15 +10882,19 @@
     }
 
     function selectRandomDeck() {
+      if (onlineCoordinator?.isOnline?.() && !onlineCoordinator.canEditSetup?.()) return;
       state.selectedDeck = new Set(shuffleCopy(Array.from({ length: CHARACTER_COUNT }, (_, index) => index + 1)).slice(0, getDeckSizeForGrid()));
       renderDeckGrid();
       updateDeckStatus();
+      scheduleOnlineSetupPublish();
     }
 
     function clearDeckSelection() {
+      if (onlineCoordinator?.isOnline?.() && !onlineCoordinator.canEditSetup?.()) return;
       state.selectedDeck.clear();
       renderDeckGrid();
       updateDeckStatus();
+      scheduleOnlineSetupPublish();
     }
 
     function encodeDeck(deck) {
@@ -10777,6 +10911,7 @@
     }
 
     function loadDeckFromInput(team) {
+      if (onlineCoordinator?.isOnline?.() && !onlineCoordinator.canEditSetup?.()) return;
       const source = team === "red" ? els.redDeckLoadCode.value : els.blueDeckLoadCode.value;
       const deck = decodeDeck(source);
       if (deck.length < getDeckSizeForGrid()) {
@@ -10786,9 +10921,11 @@
       state.teamDecks[team] = deck;
       saveJson(team === "red" ? STORAGE.redDeck : STORAGE.blueDeck, deck);
       showCommentary(`${getTeamLabel(team)} DECK LOADED`, "次のGAME STARTから反映。", 7000);
+      scheduleOnlineSetupPublish();
     }
 
     function clearBothTeamDecks() {
+      if (onlineCoordinator?.isOnline?.() && !onlineCoordinator.canEditSetup?.()) return;
       state.teamDecks.red = null;
       state.teamDecks.blue = null;
       els.redDeckLoadCode.value = "";
@@ -10796,6 +10933,7 @@
       localStorage.removeItem(STORAGE.redDeck);
       localStorage.removeItem(STORAGE.blueDeck);
       showCommentary("BOTH DEFAULT", "両チームのデッキを標準に戻した。", 7000);
+      scheduleOnlineSetupPublish();
     }
 
     async function copyDeckCode() {
@@ -11478,6 +11616,380 @@
         .replaceAll(">", "&gt;")
         .replaceAll('"', "&quot;")
         .replaceAll("'", "&#039;");
+    }
+
+    let onlineCoordinator = null;
+    let onlineSetupPublishTimer = 0;
+    let onlineStateSyncTimer = 0;
+    let onlineSession = { roomId: "", role: "", team: "", memberName: "", master: false };
+    let onlineLastVictory = null;
+
+    function bootOnlineMode() {
+      if ("serviceWorker" in navigator && /^https?:$/.test(location.protocol)) {
+        navigator.serviceWorker.register("./sw.js").catch((error) => console.warn("Service worker registration failed", error));
+      }
+      import("./online/online-room.js")
+        .then(({ initOnlineRoom }) => initOnlineRoom(createOnlineBridge()))
+        .then((coordinator) => { onlineCoordinator = coordinator; })
+        .catch((error) => {
+          console.error("Online module failed", error);
+          showCommentary("LOCAL MODE", "オンライン接続モジュールを読み込めませんでした。", 6000);
+        });
+    }
+
+    function createOnlineBridge() {
+      return {
+        escapeHtml,
+        getLegacyStats: () => ({ ranking: cloneOnlineValue(state.ranking), playerStats: cloneOnlineValue(state.playerStats) }),
+        getOnlineSetupSnapshot,
+        applyOnlineSetupSnapshot,
+        getOnlineGameSnapshot,
+        applyOnlineGameSnapshot,
+        getOnlineStatsSnapshot,
+        applyOnlineStatsSnapshot,
+        createOnlineEvent,
+        playOnlineEvent,
+        showOnlineVictorySnapshot,
+        showOnlineMessage: (main, sub) => showCommentary(main, sub, 7000),
+        setOnlineSession,
+        onOnlineReady: (coordinator) => { onlineCoordinator = coordinator; },
+        onOnlineError: () => showCommentary("LOCAL MODE", "Firebase設定を確認してください。", 7000),
+        onRoomCreated: () => scheduleOnlineSetupPublish(40),
+        onRoomLeft: () => {
+          onlineSession = { roomId: "", role: "", team: "", memberName: "", master: false };
+          document.body.classList.remove("online-active");
+        },
+        onMasterChanged: (isMaster) => {
+          onlineSession.master = Boolean(isMaster);
+          showCommentary(isMaster ? "MASTER" : "MASTER CHANGED", isMaster ? "ルームマスターを引き継ぎました。" : "別の参加者がマスターになりました。", 7000);
+        }
+      };
+    }
+
+    function cloneOnlineValue(value) {
+      if (value === undefined) return undefined;
+      return JSON.parse(JSON.stringify(value));
+    }
+
+    function onlineMapToObject(map) {
+      return Object.fromEntries(Array.from(map || []).map(([key, value]) => [String(key), cloneOnlineValue(value)]));
+    }
+
+    function onlineObjectToMap(value) {
+      return new Map(Object.entries(value || {}).map(([key, item]) => [Number.isInteger(Number(key)) ? Number(key) : key, item]));
+    }
+
+    function serializeOnlineSkillRef(value) {
+      if (!value?.skill) return null;
+      return {
+        team: value.team || "",
+        skillId: value.skill?.profile?.id || "",
+        member: value.skill?.member || ""
+      };
+    }
+
+    function hydrateOnlineSkillRef(value) {
+      if (!value?.team || !value?.skillId) return null;
+      const skill = getTeamSkill(value.team, value.skillId);
+      return skill ? { team: value.team, skill } : null;
+    }
+
+    function serializeOnlineTeam(side) {
+      return {
+        id: side.id,
+        card: cloneOnlineValue(side.card),
+        marked: [...side.marked],
+        teamTitle: side.teamTitle,
+        members: [...side.members],
+        bingoCount: side.bingoCount,
+        previousBingoCount: side.previousBingoCount,
+        hype: side.hype,
+        reachTargets: [...side.reachTargets],
+        finalReachCells: [...side.finalReachCells],
+        winnerReachCells: [...side.winnerReachCells],
+        reachPairs: cloneOnlineValue(side.reachPairs),
+        reachAnnounced: side.reachAnnounced,
+        winningCells: [...side.winningCells],
+        specialCells: onlineMapToObject(side.specialCells),
+        openedBy: onlineMapToObject(side.openedBy),
+        comebackMoveCells: [...side.comebackMoveCells],
+        activeMemberIndex: side.activeMemberIndex
+      };
+    }
+
+    function getOnlineSetupSnapshot() {
+      return {
+        schemaVersion: 1,
+        gridSize: state.gridSize,
+        players: els.players.map((input) => input.value.trim()),
+        redMembers: [...state.red.members],
+        blueMembers: [...state.blue.members],
+        teamDecks: cloneOnlineValue(state.teamDecks),
+        selectedDeck: [...state.selectedDeck]
+      };
+    }
+
+    function applyOnlineSetupSnapshot(snapshot, options = {}) {
+      if (!snapshot || typeof snapshot !== "object") return;
+      if (Number(snapshot.gridSize) === 5 || Number(snapshot.gridSize) === 7) state.gridSize = Number(snapshot.gridSize);
+      if (Array.isArray(snapshot.players)) {
+        els.players.forEach((input, index) => { input.value = snapshot.players[index] || ""; });
+      }
+      if (Array.isArray(snapshot.redMembers)) state.red.members = [...snapshot.redMembers];
+      if (Array.isArray(snapshot.blueMembers)) state.blue.members = [...snapshot.blueMembers];
+      state.teamDecks = {
+        red: Array.isArray(snapshot.teamDecks?.red) ? [...snapshot.teamDecks.red] : null,
+        blue: Array.isArray(snapshot.teamDecks?.blue) ? [...snapshot.teamDecks.blue] : null
+      };
+      state.selectedDeck = new Set(snapshot.selectedDeck || []);
+      syncTeamMemberIndexes();
+      updateGridButtons();
+      renderSetupPreview();
+      updateDeckStatus();
+      if (!options.silent) renderAll();
+    }
+
+    function getOnlineGameSnapshot() {
+      return {
+        schemaVersion: 1,
+        gridSize: state.gridSize,
+        gameStarted: state.gameStarted,
+        inputLocked: state.inputLocked,
+        winner: state.winner,
+        readyShown: state.readyShown,
+        red: serializeOnlineTeam(state.red),
+        blue: serializeOnlineTeam(state.blue),
+        teamDecks: cloneOnlineValue(state.teamDecks),
+        lastOpenTeam: state.lastOpenTeam,
+        streak: state.streak,
+        streakAnnounced: state.streakAnnounced,
+        skillCharges: cloneOnlineValue(state.skillCharges),
+        skillChargeAnnounced: cloneOnlineValue(state.skillChargeAnnounced),
+        skillEffects: cloneOnlineValue(state.skillEffects),
+        feverTeam: state.feverTeam,
+        pendingSkill: serializeOnlineSkillRef(state.pendingSkill),
+        usedSkillIds: [...state.usedSkillIds],
+        nextOpenSkill: serializeOnlineSkillRef(state.nextOpenSkill),
+        matchTracker: cloneOnlineValue(state.matchTracker),
+        matchStatsFinalized: state.matchStatsFinalized,
+        lastVictory: cloneOnlineValue(onlineLastVictory)
+      };
+    }
+
+    function hydrateOnlineTeam(team, snapshot) {
+      if (!snapshot) return;
+      const side = state[team];
+      Object.assign(side, {
+        id: team,
+        card: cloneOnlineValue(snapshot.card || []),
+        marked: [...(snapshot.marked || [])],
+        teamTitle: snapshot.teamTitle || (team === "red" ? "RED TEAM" : "BLUE TEAM"),
+        members: [...(snapshot.members || [])],
+        bingoCount: Number(snapshot.bingoCount) || 0,
+        previousBingoCount: Number(snapshot.previousBingoCount) || 0,
+        hype: Number(snapshot.hype) || 0,
+        reachTargets: new Set(snapshot.reachTargets || []),
+        finalReachCells: new Set(snapshot.finalReachCells || []),
+        winnerReachCells: new Set(snapshot.winnerReachCells || []),
+        reachPairs: cloneOnlineValue(snapshot.reachPairs || []),
+        reachAnnounced: Boolean(snapshot.reachAnnounced),
+        winningCells: new Set(snapshot.winningCells || []),
+        specialCells: onlineObjectToMap(snapshot.specialCells),
+        openedBy: onlineObjectToMap(snapshot.openedBy),
+        comebackMoveCells: new Set(snapshot.comebackMoveCells || []),
+        activeMemberIndex: Number(snapshot.activeMemberIndex) || 0
+      });
+      side.reachPairMap = buildReachPairMap(side.reachPairs);
+    }
+
+    function applyOnlineGameSnapshot(snapshot, options = {}) {
+      if (!snapshot || typeof snapshot !== "object") return;
+      state.gridSize = Number(snapshot.gridSize) === 7 ? 7 : 5;
+      state.gameStarted = Boolean(snapshot.gameStarted);
+      state.inputLocked = Boolean(snapshot.inputLocked);
+      state.winner = snapshot.winner || null;
+      state.readyShown = Boolean(snapshot.readyShown);
+      hydrateOnlineTeam("red", snapshot.red);
+      hydrateOnlineTeam("blue", snapshot.blue);
+      state.teamDecks = cloneOnlineValue(snapshot.teamDecks || state.teamDecks);
+      state.lastOpenTeam = snapshot.lastOpenTeam || null;
+      state.streak = Number(snapshot.streak) || 0;
+      state.streakAnnounced = Boolean(snapshot.streakAnnounced);
+      state.skillCharges = cloneOnlineValue(snapshot.skillCharges || { red: false, blue: false });
+      state.skillChargeAnnounced = cloneOnlineValue(snapshot.skillChargeAnnounced || { red: false, blue: false });
+      state.skillEffects = cloneOnlineValue(snapshot.skillEffects || createSkillEffects());
+      state.feverTeam = snapshot.feverTeam || null;
+      state.usedSkillIds = new Set(snapshot.usedSkillIds || []);
+      state.matchTracker = cloneOnlineValue(snapshot.matchTracker || createMatchTracker());
+      state.matchStatsFinalized = Boolean(snapshot.matchStatsFinalized);
+      onlineLastVictory = cloneOnlineValue(snapshot.lastVictory || null);
+      state.pendingSkill = hydrateOnlineSkillRef(snapshot.pendingSkill);
+      state.nextOpenSkill = hydrateOnlineSkillRef(snapshot.nextOpenSkill);
+      syncTeamMemberIndexes();
+      updateGridButtons();
+      renderSetupPreview();
+      renderAll();
+      updateHypeUi();
+      if (state.gameStarted) {
+        showScreen("play");
+        stopSetupTheme();
+      } else {
+        showScreen("setup");
+      }
+      if (state.feverTeam) setFeverAura(state.feverTeam);
+      else clearFeverAura();
+      const kentoOwner = state.skillEffects?.kentoAura?.owner || "";
+      if (kentoOwner && state.kentoLiveChatTeam !== kentoOwner) startKentoLiveChat(kentoOwner);
+      if (!kentoOwner && state.kentoLiveChatTeam) stopKentoLiveChat();
+    }
+
+    function getOnlineStatsSnapshot() {
+      return { ranking: cloneOnlineValue(state.ranking), playerStats: cloneOnlineValue(state.playerStats) };
+    }
+
+    function applyOnlineStatsSnapshot(snapshot) {
+      if (!snapshot) return;
+      state.ranking = cloneOnlineValue(snapshot.ranking || {});
+      state.playerStats = normalizePlayerStats(snapshot.playerStats || { players: {} });
+      renderRankingTicker();
+      if (els.statsModal?.classList.contains("show")) renderStatsPage();
+    }
+
+    function onlineCellChange(before, after, team, index) {
+      const previous = Boolean(before?.[team]?.marked?.[index]);
+      const current = Boolean(after?.[team]?.marked?.[index]);
+      return { previous, current, changed: previous !== current };
+    }
+
+    function createOnlineEvent(action, before, after) {
+      const type = action?.type || "state-sync";
+      const payload = cloneOnlineValue(action?.payload || {});
+      const event = { type, payload, effects: [] };
+      if (type === "start-game") event.effects.push("intro", "ready");
+      if (type === "toggle-cell" || type === "toggle-cell-player") {
+        const team = payload.team;
+        const index = Number(payload.index);
+        const change = onlineCellChange(before, after, team, index);
+        event.payload.opened = change.current;
+        event.payload.characterId = after?.[team]?.card?.[index]?.id || before?.[team]?.card?.[index]?.id || null;
+        const beforeLines = Number(before?.[team]?.bingoCount) || 0;
+        const afterLines = Number(after?.[team]?.bingoCount) || 0;
+        if (change.current && beforeLines < 1 && afterLines >= 1) event.effects.push("first-bingo");
+        const beforeReach = (before?.[team]?.reachTargets || []).length;
+        const afterReach = (after?.[team]?.reachTargets || []).length;
+        if (change.current && afterReach > 0 && (!beforeReach || !before?.[team]?.reachAnnounced)) event.effects.push("reach");
+        if ((Number(before?.[team]?.hype) || 0) < 100 && (Number(after?.[team]?.hype) || 0) >= 100) event.effects.push("fever");
+        const beforeSpecial = before?.[team]?.specialCells?.[String(index)] || "";
+        const afterSpecial = after?.[team]?.specialCells?.[String(index)] || "";
+        if (!beforeSpecial && afterSpecial) {
+          event.effects.push("special-change");
+          event.payload.skillId = afterSpecial;
+        }
+      }
+      if (type === "activate-skill") event.effects.push("skill");
+      if (type.includes("shuffle")) event.effects.push("shuffle");
+      if (!before?.winner && after?.winner) {
+        event.effects.push("victory");
+        event.victory = cloneOnlineValue(after.lastVictory || onlineLastVictory || {
+          team: after.winner,
+          victoryKind: "normal",
+          mvp: null
+        });
+      }
+      return event;
+    }
+
+    function playOnlineEvent(event) {
+      if (!event) return;
+      const payload = event.payload || {};
+      const effects = new Set(event.effects || []);
+      if (effects.has("intro")) {
+        enqueueEffect(async () => {
+          await showIntroWithBlackout();
+          await showReadyOnce();
+        });
+      }
+      if ((event.type === "toggle-cell" || event.type === "toggle-cell-player") && payload.opened) {
+        const team = payload.team;
+        const index = Number(payload.index);
+        const cellElement = document.querySelector(`.cell[data-team="${team}"][data-index="${index}"]`);
+        if (cellElement) spawnOpenBurst(cellElement, team);
+        const openOverride = cloneOnlineValue(state.skillEffects?.openSoundOverrides?.[team] || null);
+        playOpenSound(team, Math.max(0, (state[team]?.bingoCount || 0) - 1), payload.characterId);
+        if (state.skillEffects?.openSoundOverrides) state.skillEffects.openSoundOverrides[team] = openOverride;
+        showVoiceLine(team, payload.characterId);
+      }
+      if (effects.has("special-change")) {
+        const team = payload.team;
+        const index = Number(payload.index);
+        const cellElement = document.querySelector(`.cell[data-team="${team}"][data-index="${index}"]`);
+        const skillId = payload.skillId || "special";
+        const label = skillId === "jan" ? "JAN CHANGE" : (skillId === "eda" ? "EDA CHANGE" : "CHANGE!");
+        if (cellElement) spawnOpenBurst(cellElement, team, { type: "skill", label, asset: getSkillChangeAsset(skillId) });
+        screenShake();
+      }
+      if (effects.has("skill")) {
+        const skill = getTeamSkill(payload.team, payload.skillId);
+        if (skill) enqueueEffect(() => showSkillActivation(payload.team, skill));
+      }
+      if (effects.has("first-bingo") && !effects.has("reach") && !effects.has("victory")) enqueueEffect(() => showFirstBingo(payload.team));
+      if (effects.has("reach") && !effects.has("victory")) enqueueEffect(() => showReach(payload.team));
+      if (effects.has("fever") && !effects.has("victory")) enqueueEffect(() => showFeverTime(payload.team));
+      if (effects.has("shuffle")) {
+        if (payload.team) playTeamDealAnimation(payload.team);
+        else playDealAnimation();
+        playAudio("shuffle");
+      }
+      if (effects.has("victory")) showOnlineVictorySnapshot(state, event.victory);
+    }
+
+    function showOnlineVictorySnapshot(snapshot, victory = null) {
+      const team = victory?.team || snapshot?.winner || state.winner;
+      if (!team) return;
+      const kind = victory?.victoryKind || "normal";
+      const mvp = victory?.mvp || pickMvp(team);
+      onlineLastVictory = { team, victoryKind: kind, mvp };
+      renderVictory(team, kind, mvp);
+      els.victoryOverlay.classList.remove("victory-comeback", "victory-straight");
+      if (kind === "comeback") els.victoryOverlay.classList.add("victory-comeback");
+      if (kind === "straight") els.victoryOverlay.classList.add("victory-straight");
+      showOverlay(els.victoryOverlay);
+      playAudio("victory");
+      launchVictoryFx(team, kind);
+    }
+
+    function setOnlineSession(session) {
+      onlineSession = { ...onlineSession, ...(session || {}) };
+      document.body.classList.toggle("online-active", Boolean(onlineSession.roomId));
+    }
+
+    function shouldUseOnlineAction(options = {}) {
+      return Boolean(
+        onlineCoordinator?.isOnline?.() &&
+        !onlineCoordinator.isApplyingRemote?.() &&
+        !options.onlineBypass
+      );
+    }
+
+    function runOnlineAction(action, localMutator) {
+      if (!onlineCoordinator?.isOnline?.() || onlineCoordinator.isApplyingRemote?.()) return localMutator();
+      return onlineCoordinator.requestAction(action, localMutator);
+    }
+
+    function scheduleOnlineSetupPublish(delayMs = 180) {
+      if (!onlineCoordinator?.isOnline?.() || !onlineCoordinator.isMaster?.()) return;
+      window.clearTimeout(onlineSetupPublishTimer);
+      onlineSetupPublishTimer = window.setTimeout(() => {
+        onlineCoordinator.publishSetup(getOnlineSetupSnapshot()).catch((error) => console.error(error));
+      }, delayMs);
+    }
+
+    function scheduleOnlineStateSync(reason = "state-sync", delayMs = 120) {
+      if (!onlineCoordinator?.isOnline?.() || onlineCoordinator.isApplyingRemote?.()) return;
+      window.clearTimeout(onlineStateSyncTimer);
+      onlineStateSyncTimer = window.setTimeout(() => {
+        onlineCoordinator.syncCurrentState(reason).catch((error) => console.error(error));
+      }, delayMs);
     }
 
     document.addEventListener("DOMContentLoaded", init);
