@@ -386,8 +386,14 @@ class FirebaseBackend {
   }
 
   async transaction(path, updater) {
-    const result = await this.api.runTransaction(this.makeRef(path), (current) => {
-      const next = updater(clone(current));
+    const reference = this.makeRef(path);
+    const initialSnapshot = await this.api.get(reference);
+    const initialValue = initialSnapshot.exists() ? initialSnapshot.val() : null;
+    let initialAvailable = initialValue !== null;
+    const result = await this.api.runTransaction(reference, (current) => {
+      const source = initialAvailable && (current === null || current === undefined) ? initialValue : current;
+      initialAvailable = false;
+      const next = updater(clone(source));
       return next === undefined ? undefined : clone(next);
     }, { applyLocally: false });
     return { committed: result.committed, value: result.snapshot.exists() ? result.snapshot.val() : null };
@@ -431,6 +437,7 @@ class OnlineCoordinator {
     this.heartbeatTimer = 0;
     this.localMode = false;
     this.roomDraft = false;
+    this.pendingDraftRoom = null;
     this.adminMode = false;
     this.legacyStats = clone(bridge.getLegacyStats?.() || {});
     this.deviceId = localStorage.getItem("teamBingo.onlineDeviceId") || randomId("device");
@@ -463,6 +470,8 @@ class OnlineCoordinator {
       this.setStatus("error", "ONLINE ERROR");
       this.bridge.onOnlineError?.(error);
       this.bridge.onOnlineReady?.(this);
+    } finally {
+      document.documentElement.classList.remove("online-booting");
     }
     return this;
   }
@@ -514,6 +523,16 @@ class OnlineCoordinator {
         <div class="online-dialog-error" id="onlineSeatError" role="alert" hidden></div>
         <div class="online-seat-list" id="onlineSeatList"></div>
       </dialog>
+      <dialog class="online-seat-dialog" id="onlineMasterDialog">
+        <header class="online-seat-head">
+          <div>
+            <div class="online-seat-title">部屋主のプレイヤーを選択</div>
+            <div class="online-lobby-sub">あなたが操作する名前を選んで部屋を作成</div>
+          </div>
+          <button type="button" class="online-simple-button" id="onlineMasterClose">CLOSE</button>
+        </header>
+        <div class="online-seat-list" id="onlineMasterList"></div>
+      </dialog>
       <div class="online-session-bar" id="onlineSessionBar">
         <span class="online-mode-badge online" id="onlineSessionStatus">ONLINE</span>
         <label class="online-draft-title" id="onlineDraftTitleWrap" hidden><span>ROOM NAME</span><input id="onlineDraftTitle" maxlength="40" autocomplete="off"></label>
@@ -544,6 +563,9 @@ class OnlineCoordinator {
       seatError: document.getElementById("onlineSeatError"),
       seatList: document.getElementById("onlineSeatList"),
       seatClose: document.getElementById("onlineSeatClose"),
+      masterDialog: document.getElementById("onlineMasterDialog"),
+      masterList: document.getElementById("onlineMasterList"),
+      masterClose: document.getElementById("onlineMasterClose"),
       sessionBar: document.getElementById("onlineSessionBar"),
       sessionStatus: document.getElementById("onlineSessionStatus"),
       draftTitleWrap: document.getElementById("onlineDraftTitleWrap"),
@@ -569,6 +591,21 @@ class OnlineCoordinator {
     });
     this.ui.lobbyClose.addEventListener("click", () => this.hideLobby());
     this.ui.seatClose.addEventListener("click", () => this.ui.seatDialog.close());
+    this.ui.masterClose.addEventListener("click", () => {
+      this.pendingDraftRoom = null;
+      this.ui.masterDialog.close();
+    });
+    this.ui.masterList.addEventListener("click", (event) => {
+      const button = event.target.closest("[data-master-member]");
+      if (!button || !this.pendingDraftRoom) return;
+      const pending = this.pendingDraftRoom;
+      this.pendingDraftRoom = null;
+      this.ui.masterDialog.close();
+      this.createRoom(pending.setup, pending.title, {
+        name: button.dataset.masterMember || "",
+        team: button.dataset.masterTeam || ""
+      });
+    });
     this.ui.openLobby.addEventListener("click", () => {
       if (this.roomDraft) {
         this.cancelRoomDraft();
@@ -746,12 +783,25 @@ class OnlineCoordinator {
       return false;
     }
     const title = normalizeRoomTitle(this.ui.draftTitle.value) || `${names[0]}たちの部屋`;
-    return this.createRoom({ ...setup, roomTitle: title }, title);
+    const draftSetup = { ...setup, roomTitle: title };
+    this.pendingDraftRoom = { setup: draftSetup, title };
+    this.ui.masterList.innerHTML = ["red", "blue"].map((team) => {
+      const members = draftSetup[`${team}Members`] || [];
+      return `
+        <div class="online-seat-team-label ${team === "blue" ? "blue" : ""}">${team.toUpperCase()} TEAM</div>
+        <div class="online-seat-buttons">
+          ${members.map((name) => `<button type="button" class="online-seat-button" data-master-member="${this.bridge.escapeHtml?.(name) || name}" data-master-team="${team}">${this.bridge.escapeHtml?.(name) || name}<small>このプレイヤーで部屋を作る</small></button>`).join("")}
+        </div>
+      `;
+    }).join("");
+    if (!this.ui.masterDialog.open) this.ui.masterDialog.showModal();
+    return true;
   }
 
-  async createRoom(setupOverride = null, titleOverride = "") {
+  async createRoom(setupOverride = null, titleOverride = "", masterSelection = {}) {
     if (!this.enabled || this.busy) return;
     this.setBusy(true);
+    let createdRoomId = "";
     try {
       const setup = clone(setupOverride || this.bridge.getOnlineSetupSnapshot?.() || {});
       const roomId = randomId("room");
@@ -759,6 +809,9 @@ class OnlineCoordinator {
       const title = normalizeRoomTitle(titleOverride || setup.roomTitle) || (setup.redMembers?.[0]
         ? `${setup.redMembers[0]}たちの部屋`
         : "新しいTEAM BINGO");
+      const masterName = normalizeName(masterSelection.name);
+      const masterTeam = masterSelection.team === "blue" ? "blue" : "red";
+      const masterSeatKey = playerKey(masterName);
       const room = {
         meta: {
           id: roomId,
@@ -779,14 +832,24 @@ class OnlineCoordinator {
             uid: this.backend.uid,
             deviceId: this.deviceId,
             role: "master",
-            team: "",
-            memberName: "",
+            team: masterTeam,
+            memberName: masterName,
             online: true,
             joinedAt: now,
             lastSeenAt: now
           }
         },
-        seats: {},
+        seats: masterName ? {
+          [masterSeatKey]: {
+            uid: this.backend.uid,
+            deviceId: this.deviceId,
+            name: masterName,
+            team: masterTeam,
+            online: true,
+            joinedAt: now,
+            lastSeenAt: now
+          }
+        } : {},
         events: {},
         processedActions: {}
       };
@@ -803,25 +866,30 @@ class OnlineCoordinator {
       this.localMode = false;
       this.setStatus("online", this.mock ? "MOCK ONLINE" : "ONLINE");
       this.role = "master";
-      this.team = "";
-      this.memberName = "";
-      this.seatKey = "";
+      this.team = masterTeam;
+      this.memberName = masterName;
+      this.seatKey = masterSeatKey;
       await this.enterRoom(roomId, room);
       this.saveSession();
-      this.ui.draftTitleWrap.hidden = true;
-      this.ui.leaveRoom.textContent = "LEAVE";
-      this.bridge.setRoomDraftMode?.(false);
-      this.hideLobby();
-      this.bridge.onRoomCreated?.(roomId);
       if (this.backend.setPresenceDisconnect) {
-        await this.backend.setPresenceDisconnect(this.roomPath(roomId, `participants/${this.backend.uid}`));
+        await this.backend.setPresenceDisconnect(
+          this.roomPath(roomId, `participants/${this.backend.uid}`),
+          masterSeatKey ? this.roomPath(roomId, `seats/${masterSeatKey}`) : ""
+        );
       }
-      this.importLegacyStats().catch((error) => console.error(error));
+      createdRoomId = roomId;
     } catch (error) {
       console.error(error);
       this.showError("ROOM CREATE ERROR", error);
     } finally {
       this.setBusy(false);
+      if (createdRoomId) {
+        this.ui.draftTitleWrap.hidden = true;
+        this.ui.leaveRoom.textContent = "LEAVE";
+        this.bridge.setRoomDraftMode?.(false);
+        this.hideLobby();
+        this.bridge.onRoomCreated?.(createdRoomId);
+      }
     }
   }
 
@@ -948,10 +1016,11 @@ class OnlineCoordinator {
       const holdMs = Math.max(10, Number(this.config.seatHoldSeconds) || 60) * 1000;
       let abortReason = "";
       const result = await this.backend.transaction(this.roomPath(roomId), (room) => {
-        if (!room?.meta?.active) {
-          abortReason = "この部屋は終了しています。ロビーを更新してください。";
+        if (!room?.meta) {
+          abortReason = "部屋が見つかりません。ロビーを更新してください。";
           return undefined;
         }
+        room.meta.active = true;
         room.participants ||= {};
         room.seats ||= {};
         Object.entries(room.seats).forEach(([seatKey, seat]) => {
@@ -1051,7 +1120,7 @@ class OnlineCoordinator {
     catch { saved = null; }
     if (!saved?.roomId) return false;
     const room = await this.backend.get(this.roomPath(saved.roomId));
-    if (!room?.meta?.active) {
+    if (!room?.meta) {
       sessionStorage.removeItem("teamBingo.onlineSession.v1");
       return false;
     }
@@ -1064,7 +1133,8 @@ class OnlineCoordinator {
     }
     const now = this.backend.serverNow();
     const result = await this.backend.transaction(this.roomPath(saved.roomId), (current) => {
-      if (!current?.meta?.active) return undefined;
+      if (!current?.meta) return undefined;
+      current.meta.active = true;
       current.participants ||= {};
       current.participants[this.backend.uid] = {
         ...(current.participants[this.backend.uid] || {}),
@@ -1165,7 +1235,7 @@ class OnlineCoordinator {
     this.ui.leaveRoom.hidden = false;
     const master = this.room?.meta?.masterUid === this.backend?.uid;
     if (master) this.role = "master";
-    this.ui.sessionName.textContent = master ? "MASTER" : (this.memberName || "ONLINE");
+    this.ui.sessionName.textContent = master ? (this.memberName ? `${this.memberName} / MASTER` : "MASTER") : (this.memberName || "ONLINE");
     this.ui.sessionRole.textContent = master ? "ROOM MASTER" : (this.role === "spectator" ? "SPECTATOR" : `${String(this.team).toUpperCase()} TEAM`);
     const count = Object.values(this.room?.participants || {}).filter((participant) => participant?.online).length;
     this.ui.sessionPresence.textContent = `${count} ONLINE`;
@@ -1194,21 +1264,36 @@ class OnlineCoordinator {
     if (!options.remoteClosed) {
       const result = await this.backend.transaction(this.roomPath(roomId), (room) => {
         if (!room) return room;
-        if (room.participants) delete room.participants[this.backend.uid];
-        if (key && room.seats?.[key]?.uid === this.backend.uid) delete room.seats[key];
         if (wasMaster) {
           const replacement = Object.values(room.participants || {})
-            .filter((participant) => participant?.online)
+            .filter((participant) => participant?.uid !== this.backend.uid && participant?.online)
             .sort((a, b) => (Number(a.joinedAt) || 0) - (Number(b.joinedAt) || 0))[0];
-          if (replacement) room.meta.masterUid = replacement.uid;
-          else room.meta.active = false;
+          if (replacement) {
+            delete room.participants[this.backend.uid];
+            if (key && room.seats?.[key]?.uid === this.backend.uid) delete room.seats[key];
+            room.meta.masterUid = replacement.uid;
+          } else {
+            room.participants ||= {};
+            room.participants[this.backend.uid] = {
+              ...(room.participants[this.backend.uid] || {}),
+              online: false,
+              disconnectedAt: this.backend.serverNow()
+            };
+            if (key && room.seats?.[key]?.uid === this.backend.uid) {
+              room.seats[key].online = false;
+              room.seats[key].disconnectedAt = this.backend.serverNow();
+            }
+            room.meta.active = true;
+          }
+        } else {
+          if (room.participants) delete room.participants[this.backend.uid];
+          if (key && room.seats?.[key]?.uid === this.backend.uid) delete room.seats[key];
         }
         room.meta.updatedAt = this.backend.serverNow();
         return room;
       }).catch((error) => console.error(error));
       if (result?.committed) {
-        if (result.value?.meta?.active === false) await this.backend.set(this.lobbyPath(roomId), null);
-        else await this.backend.set(this.lobbyPath(roomId), this.createLobbySummary(result.value));
+        await this.backend.set(this.lobbyPath(roomId), this.createLobbySummary(result.value));
       }
     }
     this.roomUnsubscribe?.();
@@ -1509,23 +1594,33 @@ class OnlineCoordinator {
 
   async importLegacyStats() {
     if (!this.isMaster() || !this.legacyStats) return;
-    const adminUid = await this.backend.get(this.path("adminUid"));
-    if (adminUid && adminUid !== this.backend.uid) return;
-    const existingImport = await this.backend.get(this.path(`legacyImports/${this.deviceId}`));
+    if (localStorage.getItem("teamBingo.onlineStatsImported.v1") === "1") return;
+    const adminResult = await this.backend.transaction(this.path("adminUid"), (current) => {
+      if (!current || current === this.backend.uid) return this.backend.uid;
+      return undefined;
+    });
+    const adminUid = adminResult.value || await this.backend.get(this.path("adminUid"));
+    if (adminUid !== this.backend.uid) return;
+    const importKey = playerKey(this.deviceId);
+    const existingImport = await this.backend.get(this.path(`legacyImports/${importKey}`));
     if (existingImport) {
       localStorage.setItem("teamBingo.onlineStatsImported.v1", "1");
       return;
     }
-    const result = await this.backend.transaction(this.path(), (root) => {
-      root ||= {};
-      root.legacyImports ||= {};
-      if (root.legacyImports[this.deviceId]) return root;
-      root.globalStats = mergeLegacyStats(root.globalStats || {}, this.legacyStats);
-      root.legacyImports[this.deviceId] = { importedAt: this.backend.serverNow(), uid: this.backend.uid };
-      root.adminUid ||= this.backend.uid;
-      return root;
+    const statsResult = await this.backend.transaction(this.path("globalStats"), (stats) => {
+      stats ||= {};
+      stats.legacyImports ||= {};
+      if (stats.legacyImports[importKey]) return stats;
+      const merged = mergeLegacyStats(stats, this.legacyStats);
+      merged.legacyImports = { ...(merged.legacyImports || {}), [importKey]: this.backend.serverNow() };
+      return merged;
     });
-    if (result.committed) {
+    if (!statsResult.committed) return;
+    await this.backend.set(this.path(`legacyImports/${importKey}`), {
+      importedAt: this.backend.serverNow(),
+      uid: this.backend.uid
+    });
+    if (statsResult.value?.legacyImports?.[importKey]) {
       localStorage.setItem("teamBingo.onlineStatsImported.v1", "1");
       this.bridge.showOnlineMessage?.("STATS IMPORTED", "この端末の旧戦績をオンライン戦績へ統合しました。");
     }

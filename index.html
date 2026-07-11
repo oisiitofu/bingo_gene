@@ -6,6 +6,11 @@
   <title>TEAM BINGO CHAMPIONSHIP</title>
   <link rel="stylesheet" href="online/online-room.css" />
   <script src="online/firebase-config.js"></script>
+  <script>
+    if (window.TEAM_BINGO_ONLINE_CONFIG?.enabled || new URLSearchParams(location.search).get("onlineMock") === "1") {
+      document.documentElement.classList.add("online-booting");
+    }
+  </script>
   <link rel="preload" as="image" href="images/ui/fg-team-intro.png" />
   <link rel="preload" as="image" href="images/ui/commentator-intro.png" />
   <link rel="preload" as="image" href="images/ui/commentator-face-1.png" />
@@ -11672,6 +11677,7 @@
         .then(({ initOnlineRoom }) => initOnlineRoom(createOnlineBridge()))
         .then((coordinator) => { onlineCoordinator = coordinator; })
         .catch((error) => {
+          document.documentElement.classList.remove("online-booting");
           console.error("Online module failed", error);
           showCommentary("LOCAL MODE", "オンライン接続モジュールを読み込めませんでした。", 6000);
         });
