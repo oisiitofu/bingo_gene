@@ -6951,6 +6951,32 @@
       };
     }
 
+    function normalizeMatchTracker(value) {
+      const source = value && typeof value === "object" ? value : {};
+      const tracker = {
+        ...createMatchTracker(),
+        ...cloneOnlineValue(source),
+        highlights: Array.isArray(source.highlights) ? cloneOnlineValue(source.highlights) : [],
+        players: { red: {}, blue: {} }
+      };
+      ["red", "blue"].forEach((team) => {
+        Object.entries(source.players?.[team] || {}).forEach(([key, item]) => {
+          if (!item || typeof item !== "object") return;
+          tracker.players[team][key] = {
+            ...cloneOnlineValue(item),
+            key: item.key || key,
+            name: normalizePlayerName(item.name || key),
+            team,
+            opens: Number(item.opens) || 0,
+            skills: Number(item.skills) || 0,
+            comebackMoves: Number(item.comebackMoves) || 0,
+            characters: item.characters && typeof item.characters === "object" ? cloneOnlineValue(item.characters) : {}
+          };
+        });
+      });
+      return tracker;
+    }
+
     function init() {
       cacheElements();
       loadState();
@@ -6996,7 +7022,13 @@
     }
 
     function bindEvents() {
-      els.setupStartButton.addEventListener("click", startGame);
+      els.setupStartButton.addEventListener("click", () => {
+        if (onlineCoordinator?.isRoomDraft?.()) {
+          onlineCoordinator.createRoomFromDraft();
+          return;
+        }
+        startGame();
+      });
       els.playStartButton.addEventListener("click", startGame);
       els.setupShuffleButton.addEventListener("click", shuffleTeamsOnly);
       els.playShuffleButton.addEventListener("click", shuffleTeamsOnly);
@@ -10260,6 +10292,9 @@
 
     function ensureMatchPlayer(team, playerName) {
       if (!state.matchTracker) state.matchTracker = createMatchTracker();
+      if (!state.matchTracker.players || typeof state.matchTracker.players !== "object") {
+        state.matchTracker.players = { red: {}, blue: {} };
+      }
       const normalized = normalizePlayerName(playerName);
       const key = playerStatsKey(normalized);
       const side = team === "red" || team === "blue" ? team : (getTeamForPlayerKey(key) || "red");
@@ -10275,8 +10310,13 @@
           characters: {}
         };
       }
-      state.matchTracker.players[side][key].name = normalized;
-      return state.matchTracker.players[side][key];
+      const entry = state.matchTracker.players[side][key];
+      entry.name = normalized;
+      entry.opens = Number(entry.opens) || 0;
+      entry.skills = Number(entry.skills) || 0;
+      entry.comebackMoves = Number(entry.comebackMoves) || 0;
+      if (!entry.characters || typeof entry.characters !== "object") entry.characters = {};
+      return entry;
     }
 
     function findMatchPlayerByKey(playerKey) {
@@ -11652,6 +11692,11 @@
         showOnlineVictorySnapshot,
         showOnlineMessage: (main, sub) => showCommentary(main, sub, 7000),
         setOnlineSession,
+        setRoomDraftMode: (active) => {
+          els.setupStartButton.textContent = active ? "ROOM CREATE" : "GAME START";
+          els.setupStartButton.classList.toggle("online-room-create", Boolean(active));
+          showScreen("setup");
+        },
         onOnlineReady: (coordinator) => { onlineCoordinator = coordinator; },
         onOnlineError: () => showCommentary("LOCAL MODE", "Firebase設定を確認してください。", 7000),
         onRoomCreated: () => scheduleOnlineSetupPublish(40),
@@ -11820,7 +11865,7 @@
       state.skillEffects = cloneOnlineValue(snapshot.skillEffects || createSkillEffects());
       state.feverTeam = snapshot.feverTeam || null;
       state.usedSkillIds = new Set(snapshot.usedSkillIds || []);
-      state.matchTracker = cloneOnlineValue(snapshot.matchTracker || createMatchTracker());
+      state.matchTracker = normalizeMatchTracker(snapshot.matchTracker);
       state.matchStatsFinalized = Boolean(snapshot.matchStatsFinalized);
       onlineLastVictory = cloneOnlineValue(snapshot.lastVictory || null);
       state.pendingSkill = hydrateOnlineSkillRef(snapshot.pendingSkill);
