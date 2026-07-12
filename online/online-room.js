@@ -439,6 +439,8 @@ class OnlineCoordinator {
     this.roomDraft = false;
     this.pendingDraftRoom = null;
     this.adminMode = false;
+    this.adminExpiresAt = 0;
+    this.adminExpiryTimer = 0;
     this.legacyStats = clone(bridge.getLegacyStats?.() || {});
     this.deviceId = localStorage.getItem("teamBingo.onlineDeviceId") || randomId("device");
     localStorage.setItem("teamBingo.onlineDeviceId", this.deviceId);
@@ -922,7 +924,17 @@ class OnlineCoordinator {
         expiresAt
       });
       this.adminMode = true;
+      this.adminExpiresAt = expiresAt;
+      window.clearTimeout(this.adminExpiryTimer);
+      this.adminExpiryTimer = window.setTimeout(() => {
+        this.adminMode = false;
+        this.adminExpiresAt = 0;
+        this.ui.adminMode.textContent = "ADMIN";
+        this.bridge.onAdminModeChanged?.(false);
+        this.renderRooms();
+      }, Math.max(0, expiresAt - this.backend.serverNow()));
       this.ui.adminMode.textContent = "ADMIN ON";
+      this.bridge.onAdminModeChanged?.(true);
       this.ui.adminDialog.close();
       this.clearError();
       this.renderRooms();
@@ -1624,11 +1636,26 @@ class OnlineCoordinator {
     }
   }
 
+  isAdminMode() {
+    return Boolean(this.adminMode && Number(this.adminExpiresAt) > this.backend.serverNow());
+  }
+
   async resetGlobalStats(kind) {
     if (!this.isOnline()) return false;
-    const adminUid = await this.backend.get(this.path("adminUid"));
-    if (adminUid !== this.backend.uid) {
-      this.bridge.showOnlineMessage?.("ADMIN ONLY", "共通戦績を最初に統合した管理ブラウザだけがリセットできます。");
+    if (!this.isAdminMode()) {
+      this.bridge.showOnlineMessage?.("ADMIN ONLY", "ランキングと戦績のリセットは管理者のみ実行できます。");
+      return false;
+    }
+    const adminSession = await this.backend.get(this.path(`adminSessions/${this.backend.uid}`));
+    if (
+      adminSession?.pinHash !== "6440e6a91202aeddb45b070a80533f65a689c37d0cf1842ab2bd962e33377880" ||
+      Number(adminSession?.expiresAt) <= this.backend.serverNow()
+    ) {
+      this.adminMode = false;
+      this.adminExpiresAt = 0;
+      this.ui.adminMode.textContent = "ADMIN";
+      this.bridge.onAdminModeChanged?.(false);
+      this.bridge.showOnlineMessage?.("ADMIN EXPIRED", "管理者モードの有効期限が切れました。");
       return false;
     }
     const actionId = randomId("stats-reset");

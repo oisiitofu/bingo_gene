@@ -6237,7 +6237,7 @@
         </section>
 
         <section class="ranking-band">
-          <button type="button" class="btn frame" id="rankingResetButton">RANK RESET</button>
+          <button type="button" class="btn frame" id="rankingResetButton" disabled aria-disabled="true" title="ADMIN ONLY">RANK RESET</button>
           <div class="ticker-viewport">
             <div class="ticker-track" id="openRankingList"></div>
           </div>
@@ -6354,7 +6354,7 @@
       <h2>ランキングをリセット</h2>
       <p>累計の開封ランキングを削除します。この操作は取り消せません。</p>
       <div class="inline-actions">
-        <button type="button" class="btn primary" id="rankingResetConfirm">RESET</button>
+        <button type="button" class="btn primary" id="rankingResetConfirm" disabled aria-disabled="true" title="ADMIN ONLY">RESET</button>
         <button type="button" class="btn frame" id="rankingResetCancel">CANCEL</button>
       </div>
     </div>
@@ -6368,7 +6368,7 @@
           <p>プレイヤー別の戦績、開けたキャラ、スキル発動回数を記録します。</p>
         </div>
         <div class="inline-actions">
-          <button type="button" class="btn frame" id="statsResetButton">RESET STATS</button>
+          <button type="button" class="btn frame" id="statsResetButton" disabled aria-disabled="true" title="ADMIN ONLY">RESET STATS</button>
           <button type="button" class="btn primary" id="statsCloseButton">CLOSE</button>
         </div>
       </div>
@@ -7077,7 +7077,10 @@
       document.querySelectorAll("[data-load-deck]").forEach((button) => {
         button.addEventListener("click", () => loadDeckFromInput(button.dataset.loadDeck));
       });
-      els.rankingResetButton.addEventListener("click", () => showModal(els.rankingResetModal));
+      els.rankingResetButton.addEventListener("click", () => {
+        if (!requireAdminStatsReset()) return;
+        showModal(els.rankingResetModal);
+      });
       els.rankingResetCancel.addEventListener("click", () => hideModal(els.rankingResetModal));
       els.rankingResetConfirm.addEventListener("click", resetOpenRankingStats);
       els.statsCloseButton.addEventListener("click", () => hideModal(els.statsModal));
@@ -10895,6 +10898,7 @@
     }
 
     function resetPlayerStats() {
+      if (!requireAdminStatsReset()) return;
       if (!window.confirm("プレイヤー戦績をリセットしますか？ランキングとは別の戦績だけ消えます。")) return;
       if (onlineCoordinator?.isOnline?.()) {
         onlineCoordinator.resetGlobalStats("playerStats").catch((error) => console.error(error));
@@ -10928,6 +10932,10 @@
     }
 
     function resetOpenRankingStats() {
+      if (!requireAdminStatsReset()) {
+        hideModal(els.rankingResetModal);
+        return;
+      }
       if (onlineCoordinator?.isOnline?.()) {
         onlineCoordinator.resetGlobalStats("ranking").catch((error) => console.error(error));
         hideModal(els.rankingResetModal);
@@ -11766,7 +11774,11 @@
           els.setupStartButton.classList.toggle("online-room-create", Boolean(active));
           showScreen("setup");
         },
-        onOnlineReady: (coordinator) => { onlineCoordinator = coordinator; },
+        onOnlineReady: (coordinator) => {
+          onlineCoordinator = coordinator;
+          syncAdminResetControls();
+        },
+        onAdminModeChanged: () => syncAdminResetControls(),
         onOnlineError: () => showCommentary("LOCAL MODE", "Firebase設定を確認してください。", 7000),
         onRoomCreated: () => window.setTimeout(() => startGame(), 0),
         onRoomLeft: () => {
@@ -12108,6 +12120,27 @@
     function setOnlineSession(session) {
       onlineSession = { ...onlineSession, ...(session || {}) };
       document.body.classList.toggle("online-active", Boolean(onlineSession.roomId));
+      syncAdminResetControls();
+    }
+
+    function canAdminResetStats() {
+      return Boolean(onlineCoordinator?.isAdminMode?.());
+    }
+
+    function syncAdminResetControls() {
+      const allowed = canAdminResetStats();
+      [els.rankingResetButton, els.rankingResetConfirm, els.statsResetButton].forEach((button) => {
+        if (!button) return;
+        button.disabled = !allowed;
+        button.setAttribute("aria-disabled", String(!allowed));
+        button.title = allowed ? "" : "ADMIN ONLY";
+      });
+    }
+
+    function requireAdminStatsReset() {
+      if (canAdminResetStats()) return true;
+      showCommentary("ADMIN ONLY", "ランキングと戦績のリセットは管理者のみ実行できます。", 7000);
+      return false;
     }
 
     function shouldUseOnlineAction(options = {}) {

@@ -66,6 +66,7 @@ authEmulatorPort: 9099
 - 「部屋を作る」を押すと従来の準備画面へ移動します。固定プレイヤー、最大8人の名前、TEAM SHUFFLE、5x5/7x7、DECK MODEを設定し、`ROOM CREATE`を押します。ルーム名の設定はありません。
 - RED/BLUEのメンバーから部屋主自身のプレイヤーを選ぶと、その席を確保したルームマスターとして部屋が作成され、そのままゲームが開始します。再入室や追加の`GAME START`操作は不要です。
 - ルームマスターがブラウザを閉じても部屋と試合結果は残ります。別の参加者が入室すると、必要に応じてマスターを引き継いで連戦できます。
+- `RANK RESET`と`RESET STATS`は通常時は無効です。ロビーの`ADMIN`で管理者パスワードを入力し、`ADMIN ON`になった管理者だけが実行できます。管理者モードは30分で失効します。
 - 「LOCAL MODE」を選ぶと、Firebaseへ接続せず従来どおりその端末だけでプレイできます。「ONLINE ROOMS」でロビーへ戻れます。
 - 幽霊部屋を削除する場合は、ロビーの「ADMIN」へ管理者パスワードを入力します。30分間、通常は非表示の古い部屋も`GHOST`として表示され、DELETEできます。
 - 管理者削除を使うには、最新版の`firebase-database.rules.json`を`firebase deploy --only database`で反映してください。Cloudflare PagesへのGitデプロイだけではRealtime Database Rulesは更新されません。
