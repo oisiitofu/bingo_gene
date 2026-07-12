@@ -501,6 +501,37 @@ class OnlineCoordinator {
           </div>
         </section>
       </div>
+      <div class="online-admin-page" id="onlineAdminPage" aria-hidden="true">
+        <section class="online-admin-shell" aria-label="管理ページ">
+          <header class="online-lobby-head">
+            <div>
+              <div class="online-lobby-title">ADMIN CONTROL</div>
+              <div class="online-lobby-sub">共通データの管理</div>
+            </div>
+            <div class="online-lobby-actions">
+              <span class="online-mode-badge online">ADMIN ON</span>
+              <button type="button" class="online-simple-button" id="onlineAdminBack">ROOMS</button>
+            </div>
+          </header>
+          <div class="online-admin-page-body">
+            <div class="online-admin-operation">
+              <div>
+                <strong>OPEN RANKING</strong>
+                <span>全ルーム共通のマス開封ランキングを削除します。</span>
+              </div>
+              <button type="button" class="online-simple-button danger" id="onlineAdminResetRanking">RANK RESET</button>
+            </div>
+            <div class="online-admin-operation">
+              <div>
+                <strong>PLAYER STATS</strong>
+                <span>プレイ回数、勝敗、MVP、スキルなどの共通戦績を削除します。</span>
+              </div>
+              <button type="button" class="online-simple-button danger" id="onlineAdminResetStats">STATS RESET</button>
+            </div>
+            <div class="online-admin-result" id="onlineAdminResult" role="status">管理操作を選択してください。</div>
+          </div>
+        </section>
+      </div>
       <dialog class="online-seat-dialog online-admin-dialog" id="onlineAdminDialog">
         <header class="online-seat-head">
           <div>
@@ -554,6 +585,11 @@ class OnlineCoordinator {
       adminMode: document.getElementById("onlineAdminMode"),
       lobbyClose: document.getElementById("onlineLobbyClose"),
       errorBanner: document.getElementById("onlineErrorBanner"),
+      adminPage: document.getElementById("onlineAdminPage"),
+      adminBack: document.getElementById("onlineAdminBack"),
+      adminResetRanking: document.getElementById("onlineAdminResetRanking"),
+      adminResetStats: document.getElementById("onlineAdminResetStats"),
+      adminResult: document.getElementById("onlineAdminResult"),
       adminDialog: document.getElementById("onlineAdminDialog"),
       adminForm: document.getElementById("onlineAdminForm"),
       adminClose: document.getElementById("onlineAdminClose"),
@@ -587,6 +623,18 @@ class OnlineCoordinator {
     this.ui.adminForm.addEventListener("submit", (event) => {
       event.preventDefault();
       this.enableAdminMode(this.ui.adminPassword.value);
+    });
+    this.ui.adminBack.addEventListener("click", () => {
+      this.hideAdminPage();
+      this.showLobby();
+    });
+    this.ui.adminResetRanking.addEventListener("click", async () => {
+      if (!window.confirm("全ルーム共通の開封ランキングを削除しますか？")) return;
+      await this.resetGlobalStats("ranking");
+    });
+    this.ui.adminResetStats.addEventListener("click", async () => {
+      if (!window.confirm("全ルーム共通のプレイヤー戦績を削除しますか？")) return;
+      await this.resetGlobalStats("playerStats");
     });
     this.ui.lobbyClose.addEventListener("click", () => this.hideLobby());
     this.ui.seatClose.addEventListener("click", () => this.ui.seatDialog.close());
@@ -654,6 +702,7 @@ class OnlineCoordinator {
   showLobby() {
     if (!this.enabled) return;
     this.clearError();
+    this.hideAdminPage();
     this.ui.lobby.classList.add("show");
     this.ui.lobby.setAttribute("aria-hidden", "false");
   }
@@ -661,6 +710,19 @@ class OnlineCoordinator {
   hideLobby() {
     this.ui.lobby.classList.remove("show");
     this.ui.lobby.setAttribute("aria-hidden", "true");
+  }
+
+  showAdminPage() {
+    if (!this.isAdminMode()) return;
+    this.hideLobby();
+    this.ui.adminResult.textContent = "管理操作を選択してください。";
+    this.ui.adminPage.classList.add("show");
+    this.ui.adminPage.setAttribute("aria-hidden", "false");
+  }
+
+  hideAdminPage() {
+    this.ui?.adminPage?.classList.remove("show");
+    this.ui?.adminPage?.setAttribute("aria-hidden", "true");
   }
 
   showError(title, error) {
@@ -931,6 +993,8 @@ class OnlineCoordinator {
         this.adminExpiresAt = 0;
         this.ui.adminMode.textContent = "ADMIN";
         this.bridge.onAdminModeChanged?.(false);
+        this.hideAdminPage();
+        this.showLobby();
         this.renderRooms();
       }, Math.max(0, expiresAt - this.backend.serverNow()));
       this.ui.adminMode.textContent = "ADMIN ON";
@@ -938,6 +1002,7 @@ class OnlineCoordinator {
       this.ui.adminDialog.close();
       this.clearError();
       this.renderRooms();
+      this.showAdminPage();
     } catch (error) {
       this.showError("ADMIN ERROR", error);
     }
@@ -1641,7 +1706,7 @@ class OnlineCoordinator {
   }
 
   async resetGlobalStats(kind) {
-    if (!this.isOnline()) return false;
+    if (!this.enabled) return false;
     if (!this.isAdminMode()) {
       this.bridge.showOnlineMessage?.("ADMIN ONLY", "ランキングと戦績のリセットは管理者のみ実行できます。");
       return false;
@@ -1655,11 +1720,13 @@ class OnlineCoordinator {
       this.adminExpiresAt = 0;
       this.ui.adminMode.textContent = "ADMIN";
       this.bridge.onAdminModeChanged?.(false);
+      this.hideAdminPage();
+      this.showLobby();
       this.bridge.showOnlineMessage?.("ADMIN EXPIRED", "管理者モードの有効期限が切れました。");
       return false;
     }
     const actionId = randomId("stats-reset");
-    await this.backend.transaction(this.path("globalStats"), (stats) => {
+    const result = await this.backend.transaction(this.path("globalStats"), (stats) => {
       stats ||= { ranking: {}, playerStats: { players: {}, rivalries: {}, recentMatches: [] }, processedActions: {} };
       if (kind === "ranking") stats.ranking = {};
       if (kind === "playerStats") stats.playerStats = { players: {}, rivalries: {}, recentMatches: [] };
@@ -1667,6 +1734,17 @@ class OnlineCoordinator {
       stats.processedActions[actionId] = this.backend.serverNow();
       return stats;
     });
+    if (!result.committed) return false;
+    this.globalStatsSnapshot = {
+      ranking: clone(result.value?.ranking || {}),
+      playerStats: clone(result.value?.playerStats || { players: {}, rivalries: {}, recentMatches: [] })
+    };
+    this.bridge.applyOnlineStatsSnapshot?.(this.globalStatsSnapshot);
+    if (this.ui.adminResult) {
+      this.ui.adminResult.textContent = kind === "ranking"
+        ? "開封ランキングをリセットしました。"
+        : "プレイヤー戦績をリセットしました。";
+    }
     this.bridge.showOnlineMessage?.("GLOBAL STATS RESET", kind === "ranking" ? "共通ランキングをリセットしました。" : "共通プレイヤー戦績をリセットしました。");
     return true;
   }

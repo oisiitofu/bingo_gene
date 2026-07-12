@@ -712,11 +712,7 @@
     #deckModeButton,
     #setupStatsButton,
     #playStatsButton,
-    #rankingResetButton,
-    #rankingResetConfirm,
-    #rankingResetCancel,
     #statsCloseButton,
-    #statsResetButton,
     #randomDeckButton,
     #clearDeckButton,
     #copyDeckButton,
@@ -745,20 +741,10 @@
       padding-inline: 16px;
     }
 
-    #statsCloseButton,
-    #statsResetButton {
+    #statsCloseButton {
       min-width: 136px;
     }
 
-    #rankingResetConfirm,
-    #rankingResetCancel {
-      min-width: 118px;
-      min-height: 40px;
-    }
-
-    #rankingResetButton,
-    #rankingResetConfirm,
-    #statsResetButton,
     #clearDeckButton,
     #bothDefaultDeckButton {
       --utility-button-bg: url("images/ui/button-utility-danger.svg");
@@ -772,11 +758,7 @@
     #deckModeButton::before,
     #setupStatsButton::before,
     #playStatsButton::before,
-    #rankingResetButton::before,
-    #rankingResetConfirm::before,
-    #rankingResetCancel::before,
     #statsCloseButton::before,
-    #statsResetButton::before,
     #randomDeckButton::before,
     #clearDeckButton::before,
     #copyDeckButton::before,
@@ -792,11 +774,7 @@
     #deckModeButton::after,
     #setupStatsButton::after,
     #playStatsButton::after,
-    #rankingResetButton::after,
-    #rankingResetConfirm::after,
-    #rankingResetCancel::after,
     #statsCloseButton::after,
-    #statsResetButton::after,
     #randomDeckButton::after,
     #clearDeckButton::after,
     #copyDeckButton::after,
@@ -2894,8 +2872,7 @@
     .ranking-band {
       position: relative;
       display: grid;
-      grid-template-columns: auto minmax(0, 1fr);
-      gap: 10px;
+      grid-template-columns: minmax(0, 1fr);
       align-items: center;
       min-height: 58px;
       padding: 7px;
@@ -6237,7 +6214,6 @@
         </section>
 
         <section class="ranking-band">
-          <button type="button" class="btn frame" id="rankingResetButton" disabled aria-disabled="true" title="ADMIN ONLY">RANK RESET</button>
           <div class="ticker-viewport">
             <div class="ticker-track" id="openRankingList"></div>
           </div>
@@ -6349,17 +6325,6 @@
     </div>
   </section>
 
-  <section class="modal" id="rankingResetModal" aria-hidden="true">
-    <div class="modal-card">
-      <h2>ランキングをリセット</h2>
-      <p>累計の開封ランキングを削除します。この操作は取り消せません。</p>
-      <div class="inline-actions">
-        <button type="button" class="btn primary" id="rankingResetConfirm" disabled aria-disabled="true" title="ADMIN ONLY">RESET</button>
-        <button type="button" class="btn frame" id="rankingResetCancel">CANCEL</button>
-      </div>
-    </div>
-  </section>
-
   <section class="modal" id="statsModal" aria-hidden="true">
     <div class="modal-card stats-modal-card">
       <div class="stats-head">
@@ -6368,7 +6333,6 @@
           <p>プレイヤー別の戦績、開けたキャラ、スキル発動回数を記録します。</p>
         </div>
         <div class="inline-actions">
-          <button type="button" class="btn frame" id="statsResetButton" disabled aria-disabled="true" title="ADMIN ONLY">RESET STATS</button>
           <button type="button" class="btn primary" id="statsCloseButton">CLOSE</button>
         </div>
       </div>
@@ -6885,6 +6849,7 @@
       activeSkillBgmKey: "",
       feverTeam: null,
       effectQueue: Promise.resolve(),
+      effectGeneration: 0,
       commentaryTimer: null,
       karaokeTimer: null,
       karaokeActive: false,
@@ -7014,13 +6979,13 @@
         "playShuffleButton", "roomIdInput", "hypeCenterButton", "hypeGaugeRed", "hypeGaugeBlue", "hypeFillRed", "hypeFillBlue", "redBoard", "blueBoard", "redTeamTitle",
         "blueTeamTitle", "redBoardMembers", "blueBoardMembers", "redOpenerRow", "blueOpenerRow", "redScore", "blueScore",
         "redGrid", "blueGrid", "redStatus", "blueStatus", "commentary", "commentaryLabel", "commentaryText", "commentarySub", "commentaryMascot",
-        "openRankingList", "rankingResetButton", "voiceLogLaneLeft", "voiceLogLaneRight",
+        "openRankingList", "voiceLogLaneLeft", "voiceLogLaneRight",
         "startBlackoutOverlay", "finishFlashOverlay", "introOverlay", "versusRedName", "versusRedMembers", "versusRedStats", "versusBlueName",
         "versusBlueMembers", "versusBlueStats", "readyOverlay", "firstBingoOverlay", "reachOverlay", "reachText",
         "skillOverlay", "skillTitleArt", "skillTeamLine", "skillMemberLine",
         "victoryOverlay", "victoryTeam", "victoryPraise", "victorySpecialBadge", "mvpImage", "mvpName", "mvpTitle", "winnerTitles", "victoryResultPanel",
-        "closeVictoryButton", "rankingResetModal", "rankingResetConfirm", "rankingResetCancel",
-        "statsModal", "statsSummary", "statsPlayerList", "statsHighlightList", "statsRivalryList", "statsResetButton", "statsCloseButton",
+        "closeVictoryButton",
+        "statsModal", "statsSummary", "statsPlayerList", "statsHighlightList", "statsRivalryList", "statsCloseButton",
         "feverAura", "fxLayer", "openedByPopover", "victoryParticles", "setupThemePlayer", "copyrightToggle"
       ].forEach((id) => { els[id] = document.getElementById(id); });
       els.players = Array.from(document.querySelectorAll("#playerInputs input"));
@@ -7077,14 +7042,7 @@
       document.querySelectorAll("[data-load-deck]").forEach((button) => {
         button.addEventListener("click", () => loadDeckFromInput(button.dataset.loadDeck));
       });
-      els.rankingResetButton.addEventListener("click", () => {
-        if (!requireAdminStatsReset()) return;
-        showModal(els.rankingResetModal);
-      });
-      els.rankingResetCancel.addEventListener("click", () => hideModal(els.rankingResetModal));
-      els.rankingResetConfirm.addEventListener("click", resetOpenRankingStats);
       els.statsCloseButton.addEventListener("click", () => hideModal(els.statsModal));
-      els.statsResetButton.addEventListener("click", resetPlayerStats);
       document.querySelectorAll("[data-opener-row]").forEach((row) => {
         row.addEventListener("click", (event) => {
           const button = event.target.closest("[data-opener-index]");
@@ -7457,8 +7415,7 @@
     }
 
     function clearMatchState() {
-      stopSkillKaraoke();
-      stopKentoLiveChat();
+      resetMatchPresentation();
       state.winner = null;
       state.lastOpenTeam = null;
       state.streak = 0;
@@ -7479,16 +7436,6 @@
       clearFeverAura();
       state.usedVoiceLines = [];
       state.usedTofuVoiceLines = [];
-      clearVoiceLogs();
-      hideOverlay(els.victoryOverlay);
-      hideOverlay(els.reachOverlay);
-      hideOverlay(els.skillOverlay);
-      hideOverlay(els.firstBingoOverlay);
-      hideOverlay(els.readyOverlay);
-      hideOverlay(els.introOverlay);
-      hideOverlay(els.startBlackoutOverlay);
-      hideOverlay(els.finishFlashOverlay);
-      cleanupFx();
       ["red", "blue"].forEach((team) => {
         Object.assign(state[team], {
           card: [],
@@ -7509,6 +7456,37 @@
           activeMemberIndex: 0
         });
       });
+    }
+
+    function resetMatchPresentation() {
+      state.effectGeneration += 1;
+      state.effectQueue = Promise.resolve();
+      window.clearTimeout(state.commentaryTimer);
+      state.commentaryTimer = null;
+      stopSkillKaraoke(false);
+      stopKentoLiveChat();
+      clearVoiceLogs();
+      [
+        els.victoryOverlay,
+        els.reachOverlay,
+        els.skillOverlay,
+        els.firstBingoOverlay,
+        els.readyOverlay,
+        els.introOverlay,
+        els.startBlackoutOverlay,
+        els.finishFlashOverlay
+      ].forEach((overlay) => {
+        if (overlay) hideOverlay(overlay);
+      });
+      hideOpenedByPopover();
+      cleanupFx();
+      if (els.commentary) {
+        els.commentary.classList.remove("karaoke", "talking");
+        if (els.commentaryLabel) els.commentaryLabel.textContent = "LIVE";
+        els.commentaryText.textContent = "開幕準備中。";
+        els.commentarySub.textContent = "新しい試合を開始します。";
+        updateCommentaryMascotFace();
+      }
     }
 
     function assignTeamTitles() {
@@ -9587,7 +9565,10 @@
     }
 
     function enqueueEffect(fn) {
-      state.effectQueue = state.effectQueue.then(fn).catch((error) => console.error(error));
+      const generation = state.effectGeneration;
+      state.effectQueue = state.effectQueue
+        .then(() => generation === state.effectGeneration ? fn() : undefined)
+        .catch((error) => console.error(error));
       return state.effectQueue;
     }
 
@@ -10897,19 +10878,6 @@
       )).join("");
     }
 
-    function resetPlayerStats() {
-      if (!requireAdminStatsReset()) return;
-      if (!window.confirm("プレイヤー戦績をリセットしますか？ランキングとは別の戦績だけ消えます。")) return;
-      if (onlineCoordinator?.isOnline?.()) {
-        onlineCoordinator.resetGlobalStats("playerStats").catch((error) => console.error(error));
-        return;
-      }
-      state.playerStats = { players: {}, rivalries: {}, recentMatches: [] };
-      localStorage.removeItem(STORAGE.playerStats);
-      renderStatsPage();
-      showCommentary("STATS RESET", "プレイヤー戦績をリセットしました。", 6000);
-    }
-
     function getTopRanking() {
       return Object.entries(state.ranking)
         .map(([id, count]) => ({ id: Number(id), count }))
@@ -10929,23 +10897,6 @@
         return `<span class="rank-item${topClass}"><span class="rank-label">#${rank}</span><img src="${imagePath(item.id)}" alt="" /><span class="rank-count">${item.count}</span></span>`;
       }).join("");
       els.openRankingList.innerHTML = html + html;
-    }
-
-    function resetOpenRankingStats() {
-      if (!requireAdminStatsReset()) {
-        hideModal(els.rankingResetModal);
-        return;
-      }
-      if (onlineCoordinator?.isOnline?.()) {
-        onlineCoordinator.resetGlobalStats("ranking").catch((error) => console.error(error));
-        hideModal(els.rankingResetModal);
-        return;
-      }
-      state.ranking = {};
-      localStorage.removeItem(STORAGE.ranking);
-      renderRankingTicker();
-      hideModal(els.rankingResetModal);
-      showCommentary("ランキングをリセット。", "累計データを削除した。", 6000);
     }
 
     function renderDeckGrid() {
@@ -11774,11 +11725,7 @@
           els.setupStartButton.classList.toggle("online-room-create", Boolean(active));
           showScreen("setup");
         },
-        onOnlineReady: (coordinator) => {
-          onlineCoordinator = coordinator;
-          syncAdminResetControls();
-        },
-        onAdminModeChanged: () => syncAdminResetControls(),
+        onOnlineReady: (coordinator) => { onlineCoordinator = coordinator; },
         onOnlineError: () => showCommentary("LOCAL MODE", "Firebase設定を確認してください。", 7000),
         onRoomCreated: () => window.setTimeout(() => startGame(), 0),
         onRoomLeft: () => {
@@ -11930,6 +11877,12 @@
 
     function applyOnlineGameSnapshot(snapshot, options = {}) {
       if (!snapshot || typeof snapshot !== "object") return;
+      const startsNewMatch = Boolean(
+        snapshot.gameStarted &&
+        !snapshot.readyShown &&
+        (state.winner || state.readyShown)
+      );
+      if (startsNewMatch) resetMatchPresentation();
       state.gridSize = Number(snapshot.gridSize) === 7 ? 7 : 5;
       state.gameStarted = Boolean(snapshot.gameStarted);
       state.inputLocked = Boolean(snapshot.inputLocked);
@@ -12006,9 +11959,9 @@
         const beforeLines = Number(before?.[team]?.bingoCount) || 0;
         const afterLines = Number(after?.[team]?.bingoCount) || 0;
         if (change.current && beforeLines < 1 && afterLines >= 1) event.effects.push("first-bingo");
-        const beforeReach = (before?.[team]?.reachTargets || []).length;
-        const afterReach = (after?.[team]?.reachTargets || []).length;
-        if (change.current && afterReach > 0 && (!beforeReach || !before?.[team]?.reachAnnounced)) event.effects.push("reach");
+        const reachWasAnnounced = Boolean(before?.[team]?.reachAnnounced);
+        const reachIsAnnounced = Boolean(after?.[team]?.reachAnnounced);
+        if (change.current && !reachWasAnnounced && reachIsAnnounced) event.effects.push("reach");
         if ((Number(before?.[team]?.hype) || 0) < 100 && (Number(after?.[team]?.hype) || 0) >= 100) event.effects.push("fever");
         const beforeSpecial = before?.[team]?.specialCells?.[String(index)] || "";
         const afterSpecial = after?.[team]?.specialCells?.[String(index)] || "";
@@ -12043,6 +11996,7 @@
       const effects = new Set(event.effects || []);
       const presentationTimeline = Array.isArray(event.presentation?.timeline) ? event.presentation.timeline : [];
       if (effects.has("intro")) {
+        resetMatchPresentation();
         enqueueEffect(async () => {
           await showIntroWithBlackout();
           await showReadyOnce();
@@ -12120,27 +12074,6 @@
     function setOnlineSession(session) {
       onlineSession = { ...onlineSession, ...(session || {}) };
       document.body.classList.toggle("online-active", Boolean(onlineSession.roomId));
-      syncAdminResetControls();
-    }
-
-    function canAdminResetStats() {
-      return Boolean(onlineCoordinator?.isAdminMode?.());
-    }
-
-    function syncAdminResetControls() {
-      const allowed = canAdminResetStats();
-      [els.rankingResetButton, els.rankingResetConfirm, els.statsResetButton].forEach((button) => {
-        if (!button) return;
-        button.disabled = !allowed;
-        button.setAttribute("aria-disabled", String(!allowed));
-        button.title = allowed ? "" : "ADMIN ONLY";
-      });
-    }
-
-    function requireAdminStatsReset() {
-      if (canAdminResetStats()) return true;
-      showCommentary("ADMIN ONLY", "ランキングと戦績のリセットは管理者のみ実行できます。", 7000);
-      return false;
     }
 
     function shouldUseOnlineAction(options = {}) {
