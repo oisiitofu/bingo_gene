@@ -12,7 +12,6 @@
     },
     databaseRoot: "teamBingoV1",
     roomInactiveMinutes: 10,
-    roomCleanupHours: 24,
     seatHoldSeconds: 60,
     masterHandoverSeconds: 30,
     actionLockSeconds: 45,

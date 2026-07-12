@@ -141,9 +141,27 @@
 
 .online-lobby-actions {
   display: flex;
+  align-items: center;
   flex-wrap: wrap;
   gap: 8px;
 }
+
+.online-lobby-volume {
+  display: grid;
+  grid-template-columns: auto minmax(82px, 120px) 24px;
+  align-items: center;
+  gap: 7px;
+  min-height: 38px;
+  padding: 0 10px;
+  border: 1px solid rgba(255, 255, 255, .2);
+  background: rgba(5, 8, 16, .82);
+  color: #d8e3f2;
+  font-size: 10px;
+  font-weight: 950;
+}
+
+.online-lobby-volume input { width: 100%; accent-color: #f2c74f; }
+.online-lobby-volume output { color: #f5dda0; text-align: right; }
 
 .online-simple-button {
   min-height: 38px;
@@ -163,6 +181,11 @@
   border-color: #fff;
   background: #242d3e;
   outline: none;
+}
+
+.online-simple-button:disabled {
+  cursor: not-allowed;
+  opacity: .42;
 }
 
 .online-simple-button.primary {
@@ -489,6 +512,8 @@ body.online-room-draft .setup-top-right .online-session-bar {
   .online-lobby-shell,
   .online-admin-shell { max-height: calc(100vh - 16px); }
   .online-lobby-head { align-items: flex-start; flex-direction: column; }
+  .online-lobby-actions { width: 100%; }
+  .online-lobby-volume { width: 100%; grid-template-columns: auto minmax(0, 1fr) 28px; }
   .online-admin-operation { grid-template-columns: 1fr; }
   .online-admin-operation .online-simple-button { width: 100%; }
   .online-room-list { grid-template-columns: 1fr; }

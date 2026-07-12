@@ -11059,7 +11059,11 @@
     }
 
     function onVolumeInput(event) {
-      state.audioVolume = clampVolume(Number(event.target.value) / 100);
+      setVolumePercent(event.target.value);
+    }
+
+    function setVolumePercent(value) {
+      state.audioVolume = clampVolume(Number(value) / 100);
       state.soundEnabled = state.audioVolume > 0;
       localStorage.setItem(STORAGE.volume, String(state.audioVolume));
       localStorage.setItem(STORAGE.sound, state.soundEnabled ? "on" : "off");
@@ -11718,6 +11722,8 @@
         beginOnlineEventCapture,
         endOnlineEventCapture,
         unlockAudio,
+        getOnlineVolume: () => Math.round(state.audioVolume * 100),
+        setOnlineVolume: (value) => setVolumePercent(value),
         showOnlineMessage: (main, sub) => showCommentary(main, sub, 7000),
         setOnlineSession,
         setRoomDraftMode: (active) => {

@@ -3,7 +3,6 @@ const DEFAULT_CONFIG = {
   firebase: {},
   databaseRoot: "teamBingoV1",
   roomInactiveMinutes: 10,
-  roomCleanupHours: 24,
   seatHoldSeconds: 60,
   masterHandoverSeconds: 30,
   actionLockSeconds: 45,
@@ -441,6 +440,8 @@ class OnlineCoordinator {
     this.adminMode = false;
     this.adminExpiresAt = 0;
     this.adminExpiryTimer = 0;
+    this.cleanupInFlight = false;
+    this.ghostCleanupTimer = 0;
     this.legacyStats = clone(bridge.getLegacyStats?.() || {});
     this.deviceId = localStorage.getItem("teamBingo.onlineDeviceId") || randomId("device");
     localStorage.setItem("teamBingo.onlineDeviceId", this.deviceId);
@@ -463,6 +464,7 @@ class OnlineCoordinator {
       await this.backend.init();
       this.setStatus("online", this.mock ? "MOCK ONLINE" : "ONLINE");
       this.subscribeLobby();
+      this.startGhostCleanupTimer();
       const restored = await this.restoreSession();
       if (!restored) this.showLobby();
       this.bridge.onOnlineReady?.(this);
@@ -489,6 +491,11 @@ class OnlineCoordinator {
             </div>
             <div class="online-lobby-actions">
               <span class="online-mode-badge connecting" id="onlineLobbyStatus">CONNECTING</span>
+              <label class="online-lobby-volume">
+                <span>VOL</span>
+                <input id="onlineLobbyVolume" type="range" min="0" max="100" value="70" aria-label="オンラインルーム音量" />
+                <output id="onlineLobbyVolumeValue">70</output>
+              </label>
               <button type="button" class="online-simple-button primary" id="onlineCreateRoom">部屋を作る</button>
               <button type="button" class="online-simple-button" id="onlineLocalMode">LOCAL MODE</button>
               <button type="button" class="online-simple-button" id="onlineAdminMode">ADMIN</button>
@@ -527,6 +534,13 @@ class OnlineCoordinator {
                 <span>プレイ回数、勝敗、MVP、スキルなどの共通戦績を削除します。</span>
               </div>
               <button type="button" class="online-simple-button danger" id="onlineAdminResetStats">STATS RESET</button>
+            </div>
+            <div class="online-admin-operation">
+              <div>
+                <strong>GHOST ROOMS</strong>
+                <span id="onlineAdminGhostSummary">削除対象を確認しています。</span>
+              </div>
+              <button type="button" class="online-simple-button danger" id="onlineAdminDeleteGhosts">GHOST CLEANUP</button>
             </div>
             <div class="online-admin-result" id="onlineAdminResult" role="status">管理操作を選択してください。</div>
           </div>
@@ -579,6 +593,8 @@ class OnlineCoordinator {
     this.ui = {
       lobby: document.getElementById("onlineLobby"),
       lobbyStatus: document.getElementById("onlineLobbyStatus"),
+      lobbyVolume: document.getElementById("onlineLobbyVolume"),
+      lobbyVolumeValue: document.getElementById("onlineLobbyVolumeValue"),
       roomList: document.getElementById("onlineRoomList"),
       createRoom: document.getElementById("onlineCreateRoom"),
       localMode: document.getElementById("onlineLocalMode"),
@@ -589,6 +605,8 @@ class OnlineCoordinator {
       adminBack: document.getElementById("onlineAdminBack"),
       adminResetRanking: document.getElementById("onlineAdminResetRanking"),
       adminResetStats: document.getElementById("onlineAdminResetStats"),
+      adminDeleteGhosts: document.getElementById("onlineAdminDeleteGhosts"),
+      adminGhostSummary: document.getElementById("onlineAdminGhostSummary"),
       adminResult: document.getElementById("onlineAdminResult"),
       adminDialog: document.getElementById("onlineAdminDialog"),
       adminForm: document.getElementById("onlineAdminForm"),
@@ -613,6 +631,11 @@ class OnlineCoordinator {
       leaveRoom: document.getElementById("onlineLeaveRoom")
     };
     this.ui.createRoom.addEventListener("click", () => this.beginRoomDraft());
+    this.ui.lobbyVolume.addEventListener("input", (event) => {
+      this.bridge.unlockAudio?.();
+      this.bridge.setOnlineVolume?.(event.target.value);
+      this.syncLobbyVolume();
+    });
     this.ui.localMode.addEventListener("click", () => this.enterLocalMode());
     this.ui.adminMode.addEventListener("click", () => {
       this.ui.adminPassword.value = "";
@@ -635,6 +658,12 @@ class OnlineCoordinator {
     this.ui.adminResetStats.addEventListener("click", async () => {
       if (!window.confirm("全ルーム共通のプレイヤー戦績を削除しますか？")) return;
       await this.resetGlobalStats("playerStats");
+    });
+    this.ui.adminDeleteGhosts.addEventListener("click", async () => {
+      const count = this.getGhostRooms().length;
+      if (!count) return;
+      if (!window.confirm(`GHOST部屋 ${count}件をまとめて削除しますか？`)) return;
+      await this.deleteGhostRooms({ requireAdmin: true });
     });
     this.ui.lobbyClose.addEventListener("click", () => this.hideLobby());
     this.ui.seatClose.addEventListener("click", () => this.ui.seatDialog.close());
@@ -702,6 +731,7 @@ class OnlineCoordinator {
   showLobby() {
     if (!this.enabled) return;
     this.clearError();
+    this.syncLobbyVolume();
     this.hideAdminPage();
     this.ui.lobby.classList.add("show");
     this.ui.lobby.setAttribute("aria-hidden", "false");
@@ -715,6 +745,7 @@ class OnlineCoordinator {
   showAdminPage() {
     if (!this.isAdminMode()) return;
     this.hideLobby();
+    this.syncAdminGhostControls();
     this.ui.adminResult.textContent = "管理操作を選択してください。";
     this.ui.adminPage.classList.add("show");
     this.ui.adminPage.setAttribute("aria-hidden", "false");
@@ -723,6 +754,30 @@ class OnlineCoordinator {
   hideAdminPage() {
     this.ui?.adminPage?.classList.remove("show");
     this.ui?.adminPage?.setAttribute("aria-hidden", "true");
+  }
+
+  syncLobbyVolume() {
+    if (!this.ui?.lobbyVolume) return;
+    const value = Math.max(0, Math.min(100, Number(this.bridge.getOnlineVolume?.()) || 0));
+    this.ui.lobbyVolume.value = String(value);
+    this.ui.lobbyVolumeValue.textContent = String(value);
+  }
+
+  getGhostRooms() {
+    const now = this.backend?.serverNow?.() || Date.now();
+    const inactiveMs = Math.max(1, Number(this.config.roomInactiveMinutes) || 10) * 60000;
+    return Object.entries(this.rooms || {}).filter(([, room]) => (
+      room?.active !== false && now - (Number(room?.updatedAt) || 0) > inactiveMs
+    ));
+  }
+
+  syncAdminGhostControls() {
+    if (!this.ui?.adminDeleteGhosts) return;
+    const count = this.getGhostRooms().length;
+    this.ui.adminDeleteGhosts.disabled = count === 0;
+    this.ui.adminGhostSummary.textContent = count
+      ? `現在 ${count}件のGHOST部屋があります。まとめて完全削除できます。`
+      : "現在、削除対象のGHOST部屋はありません。";
   }
 
   showError(title, error) {
@@ -763,6 +818,7 @@ class OnlineCoordinator {
     const rooms = Object.entries(this.rooms || {})
       .filter(([, room]) => room?.active !== false && (this.adminMode || now - (Number(room?.updatedAt) || 0) <= inactiveMs))
       .sort(([, a], [, b]) => (Number(b.updatedAt) || 0) - (Number(a.updatedAt) || 0));
+    this.syncAdminGhostControls();
     if (!rooms.length) {
       this.ui.roomList.innerHTML = `<div class="online-room-empty">現在開催中の部屋はありません</div>`;
       return;
@@ -1749,17 +1805,49 @@ class OnlineCoordinator {
     return true;
   }
 
-  async cleanupStaleRooms() {
-    if (!this.backend || this.busy) return;
-    const cutoff = this.backend.serverNow() - Math.max(1, Number(this.config.roomCleanupHours) || 24) * 3600000;
-    const stale = Object.entries(this.rooms || {}).filter(([, room]) => (Number(room?.updatedAt) || 0) < cutoff);
-    if (!stale.length) return;
+  async deleteGhostRooms(options = {}) {
+    if (!this.backend || this.cleanupInFlight) return 0;
+    if (options.requireAdmin && !this.isAdminMode()) {
+      this.bridge.showOnlineMessage?.("ADMIN ONLY", "GHOST部屋の一括削除は管理者のみ実行できます。");
+      return 0;
+    }
+    const ghosts = this.getGhostRooms();
+    if (!ghosts.length) {
+      this.syncAdminGhostControls();
+      return 0;
+    }
     const updates = {};
-    stale.slice(0, 8).forEach(([id]) => {
+    ghosts.forEach(([id]) => {
       updates[this.lobbyPath(id)] = null;
       updates[this.roomPath(id)] = null;
     });
-    await this.backend.update(updates).catch(() => {});
+    this.cleanupInFlight = true;
+    try {
+      await this.backend.update(updates);
+      ghosts.forEach(([id]) => { delete this.rooms[id]; });
+      this.renderRooms();
+      if (options.requireAdmin && this.ui.adminResult) {
+        this.ui.adminResult.textContent = `GHOST部屋 ${ghosts.length}件を削除しました。`;
+      }
+      return ghosts.length;
+    } catch (error) {
+      if (options.requireAdmin) this.showError("GHOST CLEANUP ERROR", error);
+      return 0;
+    } finally {
+      this.cleanupInFlight = false;
+    }
+  }
+
+  async cleanupStaleRooms() {
+    if (!this.backend || this.busy || this.cleanupInFlight) return;
+    await this.deleteGhostRooms({ requireAdmin: false });
+  }
+
+  startGhostCleanupTimer() {
+    window.clearInterval(this.ghostCleanupTimer);
+    this.ghostCleanupTimer = window.setInterval(() => {
+      this.cleanupStaleRooms().catch(() => {});
+    }, 60000);
   }
 
   setBusy(busy) {

@@ -68,7 +68,8 @@ authEmulatorPort: 9099
 - ルームマスターがブラウザを閉じても部屋と試合結果は残ります。別の参加者が入室すると、必要に応じてマスターを引き継いで連戦できます。
 - `RANK RESET`と`STATS RESET`は通常画面には表示されません。ロビーの`ADMIN`で管理者パスワードを入力すると専用の`ADMIN CONTROL`ページへ移動し、そこから共通ランキングと共通戦績をリセットできます。管理者モードは30分で失効します。
 - 「LOCAL MODE」を選ぶと、Firebaseへ接続せず従来どおりその端末だけでプレイできます。「ONLINE ROOMS」でロビーへ戻れます。
-- 幽霊部屋を削除する場合は、ロビーの「ADMIN」へ管理者パスワードを入力します。30分間、通常は非表示の古い部屋も`GHOST`として表示され、DELETEできます。
+- オンラインロビーには音量スライダーがあり、準備画面・試合画面・再生中のBGM/SEと同じマスター音量を調整できます。
+- 10分間更新がない部屋は`GHOST`として判定され、オンラインページを開いているクライアントが自動削除します。管理ページの`GHOST CLEANUP`では、検出中のGHOST部屋を一括削除できます。
 - 管理者削除を使うには、最新版の`firebase-database.rules.json`を`firebase deploy --only database`で反映してください。Cloudflare PagesへのGitデプロイだけではRealtime Database Rulesは更新されません。
 
 ## 制約
