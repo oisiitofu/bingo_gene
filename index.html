@@ -7140,7 +7140,13 @@
       scheduleOnlineSetupPublish(40);
     }
 
-    function playHypeVoice() {
+    function playHypeVoice(options = {}) {
+      if (shouldUseOnlineAction(options)) {
+        return runOnlineAction(
+          { type: "hype-voice", payload: {} },
+          () => playHypeVoice({ ...options, onlineBypass: true })
+        );
+      }
       unlockAudio();
       playAudio("hype");
     }
@@ -8252,6 +8258,9 @@
         deferFever: flowMoment?.type === "comeback",
         skipOpenedPenalty: flowMoment?.type === "comeback"
       });
+      if (flowMoment?.type === "comeback") {
+        raiseHypeToCap(team, HYPE_RULES.comebackCap);
+      }
       refreshBingo(team);
       const after = side.bingoCount;
       const becameFirstBingo = before < 1 && after >= 1;
@@ -8270,6 +8279,10 @@
       if (willShowReach) {
         const reachHype = addHypeBonus(team, HYPE_RULES.reachBonus);
         if (reachHype) eventHypeMoments.push(reachHype);
+        side.reachAnnounced = true;
+      }
+      if ([hypeMoment, ...eventHypeMoments].some((moment) => moment?.type === "fever")) {
+        state.feverTeam = team;
       }
       const flowEffects = [
         createFlowEffect(team, flowMoment),
@@ -8282,12 +8295,22 @@
       }
 
       if (becameWinner) {
-        enqueueEffect(() => finishGame(team, victoryKind, {
+        const victoryMvpHint = {
           name: openerName,
           imageId: cell.id,
           playerKey: openerKey,
           cellIndex: index
-        }));
+        };
+        state.winner = team;
+        state.inputLocked = true;
+        const preparedMvp = normalizeVictoryMvp(team, victoryMvpHint) || pickMvp(team);
+        onlineLastVictory = {
+          team,
+          victoryKind,
+          mvp: cloneOnlineValue(preparedMvp),
+          presentation: createVictoryPresentation(team, victoryKind, preparedMvp)
+        };
+        enqueueEffect(() => finishGame(team, victoryKind, victoryMvpHint));
         return;
       }
 
@@ -9016,9 +9039,8 @@
       return showTimedOverlay(els.firstBingoOverlay, 2100);
     }
 
-    function showReach(team) {
+    function showReach(team, options = {}) {
       state[team].reachAnnounced = true;
-      scheduleOnlineStateSync("reach-announced", 40);
       const side = state[team];
       const victoryReach = side.winnerReachCells.size > 0;
       const finalReach = side.bingoCount >= 1 || victoryReach;
@@ -9142,7 +9164,10 @@
       clearReachTargets();
       state[team].winningCells = new Set(completedLines(team).flat());
       const mvp = normalizeVictoryMvp(team, mvpHint) || pickMvp(team);
-      onlineLastVictory = { team, victoryKind, mvp: cloneOnlineValue(mvp) };
+      const victoryPresentation = onlineLastVictory?.team === team && onlineLastVictory?.presentation
+        ? cloneOnlineValue(onlineLastVictory.presentation)
+        : createVictoryPresentation(team, victoryKind, mvp);
+      onlineLastVictory = { team, victoryKind, mvp: cloneOnlineValue(mvp), presentation: victoryPresentation };
       addMatchHighlight("victory", `${getTeamLabel(team)} VICTORY`, `${mvp.name} がMVP`, team, mvp.imageId);
       recordVictory(team, victoryKind, mvp.name);
       renderAll();
@@ -9150,7 +9175,7 @@
       showCommentary(special.commentTitle || "VICTORY！", special.commentSub || `${state[team].teamTitle} が2ライン達成。`, 12000);
       await showFinishFlashBridge(() => {
         playAudio("victory");
-        renderVictory(team, victoryKind, mvp);
+        renderVictory(team, victoryKind, mvp, victoryPresentation);
         els.victoryOverlay.classList.remove("victory-comeback", "victory-straight");
         if (victoryKind === "comeback") els.victoryOverlay.classList.add("victory-comeback");
         if (victoryKind === "straight") els.victoryOverlay.classList.add("victory-straight");
@@ -9172,17 +9197,9 @@
       renderAll();
     }
 
-    function renderVictory(team, victoryKind = "normal", mvp = pickMvp(team)) {
+    function createVictoryPresentation(team, victoryKind, mvp) {
       const side = state[team];
       const special = getVictorySpecial(victoryKind);
-      els.victoryOverlay.classList.remove("red-win", "blue-win");
-      els.victoryOverlay.classList.add(`${team}-win`);
-      els.victorySpecialBadge.textContent = special.label || "";
-      els.victoryTeam.textContent = side.teamTitle;
-      els.victoryPraise.textContent = special.praise || pick(VICTORY_PRAISE_LINES);
-      els.mvpImage.src = imagePath(mvp.imageId);
-      els.mvpName.textContent = mvp.name;
-      els.mvpTitle.textContent = pick(TITLE_POOL);
       let skippedMvp = false;
       const titleMembers = side.members.filter((member) => {
         if (!skippedMvp && member === mvp.name) {
@@ -9191,8 +9208,27 @@
         }
         return true;
       });
-      els.winnerTitles.innerHTML = titleMembers.map((member) => (
-        `<div class="title-item">${escapeHtml(pick(TITLE_POOL))} / ${escapeHtml(member)}</div>`
+      return {
+        praise: special.praise || pick(VICTORY_PRAISE_LINES),
+        mvpTitle: pick(TITLE_POOL),
+        memberTitles: titleMembers.map((member) => ({ member, title: pick(TITLE_POOL) }))
+      };
+    }
+
+    function renderVictory(team, victoryKind = "normal", mvp = pickMvp(team), presentation = null) {
+      const side = state[team];
+      const special = getVictorySpecial(victoryKind);
+      const display = presentation || createVictoryPresentation(team, victoryKind, mvp);
+      els.victoryOverlay.classList.remove("red-win", "blue-win");
+      els.victoryOverlay.classList.add(`${team}-win`);
+      els.victorySpecialBadge.textContent = special.label || "";
+      els.victoryTeam.textContent = side.teamTitle;
+      els.victoryPraise.textContent = display.praise;
+      els.mvpImage.src = imagePath(mvp.imageId);
+      els.mvpName.textContent = mvp.name;
+      els.mvpTitle.textContent = display.mvpTitle;
+      els.winnerTitles.innerHTML = (display.memberTitles || []).map(({ member, title }) => (
+        `<div class="title-item">${escapeHtml(title)} / ${escapeHtml(member)}</div>`
       )).join("");
       renderVictoryResultPanel(team, victoryKind, mvp);
     }
@@ -9552,10 +9588,10 @@
       return state.effectQueue;
     }
 
-    function showCommentary(main, sub = "", duration = 10000) {
+    function showCommentary(main, sub = "", duration = 10000, options = {}) {
       if (state.karaokeActive) return;
       window.clearTimeout(state.commentaryTimer);
-      updateCommentaryMascotFace();
+      const faceIndex = updateCommentaryMascotFace(options.faceIndex);
       els.commentaryText.textContent = main;
       els.commentarySub.textContent = sub;
       if (els.commentaryLabel) els.commentaryLabel.textContent = "LIVE";
@@ -9563,6 +9599,9 @@
       els.commentary.classList.remove("talking");
       void els.commentary.offsetWidth;
       els.commentary.classList.add("talking");
+      if (onlineEventCapture) {
+        onlineEventCapture.timeline.push({ kind: "commentary", main, sub, duration, faceIndex });
+      }
       if (duration > 0) {
         state.commentaryTimer = window.setTimeout(() => {
           updateCommentaryMascotFace();
@@ -9643,14 +9682,20 @@
       }
     }
 
-    function updateCommentaryMascotFace() {
-      if (!els.commentaryMascot || !COMMENTARY_FACE_IMAGES.length) return;
-      let next = Math.floor(Math.random() * COMMENTARY_FACE_IMAGES.length);
+    function updateCommentaryMascotFace(forcedIndex = null) {
+      if (!els.commentaryMascot || !COMMENTARY_FACE_IMAGES.length) return -1;
+      const hasForcedIndex = Number.isInteger(Number(forcedIndex)) && Number(forcedIndex) >= 0;
+      let next = hasForcedIndex
+        ? Number(forcedIndex) % COMMENTARY_FACE_IMAGES.length
+        : Math.floor(Math.random() * COMMENTARY_FACE_IMAGES.length);
       if (COMMENTARY_FACE_IMAGES.length > 1 && next === state.commentaryFaceIndex) {
-        next = (next + 1 + Math.floor(Math.random() * (COMMENTARY_FACE_IMAGES.length - 1))) % COMMENTARY_FACE_IMAGES.length;
+        if (!hasForcedIndex) {
+          next = (next + 1 + Math.floor(Math.random() * (COMMENTARY_FACE_IMAGES.length - 1))) % COMMENTARY_FACE_IMAGES.length;
+        }
       }
       state.commentaryFaceIndex = next;
       els.commentaryMascot.src = COMMENTARY_FACE_IMAGES[next];
+      return next;
     }
 
     function isTofuCurseActive(team) {
@@ -9707,7 +9752,7 @@
       if (state.karaokeActive || state.kentoLiveChatTeam) return "";
       const lane = team === "red" ? els.voiceLogLaneLeft : els.voiceLogLaneRight;
       const tofuMode = Boolean(options.tofuMode || isTofuCurseActive(team));
-      const line = pickVoiceLine(team, { tofuMode });
+      const line = options.line || pickVoiceLine(team, { tofuMode });
       const fallbackIconSrc = imagePath(characterId);
       const iconSrc = tofuMode ? getTofuCommentIconPath(characterId) : fallbackIconSrc;
       const item = document.createElement("div");
@@ -9715,6 +9760,9 @@
       item.innerHTML = `${buildVoiceIconHtml(iconSrc, tofuMode ? fallbackIconSrc : "")}<span>${escapeHtml(line)}</span>`;
       lane.prepend(item);
       while (lane.children.length > 5) lane.lastElementChild.remove();
+      if (onlineEventCapture) {
+        onlineEventCapture.timeline.push({ kind: "voice-line", team, characterId, line, tofuMode });
+      }
       return line;
     }
 
@@ -9907,9 +9955,8 @@
       els.feverAura.style.removeProperty("--fever-color");
     }
 
-    function showFeverTime(team) {
+    function showFeverTime(team, options = {}) {
       state.feverTeam = team;
-      scheduleOnlineStateSync("fever", 40);
       addMatchHighlight("fever", `${getTeamLabel(team)} FEVER TIME`, "HYPE MAXで流れが爆発", team);
       setFeverAura(team);
       clearFlowBanners();
@@ -9945,7 +9992,6 @@
       els.fxLayer.appendChild(banner);
       showCommentary("逆転の一手！", `${getTeamLabel(team)}が相手のFEVERを止めた。`, 9000);
       playAudio("comebackOh");
-      raiseHypeToCap(team, HYPE_RULES.comebackCap);
       spawnArenaStripes(team, 12);
       screenShake();
       window.setTimeout(() => banner.remove(), 3000);
@@ -9953,12 +9999,12 @@
     }
 
     function maybeShowRareCutin(team, characterId, line, options = {}) {
-      if (Math.random() > .18 || !els.fxLayer || isMajorOverlayActive()) return false;
+      if ((!options.force && Math.random() > .18) || !els.fxLayer || isMajorOverlayActive()) return false;
       const tofuMode = Boolean(options.tofuMode || isTofuCurseActive(team));
       const cutin = document.createElement("div");
       cutin.className = `rare-cutin ${team}${tofuMode ? " tofu-comment" : ""}`;
       cutin.style.setProperty("--team-color", getTeamColor(team));
-      const cutinLine = line || pickVoiceLine(team, { tofuMode });
+      const cutinLine = options.line || line || pickVoiceLine(team, { tofuMode });
       const cutinLength = Array.from(cutinLine).length;
       const lineClass = cutinLength > 18
         ? " extra-long-line"
@@ -9972,6 +10018,9 @@
         </div>
       `;
       document.body.appendChild(cutin);
+      if (onlineEventCapture) {
+        onlineEventCapture.timeline.push({ kind: "rare-cutin", team, characterId, line: cutinLine, tofuMode });
+      }
       window.setTimeout(() => cutin.remove(), 1650);
       return true;
     }
@@ -11668,6 +11717,17 @@
     let onlineStateSyncTimer = 0;
     let onlineSession = { roomId: "", role: "", team: "", memberName: "", master: false };
     let onlineLastVictory = null;
+    let onlineEventCapture = null;
+
+    function beginOnlineEventCapture() {
+      onlineEventCapture = { timeline: [] };
+    }
+
+    function endOnlineEventCapture() {
+      const capture = onlineEventCapture;
+      onlineEventCapture = null;
+      return capture;
+    }
 
     function bootOnlineMode() {
       if ("serviceWorker" in navigator && /^https?:$/.test(location.protocol)) {
@@ -11696,6 +11756,9 @@
         createOnlineEvent,
         playOnlineEvent,
         showOnlineVictorySnapshot,
+        beginOnlineEventCapture,
+        endOnlineEventCapture,
+        unlockAudio,
         showOnlineMessage: (main, sub) => showCommentary(main, sub, 7000),
         setOnlineSession,
         setRoomDraftMode: (active) => {
@@ -11705,7 +11768,7 @@
         },
         onOnlineReady: (coordinator) => { onlineCoordinator = coordinator; },
         onOnlineError: () => showCommentary("LOCAL MODE", "Firebase設定を確認してください。", 7000),
-        onRoomCreated: () => scheduleOnlineSetupPublish(40),
+        onRoomCreated: () => window.setTimeout(() => startGame(), 0),
         onRoomLeft: () => {
           onlineSession = { roomId: "", role: "", team: "", memberName: "", master: false };
           document.body.classList.remove("online-active");
@@ -11915,7 +11978,12 @@
     function createOnlineEvent(action, before, after) {
       const type = action?.type || "state-sync";
       const payload = cloneOnlineValue(action?.payload || {});
-      const event = { type, payload, effects: [] };
+      const event = {
+        type,
+        payload,
+        effects: [],
+        presentation: cloneOnlineValue(action?.presentation || { timeline: [] })
+      };
       if (type === "start-game") event.effects.push("intro", "ready");
       if (type === "toggle-cell" || type === "toggle-cell-player") {
         const team = payload.team;
@@ -11936,8 +12004,15 @@
           event.effects.push("special-change");
           event.payload.skillId = afterSpecial;
         }
+        const beforeComeback = (before?.[team]?.comebackMoveCells || []).includes(index);
+        const afterComeback = (after?.[team]?.comebackMoveCells || []).includes(index);
+        if (!beforeComeback && afterComeback) {
+          event.effects.push("comeback");
+          event.payload.previousTeam = before?.feverTeam || before?.lastOpenTeam || "";
+        }
       }
       if (type === "activate-skill") event.effects.push("skill");
+      if (type === "hype-voice") event.effects.push("hype-voice");
       if (type.includes("shuffle")) event.effects.push("shuffle");
       if (!before?.winner && after?.winner) {
         event.effects.push("victory");
@@ -11954,6 +12029,7 @@
       if (!event) return;
       const payload = event.payload || {};
       const effects = new Set(event.effects || []);
+      const presentationTimeline = Array.isArray(event.presentation?.timeline) ? event.presentation.timeline : [];
       if (effects.has("intro")) {
         enqueueEffect(async () => {
           await showIntroWithBlackout();
@@ -11968,8 +12044,19 @@
         const openOverride = cloneOnlineValue(state.skillEffects?.openSoundOverrides?.[team] || null);
         playOpenSound(team, Math.max(0, (state[team]?.bingoCount || 0) - 1), payload.characterId);
         if (state.skillEffects?.openSoundOverrides) state.skillEffects.openSoundOverrides[team] = openOverride;
-        showVoiceLine(team, payload.characterId);
+        if (!presentationTimeline.some((item) => item?.kind === "voice-line")) {
+          showVoiceLine(team, payload.characterId);
+        }
       }
+      presentationTimeline.forEach((item) => {
+        if (item?.kind === "voice-line") {
+          showVoiceLine(item.team, item.characterId, { line: item.line, tofuMode: item.tofuMode });
+        } else if (item?.kind === "commentary") {
+          showCommentary(item.main, item.sub, Number(item.duration) || 10000, { faceIndex: Number(item.faceIndex) });
+        } else if (item?.kind === "rare-cutin") {
+          maybeShowRareCutin(item.team, item.characterId, item.line, { force: true, line: item.line, tofuMode: item.tofuMode });
+        }
+      });
       if (effects.has("special-change")) {
         const team = payload.team;
         const index = Number(payload.index);
@@ -11983,30 +12070,39 @@
         const skill = getTeamSkill(payload.team, payload.skillId);
         if (skill) enqueueEffect(() => showSkillActivation(payload.team, skill));
       }
+      if (effects.has("hype-voice")) playAudio("hype");
       if (effects.has("first-bingo") && !effects.has("reach") && !effects.has("victory")) enqueueEffect(() => showFirstBingo(payload.team));
-      if (effects.has("reach") && !effects.has("victory")) enqueueEffect(() => showReach(payload.team));
-      if (effects.has("fever") && !effects.has("victory")) enqueueEffect(() => showFeverTime(payload.team));
+      if (effects.has("reach") && !effects.has("victory")) enqueueEffect(() => showReach(payload.team, { syncState: false }));
+      if (effects.has("fever") && !effects.has("victory")) enqueueEffect(() => showFeverTime(payload.team, { syncState: false }));
+      if (effects.has("comeback") && !effects.has("victory")) enqueueEffect(() => showComebackMoment(payload.team, payload.previousTeam));
       if (effects.has("shuffle")) {
         if (payload.team) playTeamDealAnimation(payload.team);
         else playDealAnimation();
         playAudio("shuffle");
       }
-      if (effects.has("victory")) showOnlineVictorySnapshot(state, event.victory);
+      if (effects.has("victory")) enqueueEffect(() => showOnlineVictorySnapshot(state, event.victory));
     }
 
-    function showOnlineVictorySnapshot(snapshot, victory = null) {
+    async function showOnlineVictorySnapshot(snapshot, victory = null) {
       const team = victory?.team || snapshot?.winner || state.winner;
       if (!team) return;
       const kind = victory?.victoryKind || "normal";
       const mvp = victory?.mvp || pickMvp(team);
-      onlineLastVictory = { team, victoryKind: kind, mvp };
-      renderVictory(team, kind, mvp);
-      els.victoryOverlay.classList.remove("victory-comeback", "victory-straight");
-      if (kind === "comeback") els.victoryOverlay.classList.add("victory-comeback");
-      if (kind === "straight") els.victoryOverlay.classList.add("victory-straight");
-      showOverlay(els.victoryOverlay);
-      playAudio("victory");
-      launchVictoryFx(team, kind);
+      const presentation = victory?.presentation || createVictoryPresentation(team, kind, mvp);
+      onlineLastVictory = { team, victoryKind: kind, mvp, presentation };
+      const special = getVictorySpecial(kind);
+      showCommentary(special.commentTitle || "VICTORY！", special.commentSub || `${state[team].teamTitle} が2ライン達成。`, 12000);
+      await showFinishFlashBridge(() => {
+        playAudio("victory");
+        renderVictory(team, kind, mvp, presentation);
+        els.victoryOverlay.classList.remove("victory-comeback", "victory-straight");
+        if (kind === "comeback") els.victoryOverlay.classList.add("victory-comeback");
+        if (kind === "straight") els.victoryOverlay.classList.add("victory-straight");
+        showOverlay(els.victoryOverlay);
+        spawnArenaStripes(team, kind === "normal" ? 14 : 22);
+        launchVictoryFx(team, kind);
+        screenShake();
+      });
     }
 
     function setOnlineSession(session) {

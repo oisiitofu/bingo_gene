@@ -192,6 +192,7 @@
   justify-content: space-between;
   gap: 10px;
 }
+.online-room-card-head { justify-content: flex-end; }
 
 .online-room-card-title {
   overflow: hidden;
@@ -401,30 +402,6 @@
 .online-session-role { color: #f1d777; font-size: 9px; font-weight: 950; }
 .online-session-presence { color: #8ee3b1; font-size: 9px; font-weight: 900; }
 .online-session-bar .online-simple-button { min-height: 28px; padding: 0 9px; font-size: 9px; }
-.online-draft-title {
-  display: grid;
-  grid-template-columns: auto minmax(120px, 210px);
-  align-items: center;
-  gap: 7px;
-  color: #aeb9c9;
-  font-size: 9px;
-  font-weight: 950;
-}
-.online-draft-title[hidden] { display: none; }
-.online-draft-title input {
-  width: 100%;
-  min-width: 0;
-  height: 30px;
-  padding: 0 8px;
-  border: 1px solid rgba(255, 255, 255, .25);
-  border-radius: 3px;
-  background: #151d2a;
-  color: #fff;
-  font: inherit;
-  font-size: 11px;
-  outline: none;
-}
-.online-draft-title input:focus { border-color: #f2c74f; }
 body.online-room-draft .setup-top-right {
   flex-wrap: wrap;
   gap: 8px;
@@ -434,7 +411,6 @@ body.online-room-draft .setup-top-right .online-session-bar {
   flex-wrap: wrap;
   justify-content: center;
 }
-body.online-room-draft .online-draft-title { flex: 1 1 210px; }
 
 .online-readonly [data-online-master-only],
 .online-readonly #playerInputs input,
@@ -486,7 +462,6 @@ body.online-room-draft .online-draft-title { flex: 1 1 210px; }
   body.online-room-draft .setup-top-right { flex-direction: column; }
   body.online-room-draft .setup-top-right .room-wrap,
   body.online-room-draft .setup-top-right .online-session-bar { width: 100%; max-width: 100%; }
-  .online-draft-title { grid-template-columns: auto minmax(0, 1fr); width: 100%; }
   body.online-room-draft .online-session-name,
   body.online-room-draft .online-session-role { display: none; }
 }
