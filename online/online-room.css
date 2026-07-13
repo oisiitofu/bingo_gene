@@ -146,6 +146,39 @@
   gap: 8px;
 }
 
+.online-lobby-head-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.online-lobby-toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 18px;
+  padding: 12px 18px;
+  border-bottom: 1px solid rgba(255, 255, 255, .14);
+  background: rgba(5, 8, 16, .74);
+}
+
+.online-lobby-mode-actions {
+  display: grid;
+  flex: 0 1 420px;
+  grid-template-columns: repeat(2, minmax(150px, 1fr));
+  gap: 8px;
+}
+
+.online-lobby-mode-actions .online-simple-button { min-height: 42px; }
+
+.online-lobby-audio {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 10px;
+  min-width: 0;
+}
+
 .online-lobby-volume {
   display: grid;
   grid-template-columns: auto minmax(82px, 120px) 24px;
@@ -158,6 +191,13 @@
   color: #d8e3f2;
   font-size: 10px;
   font-weight: 950;
+}
+
+.online-lobby-audio .online-lobby-volume {
+  min-height: 30px;
+  padding: 0;
+  border: 0;
+  background: transparent;
 }
 
 .online-lobby-volume input {
@@ -510,6 +550,7 @@
 }
 
 .online-session-bar.show { display: flex; }
+.setup-top-center .online-session-bar,
 .setup-top-right .online-session-bar,
 .top-right .online-session-bar {
   position: static;
@@ -520,14 +561,19 @@
 .online-session-role { color: #f1d777; font-size: 9px; font-weight: 950; }
 .online-session-presence { color: #8ee3b1; font-size: 9px; font-weight: 900; }
 .online-session-bar .online-simple-button { min-height: 28px; padding: 0 9px; font-size: 9px; }
-body.online-room-draft .setup-top-right {
-  flex-wrap: wrap;
-  gap: 8px;
-}
-body.online-room-draft .setup-top-right .online-session-bar {
-  width: min(100%, 560px);
-  flex-wrap: wrap;
+body.online-room-draft .setup-top-center {
+  display: flex;
   justify-content: center;
+}
+
+body.online-room-draft .setup-top-center .online-session-bar {
+  width: auto;
+  flex-wrap: nowrap;
+  justify-content: center;
+}
+
+body.online-room-draft .setup-top-right {
+  flex-wrap: nowrap;
 }
 
 body.online-local-mode .setup-top-right {
@@ -552,9 +598,19 @@ body.online-local-mode .online-session-role,
 body.online-local-mode .online-session-presence { display: none; }
 
 @media (min-width: 1101px) {
+  body.online-room-draft .setup-top-bar {
+    grid-template-columns: minmax(260px, 340px) minmax(260px, 1fr) minmax(190px, 220px);
+  }
   body.online-local-mode .setup-top-bar {
     grid-template-columns: minmax(260px, 340px) minmax(0, 1fr) minmax(350px, 430px);
   }
+}
+
+@media (min-width: 721px) and (max-width: 1100px) {
+  body.online-room-draft .setup-top-bar {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+  body.online-room-draft .setup-top-right { grid-column: 1 / -1; }
 }
 
 .online-readonly [data-online-master-only],
@@ -601,7 +657,11 @@ body.online-local-mode .online-session-presence { display: none; }
   .online-admin-shell { max-height: calc(100vh - 16px); }
   .online-lobby-head { align-items: flex-start; flex-direction: column; }
   .online-lobby-actions { width: 100%; }
-  .online-lobby-volume { width: 100%; grid-template-columns: auto minmax(0, 1fr) 28px; }
+  .online-lobby-head-actions { width: 100%; justify-content: space-between; }
+  .online-lobby-toolbar { align-items: stretch; flex-direction: column; gap: 10px; padding: 12px; }
+  .online-lobby-mode-actions { flex-basis: auto; grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .online-lobby-audio { justify-content: space-between; }
+  .online-lobby-audio .online-lobby-volume { flex: 1 1 auto; width: auto; grid-template-columns: auto minmax(0, 1fr) 28px; }
   .online-admin-operation { grid-template-columns: 1fr; }
   .online-admin-operation .online-simple-button { width: 100%; }
   .online-room-list { grid-template-columns: 1fr; }
@@ -610,9 +670,9 @@ body.online-local-mode .online-session-presence { display: none; }
   .online-create-members { grid-template-columns: 1fr; }
   .online-create-footer { align-items: stretch; flex-direction: column; }
   .online-session-bar { top: 4px; }
-  body.online-room-draft .setup-top-right { flex-direction: column; }
-  body.online-room-draft .setup-top-right .room-wrap,
-  body.online-room-draft .setup-top-right .online-session-bar { width: 100%; max-width: 100%; }
+  body.online-room-draft .setup-top-center .online-session-bar,
+  body.online-room-draft .setup-top-right .room-wrap { width: 100%; max-width: 100%; }
+  body.online-room-draft .setup-top-center .online-session-bar { justify-content: center; }
   body.online-room-draft .online-session-name,
   body.online-room-draft .online-session-role { display: none; }
   body.online-local-mode .setup-top-right {

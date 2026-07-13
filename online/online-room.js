@@ -489,19 +489,25 @@ class OnlineCoordinator {
               <div class="online-lobby-title">ONLINE ROOMS</div>
               <div class="online-lobby-sub">開催中の部屋を選んで参加</div>
             </div>
-            <div class="online-lobby-actions">
+            <div class="online-lobby-head-actions">
               <span class="online-mode-badge connecting" id="onlineLobbyStatus">CONNECTING</span>
+              <button type="button" class="online-simple-button" id="onlineAdminMode">ADMIN</button>
+            </div>
+          </header>
+          <div class="online-lobby-toolbar">
+            <div class="online-lobby-mode-actions">
+              <button type="button" class="online-simple-button primary" id="onlineCreateRoom">部屋を作る</button>
+              <button type="button" class="online-simple-button" id="onlineLocalMode">LOCAL MODE</button>
+            </div>
+            <div class="online-lobby-audio">
+              <button type="button" class="online-simple-button" id="onlineLobbySound">SOUND ON</button>
               <label class="online-lobby-volume">
                 <span>VOL</span>
                 <input id="onlineLobbyVolume" type="range" min="0" max="100" value="70" aria-label="オンラインルーム音量" />
                 <output id="onlineLobbyVolumeValue">70</output>
               </label>
-              <button type="button" class="online-simple-button" id="onlineLobbySound">SOUND ON</button>
-              <button type="button" class="online-simple-button primary" id="onlineCreateRoom">部屋を作る</button>
-              <button type="button" class="online-simple-button" id="onlineLocalMode">LOCAL MODE</button>
-              <button type="button" class="online-simple-button" id="onlineAdminMode">ADMIN</button>
             </div>
-          </header>
+          </div>
           <div class="online-error-banner" id="onlineErrorBanner" role="alert" hidden></div>
           <div class="online-lobby-body">
             <div class="online-room-list" id="onlineRoomList"></div>
@@ -1389,8 +1395,9 @@ class OnlineCoordinator {
 
   placeSessionBar() {
     if ((!this.roomId && !this.roomDraft && !this.localMode) || !this.ui?.sessionBar) return;
+    const setupScreen = document.querySelector("#setupScreen.active");
     const target = document.querySelector("#playScreen.active .top-right")
-      || document.querySelector("#setupScreen.active .setup-top-right")
+      || setupScreen?.querySelector(this.roomDraft ? ".setup-top-center" : ".setup-top-right")
       || document.body;
     if (this.ui.sessionBar.parentElement !== target) target.appendChild(this.ui.sessionBar);
   }
