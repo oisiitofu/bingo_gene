@@ -156,6 +156,40 @@ function mergeLegacyStats(globalStats = {}, legacy = {}) {
   };
 }
 
+function isPlainObject(value) {
+  return Boolean(value && typeof value === "object" && !Array.isArray(value));
+}
+
+function assertSafeBackupKeys(value, path = "data", depth = 0) {
+  if (depth > 20) throw new Error("データの階層が深すぎます");
+  if (!value || typeof value !== "object") return;
+  if (Array.isArray(value)) {
+    value.forEach((item, index) => assertSafeBackupKeys(item, `${path}[${index}]`, depth + 1));
+    return;
+  }
+  Object.entries(value).forEach(([key, item]) => {
+    if (/[.#$\[\]/\u0000-\u001F\u007F]/.test(key) || ["__proto__", "prototype", "constructor"].includes(key)) {
+      throw new Error(`${path} に使用できないキーがあります`);
+    }
+    assertSafeBackupKeys(item, `${path}.${key}`, depth + 1);
+  });
+}
+
+export function normalizeCountBackup(payload) {
+  if (!isPlainObject(payload)) throw new Error("JSONの内容が正しくありません");
+  const source = isPlainObject(payload.data)
+    ? payload.data
+    : (isPlainObject(payload.globalStats) ? payload.globalStats : payload);
+  if (!isPlainObject(source.ranking) && !isPlainObject(source.playerStats)) {
+    throw new Error("ランキングまたはプレイヤー戦績が見つかりません");
+  }
+  assertSafeBackupKeys(source);
+  return {
+    ranking: mergeNumberMap({}, isPlainObject(source.ranking) ? source.ranking : {}),
+    playerStats: mergePlayerStats({}, isPlainObject(source.playerStats) ? source.playerStats : {})
+  };
+}
+
 function diffNumberMap(before = {}, after = {}) {
   const result = {};
   new Set([...Object.keys(before || {}), ...Object.keys(after || {})]).forEach((key) => {
@@ -543,6 +577,17 @@ class OnlineCoordinator {
             </div>
             <div class="online-admin-operation">
               <div>
+                <strong>COUNT DATA</strong>
+                <span>ランキングとプレイヤー戦績をJSONで保存・上書き復元します。</span>
+              </div>
+              <div class="online-admin-operation-actions">
+                <button type="button" class="online-simple-button" id="onlineAdminExportCounts">EXPORT</button>
+                <button type="button" class="online-simple-button primary" id="onlineAdminImportCounts">IMPORT</button>
+                <input id="onlineAdminImportFile" type="file" accept="application/json,.json" hidden aria-label="カウントデータJSON" />
+              </div>
+            </div>
+            <div class="online-admin-operation">
+              <div>
                 <strong>GHOST ROOMS</strong>
                 <span id="onlineAdminGhostSummary">削除対象を確認しています。</span>
               </div>
@@ -611,6 +656,9 @@ class OnlineCoordinator {
       adminBack: document.getElementById("onlineAdminBack"),
       adminResetRanking: document.getElementById("onlineAdminResetRanking"),
       adminResetStats: document.getElementById("onlineAdminResetStats"),
+      adminExportCounts: document.getElementById("onlineAdminExportCounts"),
+      adminImportCounts: document.getElementById("onlineAdminImportCounts"),
+      adminImportFile: document.getElementById("onlineAdminImportFile"),
       adminDeleteGhosts: document.getElementById("onlineAdminDeleteGhosts"),
       adminGhostSummary: document.getElementById("onlineAdminGhostSummary"),
       adminResult: document.getElementById("onlineAdminResult"),
@@ -669,6 +717,15 @@ class OnlineCoordinator {
     this.ui.adminResetStats.addEventListener("click", async () => {
       if (!window.confirm("全ルーム共通のプレイヤー戦績を削除しますか？")) return;
       await this.resetGlobalStats("playerStats");
+    });
+    this.ui.adminExportCounts.addEventListener("click", () => this.exportCountData());
+    this.ui.adminImportCounts.addEventListener("click", () => {
+      this.ui.adminImportFile.value = "";
+      this.ui.adminImportFile.click();
+    });
+    this.ui.adminImportFile.addEventListener("change", () => {
+      const file = this.ui.adminImportFile.files?.[0];
+      if (file) this.importCountData(file);
     });
     this.ui.adminDeleteGhosts.addEventListener("click", async () => {
       const count = this.getGhostRooms().length;
@@ -1781,6 +1838,85 @@ class OnlineCoordinator {
 
   isAdminMode() {
     return Boolean(this.adminMode && Number(this.adminExpiresAt) > this.backend.serverNow());
+  }
+
+  async exportCountData() {
+    if (!this.enabled || !this.isAdminMode()) return false;
+    try {
+      const current = await this.backend.get(this.path("globalStats")) || {};
+      const data = normalizeCountBackup({
+        ranking: current.ranking || {},
+        playerStats: current.playerStats || { players: {}, rivalries: {}, recentMatches: [] }
+      });
+      const payload = {
+        format: "team-bingo-count-data",
+        version: 1,
+        exportedAt: nowIso(),
+        data
+      };
+      const blob = new Blob([`${JSON.stringify(payload, null, 2)}\n`], { type: "application/json" });
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement("a");
+      link.href = url;
+      link.download = `team-bingo-counts-${nowIso().slice(0, 10)}.json`;
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      window.setTimeout(() => URL.revokeObjectURL(url), 1000);
+      this.ui.adminResult.textContent = "ランキングとプレイヤー戦績をエクスポートしました。";
+      return true;
+    } catch (error) {
+      this.ui.adminResult.textContent = `EXPORT ERROR: ${String(error?.message || error)}`;
+      return false;
+    }
+  }
+
+  async importCountData(file) {
+    if (!this.enabled || !this.isAdminMode() || !file) return false;
+    this.ui.adminExportCounts.disabled = true;
+    this.ui.adminImportCounts.disabled = true;
+    try {
+      if (Number(file.size) > 5 * 1024 * 1024) throw new Error("ファイルサイズは5MB以下にしてください");
+      const imported = normalizeCountBackup(JSON.parse(await file.text()));
+      const rankingCount = Object.keys(imported.ranking).length;
+      const playerCount = Object.keys(imported.playerStats.players || {}).length;
+      if (!window.confirm(`現在のカウントデータを上書きします。\nランキング ${rankingCount}件 / プレイヤー ${playerCount}人\n実行しますか？`)) {
+        this.ui.adminResult.textContent = "インポートをキャンセルしました。";
+        return false;
+      }
+      const adminSession = await this.backend.get(this.path(`adminSessions/${this.backend.uid}`));
+      if (
+        adminSession?.pinHash !== "6440e6a91202aeddb45b070a80533f65a689c37d0cf1842ab2bd962e33377880" ||
+        Number(adminSession?.expiresAt) <= this.backend.serverNow()
+      ) {
+        throw new Error("管理者モードの有効期限が切れました");
+      }
+      const actionId = randomId("stats-import");
+      const result = await this.backend.transaction(this.path("globalStats"), (stats) => {
+        const next = isPlainObject(stats) ? stats : {};
+        next.ranking = clone(imported.ranking);
+        next.playerStats = clone(imported.playerStats);
+        next.processedActions ||= {};
+        next.processedActions[actionId] = this.backend.serverNow();
+        next.processedActions = Object.fromEntries(
+          Object.entries(next.processedActions).sort(([, a], [, b]) => Number(b) - Number(a)).slice(0, 500)
+        );
+        return next;
+      });
+      if (!result.committed) throw new Error("データベースを更新できませんでした");
+      this.globalStatsSnapshot = clone(imported);
+      this.bridge.applyOnlineStatsSnapshot?.(this.globalStatsSnapshot);
+      this.ui.adminResult.textContent = `インポート完了: ランキング ${rankingCount}件 / プレイヤー ${playerCount}人`;
+      this.bridge.showOnlineMessage?.("COUNT DATA IMPORTED", "ランキングとプレイヤー戦績を復元しました。");
+      return true;
+    } catch (error) {
+      this.ui.adminResult.textContent = `IMPORT ERROR: ${String(error?.message || error)}`;
+      return false;
+    } finally {
+      this.ui.adminImportFile.value = "";
+      this.ui.adminExportCounts.disabled = false;
+      this.ui.adminImportCounts.disabled = false;
+    }
   }
 
   async resetGlobalStats(kind) {

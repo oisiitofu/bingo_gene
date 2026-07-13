@@ -104,6 +104,12 @@
 .online-admin-operation:first-child { border-top: 1px solid rgba(255, 255, 255, .14); }
 .online-admin-operation strong { display: block; color: #fff; font-size: 17px; }
 .online-admin-operation span { display: block; margin-top: 5px; color: #aeb9c9; font-size: 12px; line-height: 1.5; }
+.online-admin-operation-actions {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 8px;
+}
 .online-admin-result {
   min-height: 40px;
   margin-top: 16px;
@@ -561,6 +567,13 @@
 .online-session-role { color: #f1d777; font-size: 9px; font-weight: 950; }
 .online-session-presence { color: #8ee3b1; font-size: 9px; font-weight: 900; }
 .online-session-bar .online-simple-button { min-height: 28px; padding: 0 9px; font-size: 9px; }
+.online-session-bar .online-mode-badge {
+  flex: 0 0 auto;
+  justify-content: center;
+  min-width: 82px;
+  padding-inline: 12px;
+  white-space: nowrap;
+}
 body.online-room-draft .setup-top-center {
   display: flex;
   justify-content: flex-end;
@@ -667,6 +680,8 @@ body.online-active .online-session-presence { display: none; }
   .online-lobby-audio .online-lobby-volume { flex: 1 1 auto; width: auto; grid-template-columns: auto minmax(0, 1fr) 28px; }
   .online-admin-operation { grid-template-columns: 1fr; }
   .online-admin-operation .online-simple-button { width: 100%; }
+  .online-admin-operation-actions { width: 100%; }
+  .online-admin-operation-actions .online-simple-button { flex: 1 1 0; }
   .online-room-list { grid-template-columns: 1fr; }
   .online-room-teams { grid-template-columns: 1fr; }
   .online-seat-buttons { grid-template-columns: 1fr; }
