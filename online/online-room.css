@@ -563,7 +563,7 @@
 .online-session-bar .online-simple-button { min-height: 28px; padding: 0 9px; font-size: 9px; }
 body.online-room-draft .setup-top-center {
   display: flex;
-  justify-content: center;
+  justify-content: flex-end;
 }
 
 body.online-room-draft .setup-top-center .online-session-bar {
@@ -573,7 +573,7 @@ body.online-room-draft .setup-top-center .online-session-bar {
 }
 
 body.online-room-draft .setup-top-right {
-  flex-wrap: nowrap;
+  display: none;
 }
 
 body.online-local-mode .setup-top-right {
@@ -597,9 +597,13 @@ body.online-local-mode .online-session-name,
 body.online-local-mode .online-session-role,
 body.online-local-mode .online-session-presence { display: none; }
 
+body.online-active .online-session-name,
+body.online-active .online-session-role,
+body.online-active .online-session-presence { display: none; }
+
 @media (min-width: 1101px) {
   body.online-room-draft .setup-top-bar {
-    grid-template-columns: minmax(260px, 340px) minmax(260px, 1fr) minmax(190px, 220px);
+    grid-template-columns: minmax(260px, 340px) minmax(260px, 1fr);
   }
   body.online-local-mode .setup-top-bar {
     grid-template-columns: minmax(260px, 340px) minmax(0, 1fr) minmax(350px, 430px);
@@ -610,7 +614,6 @@ body.online-local-mode .online-session-presence { display: none; }
   body.online-room-draft .setup-top-bar {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
-  body.online-room-draft .setup-top-right { grid-column: 1 / -1; }
 }
 
 .online-readonly [data-online-master-only],
@@ -670,8 +673,7 @@ body.online-local-mode .online-session-presence { display: none; }
   .online-create-members { grid-template-columns: 1fr; }
   .online-create-footer { align-items: stretch; flex-direction: column; }
   .online-session-bar { top: 4px; }
-  body.online-room-draft .setup-top-center .online-session-bar,
-  body.online-room-draft .setup-top-right .room-wrap { width: 100%; max-width: 100%; }
+  body.online-room-draft .setup-top-center .online-session-bar { width: 100%; max-width: 100%; }
   body.online-room-draft .setup-top-center .online-session-bar { justify-content: center; }
   body.online-room-draft .online-session-name,
   body.online-room-draft .online-session-role { display: none; }

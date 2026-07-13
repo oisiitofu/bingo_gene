@@ -1380,10 +1380,9 @@ class OnlineCoordinator {
     this.ui.leaveRoom.hidden = false;
     const master = this.room?.meta?.masterUid === this.backend?.uid;
     if (master) this.role = "master";
-    this.ui.sessionName.textContent = master ? (this.memberName ? `${this.memberName} / MASTER` : "MASTER") : (this.memberName || "ONLINE");
-    this.ui.sessionRole.textContent = master ? "ROOM MASTER" : (this.role === "spectator" ? "SPECTATOR" : `${String(this.team).toUpperCase()} TEAM`);
-    const count = Object.values(this.room?.participants || {}).filter((participant) => participant?.online).length;
-    this.ui.sessionPresence.textContent = `${count} ONLINE`;
+    this.ui.sessionName.textContent = "";
+    this.ui.sessionRole.textContent = "";
+    this.ui.sessionPresence.textContent = "";
     this.ui.closeRoom.hidden = !master;
     document.body.classList.toggle("online-readonly", !master);
     document.body.classList.toggle("online-spectator", this.role === "spectator");
