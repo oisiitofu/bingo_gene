@@ -180,12 +180,13 @@ export function normalizeCountBackup(payload) {
   const source = isPlainObject(payload.data)
     ? payload.data
     : (isPlainObject(payload.globalStats) ? payload.globalStats : payload);
-  if (!isPlainObject(source.ranking) && !isPlainObject(source.playerStats)) {
+  const rankingSource = isPlainObject(source.cellRanking) ? source.cellRanking : source.ranking;
+  if (!isPlainObject(rankingSource) && !isPlainObject(source.playerStats)) {
     throw new Error("ランキングまたはプレイヤー戦績が見つかりません");
   }
   assertSafeBackupKeys(source);
   return {
-    ranking: mergeNumberMap({}, isPlainObject(source.ranking) ? source.ranking : {}),
+    ranking: mergeNumberMap({}, isPlainObject(rankingSource) ? rankingSource : {}),
     playerStats: mergePlayerStats({}, isPlainObject(source.playerStats) ? source.playerStats : {})
   };
 }
@@ -1844,15 +1845,30 @@ class OnlineCoordinator {
     if (!this.enabled || !this.isAdminMode()) return false;
     try {
       const current = await this.backend.get(this.path("globalStats")) || {};
+      const local = clone(this.bridge.getOnlineStatsSnapshot?.() || this.legacyStats || {});
+      const remoteRanking = isPlainObject(current.ranking) ? current.ranking : {};
+      const visibleRanking = isPlainObject(local.ranking) ? local.ranking : {};
+      const legacyRanking = isPlainObject(this.legacyStats?.ranking) ? this.legacyStats.ranking : {};
       const data = normalizeCountBackup({
-        ranking: current.ranking || {},
+        cellRanking: Object.keys(remoteRanking).length
+          ? remoteRanking
+          : (Object.keys(visibleRanking).length ? visibleRanking : legacyRanking),
         playerStats: current.playerStats || { players: {}, rivalries: {}, recentMatches: [] }
       });
+      const rankingEntries = Object.keys(data.ranking).length;
+      const rankingTotal = Object.values(data.ranking).reduce((sum, value) => sum + (Number(value) || 0), 0);
+      const playerCount = Object.keys(data.playerStats.players || {}).length;
       const payload = {
         format: "team-bingo-count-data",
-        version: 1,
+        version: 2,
         exportedAt: nowIso(),
-        data
+        summary: {
+          cellRankingEntries: rankingEntries,
+          totalCellOpens: rankingTotal,
+          players: playerCount
+        },
+        cellRanking: data.ranking,
+        playerStats: data.playerStats
       };
       const blob = new Blob([`${JSON.stringify(payload, null, 2)}\n`], { type: "application/json" });
       const url = URL.createObjectURL(blob);
@@ -1863,7 +1879,7 @@ class OnlineCoordinator {
       link.click();
       link.remove();
       window.setTimeout(() => URL.revokeObjectURL(url), 1000);
-      this.ui.adminResult.textContent = "ランキングとプレイヤー戦績をエクスポートしました。";
+      this.ui.adminResult.textContent = `エクスポート完了: マスランキング ${rankingEntries}種 / 合計 ${rankingTotal} OPEN / プレイヤー ${playerCount}人`;
       return true;
     } catch (error) {
       this.ui.adminResult.textContent = `EXPORT ERROR: ${String(error?.message || error)}`;
