@@ -496,10 +496,10 @@ class OnlineCoordinator {
                 <input id="onlineLobbyVolume" type="range" min="0" max="100" value="70" aria-label="オンラインルーム音量" />
                 <output id="onlineLobbyVolumeValue">70</output>
               </label>
+              <button type="button" class="online-simple-button" id="onlineLobbySound">SOUND ON</button>
               <button type="button" class="online-simple-button primary" id="onlineCreateRoom">部屋を作る</button>
               <button type="button" class="online-simple-button" id="onlineLocalMode">LOCAL MODE</button>
               <button type="button" class="online-simple-button" id="onlineAdminMode">ADMIN</button>
-              <button type="button" class="online-simple-button" id="onlineLobbyClose">戻る</button>
             </div>
           </header>
           <div class="online-error-banner" id="onlineErrorBanner" role="alert" hidden></div>
@@ -595,11 +595,11 @@ class OnlineCoordinator {
       lobbyStatus: document.getElementById("onlineLobbyStatus"),
       lobbyVolume: document.getElementById("onlineLobbyVolume"),
       lobbyVolumeValue: document.getElementById("onlineLobbyVolumeValue"),
+      lobbySound: document.getElementById("onlineLobbySound"),
       roomList: document.getElementById("onlineRoomList"),
       createRoom: document.getElementById("onlineCreateRoom"),
       localMode: document.getElementById("onlineLocalMode"),
       adminMode: document.getElementById("onlineAdminMode"),
-      lobbyClose: document.getElementById("onlineLobbyClose"),
       errorBanner: document.getElementById("onlineErrorBanner"),
       adminPage: document.getElementById("onlineAdminPage"),
       adminBack: document.getElementById("onlineAdminBack"),
@@ -636,6 +636,11 @@ class OnlineCoordinator {
       this.bridge.setOnlineVolume?.(event.target.value);
       this.syncLobbyVolume();
     });
+    this.ui.lobbySound.addEventListener("click", () => {
+      this.bridge.unlockAudio?.();
+      this.bridge.toggleOnlineSound?.();
+      this.syncLobbyVolume();
+    });
     this.ui.localMode.addEventListener("click", () => this.enterLocalMode());
     this.ui.adminMode.addEventListener("click", () => {
       this.ui.adminPassword.value = "";
@@ -665,7 +670,6 @@ class OnlineCoordinator {
       if (!window.confirm(`GHOST部屋 ${count}件をまとめて削除しますか？`)) return;
       await this.deleteGhostRooms({ requireAdmin: true });
     });
-    this.ui.lobbyClose.addEventListener("click", () => this.hideLobby());
     this.ui.seatClose.addEventListener("click", () => this.ui.seatDialog.close());
     this.ui.masterClose.addEventListener("click", () => {
       this.pendingDraftRoom = null;
@@ -688,7 +692,10 @@ class OnlineCoordinator {
         this.cancelRoomDraft();
         return;
       }
+      const leavingLocalMode = this.localMode;
       this.localMode = false;
+      document.body.classList.remove("online-local-mode");
+      if (leavingLocalMode) this.ui.sessionBar.classList.remove("show");
       this.setStatus("online", this.mock ? "MOCK ONLINE" : "ONLINE");
       this.showLobby();
     });
@@ -760,7 +767,13 @@ class OnlineCoordinator {
     if (!this.ui?.lobbyVolume) return;
     const value = Math.max(0, Math.min(100, Number(this.bridge.getOnlineVolume?.()) || 0));
     this.ui.lobbyVolume.value = String(value);
+    this.ui.lobbyVolume.style.setProperty("--volume-fill", `${value}%`);
+    this.ui.lobbyVolume.classList.toggle("is-zero", value === 0);
     this.ui.lobbyVolumeValue.textContent = String(value);
+    const enabled = Boolean(this.bridge.getOnlineSoundEnabled?.());
+    this.ui.lobbySound.textContent = enabled ? "SOUND ON" : "SOUND OFF";
+    this.ui.lobbySound.classList.toggle("sound-off", !enabled);
+    this.ui.lobbySound.setAttribute("aria-pressed", enabled ? "true" : "false");
   }
 
   getGhostRooms() {
@@ -854,11 +867,12 @@ class OnlineCoordinator {
     const setup = clone(this.bridge.getOnlineSetupSnapshot?.() || {});
     this.roomDraft = true;
     this.localMode = false;
+    document.body.classList.remove("online-local-mode");
     this.hideLobby();
     this.setStatus("online", this.mock ? "MOCK ONLINE" : "ONLINE");
     this.ui.sessionBar.classList.add("show");
-    this.ui.sessionName.textContent = "NEW ROOM";
-    this.ui.sessionRole.textContent = "SETUP";
+    this.ui.sessionName.textContent = "";
+    this.ui.sessionRole.textContent = "";
     this.ui.sessionPresence.textContent = "";
     this.ui.openLobby.textContent = "ROOMS";
     this.ui.closeRoom.hidden = true;
@@ -1010,12 +1024,13 @@ class OnlineCoordinator {
     this.roomDraft = false;
     document.body.classList.remove("online-room-draft");
     this.localMode = true;
+    document.body.classList.add("online-local-mode");
     this.hideLobby();
     this.ui.sessionBar.classList.add("show");
     this.ui.sessionStatus.classList.remove("online", "connecting", "error");
     this.ui.sessionStatus.textContent = "LOCAL";
-    this.ui.sessionName.textContent = "LOCAL MODE";
-    this.ui.sessionRole.textContent = "この端末だけでプレイ";
+    this.ui.sessionName.textContent = "";
+    this.ui.sessionRole.textContent = "";
     this.ui.sessionPresence.textContent = "";
     this.ui.openLobby.textContent = "ONLINE ROOMS";
     this.ui.closeRoom.hidden = true;
@@ -1352,6 +1367,7 @@ class OnlineCoordinator {
     }
     this.roomDraft = false;
     document.body.classList.remove("online-room-draft");
+    document.body.classList.remove("online-local-mode");
     this.ui.leaveRoom.textContent = "LEAVE";
     this.ui.sessionBar.classList.add("show");
     this.ui.openLobby.textContent = "ROOMS";

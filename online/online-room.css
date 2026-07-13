@@ -160,8 +160,69 @@
   font-weight: 950;
 }
 
-.online-lobby-volume input { width: 100%; accent-color: #f2c74f; }
+.online-lobby-volume input {
+  --volume-fill: 70%;
+  width: 100%;
+  height: 16px;
+  margin: 0;
+  padding: 0;
+  appearance: none;
+  background: transparent;
+  cursor: pointer;
+}
+
+.online-lobby-volume input::-webkit-slider-runnable-track {
+  height: 5px;
+  border-radius: 999px;
+  background: linear-gradient(90deg, #f2c74f 0 var(--volume-fill), #343c4c var(--volume-fill) 100%);
+}
+
+.online-lobby-volume input::-webkit-slider-thumb {
+  width: 14px;
+  height: 14px;
+  margin-top: -4.5px;
+  appearance: none;
+  border: 2px solid #fff;
+  border-radius: 50%;
+  background: #f2c74f;
+  box-shadow: 0 1px 5px rgba(0, 0, 0, .65);
+}
+
+.online-lobby-volume input::-moz-range-track {
+  height: 5px;
+  border-radius: 999px;
+  background: #343c4c;
+}
+
+.online-lobby-volume input::-moz-range-progress {
+  height: 5px;
+  border-radius: 999px;
+  background: #f2c74f;
+}
+
+.online-lobby-volume input::-moz-range-thumb {
+  width: 11px;
+  height: 11px;
+  border: 2px solid #fff;
+  border-radius: 50%;
+  background: #f2c74f;
+  box-shadow: 0 1px 5px rgba(0, 0, 0, .65);
+}
+
+.online-lobby-volume input.is-zero::-webkit-slider-thumb {
+  border-color: #8f9aaa;
+  background: #343c4c;
+  box-shadow: none;
+}
+
+.online-lobby-volume input.is-zero::-moz-range-thumb {
+  border-color: #8f9aaa;
+  background: #343c4c;
+  box-shadow: none;
+}
+
 .online-lobby-volume output { color: #f5dda0; text-align: right; }
+.online-simple-button.sound-off { color: #9ca7b7; }
 
 .online-simple-button {
   min-height: 38px;
@@ -469,6 +530,33 @@ body.online-room-draft .setup-top-right .online-session-bar {
   justify-content: center;
 }
 
+body.online-local-mode .setup-top-right {
+  flex-wrap: nowrap;
+  gap: 8px;
+}
+
+body.online-local-mode .setup-top-right .room-wrap {
+  flex: 0 0 auto;
+  grid-template-columns: max-content max-content;
+  white-space: nowrap;
+}
+
+body.online-local-mode .setup-top-right .online-session-bar {
+  flex: 0 0 auto;
+  width: auto;
+  max-width: none;
+}
+
+body.online-local-mode .online-session-name,
+body.online-local-mode .online-session-role,
+body.online-local-mode .online-session-presence { display: none; }
+
+@media (min-width: 1101px) {
+  body.online-local-mode .setup-top-bar {
+    grid-template-columns: minmax(260px, 340px) minmax(0, 1fr) minmax(350px, 430px);
+  }
+}
+
 .online-readonly [data-online-master-only],
 .online-readonly #playerInputs input,
 .online-readonly #fixedMemberList,
@@ -527,4 +615,14 @@ body.online-room-draft .setup-top-right .online-session-bar {
   body.online-room-draft .setup-top-right .online-session-bar { width: 100%; max-width: 100%; }
   body.online-room-draft .online-session-name,
   body.online-room-draft .online-session-role { display: none; }
+  body.online-local-mode .setup-top-right {
+    align-items: stretch;
+    flex-direction: column;
+  }
+  body.online-local-mode .setup-top-right .room-wrap,
+  body.online-local-mode .setup-top-right .online-session-bar {
+    width: 100%;
+    max-width: 100%;
+  }
+  body.online-local-mode .setup-top-right .online-session-bar { justify-content: space-between; }
 }
