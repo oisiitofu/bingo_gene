@@ -443,7 +443,7 @@ class FirebaseBackend {
   }
 }
 
-class OnlineCoordinator {
+export class OnlineCoordinator {
   constructor(bridge, config) {
     this.bridge = bridge;
     this.config = { ...DEFAULT_CONFIG, ...(config || {}), firebase: { ...(config?.firebase || {}) } };
