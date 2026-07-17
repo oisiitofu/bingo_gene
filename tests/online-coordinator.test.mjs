@@ -181,6 +181,19 @@ function createStore() {
   };
 }
 
+test("online busy state notifies the app bridge", () => {
+  const coordinator = Object.create(OnlineCoordinator.prototype);
+  const changes = [];
+  coordinator.bridge = { onOnlineBusyChanged: (busy) => changes.push(busy) };
+
+  coordinator.setBusy(true);
+  assert.equal(coordinator.isBusy(), true);
+  coordinator.setBusy(false);
+
+  assert.equal(coordinator.isBusy(), false);
+  assert.deepEqual(changes, [true, false]);
+});
+
 function prepareJoinCoordinator(store, uid, deviceId) {
   const coordinator = createCoordinator(store, uid, "", "");
   coordinator.deviceId = deviceId;

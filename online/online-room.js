@@ -2164,6 +2164,7 @@ export class OnlineCoordinator {
 
   isOnline() { return Boolean(this.enabled && this.backend && this.roomId); }
   isApplyingRemote() { return this.applyingRemote; }
+  isBusy() { return Boolean(this.busy); }
   isMaster() { return Boolean(this.roomId && this.room?.meta?.masterUid === this.backend?.uid); }
   canEditSetup() { return !this.isOnline() || this.isMaster(); }
   canEditTeam(team) { return !this.isOnline() || this.isMaster() || (this.role === "player" && this.team === team); }
@@ -2660,7 +2661,8 @@ export class OnlineCoordinator {
 
   setBusy(busy) {
     this.busy = Boolean(busy);
-    document.body.classList.toggle("online-sync-busy", this.busy);
+    globalThis.document?.body?.classList?.toggle?.("online-sync-busy", this.busy);
+    this.bridge.onOnlineBusyChanged?.(this.busy);
   }
 }
 

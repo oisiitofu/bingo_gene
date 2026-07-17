@@ -8013,7 +8013,7 @@
       if (canApplySkillToCell(state.pendingSkill, team, index)) classes.push("skill-targetable");
       if (pairEntries.length > 1) classes.push("pair-multi");
       if (side.winningCells.has(index)) classes.push("winning");
-      const disabled = state.inputLocked || cell.free;
+      const disabled = state.inputLocked || isOnlineInputBusy() || cell.free;
       const defaultCellImage = cell.free ? "" : imagePath(cell.id);
       const activeCellImage = useTofuCellSkin ? tofuCellSkinPath(cell.id) : defaultCellImage;
       const fallbackImageAttr = useTofuCellSkin ? ` data-fallback-src="${defaultCellImage}"` : "";
@@ -8076,7 +8076,7 @@
             const active = selected.has(key);
             const identityLocked = Boolean(onlineSession.roomId && !onlineSession.master && onlineSession.role === "player");
             const isOwnIdentity = playerStatsKey(onlineSession.memberName) === key && onlineSession.team === team;
-            const disabled = (!active && maxReached) || (identityLocked && !isOwnIdentity);
+            const disabled = isOnlineInputBusy() || (!active && maxReached) || (identityLocked && !isOwnIdentity);
             return `<button type="button" class="cell-player-choice${active ? " active" : ""}" data-testid="bingo-cell-player-${team}-${index}-${memberIndex}" data-cell-player-index="${memberIndex}" ${disabled ? "disabled" : ""} title="${escapeHtml(member)}">${escapeHtml(member)}</button>`;
           }).join("")}
         </div>
@@ -11747,6 +11747,9 @@
           showScreen("setup");
         },
         onOnlineReady: (coordinator) => { onlineCoordinator = coordinator; },
+        onOnlineBusyChanged: () => {
+          if (state.gameStarted) renderAll();
+        },
         onOnlineError: () => showCommentary("LOCAL MODE", "Firebase設定を確認してください。", 7000),
         onRoomCreated: () => window.setTimeout(() => startGame(), 0),
         onRoomLeft: () => {
@@ -12127,6 +12130,10 @@
         !onlineCoordinator.isApplyingRemote?.() &&
         !options.onlineBypass
       );
+    }
+
+    function isOnlineInputBusy() {
+      return Boolean(onlineCoordinator?.isOnline?.() && onlineCoordinator.isBusy?.());
     }
 
     function runOnlineAction(action, localMutator) {
