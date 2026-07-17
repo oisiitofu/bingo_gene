@@ -654,6 +654,7 @@ export class OnlineCoordinator {
     const uid = this.backend.uid;
     const participant = room.participants[uid];
     const isMaster = room.meta?.masterUid === uid;
+    if (!isMaster && participant.role === "spectator") return false;
     if (action.masterOnly && !isMaster) return false;
     const team = action?.payload?.team || "";
     if (team && !isMaster && (participant.role !== "player" || participant.team !== team)) return false;
@@ -1282,6 +1283,7 @@ export class OnlineCoordinator {
     this.ui.leaveRoom.textContent = "LEAVE";
     this.bridge.setRoomDraftMode?.(false);
     document.body.classList.remove("online-active", "online-readonly", "online-spectator", "online-team-red", "online-team-blue");
+    this.syncSpectatorControls();
     this.bridge.setOnlineSession?.({ roomId: "", role: "local", team: "", memberName: "LOCAL", master: true });
     window.setTimeout(() => {
       const target = document.querySelector("#setupScreen.active .setup-top-right") || document.body;
@@ -1677,6 +1679,7 @@ export class OnlineCoordinator {
   }
 
   updateSessionUi() {
+    this.syncSpectatorControls();
     if (!this.roomId) {
       if (!this.roomDraft && !this.localMode) this.ui.sessionBar.classList.remove("show");
       return;
@@ -1700,6 +1703,14 @@ export class OnlineCoordinator {
     document.body.classList.toggle("online-team-blue", !master && this.role === "player" && this.team === "blue");
     this.bridge.setOnlineSession?.({ roomId: this.roomId, role: this.role, team: this.team, memberName: this.memberName, master });
     window.setTimeout(() => this.placeSessionBar(), 0);
+  }
+
+  syncSpectatorControls() {
+    const hypeButton = document.getElementById("hypeCenterButton");
+    if (!hypeButton) return;
+    const spectator = Boolean(this.roomId && this.role === "spectator");
+    hypeButton.setAttribute("aria-disabled", spectator ? "true" : "false");
+    hypeButton.tabIndex = spectator ? -1 : 0;
   }
 
   placeSessionBar() {
@@ -2007,6 +2018,10 @@ export class OnlineCoordinator {
   async requestAction(action, localMutator) {
     if (!this.isOnline() || this.applyingRemote) return localMutator();
     if (this.busy) return false;
+    if (this.role === "spectator") {
+      this.bridge.showOnlineMessage?.("WATCH ONLY", "観戦者はゲーム操作を送信できません。");
+      return false;
+    }
     const team = action?.payload?.team || "";
     if (team && !this.canEditTeam(team)) {
       this.bridge.showOnlineMessage?.("READ ONLY", "自分のチームのカードだけ操作できます。");

@@ -652,6 +652,12 @@ body.online-active .online-session-presence { display: none; }
   cursor: default;
 }
 
+.online-spectator #hypeCenterButton {
+  pointer-events: none;
+  cursor: default;
+  opacity: .34;
+}
+
 .online-sync-busy::after {
   position: fixed;
   right: 12px;

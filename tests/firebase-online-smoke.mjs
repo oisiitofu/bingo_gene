@@ -192,6 +192,41 @@ try {
   assert.equal(staleCachedWrite.ok, false, "A removed participant unexpectedly restored a stale game snapshot");
   assert.equal(staleCachedWrite.status, 401, "A removed participant stale write should receive permission_denied");
 
+  const spectatorJoined = await databaseRequest("PUT", `rooms/${roomId}/participants/${outsider.localId}`, outsider.idToken, {
+    uid: outsider.localId,
+    role: "spectator",
+    team: "",
+    memberName: "",
+    online: true,
+    joinedAt: now,
+    lastSeenAt: Date.now()
+  });
+  assert.equal(spectatorJoined.ok, true, `Spectator could not join room: ${JSON.stringify(spectatorJoined)}`);
+  const spectatorDisconnected = await databaseRequest("PATCH", `rooms/${roomId}/participants/${outsider.localId}`, outsider.idToken, {
+    online: false,
+    disconnectedAt: Date.now()
+  });
+  assert.equal(spectatorDisconnected.ok, true, `Spectator presence could not disconnect cleanly: ${JSON.stringify(spectatorDisconnected)}`);
+  const spectatorReconnected = await databaseRequest("PATCH", `rooms/${roomId}/participants/${outsider.localId}`, outsider.idToken, {
+    online: true,
+    lastSeenAt: Date.now(),
+    disconnectedAt: null
+  });
+  assert.equal(spectatorReconnected.ok, true, `Spectator presence could not reconnect cleanly: ${JSON.stringify(spectatorReconnected)}`);
+  const spectatorAction = await databaseRequest("PATCH", `rooms/${roomId}`, outsider.idToken, {
+    "meta/revision": 1,
+    "meta/eventSeq": 1,
+    "events/1": {
+      type: "hype-voice",
+      actorUid: outsider.localId,
+      createdAt: Date.now()
+    }
+  });
+  assert.equal(spectatorAction.ok, false, "A spectator unexpectedly submitted a HYPE action");
+  assert.equal(spectatorAction.status, 401, "A spectator game action should receive permission_denied");
+  const spectatorLeft = await databaseRequest("DELETE", `rooms/${roomId}/participants/${outsider.localId}`, outsider.idToken);
+  assert.equal(spectatorLeft.ok, true, `Spectator could not leave room: ${JSON.stringify(spectatorLeft)}`);
+
   closeId = `${roomId}-CLOSE`;
   const closeRoom = structuredClone(room);
   closeRoom.meta.id = closeId;

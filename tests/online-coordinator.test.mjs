@@ -483,6 +483,39 @@ test("simultaneous teammates can open different cells without losing either upda
   assert.deepEqual(store.value.teamBingoV1.globalStats.ranking, { 53: 1, 69: 1 });
 });
 
+test("spectators cannot submit HYPE or any other game action", async () => {
+  const store = createStore();
+  const spectator = createCoordinator(store, "guest", "spectator", "");
+  store.value.teamBingoV1.rooms.ROOM.participants.guest.role = "spectator";
+  store.value.teamBingoV1.rooms.ROOM.participants.guest.team = "";
+  let localCalls = 0;
+
+  const changed = await spectator.requestAction(
+    { type: "hype-voice", payload: {} },
+    () => { localCalls += 1; }
+  );
+
+  assert.equal(changed, false);
+  assert.equal(localCalls, 0);
+  assert.equal(store.value.teamBingoV1.rooms.ROOM.meta.revision, 0);
+});
+
+test("players can still submit teamless HYPE actions", async () => {
+  const store = createStore();
+  const player = createCoordinator(store, "guest", "player", "blue");
+  let localCalls = 0;
+
+  const changed = await player.requestAction(
+    { type: "hype-voice", payload: {} },
+    () => { localCalls += 1; }
+  );
+
+  assert.equal(changed, true);
+  assert.equal(localCalls, 1);
+  assert.equal(store.value.teamBingoV1.rooms.ROOM.meta.revision, 1);
+  assert.equal(store.value.teamBingoV1.rooms.ROOM.events[1].type, "hype-voice");
+});
+
 test("same-cell races reject the stale second action without double counting", async () => {
   const store = createStore();
   store.value.teamBingoV1.rooms.ROOM.participants.guest.team = "red";
