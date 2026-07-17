@@ -6767,7 +6767,7 @@
       "32": ["audio/open-cells/32.wav"],
       "33": ["audio/open-cells/33.wav"],
       "34": ["audio/open-cells/34.wav"],
-      "35": ["audio/open-cells/35.wav", "audio/open-cells/35_1.wav", "audio/open-cells/35_2.wav"],
+      "35": ["audio/open-cells/35.wav", "audio/open-cells/35_1.wav"],
       "36": ["audio/open-cells/36.wav"],
       "37": ["audio/open-cells/37.wav"],
       "38": ["audio/open-cells/38.wav"],
@@ -8923,7 +8923,9 @@
     function unlockOpenSoundAudio() {
       const context = getOpenSoundAudioContext();
       if (context?.state === "suspended") context.resume().catch(() => {});
-      if (!usesOnlineAssetLoading()) primeCustomOpenSoundBuffers();
+      // Online matches use the same local static assets. Decode them after a
+      // user gesture so repeated openings do not depend on new HTMLAudio loads.
+      primeCustomOpenSoundBuffers();
     }
 
     function primeCustomOpenSoundBuffers(map = customOpenSoundMap) {
@@ -8945,7 +8947,12 @@
           customOpenSoundGainCache.set(url, calculateOpenSoundAutoGain(audioBuffer));
           return audioBuffer;
         })
-        .catch(() => null);
+        .catch(() => {
+          // A transient network/decode failure must not poison this URL for
+          // the rest of a long match. The next open can retry it cleanly.
+          customOpenSoundBufferPromises.delete(url);
+          return null;
+        });
       customOpenSoundBufferPromises.set(url, promise);
       return promise;
     }
