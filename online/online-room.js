@@ -398,7 +398,7 @@ export function applyStatsDelta(globalStats = {}, delta = {}) {
   return result;
 }
 
-class MockBackend {
+export class MockBackend {
   constructor(config) {
     this.config = config;
     const requestedUid = new URLSearchParams(location.search).get("onlineMockUser");
@@ -406,9 +406,9 @@ class MockBackend {
     sessionStorage.setItem("teamBingo.mockUid", this.uid);
     this.channel = typeof BroadcastChannel !== "undefined" ? new BroadcastChannel(MOCK_CHANNEL) : null;
     this.listeners = new Set();
-    this.channel?.addEventListener("message", () => this.notify());
+    this.channel?.addEventListener("message", (event) => this.notify(event.data?.paths || [""]));
     window.addEventListener("storage", (event) => {
-      if (event.key === ROOT_KEY) this.notify();
+      if (event.key === ROOT_KEY && !this.channel) this.notify([""]);
     });
   }
 
@@ -420,13 +420,23 @@ class MockBackend {
     catch { return {}; }
   }
 
-  writeRoot(value) {
+  writeRoot(value, paths = [""]) {
     localStorage.setItem(ROOT_KEY, JSON.stringify(value || {}));
-    this.channel?.postMessage({ type: "change", at: Date.now() });
-    this.notify();
+    this.channel?.postMessage({ type: "change", at: Date.now(), paths });
+    this.notify(paths);
   }
 
-  notify() { this.listeners.forEach((listener) => listener()); }
+  notify(paths = [""]) {
+    const changedPaths = Array.isArray(paths) && paths.length ? paths : [""];
+    this.listeners.forEach((listener) => {
+      const relevant = changedPaths.some((path) => {
+        const changed = String(path || "").replace(/^\/+|\/+$/g, "");
+        const subscribed = String(listener.path || "").replace(/^\/+|\/+$/g, "");
+        return !changed || !subscribed || changed === subscribed || changed.startsWith(`${subscribed}/`) || subscribed.startsWith(`${changed}/`);
+      });
+      if (relevant) listener.callback();
+    });
+  }
 
   async locked(callback) {
     if (navigator.locks?.request) {
@@ -438,16 +448,16 @@ class MockBackend {
   async get(path) { return clone(getAtPath(this.readRoot(), path)); }
 
   subscribe(path, callback) {
-    const listener = () => callback(clone(getAtPath(this.readRoot(), path)));
+    const listener = { path, callback: () => callback(clone(getAtPath(this.readRoot(), path))) };
     this.listeners.add(listener);
-    listener();
+    listener.callback();
     return () => this.listeners.delete(listener);
   }
 
   async set(path, value) {
     return this.locked(() => {
       const root = this.readRoot();
-      this.writeRoot(setAtPath(root, path, clone(value)));
+      this.writeRoot(setAtPath(root, path, clone(value)), [path]);
       return true;
     });
   }
@@ -456,7 +466,7 @@ class MockBackend {
     return this.locked(() => {
       let root = this.readRoot();
       Object.entries(updates || {}).forEach(([path, value]) => { root = setAtPath(root, path, clone(value)); });
-      this.writeRoot(root);
+      this.writeRoot(root, Object.keys(updates || {}));
       return true;
     });
   }
@@ -467,7 +477,7 @@ class MockBackend {
       const current = clone(getAtPath(root, path));
       const next = updater(current);
       if (next === undefined) return { committed: false, value: current };
-      this.writeRoot(setAtPath(root, path, clone(next)));
+      this.writeRoot(setAtPath(root, path, clone(next)), [path]);
       return { committed: true, value: clone(next) };
     });
   }

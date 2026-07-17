@@ -1,7 +1,7 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 
-import { FirebaseBackend, OnlineCoordinator } from "../online/online-room.js";
+import { FirebaseBackend, MockBackend, OnlineCoordinator } from "../online/online-room.js";
 
 const clone = (value) => value === undefined ? undefined : JSON.parse(JSON.stringify(value));
 
@@ -285,6 +285,36 @@ test("a failed Firebase presence cancellation remains queued for retry", async (
 
   assert.equal(cleared, false);
   assert.equal(backend.disconnectOperations.has("participant"), true);
+});
+
+test("mock subscriptions ignore unrelated database paths", async () => {
+  localStorage.clear();
+  const previousLocation = globalThis.location;
+  const previousBroadcastChannel = globalThis.BroadcastChannel;
+  const previousAddEventListener = window.addEventListener;
+  globalThis.location = { search: "?onlineMockUser=path-test" };
+  globalThis.BroadcastChannel = undefined;
+  window.addEventListener = () => {};
+  try {
+    const backend = new MockBackend({});
+    let roomUpdates = 0;
+    let lobbyUpdates = 0;
+    backend.subscribe("rooms/ROOM", () => { roomUpdates += 1; });
+    backend.subscribe("lobby/ROOM", () => { lobbyUpdates += 1; });
+
+    await backend.set("lobby/ROOM", { onlineCount: 1 });
+    assert.equal(roomUpdates, 1);
+    assert.equal(lobbyUpdates, 2);
+
+    await backend.set("rooms/ROOM", { game: { gameStarted: true } });
+    assert.equal(roomUpdates, 2);
+    assert.equal(lobbyUpdates, 2);
+  } finally {
+    globalThis.location = previousLocation;
+    globalThis.BroadcastChannel = previousBroadcastChannel;
+    window.addEventListener = previousAddEventListener;
+    localStorage.clear();
+  }
 });
 
 test("a delayed lobby summary cannot overwrite a newer room status", async () => {
