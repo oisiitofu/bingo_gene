@@ -1525,10 +1525,14 @@ export class OnlineCoordinator {
     ].join(":");
     if (key === this.lastMasterLobbySyncKey) return;
     this.lastMasterLobbySyncKey = key;
-    this.publishLobbySummary(room).catch((error) => {
-      this.lastMasterLobbySyncKey = "";
-      console.warn("Lobby summary refresh failed", error);
-    });
+    this.publishLobbySummary(room)
+      .then((published) => {
+        if (!published) this.lastMasterLobbySyncKey = "";
+      })
+      .catch((error) => {
+        this.lastMasterLobbySyncKey = "";
+        console.warn("Lobby summary refresh failed", error);
+      });
   }
 
   openSeatDialog(roomId) {

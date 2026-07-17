@@ -357,6 +357,25 @@ test("the master publishes a room snapshot to the lobby only once", async () => 
   assert.equal(published, 1);
 });
 
+test("a failed master lobby refresh is eligible for retry on the next room update", async () => {
+  const store = createStore();
+  const master = createCoordinator(store, "master", "master", "red");
+  master.createLobbySummary = OnlineCoordinator.prototype.createLobbySummary.bind(master);
+  let attempts = 0;
+  master.publishLobbySummary = async () => {
+    attempts += 1;
+    return attempts > 1;
+  };
+
+  const room = store.value.teamBingoV1.rooms.ROOM;
+  master.syncLobbyFromMasterRoom(room);
+  await new Promise((resolve) => setTimeout(resolve, 0));
+  master.syncLobbyFromMasterRoom(room);
+  await new Promise((resolve) => setTimeout(resolve, 0));
+
+  assert.equal(attempts, 2);
+});
+
 test("ranking mutations persist an authoritative timestamp even when the map becomes empty", async () => {
   const store = createStore();
   const master = createCoordinator(store, "master", "master", "red");
