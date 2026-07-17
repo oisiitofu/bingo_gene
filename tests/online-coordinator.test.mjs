@@ -471,6 +471,34 @@ test("automatic ghost cleanup removes only inactive room summaries", async () =>
   assert.deepEqual(Object.keys(master.rooms).sort(), ["CLOSED", "FRESH"]);
 });
 
+test("automatic cleanup removes a stale room that no longer has a lobby summary", async () => {
+  const store = createStore();
+  const master = createCoordinator(store, "master", "master", "red");
+  const now = 10_000_000;
+  master.config.roomInactiveMinutes = 10;
+  master.backend.serverNow = () => now;
+  master.rooms = {
+    FRESH: { active: true, updatedAt: now - 2 * 60 * 1000 }
+  };
+  const orphan = createRoom();
+  orphan.meta.active = true;
+  orphan.meta.updatedAt = now - 11 * 60 * 1000;
+  const closed = createRoom();
+  closed.meta.active = false;
+  closed.meta.updatedAt = now - 11 * 60 * 1000;
+  store.value.teamBingoV1.rooms.ORPHAN = orphan;
+  store.value.teamBingoV1.rooms.CLOSED_ORPHAN = closed;
+  store.value.teamBingoV1.lobby = clone(master.rooms);
+
+  const removed = await master.deleteOrphanedGhostRooms();
+
+  assert.equal(removed, 1);
+  assert.equal(store.value.teamBingoV1.rooms.ORPHAN, undefined);
+  assert.equal(store.value.teamBingoV1.lobby.ORPHAN, undefined);
+  assert.ok(store.value.teamBingoV1.rooms.CLOSED_ORPHAN);
+  assert.ok(store.value.teamBingoV1.lobby.FRESH);
+});
+
 test("ranking mutations persist an authoritative timestamp even when the map becomes empty", async () => {
   const store = createStore();
   const master = createCoordinator(store, "master", "master", "red");

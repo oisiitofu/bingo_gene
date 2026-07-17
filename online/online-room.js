@@ -2679,6 +2679,41 @@ export class OnlineCoordinator {
   async cleanupStaleRooms() {
     if (!this.backend || this.busy || this.cleanupInFlight) return;
     await this.deleteGhostRooms({ requireAdmin: false });
+    await this.deleteOrphanedGhostRooms();
+  }
+
+  async deleteOrphanedGhostRooms() {
+    if (!this.backend || this.cleanupInFlight) return 0;
+    let roomRecords = null;
+    try {
+      roomRecords = await this.backend.get(this.path("rooms"));
+    } catch {
+      return 0;
+    }
+    const now = this.backend.serverNow();
+    const inactiveMs = Math.max(1, Number(this.config.roomInactiveMinutes) || 10) * 60000;
+    const orphanIds = Object.entries(roomRecords || {})
+      .filter(([id, room]) => (
+        !this.rooms?.[id] &&
+        room?.meta?.active !== false &&
+        now - (Number(room?.meta?.updatedAt) || 0) > inactiveMs
+      ))
+      .map(([id]) => id);
+    if (!orphanIds.length) return 0;
+    const updates = {};
+    orphanIds.forEach((id) => {
+      updates[this.roomPath(id)] = null;
+      updates[this.lobbyPath(id)] = null;
+    });
+    this.cleanupInFlight = true;
+    try {
+      await this.backend.update(updates);
+      return orphanIds.length;
+    } catch {
+      return 0;
+    } finally {
+      this.cleanupInFlight = false;
+    }
   }
 
   startGhostCleanupTimer() {
