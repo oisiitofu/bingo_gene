@@ -421,7 +421,9 @@ export class MockBackend {
     this.handleMockDisconnect = () => this.applyPresenceDisconnect();
     this.channel?.addEventListener("message", (event) => this.notify(event.data?.paths || [""]));
     window.addEventListener("storage", (event) => {
-      if (event.key === ROOT_KEY && !this.channel) this.notify([""]);
+      // Some embedded browser contexts expose BroadcastChannel but do not
+      // deliver its cross-tab messages. Storage remains a reliable fallback.
+      if (event.key === ROOT_KEY) this.notify([""]);
     });
     window.addEventListener("pagehide", this.handleMockDisconnect);
   }
