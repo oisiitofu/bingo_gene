@@ -11746,6 +11746,10 @@
         applyOnlineSetupSnapshot,
         getOnlineGameSnapshot,
         applyOnlineGameSnapshot,
+        discardOnlineActionPresentation: () => {
+          resetMatchPresentation();
+          renderAll();
+        },
         restoreOnlineCommentary,
         getOnlineStatsSnapshot,
         applyOnlineStatsSnapshot,

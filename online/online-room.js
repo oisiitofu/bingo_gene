@@ -2237,6 +2237,9 @@ export class OnlineCoordinator {
       return false;
     }
     const actionId = randomId("action");
+    let rollbackGame = null;
+    let rollbackStats = null;
+    let appliedLocalMutation = false;
     this.setBusy(true);
     try {
       const acquired = await this.acquireActionLock(actionId);
@@ -2264,9 +2267,12 @@ export class OnlineCoordinator {
       }
       const beforeGame = clone(remoteRoom.game || this.bridge.getOnlineGameSnapshot?.());
       const beforeStats = clone(this.bridge.getOnlineStatsSnapshot?.() || this.globalStatsSnapshot || {});
+      rollbackGame = beforeGame;
+      rollbackStats = beforeStats;
       this.bridge.beginOnlineEventCapture?.(action);
       let presentation = null;
       try {
+        appliedLocalMutation = true;
         const localResult = localMutator();
         if (localResult && typeof localResult.then === "function") await localResult;
       } finally {
@@ -2285,7 +2291,18 @@ export class OnlineCoordinator {
     } catch (error) {
       console.error(error);
       const current = await this.backend.get(this.roomPath()).catch(() => null);
-      if (current) this.applyRoom(current, { initial: true });
+      if (appliedLocalMutation) this.bridge.discardOnlineActionPresentation?.();
+      if (current) {
+        this.applyRoom(current, { initial: true });
+      } else if (rollbackGame || rollbackStats) {
+        this.applyingRemote = true;
+        try {
+          if (rollbackGame) this.bridge.applyOnlineGameSnapshot?.(rollbackGame, { silent: true, rollback: true });
+          if (rollbackStats) this.bridge.applyOnlineStatsSnapshot?.(rollbackStats);
+        } finally {
+          this.applyingRemote = false;
+        }
+      }
       this.showError("SYNC RETRY", error);
       return false;
     } finally {

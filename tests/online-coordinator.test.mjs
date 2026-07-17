@@ -828,6 +828,44 @@ test("same-cell races reject the stale second action without double counting", a
   }
 });
 
+test("an offline action failure restores the local game and stats snapshots", async () => {
+  const store = createStore();
+  const master = createCoordinator(store, "master", "master", "red");
+  master.backend.failTransactions = { "teamBingoV1/rooms/ROOM": 1 };
+  const originalGet = master.backend.get.bind(master.backend);
+  let roomReads = 0;
+  master.backend.get = async (path) => {
+    if (path === "teamBingoV1/rooms/ROOM") {
+      roomReads += 1;
+      if (roomReads >= 2) throw new Error("offline");
+    }
+    return originalGet(path);
+  };
+  let discardedPresentations = 0;
+  master.bridge.discardOnlineActionPresentation = () => { discardedPresentations += 1; };
+  const originalError = console.error;
+  console.error = () => {};
+
+  try {
+    const changed = await master.requestAction(
+      { type: "toggle-cell", payload: { team: "red", index: 0, expectedMarked: false } },
+      () => {
+        master.testState.game.red.marked[0] = true;
+        master.testState.stats.ranking[53] = 1;
+      }
+    );
+
+    assert.equal(changed, false);
+    assert.equal(discardedPresentations, 1);
+    assert.equal(master.testState.game.red.marked[0], false);
+    assert.deepEqual(master.testState.stats.ranking, {});
+    assert.equal(store.value.teamBingoV1.rooms.ROOM.game.red.marked[0], false);
+    assert.match(master.lastError, /^SYNC RETRY:/);
+  } finally {
+    console.error = originalError;
+  }
+});
+
 test("a second opener on the same cell persists the shared player attribution", async () => {
   const store = createStore();
   const room = store.value.teamBingoV1.rooms.ROOM;
