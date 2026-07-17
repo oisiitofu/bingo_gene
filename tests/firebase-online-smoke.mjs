@@ -60,6 +60,7 @@ let master;
 let member;
 let outsider;
 let ghostId = "";
+let closeId = "";
 
 try {
   [master, member, outsider] = await Promise.all([signUp(), signUp(), signUp()]);
@@ -143,6 +144,28 @@ try {
   });
   assert.equal(memberWrite.ok, true, `Participant could not change the game: ${JSON.stringify(memberWrite)}`);
 
+  closeId = `${roomId}-CLOSE`;
+  const closeRoom = structuredClone(room);
+  closeRoom.meta.id = closeId;
+  closeRoom.meta.updatedAt = Date.now();
+  const closeCreated = await databaseRequest("PUT", `rooms/${closeId}`, master.idToken, closeRoom);
+  assert.equal(closeCreated.ok, true, `Close fixture room could not be created: ${JSON.stringify(closeCreated)}`);
+  const closeLobby = await databaseRequest("PUT", `lobby/${closeId}`, master.idToken, {
+    active: true,
+    phase: "playing",
+    updatedAt: Date.now()
+  });
+  assert.equal(closeLobby.ok, true, `Close fixture lobby could not be created: ${JSON.stringify(closeLobby)}`);
+  const masterClose = await databaseRequest("PATCH", "", master.idToken, {
+    [`rooms/${closeId}`]: null,
+    [`lobby/${closeId}`]: null
+  });
+  assert.equal(masterClose.ok, true, `Master could not close the room atomically: ${JSON.stringify(masterClose)}`);
+  const closedRoom = await databaseRequest("GET", `rooms/${closeId}`, member.idToken);
+  assert.equal(closedRoom.value, null, "Closed room data still exists");
+  const closedLobby = await databaseRequest("GET", `lobby/${closeId}`, member.idToken);
+  assert.equal(closedLobby.value, null, "Closed room remained in the lobby");
+
   ghostId = `${roomId}-GHOST`;
   const ghostUpdatedAt = Date.now() - 11 * 60 * 1000;
   const ghostRoom = structuredClone(room);
@@ -191,6 +214,10 @@ try {
     if (ghostId) {
       await databaseRequest("DELETE", `lobby/${ghostId}`, master.idToken).catch(() => {});
       await databaseRequest("DELETE", `rooms/${ghostId}`, master.idToken).catch(() => {});
+    }
+    if (closeId) {
+      await databaseRequest("DELETE", `lobby/${closeId}`, master.idToken).catch(() => {});
+      await databaseRequest("DELETE", `rooms/${closeId}`, master.idToken).catch(() => {});
     }
   }
   if (outsider?.idToken) {

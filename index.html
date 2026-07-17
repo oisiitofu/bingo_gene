@@ -11676,6 +11676,7 @@
     }
 
     let onlineCoordinator = null;
+    let onlineMatchResetDetector = () => false;
     let onlineSetupPublishTimer = 0;
     let onlineStateSyncTimer = 0;
     let onlineSession = { roomId: "", role: "", team: "", memberName: "", master: false };
@@ -11697,7 +11698,12 @@
         navigator.serviceWorker.register("./sw.js").then((registration) => registration.update()).catch((error) => console.warn("Service worker registration failed", error));
       }
       import("./online/online-room.js")
-        .then(({ initOnlineRoom }) => initOnlineRoom(createOnlineBridge()))
+        .then(({ initOnlineRoom, shouldResetOnlineMatchPresentation }) => {
+          if (typeof shouldResetOnlineMatchPresentation === "function") {
+            onlineMatchResetDetector = shouldResetOnlineMatchPresentation;
+          }
+          return initOnlineRoom(createOnlineBridge());
+        })
         .then((coordinator) => { onlineCoordinator = coordinator; })
         .catch((error) => {
           document.documentElement.classList.remove("online-booting");
@@ -11885,11 +11891,7 @@
 
     function applyOnlineGameSnapshot(snapshot, options = {}) {
       if (!snapshot || typeof snapshot !== "object") return;
-      const startsNewMatch = Boolean(
-        snapshot.gameStarted &&
-        !snapshot.readyShown &&
-        (state.winner || state.readyShown)
-      );
+      const startsNewMatch = onlineMatchResetDetector(snapshot, state);
       if (startsNewMatch) resetMatchPresentation();
       state.gridSize = Number(snapshot.gridSize) === 7 ? 7 : 5;
       state.gameStarted = Boolean(snapshot.gameStarted);

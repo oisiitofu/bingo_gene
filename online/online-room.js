@@ -19,6 +19,7 @@ const PHASE_LABELS = {
 
 const ROOT_KEY = "teamBingo.online.mock.v1";
 const MOCK_CHANNEL = "team-bingo-online-mock-v1";
+const MAX_EVENT_REPLAY = 12;
 
 function clone(value) {
   if (value === undefined) return undefined;
@@ -196,6 +197,14 @@ export function selectCountExportRanking(current = {}, visible = {}, legacy = {}
   if (isPlainObject(visible?.ranking)) return clone(visible.ranking);
   if (isPlainObject(legacy?.ranking)) return clone(legacy.ranking);
   return {};
+}
+
+export function shouldResetOnlineMatchPresentation(snapshot = {}, currentState = {}) {
+  if (!snapshot?.gameStarted) return false;
+  const incomingMatchId = String(snapshot.matchTracker?.id || "");
+  const currentMatchId = String(currentState.matchTracker?.id || "");
+  const matchChanged = Boolean(incomingMatchId && currentMatchId && incomingMatchId !== currentMatchId);
+  return matchChanged || Boolean(!snapshot.readyShown && (currentState.winner || currentState.readyShown));
 }
 
 function diffNumberMap(before = {}, after = {}) {
@@ -1307,7 +1316,8 @@ export class OnlineCoordinator {
     this.roomId = roomId;
     this.roomUnsubscribe?.();
     this.room = initialRoom || await this.backend.get(this.roomPath(roomId));
-    this.lastEventSeq = Number(sessionStorage.getItem(`teamBingo.lastEvent.${roomId}`)) || Number(this.room?.meta?.eventSeq) || 0;
+    this.lastEventSeq = Number(this.room?.meta?.eventSeq) || 0;
+    sessionStorage.setItem(`teamBingo.lastEvent.${roomId}`, String(this.lastEventSeq));
     this.updateSessionUi();
     this.applyRoom(this.room, { initial: true });
     this.roomUnsubscribe = this.backend.subscribe(this.roomPath(roomId), (room) => this.onRoomValue(room));
@@ -1422,10 +1432,19 @@ export class OnlineCoordinator {
           .map(([key, event]) => ({ ...event, seq: Number(key) }))
           .filter((event) => event.seq > this.lastEventSeq)
           .sort((a, b) => a.seq - b.seq);
-        events.forEach((event) => {
-          if (!this.localActionIds.has(event.actionId)) this.bridge.playOnlineEvent?.(event);
-          this.localActionIds.delete(event.actionId);
-        });
+        const historyGap = !events.length || events[0].seq > this.lastEventSeq + 1;
+        const backlogTooLarge = events.length > MAX_EVENT_REPLAY;
+        if (historyGap || backlogTooLarge) {
+          const latest = events.at(-1);
+          this.localActionIds.clear();
+          if (room.game?.winner) this.bridge.showOnlineVictorySnapshot?.(room.game, room.lastVictory || null);
+          else if (latest) this.bridge.playOnlineEvent?.(latest);
+        } else {
+          events.forEach((event) => {
+            if (!this.localActionIds.has(event.actionId)) this.bridge.playOnlineEvent?.(event);
+            this.localActionIds.delete(event.actionId);
+          });
+        }
         this.lastEventSeq = sequence;
         sessionStorage.setItem(`teamBingo.lastEvent.${this.roomId}`, String(sequence));
       }
@@ -1481,7 +1500,7 @@ export class OnlineCoordinator {
         if (!room) return room;
         if (wasMaster) {
           const replacement = Object.values(room.participants || {})
-            .filter((participant) => participant?.uid !== this.backend.uid && participant?.online)
+            .filter((participant) => participant?.uid !== this.backend.uid && participant?.online && participant.role !== "spectator")
             .sort((a, b) => (Number(a.joinedAt) || 0) - (Number(b.joinedAt) || 0))[0];
           if (replacement) {
             delete room.participants[this.backend.uid];
@@ -1533,7 +1552,7 @@ export class OnlineCoordinator {
     if (!this.isMaster() || !this.roomId) return;
     const roomId = this.roomId;
     await this.backend.update({
-      [this.roomPath(roomId, "meta/active")]: false,
+      [this.roomPath(roomId)]: null,
       [this.lobbyPath(roomId)]: null
     });
     await this.leaveRoom({ remoteClosed: true });

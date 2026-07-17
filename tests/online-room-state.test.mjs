@@ -6,7 +6,8 @@ import {
   createStatsDelta,
   mergeLegacyStats,
   normalizeCountBackup,
-  selectCountExportRanking
+  selectCountExportRanking,
+  shouldResetOnlineMatchPresentation
 } from "../online/online-room.js";
 
 const emptyStats = () => ({
@@ -150,4 +151,24 @@ test("count backup round-trips ranking, player, rivalry, and recent match data",
   assert.equal(restored.playerStats.rivalries["jan-vs-eda"].games, 3);
   assert.deepEqual(restored.playerStats.rivalries["jan-vs-eda"].wins, { jan: 2, eda: 1 });
   assert.equal(restored.playerStats.recentMatches[0].id, "match-1");
+});
+
+test("a changed match id resets stale victory presentation even after READY", () => {
+  assert.equal(
+    shouldResetOnlineMatchPresentation(
+      { gameStarted: true, readyShown: true, matchTracker: { id: "match-new" } },
+      { winner: "red", readyShown: true, matchTracker: { id: "match-old" } }
+    ),
+    true
+  );
+});
+
+test("updates inside the same match do not reset presentation", () => {
+  assert.equal(
+    shouldResetOnlineMatchPresentation(
+      { gameStarted: true, readyShown: true, matchTracker: { id: "match-current" } },
+      { winner: null, readyShown: true, matchTracker: { id: "match-current" } }
+    ),
+    false
+  );
 });

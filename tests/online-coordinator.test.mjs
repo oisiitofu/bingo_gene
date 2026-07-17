@@ -41,6 +41,18 @@ class MemoryBackend {
     return true;
   }
 
+  async update(updates) {
+    Object.entries(updates || {}).forEach(([path, value]) => {
+      this.store.value = setAtPath(this.store.value, path, value);
+    });
+    return true;
+  }
+
+  subscribe(path, callback) {
+    callback(clone(getAtPath(this.store.value, path)));
+    return () => {};
+  }
+
   async transaction(path, updater) {
     const current = clone(getAtPath(this.store.value, path));
     const next = updater(current);
@@ -159,6 +171,7 @@ function prepareJoinCoordinator(store, uid, deviceId) {
 }
 
 globalThis.window ||= { setTimeout, clearTimeout };
+globalThis.document ||= { body: { classList: { remove() {} } } };
 
 const sessionValues = new Map();
 globalThis.sessionStorage = {
@@ -463,4 +476,158 @@ test("a delayed state sync never overwrites a newer remote action", async () => 
   assert.equal(store.value.teamBingoV1.rooms.ROOM.game.blue.marked[1], true);
   assert.equal(store.value.teamBingoV1.rooms.ROOM.events[2], undefined);
   assert.deepEqual(played, ["toggle-cell"]);
+});
+
+test("rejoining a long-running room does not replay hundreds of old effects", async () => {
+  const store = createStore();
+  const room = store.value.teamBingoV1.rooms.ROOM;
+  room.meta.eventSeq = 250;
+  room.events = Object.fromEntries(
+    Array.from({ length: 200 }, (_, offset) => {
+      const sequence = offset + 51;
+      return [sequence, { actionId: `action-${sequence}`, type: "toggle-cell" }];
+    })
+  );
+  const guest = createCoordinator(store, "guest", "player", "blue");
+  const played = [];
+  guest.applyRoom = OnlineCoordinator.prototype.applyRoom.bind(guest);
+  guest.updateSessionUi = () => {};
+  guest.scheduleMasterHandover = () => {};
+  guest.subscribeGlobalStats = () => {};
+  guest.startHeartbeat = () => {};
+  guest.importLegacyStats = async () => {};
+  guest.bridge.playOnlineEvent = (event) => played.push(event.seq);
+  sessionStorage.clear();
+  sessionStorage.setItem("teamBingo.lastEvent.ROOM", "1");
+
+  await guest.enterRoom("ROOM", clone(room));
+
+  assert.equal(guest.lastEventSeq, 250);
+  assert.deepEqual(played, []);
+  assert.equal(sessionStorage.getItem("teamBingo.lastEvent.ROOM"), "250");
+});
+
+test("a resumed tab skips a trimmed event backlog and restores only the current result", () => {
+  const store = createStore();
+  const guest = createCoordinator(store, "guest", "player", "blue");
+  const played = [];
+  const victories = [];
+  guest.applyRoom = OnlineCoordinator.prototype.applyRoom.bind(guest);
+  guest.updateSessionUi = () => {};
+  guest.scheduleMasterHandover = () => {};
+  guest.bridge.playOnlineEvent = (event) => played.push(event.seq);
+  guest.bridge.showOnlineVictorySnapshot = (game, victory) => victories.push({ game, victory });
+  guest.lastEventSeq = 1;
+  const room = createRoom();
+  room.meta.eventSeq = 250;
+  room.game.winner = "blue";
+  room.lastVictory = { team: "blue", victoryKind: "normal" };
+  room.events = Object.fromEntries(
+    Array.from({ length: 200 }, (_, offset) => {
+      const sequence = offset + 51;
+      return [sequence, { actionId: `action-${sequence}`, type: sequence === 250 ? "victory" : "toggle-cell" }];
+    })
+  );
+
+  guest.applyRoom(room);
+
+  assert.deepEqual(played, []);
+  assert.equal(victories.length, 1);
+  assert.equal(victories[0].victory.team, "blue");
+  assert.equal(guest.lastEventSeq, 250);
+});
+
+test("a large contiguous backlog plays only its latest live event", () => {
+  const store = createStore();
+  const guest = createCoordinator(store, "guest", "player", "blue");
+  const played = [];
+  guest.applyRoom = OnlineCoordinator.prototype.applyRoom.bind(guest);
+  guest.updateSessionUi = () => {};
+  guest.scheduleMasterHandover = () => {};
+  guest.bridge.playOnlineEvent = (event) => played.push(event.seq);
+  guest.lastEventSeq = 50;
+  const room = createRoom();
+  room.meta.eventSeq = 70;
+  room.events = Object.fromEntries(
+    Array.from({ length: 20 }, (_, offset) => {
+      const sequence = offset + 51;
+      return [sequence, { actionId: `action-${sequence}`, type: "toggle-cell" }];
+    })
+  );
+
+  guest.applyRoom(room);
+
+  assert.deepEqual(played, [70]);
+  assert.equal(guest.lastEventSeq, 70);
+});
+
+test("room history retains only the newest bounded event and action windows", async () => {
+  const store = createStore();
+  const master = createCoordinator(store, "master", "master", "red");
+
+  for (let sequence = 1; sequence <= 320; sequence += 1) {
+    const actionId = `action-${sequence}`;
+    const room = store.value.teamBingoV1.rooms.ROOM;
+    room.lock = { actionId, uid: "master", expiresAt: Date.now() + 1000 };
+    const committed = await master.commitAction(
+      actionId,
+      { type: "state-sync", payload: {} },
+      room.game,
+      { type: "state-sync", payload: { sequence } },
+      sequence - 1
+    );
+    assert.equal(committed, true);
+  }
+
+  const room = store.value.teamBingoV1.rooms.ROOM;
+  const eventKeys = Object.keys(room.events).map(Number).sort((a, b) => a - b);
+  assert.equal(room.meta.eventSeq, 320);
+  assert.equal(room.meta.revision, 320);
+  assert.equal(eventKeys.length, 200);
+  assert.equal(eventKeys[0], 121);
+  assert.equal(eventKeys.at(-1), 320);
+  assert.equal(Object.keys(room.processedActions).length, 300);
+  assert.equal(room.processedActions["action-1"], undefined);
+  assert.equal(typeof room.processedActions["action-320"], "number");
+});
+
+test("a departing master hands control to a player, never an older spectator", async () => {
+  const store = createStore();
+  const room = store.value.teamBingoV1.rooms.ROOM;
+  room.participants.spectator = {
+    uid: "spectator",
+    role: "spectator",
+    team: "",
+    memberName: "",
+    online: true,
+    joinedAt: 1
+  };
+  room.participants.guest.joinedAt = 2;
+  const master = createCoordinator(store, "master", "master", "red");
+  master.roomUnsubscribe = () => {};
+  master.stopHeartbeat = () => {};
+  master.updateSessionUi = () => {};
+  master.showLobby = () => {};
+  master.bridge.onRoomLeft = () => {};
+
+  await master.leaveRoom({ switching: true });
+
+  const updated = store.value.teamBingoV1.rooms.ROOM;
+  assert.equal(updated.meta.masterUid, "guest");
+  assert.equal(updated.participants.spectator.role, "spectator");
+  assert.equal(updated.participants.master, undefined);
+});
+
+test("explicit room close removes both room data and lobby summary", async () => {
+  const store = createStore();
+  store.value.teamBingoV1.lobby.ROOM = { active: true, phase: "playing", updatedAt: Date.now() };
+  const master = createCoordinator(store, "master", "master", "red");
+  let leaveOptions = null;
+  master.leaveRoom = async (options) => { leaveOptions = options; };
+
+  await master.closeRoom();
+
+  assert.equal(store.value.teamBingoV1.rooms.ROOM, undefined);
+  assert.equal(store.value.teamBingoV1.lobby.ROOM, undefined);
+  assert.deepEqual(leaveOptions, { remoteClosed: true });
 });
