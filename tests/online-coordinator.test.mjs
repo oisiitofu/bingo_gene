@@ -658,6 +658,44 @@ test("the active master recovers a committed action's stats after its actor lose
   }
 });
 
+test("a replacement master recovers stats left behind by the former master", async () => {
+  localStorage.clear();
+  const store = createStore();
+  const formerMaster = createCoordinator(store, "master", "master", "red");
+  const replacement = createCoordinator(store, "guest", "player", "blue");
+  formerMaster.backend.failTransactions = { "teamBingoV1/globalStats": 1 };
+  formerMaster.roomUnsubscribe = () => {};
+  formerMaster.stopHeartbeat = () => {};
+  formerMaster.updateSessionUi = () => {};
+  formerMaster.showLobby = () => {};
+  formerMaster.bridge.onRoomLeft = () => {};
+  const originalWarn = console.warn;
+  console.warn = () => {};
+
+  try {
+    assert.equal(await formerMaster.requestAction(
+      { type: "toggle-cell", payload: { team: "red", index: 0, expectedMarked: false } },
+      () => {
+        formerMaster.testState.game.red.marked[0] = true;
+        formerMaster.testState.stats.ranking[69] = 1;
+      }
+    ), true);
+    const event = store.value.teamBingoV1.rooms.ROOM.events[1];
+    assert.deepEqual(event.statsDelta.ranking, { 69: 1 });
+    assert.equal(await formerMaster.leaveRoom({ switching: true }), true);
+
+    replacement.applyRoom(store.value.teamBingoV1.rooms.ROOM);
+    assert.equal(replacement.isMaster(), true);
+    assert.equal(await replacement.recoverRoomStats(store.value.teamBingoV1.rooms.ROOM), true);
+    assert.deepEqual(store.value.teamBingoV1.globalStats.ranking, { 69: 1 });
+    assert.ok(store.value.teamBingoV1.globalStats.processedActions[event.actionId]);
+  } finally {
+    console.warn = originalWarn;
+    window.clearTimeout(formerMaster.statsFlushTimer);
+    localStorage.clear();
+  }
+});
+
 test("admin ranking reset preserves player stats and bounds processed action history", async () => {
   const store = createStore();
   const stats = store.value.teamBingoV1.globalStats;
