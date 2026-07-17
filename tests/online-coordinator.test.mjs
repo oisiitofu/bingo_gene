@@ -352,6 +352,34 @@ test("mock subscriptions ignore unrelated database paths", async () => {
   }
 });
 
+test("mock subscriptions fall back to storage updates even when BroadcastChannel exists", () => {
+  localStorage.clear();
+  const previousLocation = globalThis.location;
+  const previousBroadcastChannel = globalThis.BroadcastChannel;
+  const previousAddEventListener = window.addEventListener;
+  const listeners = new Map();
+  globalThis.location = { search: "?onlineMockUser=storage-fallback" };
+  globalThis.BroadcastChannel = class {
+    addEventListener() {}
+    postMessage() {}
+  };
+  window.addEventListener = (type, callback) => listeners.set(type, callback);
+  try {
+    const backend = new MockBackend({});
+    let roomUpdates = 0;
+    backend.subscribe("rooms/ROOM", () => { roomUpdates += 1; });
+
+    listeners.get("storage")?.({ key: "teamBingo.online.mock.v1" });
+
+    assert.equal(roomUpdates, 2);
+  } finally {
+    globalThis.location = previousLocation;
+    globalThis.BroadcastChannel = previousBroadcastChannel;
+    window.addEventListener = previousAddEventListener;
+    localStorage.clear();
+  }
+});
+
 test("a delayed lobby summary cannot overwrite a newer room status", async () => {
   const store = createStore();
   const master = createCoordinator(store, "master", "master", "red");
