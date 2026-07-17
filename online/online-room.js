@@ -663,6 +663,7 @@ export class OnlineCoordinator {
     this.presenceRefreshPromise = null;
     this.statsFlushPromise = null;
     this.statsFlushTimer = 0;
+    this.statsRecoveryPromise = null;
     this.membershipLossTimer = 0;
     this.leavingRoom = false;
     this.localMode = false;
@@ -1901,6 +1902,7 @@ export class OnlineCoordinator {
     } finally {
       this.applyingRemote = false;
     }
+    if (this.isMaster()) this.recoverRoomStats(room).catch((error) => console.warn("Room stats recovery failed", error));
     if (previous?.meta?.masterUid !== room.meta?.masterUid) this.bridge.onMasterChanged?.(room.meta?.masterUid === this.backend.uid);
   }
 
@@ -2305,10 +2307,14 @@ export class OnlineCoordinator {
       const afterGame = clone(this.bridge.getOnlineGameSnapshot?.());
       const afterStats = clone(this.bridge.getOnlineStatsSnapshot?.() || {});
       const event = this.bridge.createOnlineEvent?.(action, beforeGame, afterGame) || { type: action.type, payload: action.payload || {} };
+      const statsDelta = createStatsDelta(beforeStats, afterStats);
+      if (hasStatsDelta(statsDelta)) {
+        event.statsDelta = clone(statsDelta);
+        event.statsOccurredAt = statsOccurredAt;
+      }
       const committed = await this.commitAction(actionId, action, afterGame, event, remoteRoom.meta?.revision || 0);
       if (!committed) throw new Error("操作が競合したため最新状態に戻しました");
       this.localActionIds.add(actionId);
-      const statsDelta = createStatsDelta(beforeStats, afterStats);
       await this.commitOrQueueStatsDelta(actionId, statsDelta, this.roomId, statsOccurredAt);
       return true;
     } catch (error) {
@@ -2425,11 +2431,16 @@ export class OnlineCoordinator {
         remoteRoom.game || null,
         localGame
       ) || { type: reason, payload: {} };
+      const beforeStats = clone(this.globalStatsSnapshot || {});
+      const statsDelta = createStatsDelta(beforeStats, localStats);
+      if (hasStatsDelta(statsDelta)) {
+        event.statsDelta = clone(statsDelta);
+        event.statsOccurredAt = statsOccurredAt;
+      }
       const committed = await this.commitAction(actionId, { type: reason, payload: {} }, localGame, event, remoteRoom.meta?.revision || 0);
       if (!committed) return false;
       this.localActionIds.add(actionId);
-      const beforeStats = clone(this.globalStatsSnapshot || {});
-      await this.commitOrQueueStatsDelta(actionId, createStatsDelta(beforeStats, localStats), this.roomId, statsOccurredAt);
+      await this.commitOrQueueStatsDelta(actionId, statsDelta, this.roomId, statsOccurredAt);
       return true;
     } finally {
       await this.releaseActionLock(actionId).catch(() => {});
@@ -2459,6 +2470,43 @@ export class OnlineCoordinator {
       };
       this.bridge.applyOnlineStatsSnapshot?.(this.globalStatsSnapshot);
     });
+  }
+
+  async recoverRoomStats(room = this.room) {
+    if (!this.isOnline() || !this.isMaster() || this.statsRecoveryPromise) return false;
+    const roomId = this.roomId;
+    const events = Object.entries(room?.events || {})
+      .map(([sequence, event]) => ({ ...event, sequence: Number(sequence) || 0 }))
+      .filter((event) => event?.actionId && hasStatsDelta(event.statsDelta))
+      .sort((a, b) => a.sequence - b.sequence);
+    if (!events.length) return false;
+    this.statsRecoveryPromise = (async () => {
+      let recovered = false;
+      for (const event of events) {
+        if (this.roomId !== roomId || !this.isMaster() || this.globalProcessedActions.has(event.actionId)) continue;
+        let committedStats = null;
+        try {
+          committedStats = await this.commitStatsDelta(event.actionId, event.statsDelta, event.statsOccurredAt || event.createdAt);
+        } catch (error) {
+          console.warn("Room stats recovery retry failed", error);
+        }
+        if (!committedStats) {
+          this.queueStatsDelta(event.actionId, roomId, event.statsDelta, event.statsOccurredAt || event.createdAt);
+          continue;
+        }
+        this.globalProcessedActions.add(event.actionId);
+        this.removePendingStats(event.actionId);
+        this.globalStatsSnapshot = committedStats;
+        this.bridge.applyOnlineStatsSnapshot?.(committedStats);
+        recovered = true;
+      }
+      return recovered;
+    })();
+    try {
+      return await this.statsRecoveryPromise;
+    } finally {
+      this.statsRecoveryPromise = null;
+    }
   }
 
   async commitStatsDelta(actionId, delta, occurredAt = this.backend?.serverNow?.() || Date.now()) {

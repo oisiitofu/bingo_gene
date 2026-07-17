@@ -145,6 +145,7 @@ function createCoordinator(store, uid, role, team) {
   coordinator.pendingRoom = null;
   coordinator.statsFlushPromise = null;
   coordinator.statsFlushTimer = 0;
+  coordinator.statsRecoveryPromise = null;
   coordinator.localActionIds = new Set();
   coordinator.globalStatsSnapshot = emptyStats();
   coordinator.globalProcessedActions = new Set();
@@ -620,6 +621,39 @@ test("consecutive room actions survive transient stats failures and retry exactl
     assert.deepEqual(store.value.teamBingoV1.globalStats.ranking, { 53: 1, 54: 1 });
   } finally {
     console.warn = originalWarn;
+    localStorage.clear();
+  }
+});
+
+test("the active master recovers a committed action's stats after its actor loses the seat", async () => {
+  localStorage.clear();
+  const store = createStore();
+  const master = createCoordinator(store, "master", "master", "red");
+  const guest = createCoordinator(store, "guest", "player", "blue");
+  guest.backend.failTransactions = { "teamBingoV1/globalStats": 1 };
+  const originalWarn = console.warn;
+  console.warn = () => {};
+
+  try {
+    assert.equal(await guest.requestAction(
+      { type: "toggle-cell", payload: { team: "blue", index: 0, expectedMarked: false } },
+      () => {
+        guest.testState.game.blue.marked[0] = true;
+        guest.testState.stats.ranking[53] = 1;
+      }
+    ), true);
+    const event = store.value.teamBingoV1.rooms.ROOM.events[1];
+    assert.deepEqual(event.statsDelta.ranking, { 53: 1 });
+    assert.equal(store.value.teamBingoV1.globalStats.ranking[53], undefined);
+    delete store.value.teamBingoV1.rooms.ROOM.participants.guest;
+
+    assert.equal(await master.recoverRoomStats(store.value.teamBingoV1.rooms.ROOM), true);
+    assert.deepEqual(store.value.teamBingoV1.globalStats.ranking, { 53: 1 });
+    assert.ok(store.value.teamBingoV1.globalStats.processedActions[event.actionId]);
+    assert.equal(master.readPendingStats().length, 0);
+  } finally {
+    console.warn = originalWarn;
+    window.clearTimeout(guest.statsFlushTimer);
     localStorage.clear();
   }
 });
