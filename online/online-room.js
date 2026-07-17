@@ -254,6 +254,20 @@ export function shouldResetOnlineMatchPresentation(snapshot = {}, currentState =
   return matchChanged || Boolean(!snapshot.readyShown && (currentState.winner || currentState.readyShown));
 }
 
+export function shouldAnnounceOnlineMatchStart(snapshot = {}, currentState = {}) {
+  const incomingMatchId = String(snapshot?.matchTracker?.id || "");
+  const currentMatchId = String(currentState?.matchTracker?.id || "");
+  if (incomingMatchId && currentMatchId && incomingMatchId !== currentMatchId) return false;
+  return Boolean(
+    currentState?.gameStarted &&
+    currentState?.inputLocked &&
+    !currentState?.readyShown &&
+    snapshot?.gameStarted &&
+    !snapshot?.inputLocked &&
+    snapshot?.readyShown
+  );
+}
+
 function diffNumberMap(before = {}, after = {}) {
   const result = {};
   new Set([...Object.keys(before || {}), ...Object.keys(after || {})]).forEach((key) => {

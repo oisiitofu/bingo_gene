@@ -9,6 +9,7 @@ import {
   normalizeCountBackup,
   selectCurrentOnlineCommentary,
   selectCountExportRanking,
+  shouldAnnounceOnlineMatchStart,
   shouldResetOnlineMatchPresentation
 } from "../online/online-room.js";
 
@@ -256,4 +257,24 @@ test("updates inside the same match do not reset presentation", () => {
     ),
     false
   );
+});
+
+test("READY completion announces MATCH START only within the current match", () => {
+  const current = {
+    gameStarted: true,
+    inputLocked: true,
+    readyShown: false,
+    matchTracker: { id: "match-2" }
+  };
+  const ready = {
+    gameStarted: true,
+    inputLocked: false,
+    readyShown: true,
+    matchTracker: { id: "match-2" }
+  };
+
+  assert.equal(shouldAnnounceOnlineMatchStart(ready, current), true);
+  assert.equal(shouldAnnounceOnlineMatchStart({ ...ready, matchTracker: { id: "match-1" } }, current), false);
+  assert.equal(shouldAnnounceOnlineMatchStart(ready, { ...current, inputLocked: false }), false);
+  assert.equal(shouldAnnounceOnlineMatchStart(ready, { ...current, readyShown: true }), false);
 });

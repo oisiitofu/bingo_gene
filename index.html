@@ -11677,6 +11677,7 @@
 
     let onlineCoordinator = null;
     let onlineMatchResetDetector = () => false;
+    let onlineMatchStartDetector = () => false;
     let onlineSetupPublishTimer = 0;
     let onlineStateSyncTimer = 0;
     let onlineSession = { roomId: "", role: "", team: "", memberName: "", master: false };
@@ -11698,9 +11699,12 @@
         navigator.serviceWorker.register("./sw.js").then((registration) => registration.update()).catch((error) => console.warn("Service worker registration failed", error));
       }
       import("./online/online-room.js")
-        .then(({ initOnlineRoom, shouldResetOnlineMatchPresentation }) => {
+        .then(({ initOnlineRoom, shouldAnnounceOnlineMatchStart, shouldResetOnlineMatchPresentation }) => {
           if (typeof shouldResetOnlineMatchPresentation === "function") {
             onlineMatchResetDetector = shouldResetOnlineMatchPresentation;
+          }
+          if (typeof shouldAnnounceOnlineMatchStart === "function") {
+            onlineMatchStartDetector = shouldAnnounceOnlineMatchStart;
           }
           return initOnlineRoom(createOnlineBridge());
         })
@@ -11893,6 +11897,7 @@
     function applyOnlineGameSnapshot(snapshot, options = {}) {
       if (!snapshot || typeof snapshot !== "object") return;
       const startsNewMatch = onlineMatchResetDetector(snapshot, state);
+      const finishesReady = onlineMatchStartDetector(snapshot, state);
       if (startsNewMatch) resetMatchPresentation();
       state.gridSize = Number(snapshot.gridSize) === 7 ? 7 : 5;
       state.gameStarted = Boolean(snapshot.gameStarted);
@@ -11931,6 +11936,7 @@
       const kentoOwner = state.skillEffects?.kentoAura?.owner || "";
       if (kentoOwner && state.kentoLiveChatTeam !== kentoOwner) startKentoLiveChat(kentoOwner);
       if (!kentoOwner && state.kentoLiveChatTeam) stopKentoLiveChat();
+      if (finishesReady) showCommentary("MATCH START！", "マスを開けて2ライン先取。");
     }
 
     function restoreOnlineCommentary(snapshot = null) {
