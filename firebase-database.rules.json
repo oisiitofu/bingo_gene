@@ -6,13 +6,13 @@
       ".read": "auth != null",
       "rooms": {
         "$roomId": {
-          ".write": "auth != null && (!data.exists() || data.child('meta').child('masterUid').val() === auth.uid || data.child('participants').child(auth.uid).exists() || newData.child('participants').child(auth.uid).exists() || root.child('teamBingoV1').child('adminSessions').child(auth.uid).child('expiresAt').val() > now || (!newData.exists() && data.child('meta').child('updatedAt').val() < now - 600000))",
+          ".write": "auth != null && (!data.exists() || data.child('meta').child('masterUid').val() === auth.uid || data.child('participants').child(auth.uid).exists() || newData.child('participants').child(auth.uid).exists() || (!newData.exists() && data.child('meta').child('updatedAt').isNumber() && data.child('meta').child('updatedAt').val() < now - 600000) || (root.child('teamBingoV1').child('adminSessions').child(auth.uid).child('expiresAt').isNumber() && root.child('teamBingoV1').child('adminSessions').child(auth.uid).child('expiresAt').val() > now))",
           ".validate": "!newData.exists() || (newData.hasChildren(['meta', 'setup', 'participants']) && newData.child('meta').hasChildren(['id', 'masterUid', 'revision', 'eventSeq', 'active']))"
         }
       },
       "lobby": {
         "$roomId": {
-          ".write": "auth != null",
+          ".write": "auth != null && (root.child('teamBingoV1').child('rooms').child($roomId).child('meta').child('masterUid').val() === auth.uid || root.child('teamBingoV1').child('rooms').child($roomId).child('participants').child(auth.uid).exists() || (!newData.exists() && root.child('teamBingoV1').child('rooms').child($roomId).child('meta').child('updatedAt').isNumber() && root.child('teamBingoV1').child('rooms').child($roomId).child('meta').child('updatedAt').val() < now - 600000) || (root.child('teamBingoV1').child('adminSessions').child(auth.uid).child('expiresAt').isNumber() && root.child('teamBingoV1').child('adminSessions').child(auth.uid).child('expiresAt').val() > now))",
           ".validate": "!newData.exists() || newData.hasChildren(['active', 'phase', 'updatedAt'])"
         }
       },
@@ -28,7 +28,7 @@
       "adminSessions": {
         "$uid": {
           ".write": "auth != null && auth.uid === $uid",
-          ".validate": "newData.hasChildren(['pinHash', 'expiresAt']) && newData.child('pinHash').val() === '6440e6a91202aeddb45b070a80533f65a689c37d0cf1842ab2bd962e33377880' && newData.child('expiresAt').isNumber() && newData.child('expiresAt').val() > now && newData.child('expiresAt').val() <= now + 1800000"
+          ".validate": "!newData.exists() || (newData.hasChildren(['pinHash', 'expiresAt']) && newData.child('pinHash').val() === '6440e6a91202aeddb45b070a80533f65a689c37d0cf1842ab2bd962e33377880' && newData.child('expiresAt').isNumber() && newData.child('expiresAt').val() > now && newData.child('expiresAt').val() <= now + 1800000)"
         }
       },
       "adminUid": {

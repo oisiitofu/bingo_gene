@@ -147,7 +147,7 @@ function mergePlayerStats(target = {}, incoming = {}) {
   return result;
 }
 
-function mergeLegacyStats(globalStats = {}, legacy = {}) {
+export function mergeLegacyStats(globalStats = {}, legacy = {}) {
   return {
     ...globalStats,
     ranking: mergeNumberMap(globalStats.ranking, legacy.ranking),
@@ -200,7 +200,7 @@ function diffNumberMap(before = {}, after = {}) {
   return result;
 }
 
-function createStatsDelta(before = {}, after = {}) {
+export function createStatsDelta(before = {}, after = {}) {
   const delta = {
     ranking: diffNumberMap(before.ranking, after.ranking),
     players: {},
@@ -255,7 +255,7 @@ function createStatsDelta(before = {}, after = {}) {
   return delta;
 }
 
-function applyStatsDelta(globalStats = {}, delta = {}) {
+export function applyStatsDelta(globalStats = {}, delta = {}) {
   const result = {
     ...globalStats,
     ranking: mergeNumberMap(globalStats.ranking, delta.ranking),
@@ -478,8 +478,13 @@ class OnlineCoordinator {
     this.cleanupInFlight = false;
     this.ghostCleanupTimer = 0;
     this.legacyStats = clone(bridge.getLegacyStats?.() || {});
-    this.deviceId = localStorage.getItem("teamBingo.onlineDeviceId") || randomId("device");
-    localStorage.setItem("teamBingo.onlineDeviceId", this.deviceId);
+    const requestedMockDevice = this.mock
+      ? new URLSearchParams(location.search).get("onlineMockDevice")?.replace(/[^a-zA-Z0-9_-]/g, "").slice(0, 40)
+      : "";
+    this.deviceId = requestedMockDevice
+      ? `mock-device-${requestedMockDevice}`
+      : (localStorage.getItem("teamBingo.onlineDeviceId") || randomId("device"));
+    if (!requestedMockDevice) localStorage.setItem("teamBingo.onlineDeviceId", this.deviceId);
     this.createUi();
   }
 

@@ -1,0 +1,9 @@
+{
+  "name": "team-bingo-championship",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "test": "node --test tests/*.test.mjs",
+    "test:firebase": "node tests/firebase-online-smoke.mjs"
+  }
+}
