@@ -191,6 +191,13 @@ export function normalizeCountBackup(payload) {
   };
 }
 
+export function selectCountExportRanking(current = {}, visible = {}, legacy = {}) {
+  if (isPlainObject(current?.ranking)) return clone(current.ranking);
+  if (isPlainObject(visible?.ranking)) return clone(visible.ranking);
+  if (isPlainObject(legacy?.ranking)) return clone(legacy.ranking);
+  return {};
+}
+
 function diffNumberMap(before = {}, after = {}) {
   const result = {};
   new Set([...Object.keys(before || {}), ...Object.keys(after || {})]).forEach((key) => {
@@ -1669,7 +1676,10 @@ export class OnlineCoordinator {
       this.localActionIds.add(actionId);
       const statsDelta = createStatsDelta(beforeStats, afterStats);
       const committedStats = await this.commitStatsDelta(actionId, statsDelta);
-      if (committedStats) this.globalStatsSnapshot = committedStats;
+      if (committedStats) {
+        this.globalStatsSnapshot = committedStats;
+        this.bridge.applyOnlineStatsSnapshot?.(committedStats);
+      }
       return true;
     } catch (error) {
       console.error(error);
@@ -1750,6 +1760,7 @@ export class OnlineCoordinator {
   async syncCurrentState(reason = "state-sync") {
     if (!this.isOnline() || (!this.isMaster() && this.role !== "player") || this.applyingRemote || this.busy) return false;
     const actionId = randomId("sync");
+    const expectedRevision = Number(this.room?.meta?.revision) || 0;
     this.setBusy(true);
     try {
       const localGame = clone(this.bridge.getOnlineGameSnapshot?.());
@@ -1758,6 +1769,10 @@ export class OnlineCoordinator {
       if (!acquired) return false;
       const remoteRoom = await this.backend.get(this.roomPath());
       if (!remoteRoom) return false;
+      if ((Number(remoteRoom.meta?.revision) || 0) !== expectedRevision) {
+        this.applyRoom(remoteRoom);
+        return false;
+      }
       const event = this.bridge.createOnlineEvent?.(
         { type: reason, payload: {} },
         remoteRoom.game || null,
@@ -1768,7 +1783,10 @@ export class OnlineCoordinator {
       this.localActionIds.add(actionId);
       const beforeStats = clone(this.globalStatsSnapshot || {});
       const committedStats = await this.commitStatsDelta(actionId, createStatsDelta(beforeStats, localStats));
-      if (committedStats) this.globalStatsSnapshot = committedStats;
+      if (committedStats) {
+        this.globalStatsSnapshot = committedStats;
+        this.bridge.applyOnlineStatsSnapshot?.(committedStats);
+      }
       return true;
     } finally {
       await this.releaseActionLock(actionId).catch(() => {});
@@ -1851,13 +1869,8 @@ export class OnlineCoordinator {
     try {
       const current = await this.backend.get(this.path("globalStats")) || {};
       const local = clone(this.bridge.getOnlineStatsSnapshot?.() || this.legacyStats || {});
-      const remoteRanking = isPlainObject(current.ranking) ? current.ranking : {};
-      const visibleRanking = isPlainObject(local.ranking) ? local.ranking : {};
-      const legacyRanking = isPlainObject(this.legacyStats?.ranking) ? this.legacyStats.ranking : {};
       const data = normalizeCountBackup({
-        cellRanking: Object.keys(remoteRanking).length
-          ? remoteRanking
-          : (Object.keys(visibleRanking).length ? visibleRanking : legacyRanking),
+        cellRanking: selectCountExportRanking(current, local, this.legacyStats),
         playerStats: current.playerStats || { players: {}, rivalries: {}, recentMatches: [] }
       });
       const rankingEntries = Object.keys(data.ranking).length;

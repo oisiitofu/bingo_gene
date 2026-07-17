@@ -121,6 +121,7 @@ function createCoordinator(store, uid, role, team) {
   coordinator.bridge = {
     applyOnlineSetupSnapshot() {},
     applyOnlineGameSnapshot(snapshot) { local.game = clone(snapshot); },
+    applyOnlineStatsSnapshot(snapshot) { local.stats = clone(snapshot); },
     getOnlineGameSnapshot() { return clone(local.game); },
     getOnlineStatsSnapshot() { return clone(local.stats); },
     createOnlineEvent(action) { return { type: action.type, payload: clone(action.payload || {}), effects: [] }; }
@@ -139,6 +140,22 @@ function createStore() {
       }
     }
   };
+}
+
+function prepareJoinCoordinator(store, uid, deviceId) {
+  const coordinator = createCoordinator(store, uid, "", "");
+  coordinator.deviceId = deviceId;
+  coordinator.config.seatHoldSeconds = 60;
+  coordinator.ui = { seatDialog: { close() {} } };
+  coordinator.hideLobby = () => {};
+  coordinator.openSeatDialog = () => {};
+  coordinator.setStatus = () => {};
+  coordinator.saveSession = () => {};
+  coordinator.enterRoom = async (roomId, room) => {
+    coordinator.roomId = roomId;
+    coordinator.room = clone(room);
+  };
+  return coordinator;
 }
 
 globalThis.window ||= { setTimeout, clearTimeout };
@@ -304,4 +321,146 @@ test("room updates received during an action keep the newest pending snapshot", 
 
   assert.equal(guest.pendingRoom.meta.revision, 2);
   assert.equal(guest.room.meta.revision, 0);
+});
+
+test("rapid follow-up actions never subtract another client ranking entry", async () => {
+  const store = createStore();
+  store.value.teamBingoV1.globalStats.ranking = { 69: 1 };
+  const master = createCoordinator(store, "master", "master", "red");
+
+  const open = (index, characterId) => master.requestAction(
+    { type: "toggle-cell", payload: { team: "red", index, expectedMarked: false } },
+    () => {
+      master.testState.game.red.marked[index] = true;
+      master.testState.stats.ranking[characterId] = (master.testState.stats.ranking[characterId] || 0) + 1;
+    }
+  );
+
+  assert.equal(await open(0, 53), true);
+  assert.equal(await open(1, 54), true);
+  assert.deepEqual(store.value.teamBingoV1.globalStats.ranking, { 53: 1, 54: 1, 69: 1 });
+});
+
+test("a long alternating run keeps room revisions and reversible rankings consistent", async () => {
+  const store = createStore();
+  store.value.teamBingoV1.rooms.ROOM.game.red.marked = Array(25).fill(false);
+  store.value.teamBingoV1.rooms.ROOM.game.blue.marked = Array(25).fill(false);
+  const master = createCoordinator(store, "master", "master", "red");
+  const guest = createCoordinator(store, "guest", "player", "blue");
+
+  const toggle = (coordinator, team, index, characterId, opened) => coordinator.requestAction(
+    { type: "toggle-cell", payload: { team, index, expectedMarked: !opened } },
+    () => {
+      coordinator.testState.game[team].marked[index] = opened;
+      const ranking = coordinator.testState.stats.ranking;
+      const next = (ranking[characterId] || 0) + (opened ? 1 : -1);
+      if (next > 0) ranking[characterId] = next;
+      else delete ranking[characterId];
+    }
+  );
+
+  for (let index = 0; index < 20; index += 1) {
+    const results = await Promise.all([
+      toggle(master, "red", index, 100 + index, true),
+      toggle(guest, "blue", index, 200 + index, true)
+    ]);
+    assert.deepEqual(results, [true, true]);
+  }
+  for (let index = 0; index < 10; index += 1) {
+    const results = await Promise.all([
+      toggle(master, "red", index, 100 + index, false),
+      toggle(guest, "blue", index, 200 + index, false)
+    ]);
+    assert.deepEqual(results, [true, true]);
+  }
+
+  const room = store.value.teamBingoV1.rooms.ROOM;
+  assert.equal(room.meta.revision, 60);
+  assert.equal(room.meta.eventSeq, 60);
+  assert.equal(room.game.red.marked.filter(Boolean).length, 10);
+  assert.equal(room.game.blue.marked.filter(Boolean).length, 10);
+  assert.equal(Object.keys(store.value.teamBingoV1.globalStats.ranking).length, 20);
+  for (let index = 0; index < 10; index += 1) {
+    assert.equal(store.value.teamBingoV1.globalStats.ranking[100 + index], undefined);
+    assert.equal(store.value.teamBingoV1.globalStats.ranking[200 + index], undefined);
+  }
+  for (let index = 10; index < 20; index += 1) {
+    assert.equal(store.value.teamBingoV1.globalStats.ranking[100 + index], 1);
+    assert.equal(store.value.teamBingoV1.globalStats.ranking[200 + index], 1);
+  }
+});
+
+test("an occupied seat is held, then becomes joinable after the disconnect timeout", async () => {
+  const store = createStore();
+  delete store.value.teamBingoV1.rooms.ROOM.participants.guest;
+  const first = prepareJoinCoordinator(store, "guest-a", "device-a");
+  const second = prepareJoinCoordinator(store, "guest-b", "device-b");
+  const originalError = console.error;
+  console.error = () => {};
+
+  try {
+    await first.joinRoom("ROOM", { name: "Guest", team: "blue", spectator: false });
+    assert.equal(store.value.teamBingoV1.rooms.ROOM.seats.guest.uid, "guest-a");
+
+    await second.joinRoom("ROOM", { name: "Guest", team: "blue", spectator: false });
+    await new Promise((resolve) => setTimeout(resolve, 0));
+    assert.equal(store.value.teamBingoV1.rooms.ROOM.seats.guest.uid, "guest-a");
+    assert.match(second.lastError, /^JOIN ERROR:/);
+
+    const room = store.value.teamBingoV1.rooms.ROOM;
+    room.seats.guest.online = false;
+    room.seats.guest.disconnectedAt = Date.now() - 61_000;
+    room.participants["guest-a"].online = false;
+    room.participants["guest-a"].disconnectedAt = Date.now() - 61_000;
+    second.lastError = "";
+    await second.joinRoom("ROOM", { name: "Guest", team: "blue", spectator: false });
+    assert.equal(store.value.teamBingoV1.rooms.ROOM.seats.guest.uid, "guest-b");
+    assert.equal(second.lastError, "");
+  } finally {
+    console.error = originalError;
+  }
+});
+
+test("the same browser can reclaim a seat after anonymous auth changes", async () => {
+  const store = createStore();
+  delete store.value.teamBingoV1.rooms.ROOM.participants.guest;
+  const first = prepareJoinCoordinator(store, "guest-a", "shared-device");
+  const replacement = prepareJoinCoordinator(store, "guest-b", "shared-device");
+
+  await first.joinRoom("ROOM", { name: "Guest", team: "blue", spectator: false });
+  await replacement.joinRoom("ROOM", { name: "Guest", team: "blue", spectator: false });
+
+  const room = store.value.teamBingoV1.rooms.ROOM;
+  assert.equal(room.seats.guest.uid, "guest-b");
+  assert.equal(room.participants["guest-a"], undefined);
+  assert.equal(room.participants["guest-b"].memberName, "Guest");
+});
+
+test("a delayed state sync never overwrites a newer remote action", async () => {
+  const store = createStore();
+  const master = createCoordinator(store, "master", "master", "red");
+  const played = [];
+  master.applyRoom = OnlineCoordinator.prototype.applyRoom.bind(master);
+  master.updateSessionUi = () => {};
+  master.scheduleMasterHandover = () => {};
+  master.bridge.playOnlineEvent = (event) => played.push(event.type);
+  master.lastEventSeq = 0;
+  const room = store.value.teamBingoV1.rooms.ROOM;
+  room.lock = { actionId: "remote-lock", uid: "guest", expiresAt: Date.now() + 5000 };
+
+  setTimeout(() => {
+    room.game.blue.marked[1] = true;
+    room.meta.revision = 1;
+    room.meta.eventSeq = 1;
+    room.events[1] = { actionId: "remote-action", type: "toggle-cell" };
+    room.lock = null;
+  }, 20);
+
+  const synced = await master.syncCurrentState("match-ready");
+
+  assert.equal(synced, false);
+  assert.equal(store.value.teamBingoV1.rooms.ROOM.meta.revision, 1);
+  assert.equal(store.value.teamBingoV1.rooms.ROOM.game.blue.marked[1], true);
+  assert.equal(store.value.teamBingoV1.rooms.ROOM.events[2], undefined);
+  assert.deepEqual(played, ["toggle-cell"]);
 });

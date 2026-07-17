@@ -5,7 +5,8 @@ import {
   applyStatsDelta,
   createStatsDelta,
   mergeLegacyStats,
-  normalizeCountBackup
+  normalizeCountBackup,
+  selectCountExportRanking
 } from "../online/online-room.js";
 
 const emptyStats = () => ({
@@ -83,4 +84,70 @@ test("count backups reject Firebase-unsafe keys", () => {
     () => normalizeCountBackup({ cellRanking: { "bad/key": 1 } }),
     /使用できないキー/
   );
+});
+
+test("an intentionally empty online ranking never falls back to stale local data", () => {
+  assert.deepEqual(
+    selectCountExportRanking(
+      { ranking: {} },
+      { ranking: { 53: 9 } },
+      { ranking: { 69: 7 } }
+    ),
+    {}
+  );
+});
+
+test("ranking export falls back only when the online ranking field is absent", () => {
+  assert.deepEqual(
+    selectCountExportRanking(
+      { playerStats: { players: {} } },
+      { ranking: { 53: 4 } },
+      { ranking: { 69: 2 } }
+    ),
+    { 53: 4 }
+  );
+});
+
+test("count backup round-trips ranking, player, rivalry, and recent match data", () => {
+  const restored = normalizeCountBackup({
+    version: 2,
+    cellRanking: { 53: 8, 69: 3 },
+    playerStats: {
+      players: {
+        jan: {
+          name: "JAN",
+          games: 4,
+          wins: 3,
+          losses: 1,
+          opens: 12,
+          skills: 2,
+          mvps: 1,
+          openedCharacters: { 53: 2 },
+          specialCharacters: { 69: 1 },
+          skillUsage: { jan: 2 },
+          lastPlayedAt: "2026-07-17T10:00:00.000Z"
+        }
+      },
+      rivalries: {
+        "jan-vs-eda": {
+          players: { jan: "JAN", eda: "EDA" },
+          games: 3,
+          wins: { jan: 2, eda: 1 },
+          lastWinner: "jan",
+          lastPlayedAt: "2026-07-17T10:00:00.000Z"
+        }
+      },
+      recentMatches: [
+        { id: "match-1", winner: "red", endedAt: "2026-07-17T10:00:00.000Z" }
+      ]
+    }
+  });
+
+  assert.deepEqual(restored.ranking, { 53: 8, 69: 3 });
+  assert.equal(restored.playerStats.players.jan.games, 4);
+  assert.equal(restored.playerStats.players.jan.opens, 12);
+  assert.deepEqual(restored.playerStats.players.jan.skillUsage, { jan: 2 });
+  assert.equal(restored.playerStats.rivalries["jan-vs-eda"].games, 3);
+  assert.deepEqual(restored.playerStats.rivalries["jan-vs-eda"].wins, { jan: 2, eda: 1 });
+  assert.equal(restored.playerStats.recentMatches[0].id, "match-1");
 });
