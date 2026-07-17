@@ -1531,6 +1531,22 @@ test("a departing master hands control to a player, never an older spectator", a
   assert.equal(updated.participants.master, undefined);
 });
 
+test("a departing player leaves the lobby refresh to the active master", async () => {
+  const store = createStore();
+  const guest = createCoordinator(store, "guest", "player", "blue");
+  guest.roomUnsubscribe = () => {};
+  guest.stopHeartbeat = () => {};
+  guest.updateSessionUi = () => {};
+  guest.showLobby = () => {};
+  guest.bridge.onRoomLeft = () => {};
+  let published = 0;
+  guest.publishLobbySummary = async () => { published += 1; };
+
+  assert.equal(await guest.leaveRoom({ switching: true }), true);
+  assert.equal(store.value.teamBingoV1.rooms.ROOM.participants.guest, undefined);
+  assert.equal(published, 0);
+});
+
 test("a departing master closes the room when no player can take over", async () => {
   const store = createStore();
   const room = store.value.teamBingoV1.rooms.ROOM;

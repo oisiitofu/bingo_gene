@@ -1929,11 +1929,13 @@ export class OnlineCoordinator {
         this.showError("LEAVE ERROR", "退出処理が競合しました。もう一度お試しください。");
         return false;
       }
-      try {
-        await this.publishLobbySummary(result.value, roomId);
-      } catch (error) {
-        if (result.value) {
-          console.warn("Lobby summary could not be updated after leave", error);
+      if (!result.value || result.value.meta?.masterUid === this.backend.uid) {
+        try {
+          await this.publishLobbySummary(result.value, roomId);
+        } catch (error) {
+          if (result.value) {
+            console.warn("Lobby summary could not be updated after leave", error);
+          }
         }
       }
     }
