@@ -4,6 +4,7 @@ import assert from "node:assert/strict";
 import {
   applyStatsDelta,
   createCountBackupPayload,
+  createOnlineSeatRecord,
   createStatsDelta,
   mergeLegacyStats,
   normalizeCountBackup,
@@ -17,6 +18,26 @@ const emptyStats = () => ({
   ranking: {},
   playerStats: { players: {}, rivalries: {}, recentMatches: [] },
   processedActions: {}
+});
+
+test("new online seats keep their browser reclaim token on the seat record", () => {
+  assert.deepEqual(createOnlineSeatRecord({
+    uid: "master",
+    deviceId: "tab-1",
+    name: "Player 1",
+    team: "red",
+    now: 12_000,
+    reclaimToken: "seat-token"
+  }), {
+    uid: "master",
+    deviceId: "tab-1",
+    name: "Player 1",
+    team: "red",
+    online: true,
+    joinedAt: 12_000,
+    lastSeenAt: 12_000,
+    reclaimToken: "seat-token"
+  });
 });
 
 test("cell opens and closes produce reversible ranking deltas", () => {

@@ -49,6 +49,27 @@ function playerKey(value) {
   return normalizeName(value).toLocaleLowerCase("ja-JP").replace(/[.#$\[\]/]/g, "_");
 }
 
+export function createOnlineSeatRecord({
+  uid = "",
+  deviceId = "",
+  name = "",
+  team = "",
+  now = Date.now(),
+  joinedAt = 0,
+  reclaimToken = ""
+} = {}) {
+  return {
+    uid,
+    deviceId,
+    name,
+    team,
+    online: true,
+    joinedAt: Number(joinedAt) || Number(now),
+    lastSeenAt: Number(now),
+    ...(reclaimToken ? { reclaimToken } : {})
+  };
+}
+
 function getAtPath(source, path) {
   const parts = String(path || "").split("/").filter(Boolean);
   let current = source;
@@ -596,6 +617,28 @@ export class OnlineCoordinator {
   roomPath(roomId = this.roomId, part = "") { return this.path(["rooms", roomId, part].filter(Boolean).join("/")); }
   lobbyPath(roomId = this.roomId) { return this.path(["lobby", roomId].filter(Boolean).join("/")); }
 
+  seatReclaimStorageKey(roomId, seatKey) {
+    return `teamBingo.seatReclaim.v1.${encodeURIComponent(roomId)}.${encodeURIComponent(seatKey)}`;
+  }
+
+  readSeatReclaimToken(roomId, seatKey) {
+    if (!roomId || !seatKey) return "";
+    try { return localStorage.getItem(this.seatReclaimStorageKey(roomId, seatKey)) || ""; }
+    catch { return ""; }
+  }
+
+  storeSeatReclaimToken(roomId, seatKey, token) {
+    if (!roomId || !seatKey || !token) return;
+    try { localStorage.setItem(this.seatReclaimStorageKey(roomId, seatKey), token); }
+    catch {}
+  }
+
+  clearSeatReclaimToken(roomId, seatKey) {
+    if (!roomId || !seatKey) return;
+    try { localStorage.removeItem(this.seatReclaimStorageKey(roomId, seatKey)); }
+    catch {}
+  }
+
   async init() {
     if (!this.enabled) {
       this.setStatus("local", "LOCAL MODE");
@@ -1112,6 +1155,7 @@ export class OnlineCoordinator {
       const masterName = normalizeName(masterSelection.name);
       const masterTeam = masterSelection.team === "blue" ? "blue" : "red";
       const masterSeatKey = playerKey(masterName);
+      const masterReclaimToken = masterSeatKey ? randomId("seat-reclaim") : "";
       const room = {
         meta: {
           id: roomId,
@@ -1140,15 +1184,14 @@ export class OnlineCoordinator {
           }
         },
         seats: masterName ? {
-          [masterSeatKey]: {
+          [masterSeatKey]: createOnlineSeatRecord({
             uid: this.backend.uid,
             deviceId: this.deviceId,
             name: masterName,
             team: masterTeam,
-            online: true,
-            joinedAt: now,
-            lastSeenAt: now
-          }
+            now,
+            reclaimToken: masterReclaimToken
+          })
         } : {},
         events: {},
         processedActions: {}
@@ -1169,6 +1212,7 @@ export class OnlineCoordinator {
       this.team = masterTeam;
       this.memberName = masterName;
       this.seatKey = masterSeatKey;
+      this.storeSeatReclaimToken(roomId, masterSeatKey, masterReclaimToken);
       await this.enterRoom(roomId, room);
       this.saveSession();
       createdRoomId = roomId;
@@ -1313,6 +1357,8 @@ export class OnlineCoordinator {
     ];
     this.backend.get(this.roomPath(roomId)).then((room) => {
       const seats = room?.seats || {};
+      const now = this.backend.serverNow();
+      const holdMs = Math.max(10, Number(this.config.seatHoldSeconds) || 60) * 1000;
       const currentSeatEntry = Object.entries(seats).find(([, seat]) => seat?.uid === this.backend.uid);
       const currentSeatKey = currentSeatEntry?.[0] || "";
       const currentParticipant = room?.participants?.[this.backend.uid];
@@ -1323,11 +1369,14 @@ export class OnlineCoordinator {
           ${members.length ? members.map((name) => {
             const key = playerKey(name);
             const seat = seats[key];
-            const occupiedByOther = Boolean(seat?.online && seat.uid !== this.backend.uid && seat.deviceId !== this.deviceId);
+            const reclaimToken = this.readSeatReclaimToken(roomId, key);
+            const held = Boolean(seat?.online || (seat?.disconnectedAt && now - Number(seat.disconnectedAt) < holdMs));
+            const reclaimable = Boolean(!seat?.online && held && reclaimToken && seat?.reclaimToken === reclaimToken);
+            const occupiedByOther = Boolean(held && seat?.uid !== this.backend.uid && seat?.deviceId !== this.deviceId && !reclaimable);
             const occupiedByCurrentIdentity = Boolean(currentIdentityOnline && currentSeatKey !== key);
             const occupied = occupiedByOther || occupiedByCurrentIdentity;
             const reconnecting = Boolean(currentIdentityOnline && currentSeatKey === key);
-            const hint = occupied ? "参加中" : (reconnecting ? "この名前で再接続" : "この名前で入る");
+            const hint = occupied ? "参加中" : (reconnecting || reclaimable ? "この名前で再接続" : "この名前で入る");
             return `<button type="button" class="online-seat-button" data-online-seat="1" data-room-id="${roomId}" data-member-name="${this.bridge.escapeHtml?.(name) || name}" data-team="${team}" ${occupied ? "disabled" : ""}>${this.bridge.escapeHtml?.(name) || name}<small>${hint}</small></button>`;
           }).join("") : `<span class="online-room-meta">メンバー未設定</span>`}
         </div>
@@ -1350,6 +1399,8 @@ export class OnlineCoordinator {
       }
       const name = normalizeName(selection.name);
       const key = selection.spectator ? "" : playerKey(name);
+      const savedReclaimToken = key ? this.readSeatReclaimToken(roomId, key) : "";
+      const nextReclaimToken = key ? (savedReclaimToken || randomId("seat-reclaim")) : "";
       const now = this.backend.serverNow();
       const holdMs = Math.max(10, Number(this.config.seatHoldSeconds) || 60) * 1000;
       let abortReason = "";
@@ -1378,22 +1429,30 @@ export class OnlineCoordinator {
           const occupied = room.seats[key];
           const held = occupied?.online || (occupied?.disconnectedAt && now - occupied.disconnectedAt < holdMs);
           const sameBrowser = occupied?.deviceId && occupied.deviceId === this.deviceId;
-          if (occupied?.uid !== this.backend.uid && !sameBrowser && held) {
+          const reclaimable = Boolean(
+            occupied &&
+            !occupied.online &&
+            savedReclaimToken &&
+            occupied.reclaimToken === savedReclaimToken
+          );
+          if (occupied?.uid !== this.backend.uid && !sameBrowser && !reclaimable && held) {
             abortReason = "その名前は別の参加者が使用中です";
             return undefined;
           }
-          if (sameBrowser && occupied?.uid && occupied.uid !== this.backend.uid) {
-            delete room.participants[occupied.uid];
+          const replacedUid = occupied?.uid && occupied.uid !== this.backend.uid ? occupied.uid : "";
+          if (replacedUid) {
+            delete room.participants[replacedUid];
+            if (room.meta.masterUid === replacedUid) room.meta.masterUid = this.backend.uid;
           }
-          room.seats[key] = {
+          room.seats[key] = createOnlineSeatRecord({
             uid: this.backend.uid,
             deviceId: this.deviceId,
             name,
             team: selection.team,
-            online: true,
+            now,
             joinedAt: occupied?.joinedAt || now,
-            lastSeenAt: now
-          };
+            reclaimToken: reclaimable ? occupied.reclaimToken : nextReclaimToken
+          });
         }
         const remainsMaster = room.meta.masterUid === this.backend.uid;
         room.participants[this.backend.uid] = {
@@ -1419,6 +1478,7 @@ export class OnlineCoordinator {
       this.team = joinedParticipant.team || "";
       this.memberName = this.role === "spectator" ? "観戦" : (joinedParticipant.memberName || name);
       this.seatKey = key;
+      if (key) this.storeSeatReclaimToken(roomId, key, result.value?.seats?.[key]?.reclaimToken || nextReclaimToken);
       await this.enterRoom(roomId, result.value);
       this.saveSession();
       this.ui.seatDialog.close();
@@ -1685,6 +1745,7 @@ export class OnlineCoordinator {
     }
     this.roomUnsubscribe?.();
     this.roomUnsubscribe = null;
+    this.clearSeatReclaimToken(roomId, key);
     this.roomId = "";
     this.room = null;
     this.role = "";

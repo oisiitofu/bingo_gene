@@ -224,6 +224,14 @@ globalThis.sessionStorage = {
   clear() { sessionValues.clear(); }
 };
 
+const localValues = new Map();
+globalThis.localStorage = {
+  getItem(key) { return localValues.has(key) ? localValues.get(key) : null; },
+  setItem(key, value) { localValues.set(key, String(value)); },
+  removeItem(key) { localValues.delete(key); },
+  clear() { localValues.clear(); }
+};
+
 test("Firebase presence operations are queued and canceled for both participant and seat", async () => {
   const backend = new FirebaseBackend({});
   const operations = [];
@@ -819,6 +827,7 @@ test("an occupied seat is held, then becomes joinable after the disconnect timeo
     second.lastError = "";
     await second.joinRoom("ROOM", { name: "Guest", team: "blue", spectator: false });
     assert.equal(store.value.teamBingoV1.rooms.ROOM.seats.guest.uid, "guest-b");
+    assert.equal(store.value.teamBingoV1.rooms.ROOM.participants["guest-a"], undefined);
     assert.equal(second.lastError, "");
   } finally {
     console.error = originalError;
@@ -838,6 +847,117 @@ test("the same browser can reclaim a seat after anonymous auth changes", async (
   assert.equal(room.seats.guest.uid, "guest-b");
   assert.equal(room.participants["guest-a"], undefined);
   assert.equal(room.participants["guest-b"].memberName, "Guest");
+});
+
+test("a reopened tab can immediately reclaim its offline seat with a seat token", async () => {
+  const store = createStore();
+  const room = store.value.teamBingoV1.rooms.ROOM;
+  delete room.participants.guest;
+  room.participants["guest-old"] = {
+    uid: "guest-old",
+    role: "player",
+    team: "blue",
+    memberName: "Guest",
+    online: false,
+    disconnectedAt: Date.now()
+  };
+  room.seats = {
+    guest: {
+      uid: "guest-old",
+      deviceId: "closed-tab",
+      name: "Guest",
+      team: "blue",
+      online: false,
+      disconnectedAt: Date.now(),
+      reclaimToken: "seat-token"
+    }
+  };
+  const reopened = prepareJoinCoordinator(store, "guest-new", "new-tab");
+  reopened.storeSeatReclaimToken("ROOM", "guest", "seat-token");
+
+  await reopened.joinRoom("ROOM", { name: "Guest", team: "blue", spectator: false });
+
+  const updated = store.value.teamBingoV1.rooms.ROOM;
+  assert.equal(updated.seats.guest.uid, "guest-new");
+  assert.equal(updated.seats.guest.reclaimToken, "seat-token");
+  assert.equal(updated.participants["guest-old"], undefined);
+  assert.equal(updated.participants["guest-new"].memberName, "Guest");
+  assert.equal(reopened.lastError, undefined);
+});
+
+test("a seat token never steals a seat that is still online", async () => {
+  const store = createStore();
+  const room = store.value.teamBingoV1.rooms.ROOM;
+  delete room.participants.guest;
+  room.participants["guest-old"] = {
+    uid: "guest-old",
+    role: "player",
+    team: "blue",
+    memberName: "Guest",
+    online: true
+  };
+  room.seats = {
+    guest: {
+      uid: "guest-old",
+      deviceId: "active-tab",
+      name: "Guest",
+      team: "blue",
+      online: true,
+      reclaimToken: "seat-token"
+    }
+  };
+  const otherTab = prepareJoinCoordinator(store, "guest-new", "new-tab");
+  otherTab.storeSeatReclaimToken("ROOM", "guest", "seat-token");
+  const originalError = console.error;
+  console.error = () => {};
+
+  try {
+    await otherTab.joinRoom("ROOM", { name: "Guest", team: "blue", spectator: false });
+    await new Promise((resolve) => setTimeout(resolve, 0));
+
+    assert.equal(store.value.teamBingoV1.rooms.ROOM.seats.guest.uid, "guest-old");
+    assert.equal(store.value.teamBingoV1.rooms.ROOM.participants["guest-new"], undefined);
+    assert.match(otherTab.lastError, /^JOIN ERROR:/);
+  } finally {
+    console.error = originalError;
+  }
+});
+
+test("reclaiming an offline master seat transfers master ownership to the new uid", async () => {
+  const store = createStore();
+  const room = store.value.teamBingoV1.rooms.ROOM;
+  delete room.participants.master;
+  room.meta.masterUid = "master-old";
+  room.participants["master-old"] = {
+    uid: "master-old",
+    role: "master",
+    team: "red",
+    memberName: "Master",
+    online: false,
+    disconnectedAt: Date.now()
+  };
+  room.seats = {
+    master: {
+      uid: "master-old",
+      deviceId: "closed-tab",
+      name: "Master",
+      team: "red",
+      online: false,
+      disconnectedAt: Date.now(),
+      reclaimToken: "master-seat-token"
+    }
+  };
+  const reopened = prepareJoinCoordinator(store, "master-new", "new-tab");
+  reopened.storeSeatReclaimToken("ROOM", "master", "master-seat-token");
+
+  await reopened.joinRoom("ROOM", { name: "Master", team: "red", spectator: false });
+
+  const updated = store.value.teamBingoV1.rooms.ROOM;
+  assert.equal(updated.meta.masterUid, "master-new");
+  assert.equal(updated.participants["master-old"], undefined);
+  assert.equal(updated.participants["master-new"].role, "master");
+  assert.equal(updated.seats.master.uid, "master-new");
+  assert.equal(reopened.role, "master");
 });
 
 test("a second tab with the same uid cannot replace the active master seat", async () => {
