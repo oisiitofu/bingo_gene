@@ -510,6 +510,63 @@ test("same-cell races reject the stale second action without double counting", a
   }
 });
 
+test("a replaced stale tab cannot submit actions for its former seat", async () => {
+  const store = createStore();
+  const staleGuest = createCoordinator(store, "guest", "player", "blue");
+  staleGuest.seatKey = "guest";
+  const room = store.value.teamBingoV1.rooms.ROOM;
+  delete room.participants.guest;
+  room.participants["guest-new"] = {
+    uid: "guest-new",
+    role: "player",
+    team: "blue",
+    memberName: "Guest",
+    online: true
+  };
+  room.seats = {
+    guest: { uid: "guest-new", team: "blue", online: true }
+  };
+  const originalError = console.error;
+  console.error = () => {};
+
+  try {
+    const changed = await staleGuest.requestAction(
+      { type: "toggle-cell", payload: { team: "blue", index: 0, expectedMarked: false } },
+      () => { staleGuest.testState.game.blue.marked[0] = true; }
+    );
+
+    assert.equal(changed, false);
+    assert.equal(store.value.teamBingoV1.rooms.ROOM.game.blue.marked[0], false);
+    assert.match(staleGuest.lastError, /^SYNC RETRY:/);
+  } finally {
+    console.error = originalError;
+  }
+});
+
+test("a stale former master cannot submit master-only actions after handover", async () => {
+  const store = createStore();
+  const staleMaster = createCoordinator(store, "master", "master", "red");
+  const room = store.value.teamBingoV1.rooms.ROOM;
+  room.meta.masterUid = "guest";
+  room.participants.master.role = "player";
+  room.participants.guest.role = "master";
+  const originalError = console.error;
+  console.error = () => {};
+
+  try {
+    const changed = await staleMaster.requestAction(
+      { type: "shuffle-teams", masterOnly: true, payload: {} },
+      () => { staleMaster.testState.game.gameStarted = false; }
+    );
+
+    assert.equal(changed, false);
+    assert.equal(store.value.teamBingoV1.rooms.ROOM.game.gameStarted, true);
+    assert.match(staleMaster.lastError, /^SYNC RETRY:/);
+  } finally {
+    console.error = originalError;
+  }
+});
+
 test("a participant reload restores its seat and online presence", async () => {
   const store = createStore();
   const room = store.value.teamBingoV1.rooms.ROOM;
@@ -606,6 +663,53 @@ test("a reconnect re-arms disconnect tracking before restoring participant and s
   assert.equal(store.value.teamBingoV1.rooms.ROOM.seats.blue0.online, true);
 });
 
+test("a stale heartbeat cannot recreate a participant after its seat was reclaimed", async () => {
+  const store = createStore();
+  const staleGuest = createCoordinator(store, "guest", "player", "blue");
+  staleGuest.seatKey = "guest";
+  staleGuest.roomUnsubscribe = () => {};
+  staleGuest.updateSessionUi = () => {};
+  staleGuest.showLobby = () => {};
+  staleGuest.bridge.onRoomLeft = () => {};
+  staleGuest.storeSeatReclaimToken("ROOM", "guest", "seat-token");
+  const room = store.value.teamBingoV1.rooms.ROOM;
+  delete room.participants.guest;
+  room.participants["guest-new"] = {
+    uid: "guest-new",
+    role: "player",
+    team: "blue",
+    memberName: "Guest",
+    online: true
+  };
+  room.seats = {
+    guest: { uid: "guest-new", team: "blue", online: true }
+  };
+  const previousSetInterval = window.setInterval;
+  const previousClearInterval = window.clearInterval;
+  let heartbeatTick = null;
+  window.setInterval = (callback) => {
+    heartbeatTick = callback;
+    return 1;
+  };
+  window.clearInterval = () => {};
+
+  try {
+    staleGuest.startHeartbeat();
+    assert.equal(typeof heartbeatTick, "function");
+    await heartbeatTick();
+    await new Promise((resolve) => setTimeout(resolve, 5));
+
+    assert.equal(store.value.teamBingoV1.rooms.ROOM.participants.guest, undefined);
+    assert.equal(store.value.teamBingoV1.rooms.ROOM.seats.guest.uid, "guest-new");
+    assert.equal(staleGuest.roomId, "");
+    assert.equal(staleGuest.readSeatReclaimToken("ROOM", "guest"), "seat-token");
+  } finally {
+    staleGuest.heartbeatTimer = 0;
+    window.setInterval = previousSetInterval;
+    window.clearInterval = previousClearInterval;
+  }
+});
+
 test("explicit leave cancels disconnect tracking before removing the participant", async () => {
   const store = createStore();
   const room = store.value.teamBingoV1.rooms.ROOM;
@@ -639,6 +743,27 @@ test("explicit leave cancels disconnect tracking before removing the participant
   assert.equal(guest.backend.presenceClearCount, 1);
   assert.equal(store.value.teamBingoV1.rooms.ROOM.participants.guest, undefined);
   assert.equal(store.value.teamBingoV1.rooms.ROOM.seats.blue0, undefined);
+});
+
+test("duplicate leave requests share no overlapping room cleanup", async () => {
+  const store = createStore();
+  const guest = createCoordinator(store, "guest", "player", "blue");
+  let releaseCleanup = null;
+  let cleanupCalls = 0;
+  guest.leaveRoomInternal = async () => {
+    cleanupCalls += 1;
+    return new Promise((resolve) => { releaseCleanup = resolve; });
+  };
+
+  const firstLeave = guest.leaveRoom();
+  await new Promise((resolve) => setTimeout(resolve, 0));
+  const secondLeave = await guest.leaveRoom();
+
+  assert.equal(secondLeave, false);
+  assert.equal(cleanupCalls, 1);
+  releaseCleanup(true);
+  assert.equal(await firstLeave, true);
+  assert.equal(guest.leavingRoom, false);
 });
 
 test("a failed leave keeps the session and re-enables reconnect tracking", async () => {

@@ -6,8 +6,18 @@
       ".read": "auth != null",
       "rooms": {
         "$roomId": {
-          ".write": "auth != null && (!data.exists() || data.child('meta').child('masterUid').val() === auth.uid || data.child('participants').child(auth.uid).exists() || newData.child('participants').child(auth.uid).exists() || (!newData.exists() && data.child('meta').child('updatedAt').isNumber() && data.child('meta').child('updatedAt').val() < now - 600000) || (root.child('teamBingoV1').child('adminSessions').child(auth.uid).child('expiresAt').isNumber() && root.child('teamBingoV1').child('adminSessions').child(auth.uid).child('expiresAt').val() > now))",
-          ".validate": "!newData.exists() || (newData.hasChildren(['meta', 'setup', 'participants']) && newData.child('meta').hasChildren(['id', 'masterUid', 'revision', 'eventSeq', 'active']))"
+          ".write": "auth != null && (!data.exists() || data.child('meta').child('masterUid').val() === auth.uid || data.child('participants').child(auth.uid).exists() || (!data.child('participants').child(auth.uid).exists() && newData.child('participants').child(auth.uid).exists() && newData.child('meta').child('revision').val() === data.child('meta').child('revision').val() && newData.child('meta').child('eventSeq').val() === data.child('meta').child('eventSeq').val()) || (!newData.exists() && data.child('meta').child('updatedAt').isNumber() && data.child('meta').child('updatedAt').val() < now - 600000) || (root.child('teamBingoV1').child('adminSessions').child(auth.uid).child('expiresAt').isNumber() && root.child('teamBingoV1').child('adminSessions').child(auth.uid).child('expiresAt').val() > now))",
+          ".validate": "!newData.exists() || (newData.hasChildren(['meta', 'setup', 'participants']) && newData.child('meta').hasChildren(['id', 'masterUid', 'revision', 'eventSeq', 'active']))",
+          "participants": {
+            "$uid": {
+              ".validate": "!newData.exists() || (newData.hasChildren(['uid', 'role', 'online', 'joinedAt', 'lastSeenAt']) && newData.child('uid').val() === $uid && (newData.child('role').val() === 'master' || newData.child('role').val() === 'player' || newData.child('role').val() === 'spectator') && newData.child('online').isBoolean() && newData.child('joinedAt').isNumber() && newData.child('lastSeenAt').isNumber())"
+            }
+          },
+          "seats": {
+            "$seatKey": {
+              ".validate": "!newData.exists() || (newData.hasChildren(['uid', 'deviceId', 'name', 'team', 'online', 'joinedAt', 'lastSeenAt']) && newData.child('uid').isString() && newData.child('deviceId').isString() && newData.child('name').isString() && (newData.child('team').val() === 'red' || newData.child('team').val() === 'blue') && newData.child('online').isBoolean() && newData.child('joinedAt').isNumber() && newData.child('lastSeenAt').isNumber())"
+            }
+          }
         }
       },
       "lobby": {

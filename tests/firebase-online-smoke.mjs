@@ -14,13 +14,21 @@ const readConfigValue = (name) => {
 };
 
 const apiKey = readConfigValue("apiKey");
-const databaseUrl = readConfigValue("databaseURL").replace(/\/$/, "");
+const projectId = readConfigValue("projectId");
+const authEmulatorHost = process.env.FIREBASE_AUTH_EMULATOR_HOST || "";
+const databaseEmulatorHost = process.env.FIREBASE_DATABASE_EMULATOR_HOST || "";
+const identityBaseUrl = authEmulatorHost
+  ? `http://${authEmulatorHost}/identitytoolkit.googleapis.com/v1`
+  : "https://identitytoolkit.googleapis.com/v1";
+const databaseUrl = databaseEmulatorHost
+  ? `http://${databaseEmulatorHost}`
+  : readConfigValue("databaseURL").replace(/\/$/, "");
 const root = readConfigValue("databaseRoot");
 const pinHash = "6440e6a91202aeddb45b070a80533f65a689c37d0cf1842ab2bd962e33377880";
 const roomId = `SMOKE-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`.toUpperCase();
 
 async function signUp() {
-  const response = await fetch(`https://identitytoolkit.googleapis.com/v1/accounts:signUp?key=${apiKey}`, {
+  const response = await fetch(`${identityBaseUrl}/accounts:signUp?key=${apiKey}`, {
     method: "POST",
     headers: { "content-type": "application/json" },
     body: JSON.stringify({ returnSecureToken: true })
@@ -32,7 +40,7 @@ async function signUp() {
 
 async function deleteAccount(account) {
   if (!account?.idToken) return;
-  await fetch(`https://identitytoolkit.googleapis.com/v1/accounts:delete?key=${apiKey}`, {
+  await fetch(`${identityBaseUrl}/accounts:delete?key=${apiKey}`, {
     method: "POST",
     headers: { "content-type": "application/json" },
     body: JSON.stringify({ idToken: account.idToken })
@@ -40,7 +48,9 @@ async function deleteAccount(account) {
 }
 
 async function databaseRequest(method, path, token, body) {
-  const response = await fetch(`${databaseUrl}/${root}/${path}.json?auth=${encodeURIComponent(token)}`, {
+  const query = new URLSearchParams({ auth: token });
+  if (databaseEmulatorHost) query.set("ns", projectId);
+  const response = await fetch(`${databaseUrl}/${root}/${path}.json?${query}`, {
     method,
     headers: body === undefined ? {} : { "content-type": "application/json" },
     body: body === undefined ? undefined : JSON.stringify(body)
@@ -124,6 +134,18 @@ try {
   });
   assert.equal(joined.ok, true, `Member could not join room: ${JSON.stringify(joined)}`);
 
+  const memberDisconnected = await databaseRequest("PATCH", `rooms/${roomId}/participants/${member.localId}`, member.idToken, {
+    online: false,
+    disconnectedAt: Date.now()
+  });
+  assert.equal(memberDisconnected.ok, true, `Member presence could not disconnect cleanly: ${JSON.stringify(memberDisconnected)}`);
+  const memberReconnected = await databaseRequest("PATCH", `rooms/${roomId}/participants/${member.localId}`, member.idToken, {
+    online: true,
+    lastSeenAt: Date.now(),
+    disconnectedAt: null
+  });
+  assert.equal(memberReconnected.ok, true, `Member presence could not reconnect cleanly: ${JSON.stringify(memberReconnected)}`);
+
   const memberLobbyUpdate = await databaseRequest("PATCH", `lobby/${roomId}`, member.idToken, {
     phase: "playing",
     updatedAt: Date.now()
@@ -144,6 +166,31 @@ try {
     gameStarted: true
   });
   assert.equal(memberWrite.ok, true, `Participant could not change the game: ${JSON.stringify(memberWrite)}`);
+
+  const removedMember = await databaseRequest("DELETE", `rooms/${roomId}/participants/${member.localId}`, master.idToken);
+  assert.equal(removedMember.ok, true, `Master could not remove the member fixture: ${JSON.stringify(removedMember)}`);
+  const staleHeartbeat = await databaseRequest("PATCH", `rooms/${roomId}/participants/${member.localId}`, member.idToken, {
+    online: true,
+    lastSeenAt: Date.now()
+  });
+  assert.equal(staleHeartbeat.ok, false, "A stale heartbeat unexpectedly recreated a partial participant");
+  assert.equal(staleHeartbeat.status, 401, "A stale heartbeat should receive permission_denied");
+  const staleCachedWrite = await databaseRequest("PATCH", `rooms/${roomId}`, member.idToken, {
+    [`participants/${member.localId}`]: {
+      uid: member.localId,
+      role: "player",
+      team: "blue",
+      memberName: "Smoke Member",
+      online: true,
+      joinedAt: now,
+      lastSeenAt: Date.now()
+    },
+    "game/gameStarted": false,
+    "meta/revision": 1,
+    "meta/eventSeq": 1
+  });
+  assert.equal(staleCachedWrite.ok, false, "A removed participant unexpectedly restored a stale game snapshot");
+  assert.equal(staleCachedWrite.status, 401, "A removed participant stale write should receive permission_denied");
 
   closeId = `${roomId}-CLOSE`;
   const closeRoom = structuredClone(room);

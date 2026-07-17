@@ -595,6 +595,8 @@ export class OnlineCoordinator {
     this.heartbeatTimer = 0;
     this.connectionUnsubscribe = null;
     this.presenceRefreshPromise = null;
+    this.membershipLossTimer = 0;
+    this.leavingRoom = false;
     this.localMode = false;
     this.roomDraft = false;
     this.pendingDraftRoom = null;
@@ -638,6 +640,36 @@ export class OnlineCoordinator {
     if (!roomId || !seatKey) return;
     try { localStorage.removeItem(this.seatReclaimStorageKey(roomId, seatKey)); }
     catch {}
+  }
+
+  hasAuthoritativeMembership(room, seatKey = this.seatKey) {
+    const uid = this.backend?.uid;
+    if (!uid || !room?.participants?.[uid]) return false;
+    if (seatKey && room.seats?.[seatKey]?.uid !== uid) return false;
+    return true;
+  }
+
+  canPerformAuthoritativeAction(room, action = {}) {
+    if (!this.hasAuthoritativeMembership(room)) return false;
+    const uid = this.backend.uid;
+    const participant = room.participants[uid];
+    const isMaster = room.meta?.masterUid === uid;
+    if (action.masterOnly && !isMaster) return false;
+    const team = action?.payload?.team || "";
+    if (team && !isMaster && (participant.role !== "player" || participant.team !== team)) return false;
+    return true;
+  }
+
+  scheduleMembershipLossCheck(roomId = this.roomId) {
+    if (!roomId || this.membershipLossTimer || this.leavingRoom) return;
+    this.membershipLossTimer = window.setTimeout(async () => {
+      this.membershipLossTimer = 0;
+      if (this.roomId !== roomId) return;
+      const current = await this.backend.get(this.roomPath(roomId)).catch(() => null);
+      if (!current || this.hasAuthoritativeMembership(current)) return;
+      this.bridge.showOnlineMessage?.("SESSION MOVED", "この参加枠は別のタブへ引き継がれました。");
+      await this.leaveRoom({ remoteClosed: true, preserveReclaimToken: true });
+    }, 0);
   }
 
   async init() {
@@ -1603,6 +1635,8 @@ export class OnlineCoordinator {
       this.role = participant.role || this.role;
       this.team = participant.team || "";
       this.memberName = participant.memberName || (this.role === "spectator" ? "観戦" : this.memberName);
+    } else if (this.roomId && !this.leavingRoom) {
+      this.scheduleMembershipLossCheck(this.roomId);
     }
     this.updateSessionUi();
     this.scheduleMasterHandover(room);
@@ -1679,6 +1713,17 @@ export class OnlineCoordinator {
 
   async leaveRoom(options = {}) {
     if (!this.roomId) return true;
+    if (this.leavingRoom) return false;
+    this.leavingRoom = true;
+    try {
+      return await this.leaveRoomInternal(options);
+    } finally {
+      this.leavingRoom = false;
+    }
+  }
+
+  async leaveRoomInternal(options = {}) {
+    if (!this.roomId) return true;
     const roomId = this.roomId;
     const key = this.seatKey;
     const wasMaster = this.isMaster();
@@ -1746,7 +1791,7 @@ export class OnlineCoordinator {
     }
     this.roomUnsubscribe?.();
     this.roomUnsubscribe = null;
-    this.clearSeatReclaimToken(roomId, key);
+    if (!options.preserveReclaimToken) this.clearSeatReclaimToken(roomId, key);
     this.roomId = "";
     this.room = null;
     this.role = "";
@@ -1757,6 +1802,8 @@ export class OnlineCoordinator {
     this.stopHeartbeat();
     if (this.masterHandoverTimer) window.clearTimeout(this.masterHandoverTimer);
     this.masterHandoverTimer = 0;
+    if (this.membershipLossTimer) window.clearTimeout(this.membershipLossTimer);
+    this.membershipLossTimer = 0;
     this.updateSessionUi();
     document.body.classList.remove("online-readonly", "online-spectator", "online-team-red", "online-team-blue");
     this.bridge.onRoomLeft?.();
@@ -1794,19 +1841,35 @@ export class OnlineCoordinator {
     this.stopHeartbeat();
     const tick = async () => {
       if (!this.roomId || !this.backend) return;
+      const roomId = this.roomId;
+      const seatKey = this.seatKey;
       const now = this.backend.serverNow();
-      const participantPath = this.roomPath(this.roomId, `participants/${this.backend.uid}`);
-      await this.backend.update({
-        [`${participantPath}/online`]: true,
-        [`${participantPath}/lastSeenAt`]: now
-      }).catch(() => {});
-      if (this.isMaster()) {
-        const result = await this.backend.transaction(this.roomPath(), (room) => {
-          if (!room || room.meta?.masterUid !== this.backend.uid) return room;
-          room.meta.updatedAt = now;
+      let result = null;
+      try {
+        result = await this.backend.transaction(this.roomPath(roomId), (room) => {
+          if (!this.hasAuthoritativeMembership(room, seatKey)) return undefined;
+          const participant = room.participants[this.backend.uid];
+          participant.online = true;
+          participant.lastSeenAt = now;
+          participant.disconnectedAt = null;
+          if (seatKey) {
+            room.seats[seatKey].online = true;
+            room.seats[seatKey].lastSeenAt = now;
+            room.seats[seatKey].disconnectedAt = null;
+          }
+          if (room.meta?.masterUid === this.backend.uid) room.meta.updatedAt = now;
           return room;
-        }).catch(() => null);
-        if (result?.committed) await this.publishLobbySummary(result.value).catch(() => {});
+        });
+      } catch {
+        return;
+      }
+      if (this.roomId !== roomId) return;
+      if (!result?.committed) {
+        this.scheduleMembershipLossCheck(roomId);
+        return;
+      }
+      if (result.value?.meta?.masterUid === this.backend.uid) {
+        await this.publishLobbySummary(result.value, roomId).catch(() => {});
       }
     };
     this.heartbeatTimer = window.setInterval(tick, 30000);
@@ -1853,8 +1916,8 @@ export class OnlineCoordinator {
       if (this.roomId !== roomId) return false;
       const now = this.backend.serverNow();
       const result = await this.backend.transaction(this.roomPath(roomId), (room) => {
-        const participant = room?.participants?.[this.backend.uid];
-        if (!room?.meta || !participant) return undefined;
+        if (!room?.meta || !this.hasAuthoritativeMembership(room, seatKey)) return undefined;
+        const participant = room.participants[this.backend.uid];
         participant.online = true;
         participant.lastSeenAt = now;
         participant.disconnectedAt = null;
@@ -1866,7 +1929,10 @@ export class OnlineCoordinator {
         if (room.meta.masterUid === this.backend.uid) room.meta.updatedAt = now;
         return room;
       });
-      if (!result.committed || this.roomId !== roomId) return false;
+      if (!result.committed || this.roomId !== roomId) {
+        if (this.roomId === roomId) this.scheduleMembershipLossCheck(roomId);
+        return false;
+      }
       this.room = result.value;
       if (result.value?.meta?.masterUid === this.backend.uid) {
         await this.publishLobbySummary(result.value, roomId).catch(() => {});
@@ -1957,6 +2023,9 @@ export class OnlineCoordinator {
       if (!acquired) throw new Error("ほかの操作を同期中です。少し待ってもう一度押してください。");
       const remoteRoom = await this.backend.get(this.roomPath());
       if (!remoteRoom) throw new Error("部屋が見つかりません");
+      if (!this.canPerformAuthoritativeAction(remoteRoom, action)) {
+        throw new Error("参加権限が更新されました。最新のルーム状態へ戻します。");
+      }
       if (
         (action.type === "toggle-cell" || action.type === "toggle-cell-player") &&
         typeof action.payload?.expectedMarked === "boolean"
@@ -2085,6 +2154,10 @@ export class OnlineCoordinator {
       if (!acquired) return false;
       const remoteRoom = await this.backend.get(this.roomPath());
       if (!remoteRoom) return false;
+      if (!this.hasAuthoritativeMembership(remoteRoom)) {
+        this.scheduleMembershipLossCheck(this.roomId);
+        return false;
+      }
       if ((Number(remoteRoom.meta?.revision) || 0) !== expectedRevision) {
         this.applyRoom(remoteRoom);
         return false;
