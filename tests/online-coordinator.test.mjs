@@ -774,6 +774,59 @@ test("admin count import atomically replaces ranking and player stats", async ()
   }
 });
 
+test("delayed stats queued before an import cannot contaminate restored counts", async () => {
+  localStorage.clear();
+  const store = createStore();
+  const admin = prepareAdminCoordinator(store);
+  let now = 2_000;
+  admin.backend.serverNow = () => now;
+  const previousConfirm = window.confirm;
+  window.confirm = () => true;
+  const file = {
+    size: 512,
+    async text() {
+      return JSON.stringify({
+        version: 2,
+        cellRanking: { 84: 7 },
+        playerStats: {
+          players: { eda: { name: "EDA", opens: 2 } },
+          rivalries: {},
+          recentMatches: []
+        }
+      });
+    }
+  };
+
+  try {
+    assert.equal(await admin.importCountData(file), true);
+    const guest = createCoordinator(store, "guest", "player", "blue");
+    guest.queueStatsDelta("stale-before-import", "ROOM", {
+      ranking: { 53: 1 },
+      players: { jan: { name: "JAN", numeric: { opens: 1 }, maps: {} } },
+      rivalries: {},
+      recentMatches: []
+    }, 1_000);
+    guest.queueStatsDelta("fresh-after-import", "ROOM", {
+      ranking: { 69: 1 },
+      players: { jan: { name: "JAN", numeric: { opens: 1 }, maps: {} } },
+      rivalries: {},
+      recentMatches: []
+    }, 3_000);
+    window.clearTimeout(guest.statsFlushTimer);
+    guest.statsFlushTimer = 0;
+
+    assert.equal(await guest.flushPendingStats({ scheduleRetry: false }), true);
+    const stats = store.value.teamBingoV1.globalStats;
+    assert.deepEqual(stats.ranking, { 69: 1, 84: 7 });
+    assert.equal(stats.playerStats.players.eda.opens, 2);
+    assert.equal(stats.playerStats.players.jan.opens, 1);
+    assert.equal(guest.readPendingStats().length, 0);
+  } finally {
+    window.confirm = previousConfirm;
+    localStorage.clear();
+  }
+});
+
 test("simultaneous actions on both teams preserve both room and ranking updates", async () => {
   const store = createStore();
   const master = createCoordinator(store, "master", "master", "red");
