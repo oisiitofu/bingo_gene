@@ -12,7 +12,7 @@
       },
       "lobby": {
         "$roomId": {
-          ".write": "auth != null && (root.child('teamBingoV1').child('rooms').child($roomId).child('meta').child('masterUid').val() === auth.uid || root.child('teamBingoV1').child('rooms').child($roomId).child('participants').child(auth.uid).exists() || (!newData.exists() && root.child('teamBingoV1').child('rooms').child($roomId).child('meta').child('updatedAt').isNumber() && root.child('teamBingoV1').child('rooms').child($roomId).child('meta').child('updatedAt').val() < now - 600000) || (root.child('teamBingoV1').child('adminSessions').child(auth.uid).child('expiresAt').isNumber() && root.child('teamBingoV1').child('adminSessions').child(auth.uid).child('expiresAt').val() > now))",
+          ".write": "auth != null && (root.child('teamBingoV1').child('rooms').child($roomId).child('meta').child('masterUid').val() === auth.uid || root.child('teamBingoV1').child('rooms').child($roomId).child('participants').child(auth.uid).exists() || (!newData.exists() && !root.child('teamBingoV1').child('rooms').child($roomId).exists()) || (!newData.exists() && root.child('teamBingoV1').child('rooms').child($roomId).child('meta').child('updatedAt').isNumber() && root.child('teamBingoV1').child('rooms').child($roomId).child('meta').child('updatedAt').val() < now - 600000) || (root.child('teamBingoV1').child('adminSessions').child(auth.uid).child('expiresAt').isNumber() && root.child('teamBingoV1').child('adminSessions').child(auth.uid).child('expiresAt').val() > now))",
           ".validate": "!newData.exists() || newData.hasChildren(['active', 'phase', 'updatedAt'])"
         }
       },

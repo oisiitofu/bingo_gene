@@ -61,6 +61,7 @@ let member;
 let outsider;
 let ghostId = "";
 let closeId = "";
+let orphanId = "";
 
 try {
   [master, member, outsider] = await Promise.all([signUp(), signUp(), signUp()]);
@@ -166,6 +167,25 @@ try {
   const closedLobby = await databaseRequest("GET", `lobby/${closeId}`, member.idToken);
   assert.equal(closedLobby.value, null, "Closed room remained in the lobby");
 
+  orphanId = `${roomId}-ORPHAN`;
+  const orphanRoom = structuredClone(room);
+  orphanRoom.meta.id = orphanId;
+  orphanRoom.meta.updatedAt = Date.now() - 11 * 60 * 1000;
+  const orphanCreated = await databaseRequest("PUT", `rooms/${orphanId}`, master.idToken, orphanRoom);
+  assert.equal(orphanCreated.ok, true, `Orphan fixture room could not be created: ${JSON.stringify(orphanCreated)}`);
+  const orphanLobby = await databaseRequest("PUT", `lobby/${orphanId}`, master.idToken, {
+    active: true,
+    phase: "setup",
+    updatedAt: orphanRoom.meta.updatedAt
+  });
+  assert.equal(orphanLobby.ok, true, `Orphan fixture lobby could not be created: ${JSON.stringify(orphanLobby)}`);
+  const orphaned = await databaseRequest("DELETE", `rooms/${orphanId}`, master.idToken);
+  assert.equal(orphaned.ok, true, `Orphan fixture room could not be removed: ${JSON.stringify(orphaned)}`);
+  const orphanLobbyDelete = await databaseRequest("DELETE", `lobby/${orphanId}`, outsider.idToken);
+  assert.equal(orphanLobbyDelete.ok, true, `An orphan lobby could not be automatically cleaned: ${JSON.stringify(orphanLobbyDelete)}`);
+  const removedOrphanLobby = await databaseRequest("GET", `lobby/${orphanId}`, member.idToken);
+  assert.equal(removedOrphanLobby.value, null, "Automatically cleaned orphan lobby still exists");
+
   ghostId = `${roomId}-GHOST`;
   const ghostUpdatedAt = Date.now() - 11 * 60 * 1000;
   const ghostRoom = structuredClone(room);
@@ -218,6 +238,10 @@ try {
     if (closeId) {
       await databaseRequest("DELETE", `lobby/${closeId}`, master.idToken).catch(() => {});
       await databaseRequest("DELETE", `rooms/${closeId}`, master.idToken).catch(() => {});
+    }
+    if (orphanId) {
+      await databaseRequest("DELETE", `lobby/${orphanId}`, master.idToken).catch(() => {});
+      await databaseRequest("DELETE", `rooms/${orphanId}`, master.idToken).catch(() => {});
     }
   }
   if (outsider?.idToken) {
