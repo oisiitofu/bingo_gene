@@ -1231,6 +1231,12 @@
       outline: none;
     }
 
+    .hype-center[aria-disabled="true"] {
+      cursor: wait;
+      opacity: .55;
+      pointer-events: none;
+    }
+
     .volume-control {
       display: grid;
       grid-template-columns: auto minmax(120px, 1fr);
@@ -7102,6 +7108,7 @@
     }
 
     function playHypeVoice(options = {}) {
+      if (!options.onlineBypass && isOnlineInputBusy()) return;
       if (shouldUseOnlineAction(options)) {
         return runOnlineAction(
           { type: "hype-voice", payload: {} },
@@ -7113,6 +7120,7 @@
     }
 
     function activateTeamSkill(team, skillId = "", options = {}) {
+      if (!options.onlineBypass && isOnlineInputBusy()) return;
       const requestedSkill = getTeamSkill(team, skillId);
       if (
         onlineSession.roomId && !onlineSession.master && onlineSession.role === "player" &&
@@ -7819,7 +7827,7 @@
       const available = skill && canActivateTeamSkill(team, skill);
       const used = isSkillUsed(skill);
       button.hidden = !skill;
-      button.disabled = !skill || used || !available || !state.gameStarted || state.inputLocked || state.winner || state.pendingSkill || state.nextOpenSkill;
+      button.disabled = isOnlineInputBusy() || !skill || used || !available || !state.gameStarted || state.inputLocked || state.winner || state.pendingSkill || state.nextOpenSkill;
       if (skill) {
         button.textContent = `${skill.profile.display} SKILL`;
         button.title = used
@@ -7861,7 +7869,7 @@
       const used = isSkillUsed(skill);
       const identityLocked = Boolean(onlineSession.roomId && !onlineSession.master && onlineSession.role === "player");
       const ownSkill = onlineSession.team === team && playerStatsKey(onlineSession.memberName) === playerStatsKey(skill.member);
-      const disabled = !available || used || !state.gameStarted || state.inputLocked || state.winner || state.pendingSkill || state.nextOpenSkill || (identityLocked && !ownSkill);
+      const disabled = isOnlineInputBusy() || !available || used || !state.gameStarted || state.inputLocked || state.winner || state.pendingSkill || state.nextOpenSkill || (identityLocked && !ownSkill);
       const title = used
         ? "USED THIS MATCH"
         : (available ? `${skill.member} SKILL READY` : getSkillUnavailableTitle(team, skill));
@@ -10150,6 +10158,11 @@
     function updateHypeUi() {
       els.hypeFillRed.style.width = `${state.red.hype}%`;
       els.hypeFillBlue.style.width = `${state.blue.hype}%`;
+      const onlineBusy = isOnlineInputBusy();
+      if (els.hypeCenterButton) {
+        els.hypeCenterButton.setAttribute("aria-disabled", String(onlineBusy));
+        els.hypeCenterButton.tabIndex = onlineBusy ? -1 : 0;
+      }
       const lickeyTeam = state.skillEffects?.lickeyHypeTeam || "";
       const kentoTeam = state.skillEffects?.kentoAura?.owner || "";
       if (els.hypeGaugeRed) {
@@ -11748,7 +11761,10 @@
         },
         onOnlineReady: (coordinator) => { onlineCoordinator = coordinator; },
         onOnlineBusyChanged: () => {
-          if (state.gameStarted) renderAll();
+          if (state.gameStarted) {
+            renderAll();
+            updateHypeUi();
+          }
         },
         onOnlineError: () => showCommentary("LOCAL MODE", "Firebase設定を確認してください。", 7000),
         onRoomCreated: () => window.setTimeout(() => startGame(), 0),
