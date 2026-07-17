@@ -299,6 +299,15 @@ function diffNumberMap(before = {}, after = {}) {
   return result;
 }
 
+function hasStatsDelta(delta = {}) {
+  return Boolean(
+    Object.keys(delta.ranking || {}).length ||
+    Object.keys(delta.players || {}).length ||
+    Object.keys(delta.rivalries || {}).length ||
+    (delta.recentMatches || []).length
+  );
+}
+
 export function createStatsDelta(before = {}, after = {}) {
   const delta = {
     ranking: diffNumberMap(before.ranking, after.ranking),
@@ -591,10 +600,13 @@ export class OnlineCoordinator {
     this.applyingRemote = false;
     this.pendingRoom = null;
     this.globalStatsSnapshot = null;
+    this.globalProcessedActions = new Set();
     this.masterHandoverTimer = 0;
     this.heartbeatTimer = 0;
     this.connectionUnsubscribe = null;
     this.presenceRefreshPromise = null;
+    this.statsFlushPromise = null;
+    this.statsFlushTimer = 0;
     this.membershipLossTimer = 0;
     this.leavingRoom = false;
     this.localMode = false;
@@ -640,6 +652,127 @@ export class OnlineCoordinator {
     if (!roomId || !seatKey) return;
     try { localStorage.removeItem(this.seatReclaimStorageKey(roomId, seatKey)); }
     catch {}
+  }
+
+  pendingStatsStorageKey(uid = this.backend?.uid) {
+    return `teamBingo.pendingStats.v1.${encodeURIComponent(uid || this.deviceId || "anonymous")}`;
+  }
+
+  readPendingStats() {
+    try {
+      const value = JSON.parse(localStorage.getItem(this.pendingStatsStorageKey()) || "[]");
+      if (!Array.isArray(value)) return [];
+      return value.filter((item) => item?.actionId && item?.roomId && hasStatsDelta(item.delta));
+    } catch {
+      return [];
+    }
+  }
+
+  writePendingStats(items) {
+    try {
+      const bounded = (Array.isArray(items) ? items : [])
+        .sort((a, b) => (Number(a.queuedAt) || 0) - (Number(b.queuedAt) || 0))
+        .slice(-100);
+      if (bounded.length) localStorage.setItem(this.pendingStatsStorageKey(), JSON.stringify(bounded));
+      else localStorage.removeItem(this.pendingStatsStorageKey());
+      return true;
+    } catch {
+      return false;
+    }
+  }
+
+  queueStatsDelta(actionId, roomId, delta) {
+    if (!actionId || !roomId || !hasStatsDelta(delta)) return false;
+    const queued = this.readPendingStats();
+    const existing = queued.find((item) => item.actionId === actionId);
+    if (existing) {
+      existing.roomId = roomId;
+      existing.delta = clone(delta);
+    } else {
+      queued.push({ actionId, roomId, delta: clone(delta), queuedAt: Date.now(), attempts: 0 });
+    }
+    const saved = this.writePendingStats(queued);
+    if (saved) this.scheduleStatsFlush();
+    return saved;
+  }
+
+  removePendingStats(actionId) {
+    if (!actionId) return;
+    const remaining = this.readPendingStats().filter((item) => item.actionId !== actionId);
+    this.writePendingStats(remaining);
+    if (!remaining.length && this.statsFlushTimer) {
+      window.clearTimeout(this.statsFlushTimer);
+      this.statsFlushTimer = 0;
+    }
+  }
+
+  scheduleStatsFlush(delay = 2000) {
+    if (!this.roomId || this.statsFlushTimer) return;
+    this.statsFlushTimer = window.setTimeout(() => {
+      this.statsFlushTimer = 0;
+      this.flushPendingStats().catch((error) => console.warn("Pending stats flush failed", error));
+    }, Math.max(0, Number(delay) || 0));
+  }
+
+  async commitOrQueueStatsDelta(actionId, delta, roomId = this.roomId) {
+    if (!hasStatsDelta(delta)) return null;
+    let committedStats = null;
+    try {
+      committedStats = await this.commitStatsDelta(actionId, delta);
+    } catch (error) {
+      console.warn("Stats sync delayed", error);
+    }
+    if (committedStats) {
+      this.removePendingStats(actionId);
+      this.globalStatsSnapshot = committedStats;
+      this.bridge.applyOnlineStatsSnapshot?.(committedStats);
+      return committedStats;
+    }
+    this.queueStatsDelta(actionId, roomId, delta);
+    return null;
+  }
+
+  async flushPendingStats(options = {}) {
+    if (this.statsFlushPromise) return this.statsFlushPromise;
+    const roomId = options.roomId || this.roomId;
+    if (!roomId || !this.backend?.uid) return false;
+    this.statsFlushPromise = (async () => {
+      const pending = this.readPendingStats().filter((item) => item.roomId === roomId);
+      let allCommitted = true;
+      for (const item of pending) {
+        if (this.roomId !== roomId) return false;
+        let committedStats = null;
+        try {
+          committedStats = await this.commitStatsDelta(item.actionId, item.delta);
+        } catch (error) {
+          console.warn("Pending stats retry failed", error);
+        }
+        if (committedStats) {
+          this.removePendingStats(item.actionId);
+          this.globalStatsSnapshot = committedStats;
+          this.bridge.applyOnlineStatsSnapshot?.(committedStats);
+          continue;
+        }
+        allCommitted = false;
+        const current = this.readPendingStats();
+        const queued = current.find((entry) => entry.actionId === item.actionId);
+        if (queued) {
+          queued.attempts = (Number(queued.attempts) || 0) + 1;
+          queued.lastAttemptAt = Date.now();
+          this.writePendingStats(current);
+        }
+      }
+      if (!allCommitted && options.scheduleRetry !== false) {
+        const attempts = Math.max(1, ...this.readPendingStats().map((item) => Number(item.attempts) || 0));
+        this.scheduleStatsFlush(Math.min(30000, 2000 * (2 ** Math.min(attempts - 1, 4))));
+      }
+      return allCommitted;
+    })();
+    try {
+      return await this.statsFlushPromise;
+    } finally {
+      this.statsFlushPromise = null;
+    }
   }
 
   hasAuthoritativeMembership(room, seatKey = this.seatKey) {
@@ -1539,6 +1672,7 @@ export class OnlineCoordinator {
     this.subscribeGlobalStats();
     this.startHeartbeat();
     this.startConnectionMonitor();
+    this.scheduleStatsFlush(0);
     window.setTimeout(() => {
       if (this.isMaster()) this.importLegacyStats().catch((error) => console.error(error));
     }, 240);
@@ -1740,6 +1874,11 @@ export class OnlineCoordinator {
     const roomId = this.roomId;
     const key = this.seatKey;
     const wasMaster = this.isMaster();
+    if (this.statsFlushTimer) {
+      window.clearTimeout(this.statsFlushTimer);
+      this.statsFlushTimer = 0;
+    }
+    await this.flushPendingStats({ roomId, scheduleRetry: false }).catch(() => false);
     this.stopHeartbeat();
     const presenceStopped = await this.stopPresenceTracking();
     if (!presenceStopped && !options.remoteClosed) {
@@ -1875,6 +2014,7 @@ export class OnlineCoordinator {
       if (result.value?.meta?.masterUid === this.backend.uid) {
         await this.publishLobbySummary(result.value, roomId).catch(() => {});
       }
+      this.scheduleStatsFlush(0);
     };
     this.heartbeatTimer = window.setInterval(tick, 30000);
   }
@@ -1941,6 +2081,7 @@ export class OnlineCoordinator {
       if (result.value?.meta?.masterUid === this.backend.uid) {
         await this.publishLobbySummary(result.value, roomId).catch(() => {});
       }
+      this.scheduleStatsFlush(0);
       return true;
     })();
     try {
@@ -2051,7 +2192,7 @@ export class OnlineCoordinator {
         this.applyingRemote = false;
       }
       const beforeGame = clone(remoteRoom.game || this.bridge.getOnlineGameSnapshot?.());
-      const beforeStats = clone(this.globalStatsSnapshot || this.bridge.getOnlineStatsSnapshot?.() || {});
+      const beforeStats = clone(this.bridge.getOnlineStatsSnapshot?.() || this.globalStatsSnapshot || {});
       this.bridge.beginOnlineEventCapture?.(action);
       let presentation = null;
       try {
@@ -2068,11 +2209,7 @@ export class OnlineCoordinator {
       if (!committed) throw new Error("操作が競合したため最新状態に戻しました");
       this.localActionIds.add(actionId);
       const statsDelta = createStatsDelta(beforeStats, afterStats);
-      const committedStats = await this.commitStatsDelta(actionId, statsDelta);
-      if (committedStats) {
-        this.globalStatsSnapshot = committedStats;
-        this.bridge.applyOnlineStatsSnapshot?.(committedStats);
-      }
+      await this.commitOrQueueStatsDelta(actionId, statsDelta, this.roomId);
       return true;
     } catch (error) {
       console.error(error);
@@ -2179,11 +2316,7 @@ export class OnlineCoordinator {
       if (!committed) return false;
       this.localActionIds.add(actionId);
       const beforeStats = clone(this.globalStatsSnapshot || {});
-      const committedStats = await this.commitStatsDelta(actionId, createStatsDelta(beforeStats, localStats));
-      if (committedStats) {
-        this.globalStatsSnapshot = committedStats;
-        this.bridge.applyOnlineStatsSnapshot?.(committedStats);
-      }
+      await this.commitOrQueueStatsDelta(actionId, createStatsDelta(beforeStats, localStats), this.roomId);
       return true;
     } finally {
       await this.releaseActionLock(actionId).catch(() => {});
@@ -2200,6 +2333,10 @@ export class OnlineCoordinator {
     if (this.statsUnsubscribe) return;
     this.statsUnsubscribe = this.backend.subscribe(this.path("globalStats"), (stats) => {
       const normalized = stats || {};
+      this.globalProcessedActions = new Set(Object.keys(normalized.processedActions || {}));
+      this.readPendingStats().forEach((item) => {
+        if (this.globalProcessedActions.has(item.actionId)) this.removePendingStats(item.actionId);
+      });
       this.globalStatsSnapshot = { ranking: clone(normalized.ranking || {}), playerStats: clone(normalized.playerStats || { players: {}, rivalries: {}, recentMatches: [] }) };
       this.bridge.applyOnlineStatsSnapshot?.(this.globalStatsSnapshot);
     });

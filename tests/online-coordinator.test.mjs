@@ -73,6 +73,10 @@ class MemoryBackend {
   }
 
   async transaction(path, updater) {
+    if ((Number(this.failTransactions?.[path]) || 0) > 0) {
+      this.failTransactions[path] -= 1;
+      throw new Error(`transient transaction failure: ${path}`);
+    }
     const current = clone(getAtPath(this.store.value, path));
     const next = updater(current);
     if (next === undefined) return { committed: false, value: current };
@@ -139,8 +143,11 @@ function createCoordinator(store, uid, role, team) {
   coordinator.applyingRemote = false;
   coordinator.busy = false;
   coordinator.pendingRoom = null;
+  coordinator.statsFlushPromise = null;
+  coordinator.statsFlushTimer = 0;
   coordinator.localActionIds = new Set();
   coordinator.globalStatsSnapshot = emptyStats();
+  coordinator.globalProcessedActions = new Set();
   coordinator.setBusy = (busy) => { coordinator.busy = Boolean(busy); };
   coordinator.showError = (title, error) => { coordinator.lastError = `${title}: ${error?.message || error}`; };
   coordinator.applyRoom = (room) => { coordinator.room = clone(room); };
@@ -338,6 +345,54 @@ test("ranking mutations persist an authoritative timestamp even when the map bec
 
   assert.deepEqual(store.value.teamBingoV1.globalStats.ranking, {});
   assert.equal(Number(store.value.teamBingoV1.globalStats.rankingUpdatedAt) >= Number(firstUpdatedAt), true);
+});
+
+test("consecutive room actions survive transient stats failures and retry exactly once after reload", async () => {
+  localStorage.clear();
+  const store = createStore();
+  const master = createCoordinator(store, "master", "master", "red");
+  master.backend.failTransactions = { "teamBingoV1/globalStats": 1 };
+  const originalWarn = console.warn;
+  console.warn = () => {};
+
+  try {
+    const firstChanged = await master.requestAction(
+      { type: "toggle-cell", payload: { team: "red", index: 0, expectedMarked: false } },
+      () => {
+        master.testState.game.red.marked[0] = true;
+        master.testState.stats.ranking[53] = 1;
+      }
+    );
+    master.backend.failTransactions["teamBingoV1/globalStats"] = 1;
+    const secondChanged = await master.requestAction(
+      { type: "toggle-cell", payload: { team: "red", index: 1, expectedMarked: false } },
+      () => {
+        master.testState.game.red.marked[1] = true;
+        master.testState.stats.ranking[54] = 1;
+      }
+    );
+
+    assert.equal(firstChanged, true);
+    assert.equal(secondChanged, true);
+    assert.deepEqual(store.value.teamBingoV1.rooms.ROOM.game.red.marked, [true, true]);
+    assert.equal(store.value.teamBingoV1.globalStats.ranking[53], undefined);
+    assert.equal(store.value.teamBingoV1.globalStats.ranking[54], undefined);
+    assert.equal(master.lastError, undefined);
+    assert.equal(master.readPendingStats().length, 2);
+
+    window.clearTimeout(master.statsFlushTimer);
+    master.statsFlushTimer = 0;
+    const reloadedMaster = createCoordinator(store, "master", "master", "red");
+    assert.equal(await reloadedMaster.flushPendingStats({ scheduleRetry: false }), true);
+    assert.deepEqual(store.value.teamBingoV1.globalStats.ranking, { 53: 1, 54: 1 });
+    assert.equal(reloadedMaster.readPendingStats().length, 0);
+
+    assert.equal(await reloadedMaster.flushPendingStats({ scheduleRetry: false }), true);
+    assert.deepEqual(store.value.teamBingoV1.globalStats.ranking, { 53: 1, 54: 1 });
+  } finally {
+    console.warn = originalWarn;
+    localStorage.clear();
+  }
 });
 
 test("admin ranking reset preserves player stats and bounds processed action history", async () => {
