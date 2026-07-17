@@ -11751,6 +11751,7 @@
           renderAll();
         },
         restoreOnlineCommentary,
+        restoreOnlineMatchPresentation,
         getOnlineStatsSnapshot,
         applyOnlineStatsSnapshot,
         createOnlineEvent,
@@ -11995,6 +11996,18 @@
         els.commentaryText.textContent = "開幕準備中。";
         els.commentarySub.textContent = "新しい試合を開始します。";
       }
+    }
+
+    function restoreOnlineMatchPresentation(phase = null) {
+      if (!phase?.kind || !state.gameStarted || state.winner) return;
+      const remainingMs = Math.max(0, Number(phase.remainingMs) || 0);
+      if (!remainingMs) return;
+      [els.startBlackoutOverlay, els.introOverlay, els.readyOverlay].forEach((overlay) => hideOverlay(overlay));
+      const overlay = phase.kind === "blackout"
+        ? els.startBlackoutOverlay
+        : (phase.kind === "intro" ? els.introOverlay : els.readyOverlay);
+      if (!overlay) return;
+      showTimedOverlay(overlay, remainingMs);
     }
 
     function getOnlineStatsSnapshot() {

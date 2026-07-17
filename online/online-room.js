@@ -21,6 +21,9 @@ const ROOT_KEY = "teamBingo.online.mock.v1";
 const MOCK_CHANNEL = "team-bingo-online-mock-v1";
 const ORPHAN_ROOM_CLEANUP_INTERVAL = 5 * 60 * 1000;
 const MAX_EVENT_REPLAY = 12;
+const START_BLACKOUT_MS = 1080;
+const START_INTRO_END_MS = 4330;
+const START_READY_END_MS = 5330;
 const ADMIN_PIN = "9071";
 const ADMIN_PIN_HASH = "6440e6a91202aeddb45b070a80533f65a689c37d0cf1842ab2bd962e33377880";
 
@@ -274,6 +277,27 @@ export function selectCurrentOnlineCommentary(room = {}, now = Date.now()) {
       faceIndex: Number.isFinite(Number(commentary.faceIndex)) ? Number(commentary.faceIndex) : -1,
       remainingMs
     };
+  }
+  return null;
+}
+
+export function selectInitialOnlineMatchPresentation(room = {}, now = Date.now()) {
+  const game = room?.game || {};
+  if (!game.gameStarted || game.winner || !game.inputLocked || game.readyShown) return null;
+  const startEvent = Object.entries(room?.events || {})
+    .map(([sequence, event]) => ({ ...event, sequence: Number(sequence) || 0 }))
+    .filter((event) => event.type === "start-game" && Number(event.createdAt) > 0)
+    .sort((a, b) => b.sequence - a.sequence)[0];
+  if (!startEvent) return null;
+  const elapsed = Math.max(0, Number(now) - Number(startEvent.createdAt));
+  if (elapsed < START_BLACKOUT_MS) {
+    return { kind: "blackout", remainingMs: START_BLACKOUT_MS - elapsed };
+  }
+  if (elapsed < START_INTRO_END_MS) {
+    return { kind: "intro", remainingMs: START_INTRO_END_MS - elapsed };
+  }
+  if (elapsed < START_READY_END_MS) {
+    return { kind: "ready", remainingMs: START_READY_END_MS - elapsed };
   }
   return null;
 }
@@ -1872,6 +1896,7 @@ export class OnlineCoordinator {
       if (room.game) this.bridge.applyOnlineGameSnapshot?.(room.game, { initial: Boolean(options.initial) });
       if (options.initial && room.game && !room.game.winner) {
         this.bridge.restoreOnlineCommentary?.(selectCurrentOnlineCommentary(room, this.backend.serverNow()));
+        this.bridge.restoreOnlineMatchPresentation?.(selectInitialOnlineMatchPresentation(room, this.backend.serverNow()));
       }
       const sequence = Number(room.meta?.eventSeq) || 0;
       if (!options.initial && sequence > this.lastEventSeq) {
