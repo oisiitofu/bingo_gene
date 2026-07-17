@@ -8046,7 +8046,7 @@
       if (pairEntries[1]) styleParts.push(`--pair-color-2:${pairEntries[1].color}`);
       const playerChoices = cell.free ? "" : renderCellPlayerChoices(team, index, openedByKeys);
       return `
-        <div role="button" tabindex="${disabled ? "-1" : "0"}" aria-disabled="${disabled ? "true" : "false"}" class="${classes.join(" ")}" data-team="${team}" data-index="${index}" data-disabled="${disabled ? "1" : "0"}" style="${styleParts.join(";")}">
+        <div role="button" tabindex="${disabled ? "-1" : "0"}" aria-disabled="${disabled ? "true" : "false"}" class="${classes.join(" ")}" data-testid="bingo-cell-${team}-${index}" data-team="${team}" data-index="${index}" data-disabled="${disabled ? "1" : "0"}" style="${styleParts.join(";")}">
           ${content}
           ${victoryCellArt}
           ${specialCellArt}
@@ -8077,7 +8077,7 @@
             const identityLocked = Boolean(onlineSession.roomId && !onlineSession.master && onlineSession.role === "player");
             const isOwnIdentity = playerStatsKey(onlineSession.memberName) === key && onlineSession.team === team;
             const disabled = (!active && maxReached) || (identityLocked && !isOwnIdentity);
-            return `<button type="button" class="cell-player-choice${active ? " active" : ""}" data-cell-player-index="${memberIndex}" ${disabled ? "disabled" : ""} title="${escapeHtml(member)}">${escapeHtml(member)}</button>`;
+            return `<button type="button" class="cell-player-choice${active ? " active" : ""}" data-testid="bingo-cell-player-${team}-${index}-${memberIndex}" data-cell-player-index="${memberIndex}" ${disabled ? "disabled" : ""} title="${escapeHtml(member)}">${escapeHtml(member)}</button>`;
           }).join("")}
         </div>
       `;
