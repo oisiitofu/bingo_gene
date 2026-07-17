@@ -189,6 +189,30 @@ function prepareJoinCoordinator(store, uid, deviceId) {
   return coordinator;
 }
 
+function prepareAdminCoordinator(store, uid = "master") {
+  const coordinator = createCoordinator(store, uid, "master", "red");
+  coordinator.adminMode = true;
+  coordinator.adminExpiresAt = Date.now() + 10 * 60 * 1000;
+  coordinator.adminExpiryTimer = 0;
+  coordinator.ui = {
+    adminMode: { textContent: "ADMIN ON" },
+    adminResult: { textContent: "" }
+  };
+  coordinator.hideAdminPage = () => {};
+  coordinator.showLobby = () => {};
+  coordinator.renderRooms = () => {};
+  coordinator.bridge.onAdminModeChanged = () => {};
+  coordinator.bridge.showOnlineMessage = (title, message) => {
+    coordinator.lastAdminMessage = `${title}: ${message}`;
+  };
+  store.value.teamBingoV1.adminSessions ||= {};
+  store.value.teamBingoV1.adminSessions[uid] = {
+    pinHash: "6440e6a91202aeddb45b070a80533f65a689c37d0cf1842ab2bd962e33377880",
+    expiresAt: coordinator.adminExpiresAt
+  };
+  return coordinator;
+}
+
 globalThis.window ||= { setTimeout, clearTimeout };
 globalThis.document ||= { body: { classList: { remove() {} } } };
 
@@ -277,6 +301,79 @@ test("a delayed lobby summary cannot overwrite a newer room status", async () =>
   assert.equal(store.value.teamBingoV1.lobby.ROOM.phase, "playing");
   assert.equal(store.value.teamBingoV1.lobby.ROOM.updatedAt, 300);
   assert.equal(store.value.teamBingoV1.lobby.ROOM.onlineCount, 1);
+});
+
+test("ranking mutations persist an authoritative timestamp even when the map becomes empty", async () => {
+  const store = createStore();
+  const master = createCoordinator(store, "master", "master", "red");
+
+  await master.commitStatsDelta("ranking-open", {
+    ranking: { 53: 1 },
+    players: {},
+    rivalries: {},
+    recentMatches: []
+  });
+  const firstUpdatedAt = store.value.teamBingoV1.globalStats.rankingUpdatedAt;
+  assert.equal(store.value.teamBingoV1.globalStats.ranking[53], 1);
+  assert.equal(Number(firstUpdatedAt) > 0, true);
+
+  await master.commitStatsDelta("ranking-close", {
+    ranking: { 53: -1 },
+    players: {},
+    rivalries: {},
+    recentMatches: []
+  });
+
+  assert.deepEqual(store.value.teamBingoV1.globalStats.ranking, {});
+  assert.equal(Number(store.value.teamBingoV1.globalStats.rankingUpdatedAt) >= Number(firstUpdatedAt), true);
+});
+
+test("admin ranking reset preserves player stats and bounds processed action history", async () => {
+  const store = createStore();
+  const stats = store.value.teamBingoV1.globalStats;
+  stats.ranking = { 53: 7, 69: 4 };
+  stats.playerStats.players.jan = { name: "JAN", games: 3, wins: 2 };
+  stats.processedActions = Object.fromEntries(
+    Array.from({ length: 510 }, (_, index) => [`old-${index}`, index + 1])
+  );
+  const admin = prepareAdminCoordinator(store);
+
+  const reset = await admin.resetGlobalStats("ranking");
+
+  assert.equal(reset, true);
+  assert.deepEqual(store.value.teamBingoV1.globalStats.ranking, {});
+  assert.equal(Number(store.value.teamBingoV1.globalStats.rankingUpdatedAt) > 0, true);
+  assert.equal(store.value.teamBingoV1.globalStats.playerStats.players.jan.games, 3);
+  assert.equal(Object.keys(store.value.teamBingoV1.globalStats.processedActions).length, 500);
+});
+
+test("invalid reset kinds and expired server admin sessions cannot mutate shared data", async () => {
+  const store = createStore();
+  store.value.teamBingoV1.globalStats.ranking = { 53: 5 };
+  const admin = prepareAdminCoordinator(store);
+
+  assert.equal(await admin.resetGlobalStats("everything"), false);
+  assert.deepEqual(store.value.teamBingoV1.globalStats.ranking, { 53: 5 });
+
+  store.value.teamBingoV1.adminSessions.master.expiresAt = Date.now() - 1;
+  const deleted = await admin.adminDeleteRoom("ROOM");
+
+  assert.equal(deleted, false);
+  assert.ok(store.value.teamBingoV1.rooms.ROOM);
+  assert.equal(admin.adminMode, false);
+  assert.match(admin.lastAdminMessage, /^ADMIN EXPIRED:/);
+});
+
+test("an expired server admin session cannot export shared count data", async () => {
+  const store = createStore();
+  const admin = prepareAdminCoordinator(store);
+  store.value.teamBingoV1.adminSessions.master.expiresAt = Date.now() - 1;
+
+  const exported = await admin.exportCountData();
+
+  assert.equal(exported, false);
+  assert.equal(admin.adminMode, false);
+  assert.match(admin.lastAdminMessage, /^ADMIN EXPIRED:/);
 });
 
 test("simultaneous actions on both teams preserve both room and ranking updates", async () => {

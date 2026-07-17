@@ -20,6 +20,8 @@ const PHASE_LABELS = {
 const ROOT_KEY = "teamBingo.online.mock.v1";
 const MOCK_CHANNEL = "team-bingo-online-mock-v1";
 const MAX_EVENT_REPLAY = 12;
+const ADMIN_PIN = "9071";
+const ADMIN_PIN_HASH = "6440e6a91202aeddb45b070a80533f65a689c37d0cf1842ab2bd962e33377880";
 
 function clone(value) {
   if (value === undefined) return undefined;
@@ -194,9 +196,32 @@ export function normalizeCountBackup(payload) {
 
 export function selectCountExportRanking(current = {}, visible = {}, legacy = {}) {
   if (isPlainObject(current?.ranking)) return clone(current.ranking);
+  if (Number(current?.rankingUpdatedAt) > 0) return {};
   if (isPlainObject(visible?.ranking)) return clone(visible.ranking);
   if (isPlainObject(legacy?.ranking)) return clone(legacy.ranking);
   return {};
+}
+
+export function createCountBackupPayload(current = {}, visible = {}, legacy = {}, exportedAt = nowIso()) {
+  const data = normalizeCountBackup({
+    cellRanking: selectCountExportRanking(current, visible, legacy),
+    playerStats: current.playerStats || { players: {}, rivalries: {}, recentMatches: [] }
+  });
+  const rankingEntries = Object.keys(data.ranking).length;
+  const rankingTotal = Object.values(data.ranking).reduce((sum, value) => sum + (Number(value) || 0), 0);
+  const playerCount = Object.keys(data.playerStats.players || {}).length;
+  return {
+    format: "team-bingo-count-data",
+    version: 2,
+    exportedAt,
+    summary: {
+      cellRankingEntries: rankingEntries,
+      totalCellOpens: rankingTotal,
+      players: playerCount
+    },
+    cellRanking: data.ranking,
+    playerStats: data.playerStats
+  };
 }
 
 export function shouldResetOnlineMatchPresentation(snapshot = {}, currentState = {}) {
@@ -1152,27 +1177,22 @@ export class OnlineCoordinator {
   }
 
   async enableAdminMode(pin) {
-    if (pin !== "9071") {
+    if (pin !== ADMIN_PIN) {
       this.ui.adminError.textContent = "パスワードが違います";
       return;
     }
     try {
       const expiresAt = this.backend.serverNow() + 30 * 60 * 1000;
       await this.backend.set(this.path(`adminSessions/${this.backend.uid}`), {
-        pinHash: "6440e6a91202aeddb45b070a80533f65a689c37d0cf1842ab2bd962e33377880",
+        pinHash: ADMIN_PIN_HASH,
         expiresAt
       });
       this.adminMode = true;
       this.adminExpiresAt = expiresAt;
       window.clearTimeout(this.adminExpiryTimer);
       this.adminExpiryTimer = window.setTimeout(() => {
-        this.adminMode = false;
-        this.adminExpiresAt = 0;
-        this.ui.adminMode.textContent = "ADMIN";
-        this.bridge.onAdminModeChanged?.(false);
-        this.hideAdminPage();
-        this.showLobby();
-        this.renderRooms();
+        this.backend.set(this.path(`adminSessions/${this.backend.uid}`), null).catch(() => {});
+        this.expireAdminMode("");
       }, Math.max(0, expiresAt - this.backend.serverNow()));
       this.ui.adminMode.textContent = "ADMIN ON";
       this.bridge.onAdminModeChanged?.(true);
@@ -1186,7 +1206,8 @@ export class OnlineCoordinator {
   }
 
   async adminDeleteRoom(roomId) {
-    if (!this.adminMode || !roomId) return;
+    if (!roomId || !this.isAdminMode()) return false;
+    if (!await this.verifyAdminSession()) return false;
     const title = this.rooms?.[roomId]?.title || "この部屋";
     if (!window.confirm(`${title}を完全に削除しますか？`)) return;
     try {
@@ -1195,8 +1216,10 @@ export class OnlineCoordinator {
         [this.lobbyPath(roomId)]: null
       });
       this.clearError();
+      return true;
     } catch (error) {
       this.showError("ROOM DELETE ERROR", error);
+      return false;
     }
   }
 
@@ -1987,7 +2010,9 @@ export class OnlineCoordinator {
       stats.processedActions ||= {};
       if (stats.processedActions[actionId]) return stats;
       const next = applyStatsDelta(stats, delta);
-      next.processedActions[actionId] = this.backend.serverNow();
+      const updatedAt = this.backend.serverNow();
+      next.processedActions[actionId] = updatedAt;
+      if (Object.keys(delta.ranking || {}).length) next.rankingUpdatedAt = updatedAt;
       next.processedActions = Object.fromEntries(Object.entries(next.processedActions).sort(([, a], [, b]) => Number(b) - Number(a)).slice(0, 500));
       return next;
     });
@@ -2036,30 +2061,48 @@ export class OnlineCoordinator {
     return Boolean(this.adminMode && Number(this.adminExpiresAt) > this.backend.serverNow());
   }
 
+  expireAdminMode(message = "管理者モードの有効期限が切れました。") {
+    this.adminMode = false;
+    this.adminExpiresAt = 0;
+    window.clearTimeout(this.adminExpiryTimer);
+    this.adminExpiryTimer = 0;
+    if (this.ui?.adminMode) this.ui.adminMode.textContent = "ADMIN";
+    this.bridge.onAdminModeChanged?.(false);
+    this.hideAdminPage();
+    this.showLobby();
+    this.renderRooms();
+    if (message) this.bridge.showOnlineMessage?.("ADMIN EXPIRED", message);
+  }
+
+  async verifyAdminSession() {
+    if (!this.isAdminMode()) {
+      this.expireAdminMode();
+      return false;
+    }
+    try {
+      const adminSession = await this.backend.get(this.path(`adminSessions/${this.backend.uid}`));
+      if (
+        adminSession?.pinHash === ADMIN_PIN_HASH &&
+        Number(adminSession?.expiresAt) > this.backend.serverNow()
+      ) return true;
+    } catch (error) {
+      this.showError("ADMIN VERIFY ERROR", error);
+      return false;
+    }
+    this.expireAdminMode();
+    return false;
+  }
+
   async exportCountData() {
     if (!this.enabled || !this.isAdminMode()) return false;
+    if (!await this.verifyAdminSession()) return false;
     try {
       const current = await this.backend.get(this.path("globalStats")) || {};
       const local = clone(this.bridge.getOnlineStatsSnapshot?.() || this.legacyStats || {});
-      const data = normalizeCountBackup({
-        cellRanking: selectCountExportRanking(current, local, this.legacyStats),
-        playerStats: current.playerStats || { players: {}, rivalries: {}, recentMatches: [] }
-      });
-      const rankingEntries = Object.keys(data.ranking).length;
-      const rankingTotal = Object.values(data.ranking).reduce((sum, value) => sum + (Number(value) || 0), 0);
-      const playerCount = Object.keys(data.playerStats.players || {}).length;
-      const payload = {
-        format: "team-bingo-count-data",
-        version: 2,
-        exportedAt: nowIso(),
-        summary: {
-          cellRankingEntries: rankingEntries,
-          totalCellOpens: rankingTotal,
-          players: playerCount
-        },
-        cellRanking: data.ranking,
-        playerStats: data.playerStats
-      };
+      const payload = createCountBackupPayload(current, local, this.legacyStats);
+      const rankingEntries = payload.summary.cellRankingEntries;
+      const rankingTotal = payload.summary.totalCellOpens;
+      const playerCount = payload.summary.players;
       const blob = new Blob([`${JSON.stringify(payload, null, 2)}\n`], { type: "application/json" });
       const url = URL.createObjectURL(blob);
       const link = document.createElement("a");
@@ -2090,20 +2133,16 @@ export class OnlineCoordinator {
         this.ui.adminResult.textContent = "インポートをキャンセルしました。";
         return false;
       }
-      const adminSession = await this.backend.get(this.path(`adminSessions/${this.backend.uid}`));
-      if (
-        adminSession?.pinHash !== "6440e6a91202aeddb45b070a80533f65a689c37d0cf1842ab2bd962e33377880" ||
-        Number(adminSession?.expiresAt) <= this.backend.serverNow()
-      ) {
-        throw new Error("管理者モードの有効期限が切れました");
-      }
+      if (!await this.verifyAdminSession()) throw new Error("管理者モードの有効期限が切れました");
       const actionId = randomId("stats-import");
       const result = await this.backend.transaction(this.path("globalStats"), (stats) => {
         const next = isPlainObject(stats) ? stats : {};
+        const updatedAt = this.backend.serverNow();
         next.ranking = clone(imported.ranking);
+        next.rankingUpdatedAt = updatedAt;
         next.playerStats = clone(imported.playerStats);
         next.processedActions ||= {};
-        next.processedActions[actionId] = this.backend.serverNow();
+        next.processedActions[actionId] = updatedAt;
         next.processedActions = Object.fromEntries(
           Object.entries(next.processedActions).sort(([, a], [, b]) => Number(b) - Number(a)).slice(0, 500)
         );
@@ -2131,27 +2170,22 @@ export class OnlineCoordinator {
       this.bridge.showOnlineMessage?.("ADMIN ONLY", "ランキングと戦績のリセットは管理者のみ実行できます。");
       return false;
     }
-    const adminSession = await this.backend.get(this.path(`adminSessions/${this.backend.uid}`));
-    if (
-      adminSession?.pinHash !== "6440e6a91202aeddb45b070a80533f65a689c37d0cf1842ab2bd962e33377880" ||
-      Number(adminSession?.expiresAt) <= this.backend.serverNow()
-    ) {
-      this.adminMode = false;
-      this.adminExpiresAt = 0;
-      this.ui.adminMode.textContent = "ADMIN";
-      this.bridge.onAdminModeChanged?.(false);
-      this.hideAdminPage();
-      this.showLobby();
-      this.bridge.showOnlineMessage?.("ADMIN EXPIRED", "管理者モードの有効期限が切れました。");
-      return false;
-    }
+    if (!["ranking", "playerStats"].includes(kind)) return false;
+    if (!await this.verifyAdminSession()) return false;
     const actionId = randomId("stats-reset");
     const result = await this.backend.transaction(this.path("globalStats"), (stats) => {
       stats ||= { ranking: {}, playerStats: { players: {}, rivalries: {}, recentMatches: [] }, processedActions: {} };
-      if (kind === "ranking") stats.ranking = {};
+      const updatedAt = this.backend.serverNow();
+      if (kind === "ranking") {
+        stats.ranking = {};
+        stats.rankingUpdatedAt = updatedAt;
+      }
       if (kind === "playerStats") stats.playerStats = { players: {}, rivalries: {}, recentMatches: [] };
       stats.processedActions ||= {};
-      stats.processedActions[actionId] = this.backend.serverNow();
+      stats.processedActions[actionId] = updatedAt;
+      stats.processedActions = Object.fromEntries(
+        Object.entries(stats.processedActions).sort(([, a], [, b]) => Number(b) - Number(a)).slice(0, 500)
+      );
       return stats;
     });
     if (!result.committed) return false;
@@ -2171,9 +2205,12 @@ export class OnlineCoordinator {
 
   async deleteGhostRooms(options = {}) {
     if (!this.backend || this.cleanupInFlight) return 0;
-    if (options.requireAdmin && !this.isAdminMode()) {
-      this.bridge.showOnlineMessage?.("ADMIN ONLY", "GHOST部屋の一括削除は管理者のみ実行できます。");
-      return 0;
+    if (options.requireAdmin) {
+      if (!this.isAdminMode()) {
+        this.bridge.showOnlineMessage?.("ADMIN ONLY", "GHOST部屋の一括削除は管理者のみ実行できます。");
+        return 0;
+      }
+      if (!await this.verifyAdminSession()) return 0;
     }
     const ghosts = this.getGhostRooms();
     if (!ghosts.length) {

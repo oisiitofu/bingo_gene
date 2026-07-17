@@ -3,6 +3,7 @@ import assert from "node:assert/strict";
 
 import {
   applyStatsDelta,
+  createCountBackupPayload,
   createStatsDelta,
   mergeLegacyStats,
   normalizeCountBackup,
@@ -107,6 +108,53 @@ test("ranking export falls back only when the online ranking field is absent", (
     ),
     { 53: 4 }
   );
+});
+
+test("an authoritative empty ranking marker blocks stale fallback data", () => {
+  assert.deepEqual(
+    selectCountExportRanking(
+      { playerStats: { players: {} }, rankingUpdatedAt: 1784294000000 },
+      { ranking: { 53: 11 } },
+      { ranking: { 69: 8 } }
+    ),
+    {}
+  );
+});
+
+test("count export payload contains the full cell ranking and summary totals", () => {
+  const payload = createCountBackupPayload(
+    {
+      ranking: { 53: 8, 69: 3 },
+      playerStats: {
+        players: { jan: { name: "JAN", games: 2, opens: 11 } },
+        rivalries: {},
+        recentMatches: []
+      }
+    },
+    { ranking: { 84: 99 } },
+    {},
+    "2026-07-17T12:00:00.000Z"
+  );
+
+  assert.equal(payload.format, "team-bingo-count-data");
+  assert.equal(payload.version, 2);
+  assert.equal(payload.exportedAt, "2026-07-17T12:00:00.000Z");
+  assert.deepEqual(payload.cellRanking, { 53: 8, 69: 3 });
+  assert.deepEqual(payload.summary, { cellRankingEntries: 2, totalCellOpens: 11, players: 1 });
+  assert.equal(payload.playerStats.players.jan.opens, 11);
+});
+
+test("count export emits an empty ranking after an authoritative reset", () => {
+  const payload = createCountBackupPayload(
+    { rankingUpdatedAt: 1784294000000, playerStats: { players: {}, rivalries: {}, recentMatches: [] } },
+    { ranking: { 53: 12 } },
+    { ranking: { 69: 4 } },
+    "2026-07-17T12:00:00.000Z"
+  );
+
+  assert.deepEqual(payload.cellRanking, {});
+  assert.equal(payload.summary.cellRankingEntries, 0);
+  assert.equal(payload.summary.totalCellOpens, 0);
 });
 
 test("count backup round-trips ranking, player, rivalry, and recent match data", () => {
