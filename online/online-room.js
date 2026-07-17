@@ -1511,6 +1511,11 @@ export class OnlineCoordinator {
     return Boolean(result?.committed);
   }
 
+  syncLobbyFromMasterRoom(room) {
+    if (!room || room.meta?.masterUid !== this.backend?.uid) return;
+    this.publishLobbySummary(room).catch((error) => console.warn("Lobby summary refresh failed", error));
+  }
+
   openSeatDialog(roomId) {
     const lobby = this.rooms[roomId];
     if (!lobby) return;
@@ -1761,6 +1766,7 @@ export class OnlineCoordinator {
       return;
     }
     this.applyRoom(room);
+    this.syncLobbyFromMasterRoom(room);
   }
 
   applyRoom(room, options = {}) {
@@ -2224,6 +2230,7 @@ export class OnlineCoordinator {
         const pending = this.pendingRoom;
         this.pendingRoom = null;
         this.applyRoom(pending);
+        this.syncLobbyFromMasterRoom(pending);
       }
     }
   }
@@ -2325,6 +2332,7 @@ export class OnlineCoordinator {
         const pending = this.pendingRoom;
         this.pendingRoom = null;
         this.applyRoom(pending);
+        this.syncLobbyFromMasterRoom(pending);
       }
     }
   }

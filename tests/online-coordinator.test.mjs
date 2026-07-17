@@ -321,6 +321,27 @@ test("a delayed lobby summary cannot overwrite a newer room status", async () =>
   assert.equal(store.value.teamBingoV1.lobby.ROOM.onlineCount, 1);
 });
 
+test("the master refreshes the lobby summary as soon as a participant leaves", async () => {
+  const store = createStore();
+  const master = createCoordinator(store, "master", "master", "red");
+  master.createLobbySummary = OnlineCoordinator.prototype.createLobbySummary.bind(master);
+  master.updateSessionUi = () => {};
+  master.scheduleMasterHandover = () => {};
+  master.bridge.applyOnlineSetupSnapshot = () => {};
+  master.bridge.applyOnlineGameSnapshot = () => {};
+  await master.publishLobbySummary(store.value.teamBingoV1.rooms.ROOM);
+  assert.equal(store.value.teamBingoV1.lobby.ROOM.onlineCount, 2);
+
+  const afterLeave = clone(store.value.teamBingoV1.rooms.ROOM);
+  delete afterLeave.participants.guest;
+  afterLeave.meta.updatedAt += 1;
+  master.onRoomValue(afterLeave);
+  await new Promise((resolve) => setTimeout(resolve, 0));
+
+  assert.equal(store.value.teamBingoV1.lobby.ROOM.onlineCount, 1);
+  assert.equal(store.value.teamBingoV1.lobby.ROOM.roomRevision, 0);
+});
+
 test("ranking mutations persist an authoritative timestamp even when the map becomes empty", async () => {
   const store = createStore();
   const master = createCoordinator(store, "master", "master", "red");
