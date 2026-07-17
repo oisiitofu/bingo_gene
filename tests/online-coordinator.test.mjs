@@ -823,6 +823,41 @@ test("a second opener on the same cell persists the shared player attribution", 
   assert.equal(store.value.teamBingoV1.rooms.ROOM.events[1].type, "toggle-cell-player");
 });
 
+test("concurrent secondary openers preserve every player attribution without changing rankings", async () => {
+  const store = createStore();
+  const room = store.value.teamBingoV1.rooms.ROOM;
+  room.participants.guest.team = "red";
+  room.game.red.marked[0] = true;
+  room.game.red.openedBy = { 0: ["master"] };
+  store.value.teamBingoV1.globalStats.ranking = { 53: 1 };
+  const master = createCoordinator(store, "master", "master", "red");
+  const guest = createCoordinator(store, "guest", "player", "red");
+  master.testState.game.red.openedBy = { 0: ["master"] };
+  guest.testState.game.red.openedBy = { 0: ["master"] };
+  const addOpener = (coordinator, playerKey, openerName) => coordinator.requestAction(
+    {
+      type: "toggle-cell-player",
+      payload: { team: "red", index: 0, memberIndex: 0, openerName, expectedMarked: true }
+    },
+    () => {
+      const current = coordinator.testState.game.red.openedBy[0] || [];
+      coordinator.testState.game.red.openedBy[0] = [...new Set([...current, playerKey])];
+    }
+  );
+
+  const [first, second] = await Promise.all([
+    addOpener(master, "jan", "JAN"),
+    addOpener(guest, "eda", "EDA")
+  ]);
+
+  assert.deepEqual([first, second], [true, true]);
+  assert.deepEqual(
+    new Set(store.value.teamBingoV1.rooms.ROOM.game.red.openedBy[0]),
+    new Set(["master", "jan", "eda"])
+  );
+  assert.deepEqual(store.value.teamBingoV1.globalStats.ranking, { 53: 1 });
+});
+
 test("a replaced stale tab cannot submit actions for its former seat", async () => {
   const store = createStore();
   const staleGuest = createCoordinator(store, "guest", "player", "blue");
