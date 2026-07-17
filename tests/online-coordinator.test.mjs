@@ -196,7 +196,10 @@ function prepareAdminCoordinator(store, uid = "master") {
   coordinator.adminExpiryTimer = 0;
   coordinator.ui = {
     adminMode: { textContent: "ADMIN ON" },
-    adminResult: { textContent: "" }
+    adminResult: { textContent: "" },
+    adminExportCounts: { disabled: false },
+    adminImportCounts: { disabled: false },
+    adminImportFile: { value: "" }
   };
   coordinator.hideAdminPage = () => {};
   coordinator.showLobby = () => {};
@@ -384,6 +387,49 @@ test("an expired server admin session cannot export shared count data", async ()
   assert.match(admin.lastAdminMessage, /^ADMIN EXPIRED:/);
 });
 
+test("admin count import atomically replaces ranking and player stats", async () => {
+  const store = createStore();
+  store.value.teamBingoV1.globalStats.ranking = { 1: 99 };
+  store.value.teamBingoV1.globalStats.playerStats.players.old = { name: "OLD", games: 8 };
+  const admin = prepareAdminCoordinator(store);
+  const previousConfirm = window.confirm;
+  window.confirm = () => true;
+  const file = {
+    size: 1024,
+    async text() {
+      return JSON.stringify({
+        version: 2,
+        cellRanking: { 53: 7, 69: 4 },
+        playerStats: {
+          players: {
+            jan: { name: "JAN", games: 5, wins: 3, losses: 2, mvps: 1 }
+          },
+          rivalries: {},
+          recentMatches: [{ id: "match-imported", winner: "red" }]
+        }
+      });
+    }
+  };
+
+  try {
+    const imported = await admin.importCountData(file);
+
+    assert.equal(imported, true);
+    const stats = store.value.teamBingoV1.globalStats;
+    assert.deepEqual(stats.ranking, { 53: 7, 69: 4 });
+    assert.equal(stats.playerStats.players.old, undefined);
+    assert.equal(stats.playerStats.players.jan.games, 5);
+    assert.equal(stats.playerStats.players.jan.mvps, 1);
+    assert.equal(stats.playerStats.recentMatches[0].id, "match-imported");
+    assert.equal(Object.keys(stats.processedActions).length, 1);
+    assert.equal(admin.ui.adminExportCounts.disabled, false);
+    assert.equal(admin.ui.adminImportCounts.disabled, false);
+    assert.equal(admin.ui.adminImportFile.value, "");
+  } finally {
+    window.confirm = previousConfirm;
+  }
+});
+
 test("simultaneous actions on both teams preserve both room and ranking updates", async () => {
   const store = createStore();
   const master = createCoordinator(store, "master", "master", "red");
@@ -408,6 +454,32 @@ test("simultaneous actions on both teams preserve both room and ranking updates"
   assert.equal(room.meta.revision, 2);
   assert.equal(room.game.red.marked[0], true);
   assert.equal(room.game.blue.marked[1], true);
+  assert.deepEqual(store.value.teamBingoV1.globalStats.ranking, { 53: 1, 69: 1 });
+});
+
+test("simultaneous teammates can open different cells without losing either update", async () => {
+  const store = createStore();
+  store.value.teamBingoV1.rooms.ROOM.participants.guest.team = "red";
+  const first = createCoordinator(store, "master", "master", "red");
+  const second = createCoordinator(store, "guest", "player", "red");
+
+  const open = (coordinator, index, characterId) => coordinator.requestAction(
+    { type: "toggle-cell", payload: { team: "red", index, expectedMarked: false } },
+    () => {
+      coordinator.testState.game.red.marked[index] = true;
+      coordinator.testState.stats.ranking[characterId] = 1;
+    }
+  );
+
+  const results = await Promise.all([
+    open(first, 0, 53),
+    open(second, 1, 69)
+  ]);
+
+  assert.deepEqual(results, [true, true]);
+  const room = store.value.teamBingoV1.rooms.ROOM;
+  assert.equal(room.meta.revision, 2);
+  assert.deepEqual(room.game.red.marked, [true, true]);
   assert.deepEqual(store.value.teamBingoV1.globalStats.ranking, { 53: 1, 69: 1 });
 });
 

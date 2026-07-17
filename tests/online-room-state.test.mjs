@@ -270,6 +270,16 @@ test("a changed match id resets stale victory presentation even after READY", ()
   );
 });
 
+test("a tracked rematch clears an untracked stale victory even after READY", () => {
+  assert.equal(
+    shouldResetOnlineMatchPresentation(
+      { gameStarted: true, readyShown: true, winner: null, matchTracker: { id: "match-new" } },
+      { winner: "red", readyShown: true, matchTracker: {} }
+    ),
+    true
+  );
+});
+
 test("updates inside the same match do not reset presentation", () => {
   assert.equal(
     shouldResetOnlineMatchPresentation(

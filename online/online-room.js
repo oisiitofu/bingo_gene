@@ -271,7 +271,8 @@ export function shouldResetOnlineMatchPresentation(snapshot = {}, currentState =
   if (!snapshot?.gameStarted) return false;
   const incomingMatchId = String(snapshot.matchTracker?.id || "");
   const currentMatchId = String(currentState.matchTracker?.id || "");
-  const matchChanged = Boolean(incomingMatchId && currentMatchId && incomingMatchId !== currentMatchId);
+  const hasPriorMatchState = Boolean(currentMatchId || currentState.winner || currentState.readyShown);
+  const matchChanged = Boolean(incomingMatchId && incomingMatchId !== currentMatchId && hasPriorMatchState);
   return matchChanged || Boolean(!snapshot.readyShown && (currentState.winner || currentState.readyShown));
 }
 
