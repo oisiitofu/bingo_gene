@@ -601,6 +601,7 @@ export class OnlineCoordinator {
     this.pendingRoom = null;
     this.globalStatsSnapshot = null;
     this.globalProcessedActions = new Set();
+    this.lastMasterLobbySyncKey = "";
     this.masterHandoverTimer = 0;
     this.heartbeatTimer = 0;
     this.connectionUnsubscribe = null;
@@ -1513,7 +1514,21 @@ export class OnlineCoordinator {
 
   syncLobbyFromMasterRoom(room) {
     if (!room || room.meta?.masterUid !== this.backend?.uid) return;
-    this.publishLobbySummary(room).catch((error) => console.warn("Lobby summary refresh failed", error));
+    const summary = this.createLobbySummary(room);
+    const key = [
+      room.meta?.id || this.roomId,
+      summary.updatedAt,
+      summary.roomRevision,
+      summary.eventSeq,
+      summary.phase,
+      summary.onlineCount
+    ].join(":");
+    if (key === this.lastMasterLobbySyncKey) return;
+    this.lastMasterLobbySyncKey = key;
+    this.publishLobbySummary(room).catch((error) => {
+      this.lastMasterLobbySyncKey = "";
+      console.warn("Lobby summary refresh failed", error);
+    });
   }
 
   openSeatDialog(roomId) {

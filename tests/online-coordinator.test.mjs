@@ -148,6 +148,7 @@ function createCoordinator(store, uid, role, team) {
   coordinator.localActionIds = new Set();
   coordinator.globalStatsSnapshot = emptyStats();
   coordinator.globalProcessedActions = new Set();
+  coordinator.lastMasterLobbySyncKey = "";
   coordinator.setBusy = (busy) => { coordinator.busy = Boolean(busy); };
   coordinator.showError = (title, error) => { coordinator.lastError = `${title}: ${error?.message || error}`; };
   coordinator.applyRoom = (room) => { coordinator.room = clone(room); };
@@ -340,6 +341,20 @@ test("the master refreshes the lobby summary as soon as a participant leaves", a
 
   assert.equal(store.value.teamBingoV1.lobby.ROOM.onlineCount, 1);
   assert.equal(store.value.teamBingoV1.lobby.ROOM.roomRevision, 0);
+});
+
+test("the master publishes a room snapshot to the lobby only once", async () => {
+  const store = createStore();
+  const master = createCoordinator(store, "master", "master", "red");
+  master.createLobbySummary = OnlineCoordinator.prototype.createLobbySummary.bind(master);
+  let published = 0;
+  master.publishLobbySummary = async () => { published += 1; return true; };
+
+  master.syncLobbyFromMasterRoom(store.value.teamBingoV1.rooms.ROOM);
+  master.syncLobbyFromMasterRoom(store.value.teamBingoV1.rooms.ROOM);
+  await new Promise((resolve) => setTimeout(resolve, 0));
+
+  assert.equal(published, 1);
 });
 
 test("ranking mutations persist an authoritative timestamp even when the map becomes empty", async () => {
