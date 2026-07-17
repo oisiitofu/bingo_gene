@@ -72,6 +72,7 @@ let outsider;
 let ghostId = "";
 let closeId = "";
 let orphanId = "";
+let permissionId = "";
 
 try {
   [master, member, outsider] = await Promise.all([signUp(), signUp(), signUp()]);
@@ -133,6 +134,55 @@ try {
     lastSeenAt: now
   });
   assert.equal(joined.ok, true, `Member could not join room: ${JSON.stringify(joined)}`);
+
+  permissionId = `${roomId}-PERMISSION`;
+  const permissionRoom = structuredClone(room);
+  permissionRoom.meta.id = permissionId;
+  permissionRoom.meta.updatedAt = Date.now();
+  permissionRoom.participants[member.localId] = {
+    uid: member.localId,
+    role: "player",
+    team: "blue",
+    memberName: "Smoke Member",
+    online: true,
+    joinedAt: now,
+    lastSeenAt: now
+  };
+  const permissionCreated = await databaseRequest("PUT", `rooms/${permissionId}`, master.idToken, permissionRoom);
+  assert.equal(permissionCreated.ok, true, `Permission fixture room could not be created: ${JSON.stringify(permissionCreated)}`);
+  const permissionLobbyCreated = await databaseRequest("PUT", `lobby/${permissionId}`, master.idToken, {
+    active: true,
+    phase: "playing",
+    updatedAt: Date.now()
+  });
+  assert.equal(permissionLobbyCreated.ok, true, `Permission fixture lobby could not be created: ${JSON.stringify(permissionLobbyCreated)}`);
+  const memberLobbyDelete = await databaseRequest("DELETE", `lobby/${permissionId}`, member.idToken);
+  assert.equal(memberLobbyDelete.ok, false, "A regular participant unexpectedly deleted the lobby entry");
+  assert.equal(memberLobbyDelete.status, 401, "A regular participant lobby delete should receive permission_denied");
+  const memberRoomDelete = await databaseRequest("DELETE", `rooms/${permissionId}`, member.idToken);
+  assert.equal(memberRoomDelete.ok, false, "A regular participant unexpectedly deleted the whole room");
+  assert.equal(memberRoomDelete.status, 401, "A regular participant room delete should receive permission_denied");
+  const memberMasterRewrite = await databaseRequest("PATCH", `rooms/${permissionId}/meta`, member.idToken, {
+    masterUid: member.localId
+  });
+  assert.equal(memberMasterRewrite.ok, false, "A connected participant unexpectedly replaced the room master");
+  assert.equal(memberMasterRewrite.status, 401, "A connected participant master rewrite should receive permission_denied");
+  const permissionMasterDisconnected = await databaseRequest("PATCH", `rooms/${permissionId}/participants/${master.localId}`, master.idToken, {
+    online: false,
+    disconnectedAt: Date.now()
+  });
+  assert.equal(permissionMasterDisconnected.ok, true, `Permission fixture master could not disconnect: ${JSON.stringify(permissionMasterDisconnected)}`);
+  const validHandover = await databaseRequest("PATCH", `rooms/${permissionId}`, member.idToken, {
+    "meta/masterUid": member.localId,
+    "meta/updatedAt": Date.now(),
+    [`participants/${master.localId}/role`]: "player",
+    [`participants/${member.localId}/role`]: "master"
+  });
+  assert.equal(validHandover.ok, true, `A disconnected master could not hand over to an online player: ${JSON.stringify(validHandover)}`);
+  const replacementMasterClose = await databaseRequest("DELETE", `rooms/${permissionId}`, member.idToken);
+  assert.equal(replacementMasterClose.ok, true, `The replacement master could not close the room: ${JSON.stringify(replacementMasterClose)}`);
+  const replacementMasterLobbyClose = await databaseRequest("DELETE", `lobby/${permissionId}`, member.idToken);
+  assert.equal(replacementMasterLobbyClose.ok, true, `The replacement master could not close the lobby entry: ${JSON.stringify(replacementMasterLobbyClose)}`);
 
   const memberDisconnected = await databaseRequest("PATCH", `rooms/${roomId}/participants/${member.localId}`, member.idToken, {
     online: false,
@@ -324,6 +374,10 @@ try {
     if (orphanId) {
       await databaseRequest("DELETE", `lobby/${orphanId}`, master.idToken).catch(() => {});
       await databaseRequest("DELETE", `rooms/${orphanId}`, master.idToken).catch(() => {});
+    }
+    if (permissionId) {
+      await databaseRequest("DELETE", `lobby/${permissionId}`, master.idToken).catch(() => {});
+      await databaseRequest("DELETE", `rooms/${permissionId}`, master.idToken).catch(() => {});
     }
   }
   if (outsider?.idToken) {
