@@ -1,7 +1,7 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 
-import { OnlineCoordinator } from "../online/online-room.js";
+import { FirebaseBackend, OnlineCoordinator } from "../online/online-room.js";
 
 const clone = (value) => value === undefined ? undefined : JSON.parse(JSON.stringify(value));
 
@@ -26,6 +26,9 @@ class MemoryBackend {
   constructor(store, uid) {
     this.store = store;
     this.uid = uid;
+    this.connectionCallback = null;
+    this.presenceArms = [];
+    this.presenceClearCount = 0;
   }
 
   serverNow() {
@@ -51,6 +54,22 @@ class MemoryBackend {
   subscribe(path, callback) {
     callback(clone(getAtPath(this.store.value, path)));
     return () => {};
+  }
+
+  subscribeConnection(callback) {
+    this.connectionCallback = callback;
+    return () => {
+      if (this.connectionCallback === callback) this.connectionCallback = null;
+    };
+  }
+
+  async setPresenceDisconnect(participantPath, seatPath = "") {
+    this.presenceArms.push({ participantPath, seatPath });
+  }
+
+  async clearPresenceDisconnect() {
+    this.presenceClearCount += 1;
+    return true;
   }
 
   async transaction(path, updater) {
@@ -181,6 +200,85 @@ globalThis.sessionStorage = {
   clear() { sessionValues.clear(); }
 };
 
+test("Firebase presence operations are queued and canceled for both participant and seat", async () => {
+  const backend = new FirebaseBackend({});
+  const operations = [];
+  backend.db = {};
+  backend.api = {
+    serverTimestamp: () => 12345,
+    ref: (_database, path) => path,
+    onDisconnect(path) {
+      const operation = {
+        path,
+        payload: null,
+        canceled: false,
+        async update(payload) { this.payload = payload; },
+        async cancel() { this.canceled = true; }
+      };
+      operations.push(operation);
+      return operation;
+    }
+  };
+
+  await backend.setPresenceDisconnect("rooms/ROOM/participants/guest", "rooms/ROOM/seats/blue0");
+
+  assert.equal(operations.length, 2);
+  assert.deepEqual(operations[0].payload, { online: false, disconnectedAt: 12345 });
+  assert.deepEqual(operations[1].payload, { online: false, disconnectedAt: 12345 });
+  assert.equal(backend.disconnectOperations.size, 2);
+
+  const cleared = await backend.clearPresenceDisconnect();
+
+  assert.equal(cleared, true);
+  assert.equal(operations.every((operation) => operation.canceled), true);
+  assert.equal(backend.disconnectOperations.size, 0);
+});
+
+test("a failed Firebase presence cancellation remains queued for retry", async () => {
+  const backend = new FirebaseBackend({});
+  backend.disconnectOperations.set("participant", { cancel: async () => { throw new Error("offline"); } });
+
+  const cleared = await backend.clearPresenceDisconnect();
+
+  assert.equal(cleared, false);
+  assert.equal(backend.disconnectOperations.has("participant"), true);
+});
+
+test("a delayed lobby summary cannot overwrite a newer room status", async () => {
+  const store = createStore();
+  const master = createCoordinator(store, "master", "master", "red");
+  master.createLobbySummary = OnlineCoordinator.prototype.createLobbySummary.bind(master);
+  const newerRoom = createRoom();
+  newerRoom.meta.updatedAt = 200;
+  newerRoom.meta.revision = 2;
+  newerRoom.meta.eventSeq = 2;
+  newerRoom.meta.phase = "finished";
+  newerRoom.game.winner = "red";
+  store.value.teamBingoV1.lobby.ROOM = master.createLobbySummary(newerRoom);
+  const staleRoom = createRoom();
+  staleRoom.meta.updatedAt = 100;
+  staleRoom.meta.revision = 1;
+  staleRoom.meta.eventSeq = 1;
+  staleRoom.meta.phase = "playing";
+
+  await master.publishLobbySummary(staleRoom, "ROOM");
+
+  assert.equal(store.value.teamBingoV1.lobby.ROOM.phase, "finished");
+  assert.equal(store.value.teamBingoV1.lobby.ROOM.updatedAt, 200);
+  assert.equal(store.value.teamBingoV1.lobby.ROOM.eventSeq, 2);
+
+  const latestRoom = createRoom();
+  latestRoom.meta.updatedAt = 300;
+  latestRoom.meta.revision = 3;
+  latestRoom.meta.eventSeq = 3;
+  latestRoom.participants.guest.online = false;
+  await master.publishLobbySummary(latestRoom, "ROOM");
+
+  assert.equal(store.value.teamBingoV1.lobby.ROOM.phase, "playing");
+  assert.equal(store.value.teamBingoV1.lobby.ROOM.updatedAt, 300);
+  assert.equal(store.value.teamBingoV1.lobby.ROOM.onlineCount, 1);
+});
+
 test("simultaneous actions on both teams preserve both room and ranking updates", async () => {
   const store = createStore();
   const master = createCoordinator(store, "master", "master", "red");
@@ -276,6 +374,200 @@ test("a participant reload restores its seat and online presence", async () => {
   assert.equal(store.value.teamBingoV1.rooms.ROOM.seats.blue0.deviceId, "device-guest");
 });
 
+test("a reconnect re-arms disconnect tracking before restoring participant and seat presence", async () => {
+  const store = createStore();
+  const room = store.value.teamBingoV1.rooms.ROOM;
+  room.seats = {
+    blue0: {
+      uid: "guest",
+      deviceId: "device-guest",
+      team: "blue",
+      online: false,
+      disconnectedAt: Date.now() - 1000
+    }
+  };
+  room.participants.guest.online = false;
+  room.participants.guest.disconnectedAt = Date.now() - 1000;
+  const guest = createCoordinator(store, "guest", "player", "blue");
+  guest.deviceId = "device-guest";
+  guest.seatKey = "blue0";
+  guest.connectionUnsubscribe = null;
+  guest.presenceRefreshPromise = null;
+  const order = [];
+  const armPresence = guest.backend.setPresenceDisconnect.bind(guest.backend);
+  guest.backend.setPresenceDisconnect = async (...args) => {
+    order.push("arm");
+    return armPresence(...args);
+  };
+  const transact = guest.backend.transaction.bind(guest.backend);
+  guest.backend.transaction = async (...args) => {
+    order.push("online");
+    return transact(...args);
+  };
+
+  guest.startConnectionMonitor();
+  guest.backend.connectionCallback(true);
+  await guest.presenceRefreshPromise;
+
+  assert.deepEqual(order.slice(0, 2), ["arm", "online"]);
+  assert.equal(guest.backend.presenceArms.length, 1);
+  assert.match(guest.backend.presenceArms[0].participantPath, /participants\/guest$/);
+  assert.match(guest.backend.presenceArms[0].seatPath, /seats\/blue0$/);
+  assert.equal(store.value.teamBingoV1.rooms.ROOM.participants.guest.online, true);
+  assert.equal(store.value.teamBingoV1.rooms.ROOM.participants.guest.disconnectedAt, null);
+  assert.equal(store.value.teamBingoV1.rooms.ROOM.seats.blue0.online, true);
+  assert.equal(store.value.teamBingoV1.rooms.ROOM.seats.blue0.disconnectedAt, null);
+
+  store.value.teamBingoV1.rooms.ROOM.participants.guest.online = false;
+  store.value.teamBingoV1.rooms.ROOM.seats.blue0.online = false;
+  guest.backend.connectionCallback(false);
+  guest.backend.connectionCallback(true);
+  await guest.presenceRefreshPromise;
+
+  assert.equal(guest.backend.presenceArms.length, 2);
+  assert.equal(store.value.teamBingoV1.rooms.ROOM.participants.guest.online, true);
+  assert.equal(store.value.teamBingoV1.rooms.ROOM.seats.blue0.online, true);
+});
+
+test("explicit leave cancels disconnect tracking before removing the participant", async () => {
+  const store = createStore();
+  const room = store.value.teamBingoV1.rooms.ROOM;
+  room.seats = { blue0: { uid: "guest", online: true } };
+  const guest = createCoordinator(store, "guest", "player", "blue");
+  guest.seatKey = "blue0";
+  guest.connectionUnsubscribe = () => {};
+  guest.presenceRefreshPromise = null;
+  guest.roomUnsubscribe = () => {};
+  guest.stopHeartbeat = () => { order.push("stop-heartbeat"); };
+  guest.updateSessionUi = () => {};
+  guest.showLobby = () => {};
+  guest.bridge.onRoomLeft = () => {};
+  const order = [];
+  const clearPresence = guest.backend.clearPresenceDisconnect.bind(guest.backend);
+  guest.backend.clearPresenceDisconnect = async () => {
+    order.push("clear");
+    return clearPresence();
+  };
+  const transact = guest.backend.transaction.bind(guest.backend);
+  guest.backend.transaction = async (...args) => {
+    order.push("transaction");
+    return transact(...args);
+  };
+
+  const left = await guest.leaveRoom();
+
+  assert.equal(left, true);
+  assert.ok(order.indexOf("stop-heartbeat") < order.indexOf("transaction"));
+  assert.ok(order.indexOf("clear") < order.indexOf("transaction"));
+  assert.equal(guest.backend.presenceClearCount, 1);
+  assert.equal(store.value.teamBingoV1.rooms.ROOM.participants.guest, undefined);
+  assert.equal(store.value.teamBingoV1.rooms.ROOM.seats.blue0, undefined);
+});
+
+test("a failed leave keeps the session and re-enables reconnect tracking", async () => {
+  const store = createStore();
+  const guest = createCoordinator(store, "guest", "player", "blue");
+  guest.connectionUnsubscribe = () => {};
+  guest.presenceRefreshPromise = null;
+  let heartbeatRestarted = false;
+  guest.stopHeartbeat = () => {};
+  guest.startHeartbeat = () => { heartbeatRestarted = true; };
+  guest.backend.transaction = async () => { throw new Error("network unavailable"); };
+
+  const left = await guest.leaveRoom();
+
+  assert.equal(left, false);
+  assert.equal(guest.roomId, "ROOM");
+  assert.equal(typeof guest.backend.connectionCallback, "function");
+  assert.equal(heartbeatRestarted, true);
+  assert.match(guest.lastError, /^LEAVE ERROR: network unavailable$/);
+  assert.equal(store.value.teamBingoV1.rooms.ROOM.participants.guest.online, true);
+});
+
+test("a leave is aborted when disconnect reservations cannot be canceled", async () => {
+  const store = createStore();
+  const guest = createCoordinator(store, "guest", "player", "blue");
+  guest.connectionUnsubscribe = () => {};
+  guest.presenceRefreshPromise = null;
+  let heartbeatRestarted = false;
+  let transactionCalled = false;
+  guest.stopHeartbeat = () => {};
+  guest.startHeartbeat = () => { heartbeatRestarted = true; };
+  guest.backend.clearPresenceDisconnect = async () => false;
+  guest.backend.transaction = async () => {
+    transactionCalled = true;
+    return { committed: true, value: null };
+  };
+
+  const left = await guest.leaveRoom();
+
+  assert.equal(left, false);
+  assert.equal(transactionCalled, false);
+  assert.equal(heartbeatRestarted, true);
+  assert.equal(guest.roomId, "ROOM");
+  assert.match(guest.lastError, /^LEAVE ERROR: 接続状態の解除に失敗しました/);
+});
+
+test("a failed room close keeps the master attached and reconnectable", async () => {
+  const store = createStore();
+  const master = createCoordinator(store, "master", "master", "red");
+  master.connectionUnsubscribe = () => {};
+  master.presenceRefreshPromise = null;
+  let heartbeatRestarted = false;
+  master.stopHeartbeat = () => {};
+  master.startHeartbeat = () => { heartbeatRestarted = true; };
+  master.backend.update = async () => { throw new Error("close denied"); };
+
+  const closed = await master.closeRoom();
+
+  assert.equal(closed, false);
+  assert.equal(master.roomId, "ROOM");
+  assert.equal(typeof master.backend.connectionCallback, "function");
+  assert.equal(heartbeatRestarted, true);
+  assert.match(master.lastError, /^ROOM CLOSE ERROR: close denied$/);
+  assert.ok(store.value.teamBingoV1.rooms.ROOM);
+});
+
+test("a former master restores as a player when handover wins the reload race", async () => {
+  const store = createStore();
+  const room = store.value.teamBingoV1.rooms.ROOM;
+  room.seats = { red0: { uid: "master", deviceId: "device-master", team: "red", online: false } };
+  room.participants.master.online = false;
+  const formerMaster = createCoordinator(store, "master", "master", "red");
+  formerMaster.deviceId = "device-master";
+  formerMaster.updateSessionUi = () => {};
+  formerMaster.hideLobby = () => {};
+  formerMaster.enterRoom = async (roomId, restoredRoom) => {
+    formerMaster.roomId = roomId;
+    formerMaster.room = clone(restoredRoom);
+  };
+  const transact = formerMaster.backend.transaction.bind(formerMaster.backend);
+  let handoverApplied = false;
+  formerMaster.backend.transaction = async (path, updater) => {
+    if (!handoverApplied && path.endsWith("/rooms/ROOM")) {
+      handoverApplied = true;
+      store.value.teamBingoV1.rooms.ROOM.meta.masterUid = "guest";
+      store.value.teamBingoV1.rooms.ROOM.participants.guest.role = "master";
+    }
+    return transact(path, updater);
+  };
+  sessionStorage.clear();
+  sessionStorage.setItem("teamBingo.onlineSession.v1", JSON.stringify({
+    roomId: "ROOM",
+    role: "master",
+    team: "red",
+    memberName: "Master",
+    seatKey: "red0"
+  }));
+
+  const restored = await formerMaster.restoreSession();
+
+  assert.equal(restored, true);
+  assert.equal(formerMaster.role, "player");
+  assert.equal(store.value.teamBingoV1.rooms.ROOM.meta.masterUid, "guest");
+  assert.equal(store.value.teamBingoV1.rooms.ROOM.participants.master.role, "player");
+});
+
 test("an online participant takes over after the master disconnect grace period", async () => {
   const store = createStore();
   const room = store.value.teamBingoV1.rooms.ROOM;
@@ -288,6 +580,8 @@ test("an online participant takes over after the master disconnect grace period"
   await guest.tryMasterHandover();
 
   assert.equal(store.value.teamBingoV1.rooms.ROOM.meta.masterUid, "guest");
+  assert.equal(store.value.teamBingoV1.rooms.ROOM.participants.master.role, "player");
+  assert.equal(store.value.teamBingoV1.rooms.ROOM.participants.guest.role, "master");
   assert.equal(store.value.teamBingoV1.lobby.ROOM.phase, "playing");
 });
 
@@ -614,6 +908,7 @@ test("a departing master hands control to a player, never an older spectator", a
 
   const updated = store.value.teamBingoV1.rooms.ROOM;
   assert.equal(updated.meta.masterUid, "guest");
+  assert.equal(updated.participants.guest.role, "master");
   assert.equal(updated.participants.spectator.role, "spectator");
   assert.equal(updated.participants.master, undefined);
 });
