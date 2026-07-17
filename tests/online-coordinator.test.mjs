@@ -1863,6 +1863,36 @@ test("a departing master hands control to a player, never an older spectator", a
   assert.equal(updated.participants.master, undefined);
 });
 
+test("a replacement master can start the next match after handover", async () => {
+  const store = createStore();
+  const master = createCoordinator(store, "master", "master", "red");
+  master.roomUnsubscribe = () => {};
+  master.stopHeartbeat = () => {};
+  master.updateSessionUi = () => {};
+  master.showLobby = () => {};
+  master.bridge.onRoomLeft = () => {};
+
+  assert.equal(await master.leaveRoom({ switching: true }), true);
+
+  const replacement = createCoordinator(store, "guest", "player", "blue");
+  replacement.applyRoom(store.value.teamBingoV1.rooms.ROOM);
+  const started = await replacement.requestAction(
+    { type: "start-game", masterOnly: true, payload: {} },
+    () => {
+      replacement.testState.game.gameStarted = true;
+      replacement.testState.game.inputLocked = true;
+      replacement.testState.game.winner = null;
+    }
+  );
+
+  const room = store.value.teamBingoV1.rooms.ROOM;
+  assert.equal(started, true);
+  assert.equal(room.meta.masterUid, "guest");
+  assert.equal(room.participants.guest.role, "master");
+  assert.equal(room.game.gameStarted, true);
+  assert.equal(room.events[1].type, "start-game");
+});
+
 test("a departing player leaves the lobby refresh to the active master", async () => {
   const store = createStore();
   const guest = createCoordinator(store, "guest", "player", "blue");
