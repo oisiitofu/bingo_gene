@@ -379,6 +379,19 @@ try {
   const removedGhost = await databaseRequest("GET", `rooms/${ghostId}`, master.idToken);
   assert.equal(removedGhost.value, null, "Automatically cleaned ghost room still exists");
 
+  const oversizedAdminSession = await databaseRequest("PUT", `adminSessions/${outsider.localId}`, outsider.idToken, {
+    pinHash,
+    expiresAt: Date.now() + 31 * 60 * 1000
+  });
+  assert.equal(oversizedAdminSession.ok, false, "An admin session unexpectedly exceeded the 30 minute limit");
+  assert.equal(oversizedAdminSession.status, 401, "An oversized admin session should receive permission_denied");
+  const invalidAdminSession = await databaseRequest("PUT", `adminSessions/${outsider.localId}`, outsider.idToken, {
+    pinHash: "invalid",
+    expiresAt: Date.now() + 10 * 60 * 1000
+  });
+  assert.equal(invalidAdminSession.ok, false, "An invalid admin session signature was unexpectedly accepted");
+  assert.equal(invalidAdminSession.status, 401, "An invalid admin session should receive permission_denied");
+
   const adminSession = await databaseRequest("PUT", `adminSessions/${outsider.localId}`, outsider.idToken, {
     pinHash,
     expiresAt: Date.now() + 10 * 60 * 1000
