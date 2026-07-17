@@ -260,3 +260,48 @@ test("an online participant takes over after the master disconnect grace period"
   assert.equal(store.value.teamBingoV1.rooms.ROOM.meta.masterUid, "guest");
   assert.equal(store.value.teamBingoV1.lobby.ROOM.phase, "playing");
 });
+
+test("remote presentation events play once in sequence and skip the local echo", () => {
+  const store = createStore();
+  const guest = createCoordinator(store, "guest", "player", "blue");
+  const played = [];
+  guest.lastEventSeq = 0;
+  guest.localActionIds.add("local-action");
+  guest.applyRoom = OnlineCoordinator.prototype.applyRoom.bind(guest);
+  guest.updateSessionUi = () => {};
+  guest.scheduleMasterHandover = () => {};
+  guest.bridge.applyOnlineSetupSnapshot = () => {};
+  guest.bridge.applyOnlineGameSnapshot = () => {};
+  guest.bridge.playOnlineEvent = (event) => played.push(`${event.seq}:${event.type}`);
+  const room = createRoom();
+  room.meta.eventSeq = 3;
+  room.events = {
+    3: { actionId: "remote-3", type: "victory" },
+    1: { actionId: "local-action", type: "toggle-cell" },
+    2: { actionId: "remote-2", type: "reach" }
+  };
+  sessionStorage.clear();
+
+  guest.applyRoom(room);
+
+  assert.deepEqual(played, ["2:reach", "3:victory"]);
+  assert.equal(guest.localActionIds.has("local-action"), false);
+  assert.equal(guest.lastEventSeq, 3);
+  assert.equal(sessionStorage.getItem("teamBingo.lastEvent.ROOM"), "3");
+});
+
+test("room updates received during an action keep the newest pending snapshot", () => {
+  const store = createStore();
+  const guest = createCoordinator(store, "guest", "player", "blue");
+  guest.busy = true;
+  const first = createRoom();
+  const second = createRoom();
+  first.meta.revision = 1;
+  second.meta.revision = 2;
+
+  guest.onRoomValue(first);
+  guest.onRoomValue(second);
+
+  assert.equal(guest.pendingRoom.meta.revision, 2);
+  assert.equal(guest.room.meta.revision, 0);
+});
