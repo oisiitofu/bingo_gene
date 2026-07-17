@@ -19,6 +19,7 @@ const PHASE_LABELS = {
 
 const ROOT_KEY = "teamBingo.online.mock.v1";
 const MOCK_CHANNEL = "team-bingo-online-mock-v1";
+const ORPHAN_ROOM_CLEANUP_INTERVAL = 5 * 60 * 1000;
 const MAX_EVENT_REPLAY = 12;
 const ADMIN_PIN = "9071";
 const ADMIN_PIN_HASH = "6440e6a91202aeddb45b070a80533f65a689c37d0cf1842ab2bd962e33377880";
@@ -656,6 +657,7 @@ export class OnlineCoordinator {
     this.adminExpiryTimer = 0;
     this.cleanupInFlight = false;
     this.ghostCleanupTimer = 0;
+    this.nextOrphanRoomCleanupAt = 0;
     this.legacyStats = clone(bridge.getLegacyStats?.() || {});
     const requestedMockDevice = this.mock
       ? new URLSearchParams(location.search).get("onlineMockDevice")?.replace(/[^a-zA-Z0-9_-]/g, "").slice(0, 40)
@@ -2679,6 +2681,9 @@ export class OnlineCoordinator {
   async cleanupStaleRooms() {
     if (!this.backend || this.busy || this.cleanupInFlight) return;
     await this.deleteGhostRooms({ requireAdmin: false });
+    const now = this.backend.serverNow();
+    if (now < (Number(this.nextOrphanRoomCleanupAt) || 0)) return;
+    this.nextOrphanRoomCleanupAt = now + ORPHAN_ROOM_CLEANUP_INTERVAL;
     await this.deleteOrphanedGhostRooms();
   }
 

@@ -499,6 +499,29 @@ test("automatic cleanup removes a stale room that no longer has a lobby summary"
   assert.ok(store.value.teamBingoV1.lobby.FRESH);
 });
 
+test("orphan room scans are rate limited while lobby cleanup stays immediate", async () => {
+  const store = createStore();
+  const master = createCoordinator(store, "master", "master", "red");
+  let now = 10_000_000;
+  let lobbyScans = 0;
+  let orphanScans = 0;
+  master.backend.serverNow = () => now;
+  master.cleanupInFlight = false;
+  master.nextOrphanRoomCleanupAt = 0;
+  master.deleteGhostRooms = async () => { lobbyScans += 1; return 0; };
+  master.deleteOrphanedGhostRooms = async () => { orphanScans += 1; return 0; };
+
+  await master.cleanupStaleRooms();
+  await master.cleanupStaleRooms();
+  now += 5 * 60 * 1000 - 1;
+  await master.cleanupStaleRooms();
+  now += 1;
+  await master.cleanupStaleRooms();
+
+  assert.equal(lobbyScans, 4);
+  assert.equal(orphanScans, 2);
+});
+
 test("ranking mutations persist an authoritative timestamp even when the map becomes empty", async () => {
   const store = createStore();
   const master = createCoordinator(store, "master", "master", "red");
