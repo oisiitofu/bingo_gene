@@ -1154,6 +1154,46 @@ test("a remote HYPE event is delivered exactly once to another participant", () 
   assert.equal(guest.lastEventSeq, 1);
 });
 
+test("a remote victory event is delivered once with its authoritative snapshot", () => {
+  const store = createStore();
+  const guest = createCoordinator(store, "guest", "player", "blue");
+  const played = [];
+  guest.applyRoom = OnlineCoordinator.prototype.applyRoom.bind(guest);
+  guest.updateSessionUi = () => {};
+  guest.scheduleMasterHandover = () => {};
+  guest.bridge.applyOnlineSetupSnapshot = () => {};
+  guest.bridge.applyOnlineGameSnapshot = () => {};
+  guest.bridge.playOnlineEvent = (event) => played.push(clone(event));
+  guest.lastEventSeq = 0;
+  const room = createRoom();
+  const victory = {
+    team: "red",
+    victoryKind: "comeback",
+    mvp: { name: "Master", imageId: 53, playerKey: "master" },
+    presentation: { timeline: [{ kind: "commentary", main: "VICTORY!", sub: "COMEBACK", duration: 12000 }] }
+  };
+  room.game.gameStarted = true;
+  room.game.winner = "red";
+  room.lastVictory = clone(victory);
+  room.meta.eventSeq = 1;
+  room.events = {
+    1: {
+      actionId: "master-victory",
+      type: "toggle-cell",
+      effects: ["victory"],
+      victory: clone(victory)
+    }
+  };
+
+  guest.applyRoom(room);
+  guest.applyRoom(room);
+
+  assert.equal(played.length, 1);
+  assert.deepEqual(played[0].effects, ["victory"]);
+  assert.deepEqual(played[0].victory, victory);
+  assert.equal(guest.lastEventSeq, 1);
+});
+
 test("room updates received during an action keep the newest pending snapshot", () => {
   const store = createStore();
   const guest = createCoordinator(store, "guest", "player", "blue");
