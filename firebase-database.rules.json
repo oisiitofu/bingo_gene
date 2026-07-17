@@ -26,8 +26,14 @@
           ".validate": "!newData.exists() || newData.hasChildren(['active', 'phase', 'updatedAt'])"
         }
       },
+      "statsWriters": {
+        "$uid": {
+          ".write": "auth != null && auth.uid === $uid && (!newData.exists() || (newData.child('uid').val() === auth.uid && newData.child('roomId').isString() && root.child('teamBingoV1').child('rooms').child(newData.child('roomId').val()).child('participants').child(auth.uid).exists()))",
+          ".validate": "!newData.exists() || (newData.hasChildren(['uid', 'roomId', 'updatedAt']) && newData.child('uid').val() === $uid && newData.child('roomId').isString() && newData.child('updatedAt').isNumber())"
+        }
+      },
       "globalStats": {
-        ".write": "auth != null"
+        ".write": "auth != null && newData.exists() && ((root.child('teamBingoV1').child('adminSessions').child(auth.uid).child('expiresAt').isNumber() && root.child('teamBingoV1').child('adminSessions').child(auth.uid).child('expiresAt').val() > now) || (root.child('teamBingoV1').child('statsWriters').child(auth.uid).child('roomId').isString() && root.child('teamBingoV1').child('rooms').child(root.child('teamBingoV1').child('statsWriters').child(auth.uid).child('roomId').val()).child('meta').child('active').val() !== false && root.child('teamBingoV1').child('rooms').child(root.child('teamBingoV1').child('statsWriters').child(auth.uid).child('roomId').val()).child('participants').child(auth.uid).exists()))"
       },
       "legacyImports": {
         "$deviceId": {

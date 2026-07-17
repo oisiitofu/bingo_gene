@@ -135,6 +135,29 @@ try {
   });
   assert.equal(joined.ok, true, `Member could not join room: ${JSON.stringify(joined)}`);
 
+  const outsiderWriterRegistration = await databaseRequest("PUT", `statsWriters/${outsider.localId}`, outsider.idToken, {
+    uid: outsider.localId,
+    roomId,
+    updatedAt: Date.now()
+  });
+  assert.equal(outsiderWriterRegistration.ok, false, "A non-participant unexpectedly registered as a stats writer");
+  assert.equal(outsiderWriterRegistration.status, 401, "A non-participant stats writer registration should receive permission_denied");
+  const memberWriterRegistration = await databaseRequest("PUT", `statsWriters/${member.localId}`, member.idToken, {
+    uid: member.localId,
+    roomId,
+    updatedAt: Date.now()
+  });
+  assert.equal(memberWriterRegistration.ok, true, `Member could not register as a stats writer: ${JSON.stringify(memberWriterRegistration)}`);
+  const statsSchemaWrite = await databaseRequest("PUT", "globalStats/schemaVersion", member.idToken, 1);
+  assert.equal(statsSchemaWrite.ok, true, `Participant could not initialize the stats schema marker: ${JSON.stringify(statsSchemaWrite)}`);
+  const outsiderStatsWrite = await databaseRequest("PUT", `globalStats/permissionProbes/${roomId}`, outsider.idToken, true);
+  assert.equal(outsiderStatsWrite.ok, false, "A non-participant unexpectedly changed global stats");
+  assert.equal(outsiderStatsWrite.status, 401, "A non-participant stats write should receive permission_denied");
+  const memberStatsWrite = await databaseRequest("PUT", `globalStats/permissionProbes/${roomId}`, member.idToken, true);
+  assert.equal(memberStatsWrite.ok, true, `Participant could not update global stats: ${JSON.stringify(memberStatsWrite)}`);
+  const memberStatsCleanup = await databaseRequest("DELETE", `globalStats/permissionProbes/${roomId}`, member.idToken);
+  assert.equal(memberStatsCleanup.ok, true, `Participant could not clean its stats probe: ${JSON.stringify(memberStatsCleanup)}`);
+
   permissionId = `${roomId}-PERMISSION`;
   const permissionRoom = structuredClone(room);
   permissionRoom.meta.id = permissionId;
@@ -219,6 +242,11 @@ try {
 
   const removedMember = await databaseRequest("DELETE", `rooms/${roomId}/participants/${member.localId}`, master.idToken);
   assert.equal(removedMember.ok, true, `Master could not remove the member fixture: ${JSON.stringify(removedMember)}`);
+  const staleStatsWrite = await databaseRequest("PUT", `globalStats/permissionProbes/${roomId}`, member.idToken, true);
+  assert.equal(staleStatsWrite.ok, false, "A removed participant unexpectedly changed global stats with a stale writer record");
+  assert.equal(staleStatsWrite.status, 401, "A removed participant stats write should receive permission_denied");
+  const memberWriterDelete = await databaseRequest("DELETE", `statsWriters/${member.localId}`, member.idToken);
+  assert.equal(memberWriterDelete.ok, true, `Removed participant could not clear its stats writer record: ${JSON.stringify(memberWriterDelete)}`);
   const staleHeartbeat = await databaseRequest("PATCH", `rooms/${roomId}/participants/${member.localId}`, member.idToken, {
     online: true,
     lastSeenAt: Date.now()
@@ -344,6 +372,10 @@ try {
     expiresAt: Date.now() + 10 * 60 * 1000
   });
   assert.equal(adminSession.ok, true, `Admin session could not be created: ${JSON.stringify(adminSession)}`);
+  const adminStatsWrite = await databaseRequest("PUT", `globalStats/permissionProbes/${roomId}`, outsider.idToken, true);
+  assert.equal(adminStatsWrite.ok, true, `Admin could not update global stats: ${JSON.stringify(adminStatsWrite)}`);
+  const adminStatsCleanup = await databaseRequest("DELETE", `globalStats/permissionProbes/${roomId}`, outsider.idToken);
+  assert.equal(adminStatsCleanup.ok, true, `Admin could not clean the stats probe: ${JSON.stringify(adminStatsCleanup)}`);
 
   const adminDelete = await databaseRequest("DELETE", `rooms/${roomId}`, outsider.idToken);
   assert.equal(adminDelete.ok, true, `Admin could not delete the room: ${JSON.stringify(adminDelete)}`);
@@ -382,6 +414,10 @@ try {
   }
   if (outsider?.idToken) {
     await databaseRequest("DELETE", `adminSessions/${outsider.localId}`, outsider.idToken).catch(() => {});
+    await databaseRequest("DELETE", `statsWriters/${outsider.localId}`, outsider.idToken).catch(() => {});
+  }
+  if (member?.idToken) {
+    await databaseRequest("DELETE", `statsWriters/${member.localId}`, member.idToken).catch(() => {});
   }
   await Promise.all(accounts.map(deleteAccount));
 }

@@ -327,6 +327,7 @@ test("ranking mutations persist an authoritative timestamp even when the map bec
   const firstUpdatedAt = store.value.teamBingoV1.globalStats.rankingUpdatedAt;
   assert.equal(store.value.teamBingoV1.globalStats.ranking[53], 1);
   assert.equal(Number(firstUpdatedAt) > 0, true);
+  assert.equal(store.value.teamBingoV1.statsWriters.master.roomId, "ROOM");
 
   await master.commitStatsDelta("ranking-close", {
     ranking: { 53: -1 },
@@ -747,6 +748,9 @@ test("explicit leave cancels disconnect tracking before removing the participant
   const store = createStore();
   const room = store.value.teamBingoV1.rooms.ROOM;
   room.seats = { blue0: { uid: "guest", online: true } };
+  store.value.teamBingoV1.statsWriters = {
+    guest: { uid: "guest", roomId: "ROOM", updatedAt: Date.now() }
+  };
   const guest = createCoordinator(store, "guest", "player", "blue");
   guest.seatKey = "blue0";
   guest.connectionUnsubscribe = () => {};
@@ -776,6 +780,7 @@ test("explicit leave cancels disconnect tracking before removing the participant
   assert.equal(guest.backend.presenceClearCount, 1);
   assert.equal(store.value.teamBingoV1.rooms.ROOM.participants.guest, undefined);
   assert.equal(store.value.teamBingoV1.rooms.ROOM.seats.blue0, undefined);
+  assert.equal(store.value.teamBingoV1.statsWriters.guest, undefined);
 });
 
 test("duplicate leave requests share no overlapping room cleanup", async () => {

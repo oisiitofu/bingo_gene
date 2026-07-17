@@ -1792,6 +1792,7 @@ export class OnlineCoordinator {
         }
       }
     }
+    await this.clearStatsWriter(roomId);
     this.roomUnsubscribe?.();
     this.roomUnsubscribe = null;
     if (!options.preserveReclaimToken) this.clearSeatReclaimToken(roomId, key);
@@ -2206,6 +2207,7 @@ export class OnlineCoordinator {
 
   async commitStatsDelta(actionId, delta) {
     if (!actionId || !delta) return null;
+    if (!await this.ensureStatsWriter()) return null;
     const result = await this.backend.transaction(this.path("globalStats"), (stats) => {
       stats ||= { ranking: {}, playerStats: { players: {}, rivalries: {}, recentMatches: [] }, processedActions: {} };
       stats.processedActions ||= {};
@@ -2224,6 +2226,33 @@ export class OnlineCoordinator {
     };
   }
 
+  async ensureStatsWriter(roomId = this.roomId) {
+    if (!roomId || !this.backend?.uid) return false;
+    try {
+      await this.backend.set(this.path(`statsWriters/${this.backend.uid}`), {
+        uid: this.backend.uid,
+        roomId,
+        updatedAt: this.backend.serverNow()
+      });
+      return true;
+    } catch {
+      return false;
+    }
+  }
+
+  async clearStatsWriter(roomId = this.roomId) {
+    if (!this.backend?.uid) return false;
+    try {
+      const path = this.path(`statsWriters/${this.backend.uid}`);
+      const current = await this.backend.get(path);
+      if (!current || (roomId && current.roomId !== roomId)) return true;
+      await this.backend.set(path, null);
+      return true;
+    } catch {
+      return false;
+    }
+  }
+
   async importLegacyStats() {
     if (!this.isMaster() || !this.legacyStats) return;
     if (localStorage.getItem("teamBingo.onlineStatsImported.v1") === "1") return;
@@ -2239,6 +2268,7 @@ export class OnlineCoordinator {
       localStorage.setItem("teamBingo.onlineStatsImported.v1", "1");
       return;
     }
+    if (!await this.ensureStatsWriter()) return;
     const statsResult = await this.backend.transaction(this.path("globalStats"), (stats) => {
       stats ||= {};
       stats.legacyImports ||= {};
