@@ -801,6 +801,27 @@ test("players can still submit teamless HYPE actions", async () => {
   assert.equal(store.value.teamBingoV1.rooms.ROOM.events[1].type, "hype-voice");
 });
 
+test("an expired action lock is reclaimed by the next eligible participant", async () => {
+  const store = createStore();
+  const room = store.value.teamBingoV1.rooms.ROOM;
+  room.lock = {
+    actionId: "abandoned-action",
+    uid: "disconnected-player",
+    expiresAt: Date.now() - 1
+  };
+  const guest = createCoordinator(store, "guest", "player", "blue");
+
+  const changed = await guest.requestAction(
+    { type: "toggle-cell", payload: { team: "blue", index: 0, expectedMarked: false } },
+    () => { guest.testState.game.blue.marked[0] = true; }
+  );
+
+  assert.equal(changed, true);
+  assert.equal(store.value.teamBingoV1.rooms.ROOM.game.blue.marked[0], true);
+  assert.equal(store.value.teamBingoV1.rooms.ROOM.lock, undefined);
+  assert.equal(store.value.teamBingoV1.rooms.ROOM.events[1].actorUid, "guest");
+});
+
 test("same-cell races reject the stale second action without double counting", async () => {
   const store = createStore();
   store.value.teamBingoV1.rooms.ROOM.participants.guest.team = "red";
