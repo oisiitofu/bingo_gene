@@ -1094,6 +1094,31 @@ test("remote presentation events play once in sequence and skip the local echo",
   assert.equal(sessionStorage.getItem("teamBingo.lastEvent.ROOM"), "3");
 });
 
+test("a remote HYPE event is delivered exactly once to another participant", () => {
+  const store = createStore();
+  const guest = createCoordinator(store, "guest", "player", "blue");
+  const played = [];
+  guest.applyRoom = OnlineCoordinator.prototype.applyRoom.bind(guest);
+  guest.updateSessionUi = () => {};
+  guest.scheduleMasterHandover = () => {};
+  guest.bridge.applyOnlineSetupSnapshot = () => {};
+  guest.bridge.applyOnlineGameSnapshot = () => {};
+  guest.bridge.playOnlineEvent = (event) => played.push(event.type);
+  guest.lastEventSeq = 0;
+  const room = createRoom();
+  room.meta.eventSeq = 1;
+  room.events = {
+    1: { actionId: "master-hype", type: "hype-voice", effects: ["hype-voice"] }
+  };
+
+  assert.equal(guest.localActionIds.has("master-hype"), false);
+  guest.applyRoom(room);
+  guest.applyRoom(room);
+
+  assert.deepEqual(played, ["hype-voice"]);
+  assert.equal(guest.lastEventSeq, 1);
+});
+
 test("room updates received during an action keep the newest pending snapshot", () => {
   const store = createStore();
   const guest = createCoordinator(store, "guest", "player", "blue");
