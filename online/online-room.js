@@ -224,6 +224,28 @@ export function createCountBackupPayload(current = {}, visible = {}, legacy = {}
   };
 }
 
+export function selectCurrentOnlineCommentary(room = {}, now = Date.now()) {
+  const events = Object.entries(room?.events || {})
+    .map(([key, event]) => ({ ...event, seq: Number(key) || 0 }))
+    .sort((a, b) => b.seq - a.seq);
+  for (const event of events) {
+    const timeline = Array.isArray(event?.presentation?.timeline) ? event.presentation.timeline : [];
+    const commentary = [...timeline].reverse().find((item) => item?.kind === "commentary");
+    if (!commentary) continue;
+    const duration = Math.max(0, Number(commentary.duration) || 0);
+    const createdAt = Number(event.createdAt) || 0;
+    const remainingMs = duration > 0 ? Math.max(0, createdAt + duration - Number(now || Date.now())) : 0;
+    if (duration > 0 && remainingMs <= 0) return null;
+    return {
+      main: String(commentary.main || ""),
+      sub: String(commentary.sub || ""),
+      faceIndex: Number.isFinite(Number(commentary.faceIndex)) ? Number(commentary.faceIndex) : -1,
+      remainingMs
+    };
+  }
+  return null;
+}
+
 export function shouldResetOnlineMatchPresentation(snapshot = {}, currentState = {}) {
   if (!snapshot?.gameStarted) return false;
   const incomingMatchId = String(snapshot.matchTracker?.id || "");
@@ -438,7 +460,7 @@ export class FirebaseBackend {
       dbApi.connectDatabaseEmulator(this.db, this.config.emulatorHost || "127.0.0.1", Number(this.config.emulatorPort) || 9000);
       authApi.connectAuthEmulator(auth, `http://${this.config.emulatorHost || "127.0.0.1"}:${Number(this.config.authEmulatorPort) || 9099}`, { disableWarnings: true });
     }
-    await authApi.setPersistence(auth, authApi.browserLocalPersistence);
+    await authApi.setPersistence(auth, authApi.browserSessionPersistence);
     if (!auth.currentUser) await authApi.signInAnonymously(auth);
     this.uid = auth.currentUser.uid;
     dbApi.onValue(dbApi.ref(this.db, ".info/serverTimeOffset"), (snapshot) => {
@@ -551,8 +573,8 @@ export class OnlineCoordinator {
       : "";
     this.deviceId = requestedMockDevice
       ? `mock-device-${requestedMockDevice}`
-      : (localStorage.getItem("teamBingo.onlineDeviceId") || randomId("device"));
-    if (!requestedMockDevice) localStorage.setItem("teamBingo.onlineDeviceId", this.deviceId);
+      : (sessionStorage.getItem("teamBingo.onlineDeviceId") || randomId("device"));
+    if (!requestedMockDevice) sessionStorage.setItem("teamBingo.onlineDeviceId", this.deviceId);
     this.createUi();
   }
 
@@ -1277,18 +1299,26 @@ export class OnlineCoordinator {
     ];
     this.backend.get(this.roomPath(roomId)).then((room) => {
       const seats = room?.seats || {};
+      const currentSeatEntry = Object.entries(seats).find(([, seat]) => seat?.uid === this.backend.uid);
+      const currentSeatKey = currentSeatEntry?.[0] || "";
+      const currentParticipant = room?.participants?.[this.backend.uid];
+      const currentIdentityOnline = Boolean(currentParticipant?.online || currentSeatEntry?.[1]?.online);
       this.ui.seatList.innerHTML = groups.map(([team, members]) => `
         <div class="online-seat-team-label ${team === "blue" ? "blue" : ""}">${team.toUpperCase()} TEAM</div>
         <div class="online-seat-buttons">
           ${members.length ? members.map((name) => {
             const key = playerKey(name);
             const seat = seats[key];
-            const occupied = Boolean(seat?.online && seat.uid !== this.backend.uid && seat.deviceId !== this.deviceId);
-            return `<button type="button" class="online-seat-button" data-online-seat="1" data-room-id="${roomId}" data-member-name="${this.bridge.escapeHtml?.(name) || name}" data-team="${team}" ${occupied ? "disabled" : ""}>${this.bridge.escapeHtml?.(name) || name}<small>${occupied ? "参加中" : "この名前で入る"}</small></button>`;
+            const occupiedByOther = Boolean(seat?.online && seat.uid !== this.backend.uid && seat.deviceId !== this.deviceId);
+            const occupiedByCurrentIdentity = Boolean(currentIdentityOnline && currentSeatKey !== key);
+            const occupied = occupiedByOther || occupiedByCurrentIdentity;
+            const reconnecting = Boolean(currentIdentityOnline && currentSeatKey === key);
+            const hint = occupied ? "参加中" : (reconnecting ? "この名前で再接続" : "この名前で入る");
+            return `<button type="button" class="online-seat-button" data-online-seat="1" data-room-id="${roomId}" data-member-name="${this.bridge.escapeHtml?.(name) || name}" data-team="${team}" ${occupied ? "disabled" : ""}>${this.bridge.escapeHtml?.(name) || name}<small>${hint}</small></button>`;
           }).join("") : `<span class="online-room-meta">メンバー未設定</span>`}
         </div>
       `).join("") + `
-        <button type="button" class="online-seat-button" data-online-seat="1" data-room-id="${roomId}" data-spectator="1">観戦として入る<small>操作せずリアルタイム表示のみ</small></button>
+        <button type="button" class="online-seat-button" data-online-seat="1" data-room-id="${roomId}" data-spectator="1" ${currentIdentityOnline && currentSeatKey ? "disabled" : ""}>観戦として入る<small>${currentIdentityOnline && currentSeatKey ? "プレイヤーとして参加中" : "操作せずリアルタイム表示のみ"}</small></button>
       `;
       if (!this.ui.seatDialog.open) this.ui.seatDialog.showModal();
     }).catch((error) => console.error(error));
@@ -1317,6 +1347,16 @@ export class OnlineCoordinator {
         room.meta.active = true;
         room.participants ||= {};
         room.seats ||= {};
+        const existingParticipant = room.participants[this.backend.uid];
+        const existingSeatEntry = Object.entries(room.seats).find(([, seat]) => seat?.uid === this.backend.uid);
+        const existingSeatKey = existingSeatEntry?.[0] || "";
+        const currentIdentityOnline = Boolean(existingParticipant?.online || existingSeatEntry?.[1]?.online);
+        if ((room.meta.masterUid === this.backend.uid || currentIdentityOnline) && existingSeatKey !== key) {
+          abortReason = existingSeatKey
+            ? "このブラウザはすでに別のプレイヤーとして参加中です"
+            : "このブラウザはすでに観戦中です";
+          return undefined;
+        }
         Object.entries(room.seats).forEach(([seatKey, seat]) => {
           if (seat?.uid === this.backend.uid && seatKey !== key) delete room.seats[seatKey];
         });
@@ -1341,14 +1381,15 @@ export class OnlineCoordinator {
             lastSeenAt: now
           };
         }
+        const remainsMaster = room.meta.masterUid === this.backend.uid;
         room.participants[this.backend.uid] = {
           uid: this.backend.uid,
           deviceId: this.deviceId,
-          role: selection.spectator ? "spectator" : "player",
-          team: selection.spectator ? "" : selection.team,
-          memberName: selection.spectator ? "" : name,
+          role: remainsMaster ? "master" : (selection.spectator ? "spectator" : "player"),
+          team: remainsMaster ? (existingParticipant?.team || selection.team) : (selection.spectator ? "" : selection.team),
+          memberName: remainsMaster ? (existingParticipant?.memberName || name) : (selection.spectator ? "" : name),
           online: true,
-          joinedAt: room.participants[this.backend.uid]?.joinedAt || now,
+          joinedAt: existingParticipant?.joinedAt || now,
           lastSeenAt: now
         };
         room.meta.updatedAt = now;
@@ -1359,9 +1400,10 @@ export class OnlineCoordinator {
       this.roomId = roomId;
       this.localMode = false;
       this.setStatus("online", this.mock ? "MOCK ONLINE" : "ONLINE");
-      this.role = selection.spectator ? "spectator" : "player";
-      this.team = selection.spectator ? "" : selection.team;
-      this.memberName = selection.spectator ? "観戦" : name;
+      const joinedParticipant = result.value?.participants?.[this.backend.uid] || {};
+      this.role = joinedParticipant.role || (selection.spectator ? "spectator" : "player");
+      this.team = joinedParticipant.team || "";
+      this.memberName = this.role === "spectator" ? "観戦" : (joinedParticipant.memberName || name);
       this.seatKey = key;
       await this.enterRoom(roomId, result.value);
       this.saveSession();
@@ -1493,6 +1535,9 @@ export class OnlineCoordinator {
     try {
       this.bridge.applyOnlineSetupSnapshot?.(room.setup || {}, { initial: Boolean(options.initial), role: this.role });
       if (room.game) this.bridge.applyOnlineGameSnapshot?.(room.game, { initial: Boolean(options.initial) });
+      if (options.initial && room.game && !room.game.winner) {
+        this.bridge.restoreOnlineCommentary?.(selectCurrentOnlineCommentary(room, this.backend.serverNow()));
+      }
       const sequence = Number(room.meta?.eventSeq) || 0;
       if (!options.initial && sequence > this.lastEventSeq) {
         const events = Object.entries(room.events || {})

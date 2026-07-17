@@ -840,6 +840,65 @@ test("the same browser can reclaim a seat after anonymous auth changes", async (
   assert.equal(room.participants["guest-b"].memberName, "Guest");
 });
 
+test("a second tab with the same uid cannot replace the active master seat", async () => {
+  const store = createStore();
+  const room = store.value.teamBingoV1.rooms.ROOM;
+  room.participants.master.deviceId = "shared-device";
+  room.seats = {
+    master: {
+      uid: "master",
+      deviceId: "shared-device",
+      name: "Master",
+      team: "red",
+      online: true,
+      joinedAt: Date.now(),
+      lastSeenAt: Date.now()
+    }
+  };
+  const secondTab = prepareJoinCoordinator(store, "master", "shared-device");
+  const originalError = console.error;
+  console.error = () => {};
+
+  try {
+    await secondTab.joinRoom("ROOM", { name: "Guest", team: "blue", spectator: false });
+    await new Promise((resolve) => setTimeout(resolve, 0));
+
+    assert.equal(room.seats.master.uid, "master");
+    assert.equal(room.seats.guest, undefined);
+    assert.equal(room.participants.master.role, "master");
+    assert.equal(room.participants.master.memberName, "Master");
+    assert.match(secondTab.lastError, /^JOIN ERROR:/);
+  } finally {
+    console.error = originalError;
+  }
+});
+
+test("the active master can reconnect to the same seat without being demoted", async () => {
+  const store = createStore();
+  const room = store.value.teamBingoV1.rooms.ROOM;
+  room.participants.master.deviceId = "shared-device";
+  room.seats = {
+    master: {
+      uid: "master",
+      deviceId: "shared-device",
+      name: "Master",
+      team: "red",
+      online: true,
+      joinedAt: Date.now(),
+      lastSeenAt: Date.now()
+    }
+  };
+  const secondTab = prepareJoinCoordinator(store, "master", "shared-device");
+
+  await secondTab.joinRoom("ROOM", { name: "Master", team: "red", spectator: false });
+
+  const updatedRoom = store.value.teamBingoV1.rooms.ROOM;
+  assert.equal(updatedRoom.participants.master.role, "master");
+  assert.equal(secondTab.role, "master");
+  assert.equal(secondTab.memberName, "Master");
+  assert.equal(updatedRoom.seats.master.uid, "master");
+});
+
 test("a delayed state sync never overwrites a newer remote action", async () => {
   const store = createStore();
   const master = createCoordinator(store, "master", "master", "red");
@@ -876,11 +935,19 @@ test("rejoining a long-running room does not replay hundreds of old effects", as
   room.events = Object.fromEntries(
     Array.from({ length: 200 }, (_, offset) => {
       const sequence = offset + 51;
-      return [sequence, { actionId: `action-${sequence}`, type: "toggle-cell" }];
+      return [sequence, {
+        actionId: `action-${sequence}`,
+        type: "toggle-cell",
+        createdAt: Date.now(),
+        presentation: sequence === 250 ? {
+          timeline: [{ kind: "commentary", main: "CURRENT LIVE", sub: "RESTORED", duration: 10_000, faceIndex: 1 }]
+        } : { timeline: [] }
+      }];
     })
   );
   const guest = createCoordinator(store, "guest", "player", "blue");
   const played = [];
+  const restoredCommentary = [];
   guest.applyRoom = OnlineCoordinator.prototype.applyRoom.bind(guest);
   guest.updateSessionUi = () => {};
   guest.scheduleMasterHandover = () => {};
@@ -888,6 +955,7 @@ test("rejoining a long-running room does not replay hundreds of old effects", as
   guest.startHeartbeat = () => {};
   guest.importLegacyStats = async () => {};
   guest.bridge.playOnlineEvent = (event) => played.push(event.seq);
+  guest.bridge.restoreOnlineCommentary = (snapshot) => restoredCommentary.push(snapshot);
   sessionStorage.clear();
   sessionStorage.setItem("teamBingo.lastEvent.ROOM", "1");
 
@@ -895,6 +963,10 @@ test("rejoining a long-running room does not replay hundreds of old effects", as
 
   assert.equal(guest.lastEventSeq, 250);
   assert.deepEqual(played, []);
+  assert.equal(restoredCommentary.length, 1);
+  assert.equal(restoredCommentary[0].main, "CURRENT LIVE");
+  assert.equal(restoredCommentary[0].sub, "RESTORED");
+  assert.equal(restoredCommentary[0].remainingMs > 0, true);
   assert.equal(sessionStorage.getItem("teamBingo.lastEvent.ROOM"), "250");
 });
 

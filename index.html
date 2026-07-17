@@ -11720,6 +11720,7 @@
         applyOnlineSetupSnapshot,
         getOnlineGameSnapshot,
         applyOnlineGameSnapshot,
+        restoreOnlineCommentary,
         getOnlineStatsSnapshot,
         applyOnlineStatsSnapshot,
         createOnlineEvent,
@@ -11930,6 +11931,32 @@
       const kentoOwner = state.skillEffects?.kentoAura?.owner || "";
       if (kentoOwner && state.kentoLiveChatTeam !== kentoOwner) startKentoLiveChat(kentoOwner);
       if (!kentoOwner && state.kentoLiveChatTeam) stopKentoLiveChat();
+    }
+
+    function restoreOnlineCommentary(snapshot = null) {
+      if (!els.commentary) return;
+      window.clearTimeout(state.commentaryTimer);
+      state.commentaryTimer = null;
+      els.commentary.classList.remove("karaoke", "talking");
+      if (els.commentaryLabel) els.commentaryLabel.textContent = "LIVE";
+      if (snapshot?.main) {
+        showCommentary(snapshot.main, snapshot.sub || "", Math.max(0, Number(snapshot.remainingMs) || 0), {
+          faceIndex: Number(snapshot.faceIndex)
+        });
+        return;
+      }
+      updateCommentaryMascotFace(0);
+      const tofuTeam = getActiveTofuCurseTeam();
+      if (tofuTeam) {
+        els.commentaryText.textContent = "おいしいとうふー！";
+        els.commentarySub.textContent = "盤面まるごと豆腐実況でお届けします。";
+      } else if (state.gameStarted) {
+        els.commentaryText.textContent = "盤面進行中。";
+        els.commentarySub.textContent = "次の一手に注目。";
+      } else {
+        els.commentaryText.textContent = "開幕準備中。";
+        els.commentarySub.textContent = "新しい試合を開始します。";
+      }
     }
 
     function getOnlineStatsSnapshot() {

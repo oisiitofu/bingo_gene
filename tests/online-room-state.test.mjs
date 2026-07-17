@@ -7,6 +7,7 @@ import {
   createStatsDelta,
   mergeLegacyStats,
   normalizeCountBackup,
+  selectCurrentOnlineCommentary,
   selectCountExportRanking,
   shouldResetOnlineMatchPresentation
 } from "../online/online-room.js";
@@ -155,6 +156,42 @@ test("count export emits an empty ranking after an authoritative reset", () => {
   assert.deepEqual(payload.cellRanking, {});
   assert.equal(payload.summary.cellRankingEntries, 0);
   assert.equal(payload.summary.totalCellOpens, 0);
+});
+
+test("an active online commentary snapshot restores only its remaining duration", () => {
+  const commentary = selectCurrentOnlineCommentary({
+    events: {
+      4: { createdAt: 9_000, presentation: { timeline: [{ kind: "hype-voice" }] } },
+      3: {
+        createdAt: 8_000,
+        presentation: {
+          timeline: [{ kind: "commentary", main: "勝負どころだ！", sub: "青チームがマスを開封。", duration: 10_000, faceIndex: 2 }]
+        }
+      }
+    }
+  }, 12_500);
+
+  assert.deepEqual(commentary, {
+    main: "勝負どころだ！",
+    sub: "青チームがマスを開封。",
+    faceIndex: 2,
+    remainingMs: 5_500
+  });
+});
+
+test("expired online commentary restores the shared ambient live text", () => {
+  assert.equal(selectCurrentOnlineCommentary({
+    events: {
+      3: {
+        createdAt: 8_000,
+        presentation: { timeline: [{ kind: "commentary", main: "OLD", duration: 10_000 }] }
+      },
+      2: {
+        createdAt: 7_000,
+        presentation: { timeline: [{ kind: "commentary", main: "OLDER", duration: 30_000 }] }
+      }
+    }
+  }, 20_000), null);
 });
 
 test("count backup round-trips ranking, player, rivalry, and recent match data", () => {
