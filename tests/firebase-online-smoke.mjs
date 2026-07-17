@@ -72,6 +72,7 @@ let outsider;
 let ghostId = "";
 let closeId = "";
 let orphanId = "";
+let orphanRoomOnlyId = "";
 let permissionId = "";
 
 try {
@@ -346,6 +347,17 @@ try {
   const removedOrphanLobby = await databaseRequest("GET", `lobby/${orphanId}`, member.idToken);
   assert.equal(removedOrphanLobby.value, null, "Automatically cleaned orphan lobby still exists");
 
+  orphanRoomOnlyId = `${roomId}-ORPHAN-ROOM`;
+  const orphanRoomOnly = structuredClone(room);
+  orphanRoomOnly.meta.id = orphanRoomOnlyId;
+  orphanRoomOnly.meta.updatedAt = Date.now() - 11 * 60 * 1000;
+  const orphanRoomOnlyCreated = await databaseRequest("PUT", `rooms/${orphanRoomOnlyId}`, master.idToken, orphanRoomOnly);
+  assert.equal(orphanRoomOnlyCreated.ok, true, `Orphan room fixture could not be created: ${JSON.stringify(orphanRoomOnlyCreated)}`);
+  const orphanRoomOnlyDelete = await databaseRequest("DELETE", `rooms/${orphanRoomOnlyId}`, outsider.idToken);
+  assert.equal(orphanRoomOnlyDelete.ok, true, `A stale orphan room could not be automatically cleaned: ${JSON.stringify(orphanRoomOnlyDelete)}`);
+  const removedOrphanRoom = await databaseRequest("GET", `rooms/${orphanRoomOnlyId}`, member.idToken);
+  assert.equal(removedOrphanRoom.value, null, "Automatically cleaned orphan room still exists");
+
   ghostId = `${roomId}-GHOST`;
   const ghostUpdatedAt = Date.now() - 11 * 60 * 1000;
   const ghostRoom = structuredClone(room);
@@ -406,6 +418,9 @@ try {
     if (orphanId) {
       await databaseRequest("DELETE", `lobby/${orphanId}`, master.idToken).catch(() => {});
       await databaseRequest("DELETE", `rooms/${orphanId}`, master.idToken).catch(() => {});
+    }
+    if (orphanRoomOnlyId) {
+      await databaseRequest("DELETE", `rooms/${orphanRoomOnlyId}`, master.idToken).catch(() => {});
     }
     if (permissionId) {
       await databaseRequest("DELETE", `lobby/${permissionId}`, master.idToken).catch(() => {});
