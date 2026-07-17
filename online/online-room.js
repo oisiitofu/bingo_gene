@@ -268,7 +268,7 @@ export function selectCurrentOnlineCommentary(room = {}, now = Date.now()) {
 }
 
 export function shouldResetOnlineMatchPresentation(snapshot = {}, currentState = {}) {
-  if (!snapshot?.gameStarted) return false;
+  if (!snapshot?.gameStarted) return Boolean(currentState?.gameStarted);
   const incomingMatchId = String(snapshot.matchTracker?.id || "");
   const currentMatchId = String(currentState.matchTracker?.id || "");
   const hasPriorMatchState = Boolean(currentMatchId || currentState.winner || currentState.readyShown);
@@ -1660,7 +1660,7 @@ export class OnlineCoordinator {
         if (historyGap || backlogTooLarge) {
           const latest = events.at(-1);
           this.localActionIds.clear();
-          if (room.game?.winner) this.bridge.showOnlineVictorySnapshot?.(room.game, room.lastVictory || null);
+          if (room.game?.gameStarted && room.game?.winner) this.bridge.showOnlineVictorySnapshot?.(room.game, room.lastVictory || null);
           else if (latest) this.bridge.playOnlineEvent?.(latest);
         } else {
           events.forEach((event) => {
@@ -1671,7 +1671,9 @@ export class OnlineCoordinator {
         this.lastEventSeq = sequence;
         sessionStorage.setItem(`teamBingo.lastEvent.${this.roomId}`, String(sequence));
       }
-      if (options.initial && room.game?.winner) this.bridge.showOnlineVictorySnapshot?.(room.game, room.lastVictory || null);
+      if (options.initial && room.game?.gameStarted && room.game?.winner) {
+        this.bridge.showOnlineVictorySnapshot?.(room.game, room.lastVictory || null);
+      }
     } finally {
       this.applyingRemote = false;
     }
@@ -1761,17 +1763,7 @@ export class OnlineCoordinator {
               room.meta.masterUid = replacement.uid;
               replacement.role = "master";
             } else {
-              room.participants ||= {};
-              room.participants[this.backend.uid] = {
-                ...(room.participants[this.backend.uid] || {}),
-                online: false,
-                disconnectedAt: this.backend.serverNow()
-              };
-              if (key && room.seats?.[key]?.uid === this.backend.uid) {
-                room.seats[key].online = false;
-                room.seats[key].disconnectedAt = this.backend.serverNow();
-              }
-              room.meta.active = true;
+              return null;
             }
           } else {
             if (room.participants) delete room.participants[this.backend.uid];

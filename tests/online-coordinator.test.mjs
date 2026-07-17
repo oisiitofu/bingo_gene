@@ -1350,6 +1350,24 @@ test("a resumed tab skips a trimmed event backlog and restores only the current 
   assert.equal(guest.lastEventSeq, 250);
 });
 
+test("joining a room in setup never restores a stale victory result", () => {
+  const store = createStore();
+  const guest = createCoordinator(store, "guest", "player", "blue");
+  const victories = [];
+  guest.applyRoom = OnlineCoordinator.prototype.applyRoom.bind(guest);
+  guest.updateSessionUi = () => {};
+  guest.scheduleMasterHandover = () => {};
+  guest.bridge.showOnlineVictorySnapshot = (game, victory) => victories.push({ game, victory });
+  const room = createRoom();
+  room.game.gameStarted = false;
+  room.game.winner = "red";
+  room.lastVictory = { team: "red", victoryKind: "normal" };
+
+  guest.applyRoom(room, { initial: true });
+
+  assert.deepEqual(victories, []);
+});
+
 test("a large contiguous backlog plays only its latest live event", () => {
   const store = createStore();
   const guest = createCoordinator(store, "guest", "player", "blue");
@@ -1430,6 +1448,32 @@ test("a departing master hands control to a player, never an older spectator", a
   assert.equal(updated.participants.guest.role, "master");
   assert.equal(updated.participants.spectator.role, "spectator");
   assert.equal(updated.participants.master, undefined);
+});
+
+test("a departing master closes the room when no player can take over", async () => {
+  const store = createStore();
+  const room = store.value.teamBingoV1.rooms.ROOM;
+  delete room.participants.guest;
+  room.participants.spectator = {
+    uid: "spectator",
+    role: "spectator",
+    team: "",
+    memberName: "",
+    online: true,
+    joinedAt: 1
+  };
+  store.value.teamBingoV1.lobby.ROOM = { active: true, phase: "playing", updatedAt: Date.now() };
+  const master = createCoordinator(store, "master", "master", "red");
+  master.roomUnsubscribe = () => {};
+  master.stopHeartbeat = () => {};
+  master.updateSessionUi = () => {};
+  master.showLobby = () => {};
+  master.bridge.onRoomLeft = () => {};
+
+  await master.leaveRoom({ switching: true });
+
+  assert.equal(store.value.teamBingoV1.rooms.ROOM, undefined);
+  assert.equal(store.value.teamBingoV1.lobby.ROOM, undefined);
 });
 
 test("explicit room close removes both room data and lobby summary", async () => {
