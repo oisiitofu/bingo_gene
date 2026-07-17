@@ -696,6 +696,36 @@ test("a replacement master recovers stats left behind by the former master", asy
   }
 });
 
+test("closing a room retries its master's committed but unsynced stats before deletion", async () => {
+  localStorage.clear();
+  const store = createStore();
+  const master = createCoordinator(store, "master", "master", "red");
+  master.backend.failTransactions = { "teamBingoV1/globalStats": 1 };
+  master.leaveRoom = async () => true;
+  const originalWarn = console.warn;
+  console.warn = () => {};
+
+  try {
+    assert.equal(await master.requestAction(
+      { type: "toggle-cell", payload: { team: "red", index: 0, expectedMarked: false } },
+      () => {
+        master.testState.game.red.marked[0] = true;
+        master.testState.stats.ranking[84] = 1;
+      }
+    ), true);
+    assert.equal(store.value.teamBingoV1.globalStats.ranking[84], undefined);
+
+    assert.equal(await master.closeRoom(), true);
+    assert.deepEqual(store.value.teamBingoV1.globalStats.ranking, { 84: 1 });
+    assert.equal(store.value.teamBingoV1.rooms.ROOM, undefined);
+    assert.equal(master.readPendingStats().length, 0);
+  } finally {
+    console.warn = originalWarn;
+    window.clearTimeout(master.statsFlushTimer);
+    localStorage.clear();
+  }
+});
+
 test("admin ranking reset preserves player stats and bounds processed action history", async () => {
   const store = createStore();
   const stats = store.value.teamBingoV1.globalStats;

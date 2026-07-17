@@ -2051,6 +2051,12 @@ export class OnlineCoordinator {
   async closeRoom() {
     if (!this.isMaster() || !this.roomId) return false;
     const roomId = this.roomId;
+    const latestRoom = await this.backend.get(this.roomPath(roomId)).catch(() => null);
+    if (latestRoom?.meta?.masterUid === this.backend.uid) {
+      this.room = latestRoom;
+      await this.recoverRoomStats(latestRoom).catch((error) => console.warn("Room stats recovery before close failed", error));
+      await this.flushPendingStats({ roomId, scheduleRetry: false }).catch((error) => console.warn("Pending stats flush before close failed", error));
+    }
     this.stopHeartbeat();
     const presenceStopped = await this.stopPresenceTracking();
     if (!presenceStopped) {
