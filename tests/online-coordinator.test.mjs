@@ -441,6 +441,36 @@ test("a failed master lobby refresh is eligible for retry on the next room updat
   assert.equal(attempts, 2);
 });
 
+test("automatic ghost cleanup removes only inactive room summaries", async () => {
+  const store = createStore();
+  const master = createCoordinator(store, "master", "master", "red");
+  const now = 10_000_000;
+  master.config.roomInactiveMinutes = 10;
+  master.backend.serverNow = () => now;
+  master.rooms = {
+    FRESH: { active: true, updatedAt: now - 2 * 60 * 1000 },
+    GHOST: { active: true, updatedAt: now - 11 * 60 * 1000 },
+    CLOSED: { active: false, updatedAt: now - 11 * 60 * 1000 }
+  };
+  store.value.teamBingoV1.rooms.FRESH = createRoom();
+  store.value.teamBingoV1.rooms.GHOST = createRoom();
+  store.value.teamBingoV1.rooms.CLOSED = createRoom();
+  store.value.teamBingoV1.lobby = clone(master.rooms);
+  master.renderRooms = () => {};
+  master.syncAdminGhostControls = () => {};
+
+  const removed = await master.deleteGhostRooms();
+
+  assert.equal(removed, 1);
+  assert.ok(store.value.teamBingoV1.rooms.FRESH);
+  assert.ok(store.value.teamBingoV1.lobby.FRESH);
+  assert.equal(store.value.teamBingoV1.rooms.GHOST, undefined);
+  assert.equal(store.value.teamBingoV1.lobby.GHOST, undefined);
+  assert.ok(store.value.teamBingoV1.rooms.CLOSED);
+  assert.ok(store.value.teamBingoV1.lobby.CLOSED);
+  assert.deepEqual(Object.keys(master.rooms).sort(), ["CLOSED", "FRESH"]);
+});
+
 test("ranking mutations persist an authoritative timestamp even when the map becomes empty", async () => {
   const store = createStore();
   const master = createCoordinator(store, "master", "master", "red");
