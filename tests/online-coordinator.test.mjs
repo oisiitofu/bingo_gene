@@ -777,6 +777,29 @@ test("same-cell races reject the stale second action without double counting", a
   }
 });
 
+test("a second opener on the same cell persists the shared player attribution", async () => {
+  const store = createStore();
+  const room = store.value.teamBingoV1.rooms.ROOM;
+  room.game.red.marked[0] = true;
+  room.game.red.openedBy = { 0: ["master"] };
+  const master = createCoordinator(store, "master", "master", "red");
+
+  const changed = await master.requestAction(
+    {
+      type: "toggle-cell-player",
+      payload: { team: "red", index: 0, memberIndex: 1, openerName: "Guest", expectedMarked: true }
+    },
+    () => {
+      master.testState.game.red.openedBy[0] = ["master", "guest"];
+    }
+  );
+
+  assert.equal(changed, true);
+  assert.deepEqual(store.value.teamBingoV1.rooms.ROOM.game.red.openedBy[0], ["master", "guest"]);
+  assert.equal(store.value.teamBingoV1.rooms.ROOM.meta.revision, 1);
+  assert.equal(store.value.teamBingoV1.rooms.ROOM.events[1].type, "toggle-cell-player");
+});
+
 test("a replaced stale tab cannot submit actions for its former seat", async () => {
   const store = createStore();
   const staleGuest = createCoordinator(store, "guest", "player", "blue");
