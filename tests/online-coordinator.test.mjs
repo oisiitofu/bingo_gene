@@ -639,8 +639,67 @@ test("admin ranking reset preserves player stats and bounds processed action his
   assert.equal(reset, true);
   assert.deepEqual(store.value.teamBingoV1.globalStats.ranking, {});
   assert.equal(Number(store.value.teamBingoV1.globalStats.rankingUpdatedAt) > 0, true);
+  assert.equal(Number(store.value.teamBingoV1.globalStats.rankingResetAt) > 0, true);
   assert.equal(store.value.teamBingoV1.globalStats.playerStats.players.jan.games, 3);
   assert.equal(Object.keys(store.value.teamBingoV1.globalStats.processedActions).length, 500);
+});
+
+test("delayed stats queued before an admin reset cannot restore cleared counts", async () => {
+  localStorage.clear();
+  const store = createStore();
+  const admin = prepareAdminCoordinator(store);
+  let now = 1_000;
+  admin.backend.serverNow = () => now;
+
+  try {
+    assert.equal(await admin.resetGlobalStats("ranking"), true);
+    now = 2_000;
+    assert.equal(await admin.resetGlobalStats("playerStats"), true);
+
+    const guest = createCoordinator(store, "guest", "player", "blue");
+    const staleDelta = {
+      ranking: { 53: 1 },
+      players: {
+        jan: {
+          name: "JAN",
+          numeric: { opens: 1 },
+          maps: { openedCharacters: { 53: 1 } }
+        }
+      },
+      rivalries: { "jan-vs-eda": { games: 1, wins: {}, players: { jan: "JAN", eda: "EDA" } } },
+      recentMatches: [{ id: "stale-match" }]
+    };
+    const freshDelta = {
+      ranking: { 69: 1 },
+      players: {
+        jan: {
+          name: "JAN",
+          numeric: { opens: 1 },
+          maps: { openedCharacters: { 69: 1 } }
+        }
+      },
+      rivalries: {},
+      recentMatches: []
+    };
+
+    guest.queueStatsDelta("stale-before-reset", "ROOM", staleDelta, 500);
+    guest.queueStatsDelta("fresh-after-reset", "ROOM", freshDelta, 3_000);
+    window.clearTimeout(guest.statsFlushTimer);
+    guest.statsFlushTimer = 0;
+
+    assert.equal(await guest.flushPendingStats({ scheduleRetry: false }), true);
+    const stats = store.value.teamBingoV1.globalStats;
+    assert.deepEqual(stats.ranking, { 69: 1 });
+    assert.equal(stats.playerStats.players.jan.opens, 1);
+    assert.deepEqual(stats.playerStats.players.jan.openedCharacters, { 69: 1 });
+    assert.equal(stats.playerStats.rivalries["jan-vs-eda"], undefined);
+    assert.deepEqual(stats.playerStats.recentMatches, []);
+    assert.ok(stats.processedActions["stale-before-reset"]);
+    assert.ok(stats.processedActions["fresh-after-reset"]);
+    assert.equal(guest.readPendingStats().length, 0);
+  } finally {
+    localStorage.clear();
+  }
 });
 
 test("invalid reset kinds and expired server admin sessions cannot mutate shared data", async () => {

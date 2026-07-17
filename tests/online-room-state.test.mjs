@@ -6,6 +6,7 @@ import {
   createCountBackupPayload,
   createOnlineSeatRecord,
   createStatsDelta,
+  filterStatsDeltaAfterReset,
   mergeLegacyStats,
   normalizeCountBackup,
   selectCurrentOnlineCommentary,
@@ -49,6 +50,25 @@ test("cell opens and closes produce reversible ranking deltas", () => {
   const afterClose = { ...afterOpen, ranking: { 53: 1, 69: 1 } };
   const closed = applyStatsDelta(opened, createStatsDelta(afterOpen, afterClose));
   assert.deepEqual(closed.ranking, { 53: 1, 69: 1 });
+});
+
+test("stats reset cutoffs independently discard stale ranking and player updates", () => {
+  const delta = {
+    ranking: { 53: 1 },
+    players: { jan: { numeric: { opens: 1 }, maps: {} } },
+    rivalries: { "jan-vs-eda": { games: 1 } },
+    recentMatches: [{ id: "old-match" }]
+  };
+
+  const rankingOnlyReset = filterStatsDeltaAfterReset(delta, { rankingResetAt: 200, playerStatsResetAt: 0 }, 100);
+  assert.deepEqual(rankingOnlyReset.ranking, {});
+  assert.deepEqual(rankingOnlyReset.players, delta.players);
+
+  const playerOnlyReset = filterStatsDeltaAfterReset(delta, { rankingResetAt: 0, playerStatsResetAt: 200 }, 100);
+  assert.deepEqual(playerOnlyReset.ranking, delta.ranking);
+  assert.deepEqual(playerOnlyReset.players, {});
+  assert.deepEqual(playerOnlyReset.rivalries, {});
+  assert.deepEqual(playerOnlyReset.recentMatches, []);
 });
 
 test("player counters and character maps are included in stats deltas", () => {

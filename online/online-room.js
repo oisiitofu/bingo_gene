@@ -319,6 +319,20 @@ function hasStatsDelta(delta = {}) {
   );
 }
 
+export function filterStatsDeltaAfterReset(delta = {}, stats = {}, occurredAt = 0) {
+  const actionTime = Number(occurredAt) || 0;
+  const rankingResetAt = Number(stats?.rankingResetAt) || 0;
+  const playerStatsResetAt = Number(stats?.playerStatsResetAt) || 0;
+  const keepRanking = !rankingResetAt || actionTime >= rankingResetAt;
+  const keepPlayerStats = !playerStatsResetAt || actionTime >= playerStatsResetAt;
+  return {
+    ranking: keepRanking ? clone(delta.ranking || {}) : {},
+    players: keepPlayerStats ? clone(delta.players || {}) : {},
+    rivalries: keepPlayerStats ? clone(delta.rivalries || {}) : {},
+    recentMatches: keepPlayerStats ? clone(delta.recentMatches || []) : []
+  };
+}
+
 export function createStatsDelta(before = {}, after = {}) {
   const delta = {
     ranking: diffNumberMap(before.ranking, after.ranking),
@@ -724,15 +738,23 @@ export class OnlineCoordinator {
     }
   }
 
-  queueStatsDelta(actionId, roomId, delta) {
+  queueStatsDelta(actionId, roomId, delta, occurredAt = this.backend?.serverNow?.() || Date.now()) {
     if (!actionId || !roomId || !hasStatsDelta(delta)) return false;
     const queued = this.readPendingStats();
     const existing = queued.find((item) => item.actionId === actionId);
     if (existing) {
       existing.roomId = roomId;
       existing.delta = clone(delta);
+      existing.occurredAt ||= Number(occurredAt) || Date.now();
     } else {
-      queued.push({ actionId, roomId, delta: clone(delta), queuedAt: Date.now(), attempts: 0 });
+      queued.push({
+        actionId,
+        roomId,
+        delta: clone(delta),
+        occurredAt: Number(occurredAt) || Date.now(),
+        queuedAt: Date.now(),
+        attempts: 0
+      });
     }
     const saved = this.writePendingStats(queued);
     if (saved) this.scheduleStatsFlush();
@@ -757,11 +779,11 @@ export class OnlineCoordinator {
     }, Math.max(0, Number(delay) || 0));
   }
 
-  async commitOrQueueStatsDelta(actionId, delta, roomId = this.roomId) {
+  async commitOrQueueStatsDelta(actionId, delta, roomId = this.roomId, occurredAt = this.backend?.serverNow?.() || Date.now()) {
     if (!hasStatsDelta(delta)) return null;
     let committedStats = null;
     try {
-      committedStats = await this.commitStatsDelta(actionId, delta);
+      committedStats = await this.commitStatsDelta(actionId, delta, occurredAt);
     } catch (error) {
       console.warn("Stats sync delayed", error);
     }
@@ -771,7 +793,7 @@ export class OnlineCoordinator {
       this.bridge.applyOnlineStatsSnapshot?.(committedStats);
       return committedStats;
     }
-    this.queueStatsDelta(actionId, roomId, delta);
+    this.queueStatsDelta(actionId, roomId, delta, occurredAt);
     return null;
   }
 
@@ -786,7 +808,7 @@ export class OnlineCoordinator {
         if (this.roomId !== roomId) return false;
         let committedStats = null;
         try {
-          committedStats = await this.commitStatsDelta(item.actionId, item.delta);
+          committedStats = await this.commitStatsDelta(item.actionId, item.delta, item.occurredAt || item.queuedAt);
         } catch (error) {
           console.warn("Pending stats retry failed", error);
         }
@@ -2267,6 +2289,7 @@ export class OnlineCoordinator {
       }
       const beforeGame = clone(remoteRoom.game || this.bridge.getOnlineGameSnapshot?.());
       const beforeStats = clone(this.bridge.getOnlineStatsSnapshot?.() || this.globalStatsSnapshot || {});
+      const statsOccurredAt = this.backend.serverNow();
       rollbackGame = beforeGame;
       rollbackStats = beforeStats;
       this.bridge.beginOnlineEventCapture?.(action);
@@ -2286,7 +2309,7 @@ export class OnlineCoordinator {
       if (!committed) throw new Error("操作が競合したため最新状態に戻しました");
       this.localActionIds.add(actionId);
       const statsDelta = createStatsDelta(beforeStats, afterStats);
-      await this.commitOrQueueStatsDelta(actionId, statsDelta, this.roomId);
+      await this.commitOrQueueStatsDelta(actionId, statsDelta, this.roomId, statsOccurredAt);
       return true;
     } catch (error) {
       console.error(error);
@@ -2384,6 +2407,7 @@ export class OnlineCoordinator {
     try {
       const localGame = clone(this.bridge.getOnlineGameSnapshot?.());
       const localStats = clone(this.bridge.getOnlineStatsSnapshot?.() || {});
+      const statsOccurredAt = this.backend.serverNow();
       const acquired = await this.acquireActionLock(actionId);
       if (!acquired) return false;
       const remoteRoom = await this.backend.get(this.roomPath());
@@ -2405,7 +2429,7 @@ export class OnlineCoordinator {
       if (!committed) return false;
       this.localActionIds.add(actionId);
       const beforeStats = clone(this.globalStatsSnapshot || {});
-      await this.commitOrQueueStatsDelta(actionId, createStatsDelta(beforeStats, localStats), this.roomId);
+      await this.commitOrQueueStatsDelta(actionId, createStatsDelta(beforeStats, localStats), this.roomId, statsOccurredAt);
       return true;
     } finally {
       await this.releaseActionLock(actionId).catch(() => {});
@@ -2427,29 +2451,37 @@ export class OnlineCoordinator {
       this.readPendingStats().forEach((item) => {
         if (this.globalProcessedActions.has(item.actionId)) this.removePendingStats(item.actionId);
       });
-      this.globalStatsSnapshot = { ranking: clone(normalized.ranking || {}), playerStats: clone(normalized.playerStats || { players: {}, rivalries: {}, recentMatches: [] }) };
+      this.globalStatsSnapshot = {
+        ranking: clone(normalized.ranking || {}),
+        playerStats: clone(normalized.playerStats || { players: {}, rivalries: {}, recentMatches: [] }),
+        rankingResetAt: Number(normalized.rankingResetAt) || 0,
+        playerStatsResetAt: Number(normalized.playerStatsResetAt) || 0
+      };
       this.bridge.applyOnlineStatsSnapshot?.(this.globalStatsSnapshot);
     });
   }
 
-  async commitStatsDelta(actionId, delta) {
+  async commitStatsDelta(actionId, delta, occurredAt = this.backend?.serverNow?.() || Date.now()) {
     if (!actionId || !delta) return null;
     if (!await this.ensureStatsWriter()) return null;
     const result = await this.backend.transaction(this.path("globalStats"), (stats) => {
       stats ||= { ranking: {}, playerStats: { players: {}, rivalries: {}, recentMatches: [] }, processedActions: {} };
       stats.processedActions ||= {};
       if (stats.processedActions[actionId]) return stats;
-      const next = applyStatsDelta(stats, delta);
+      const effectiveDelta = filterStatsDeltaAfterReset(delta, stats, occurredAt);
+      const next = applyStatsDelta(stats, effectiveDelta);
       const updatedAt = this.backend.serverNow();
       next.processedActions[actionId] = updatedAt;
-      if (Object.keys(delta.ranking || {}).length) next.rankingUpdatedAt = updatedAt;
+      if (Object.keys(effectiveDelta.ranking || {}).length) next.rankingUpdatedAt = updatedAt;
       next.processedActions = Object.fromEntries(Object.entries(next.processedActions).sort(([, a], [, b]) => Number(b) - Number(a)).slice(0, 500));
       return next;
     });
     if (!result.committed || !result.value) return null;
     return {
       ranking: clone(result.value.ranking || {}),
-      playerStats: clone(result.value.playerStats || { players: {}, rivalries: {}, recentMatches: [] })
+      playerStats: clone(result.value.playerStats || { players: {}, rivalries: {}, recentMatches: [] }),
+      rankingResetAt: Number(result.value.rankingResetAt) || 0,
+      playerStatsResetAt: Number(result.value.playerStatsResetAt) || 0
     };
   }
 
@@ -2598,7 +2630,9 @@ export class OnlineCoordinator {
         const updatedAt = this.backend.serverNow();
         next.ranking = clone(imported.ranking);
         next.rankingUpdatedAt = updatedAt;
+        next.rankingResetAt = updatedAt;
         next.playerStats = clone(imported.playerStats);
+        next.playerStatsResetAt = updatedAt;
         next.processedActions ||= {};
         next.processedActions[actionId] = updatedAt;
         next.processedActions = Object.fromEntries(
@@ -2607,7 +2641,11 @@ export class OnlineCoordinator {
         return next;
       });
       if (!result.committed) throw new Error("データベースを更新できませんでした");
-      this.globalStatsSnapshot = clone(imported);
+      this.globalStatsSnapshot = {
+        ...clone(imported),
+        rankingResetAt: Number(result.value?.rankingResetAt) || 0,
+        playerStatsResetAt: Number(result.value?.playerStatsResetAt) || 0
+      };
       this.bridge.applyOnlineStatsSnapshot?.(this.globalStatsSnapshot);
       this.ui.adminResult.textContent = `インポート完了: ランキング ${rankingCount}件 / プレイヤー ${playerCount}人`;
       this.bridge.showOnlineMessage?.("COUNT DATA IMPORTED", "ランキングとプレイヤー戦績を復元しました。");
@@ -2637,8 +2675,12 @@ export class OnlineCoordinator {
       if (kind === "ranking") {
         stats.ranking = {};
         stats.rankingUpdatedAt = updatedAt;
+        stats.rankingResetAt = updatedAt;
       }
-      if (kind === "playerStats") stats.playerStats = { players: {}, rivalries: {}, recentMatches: [] };
+      if (kind === "playerStats") {
+        stats.playerStats = { players: {}, rivalries: {}, recentMatches: [] };
+        stats.playerStatsResetAt = updatedAt;
+      }
       stats.processedActions ||= {};
       stats.processedActions[actionId] = updatedAt;
       stats.processedActions = Object.fromEntries(
@@ -2649,7 +2691,9 @@ export class OnlineCoordinator {
     if (!result.committed) return false;
     this.globalStatsSnapshot = {
       ranking: clone(result.value?.ranking || {}),
-      playerStats: clone(result.value?.playerStats || { players: {}, rivalries: {}, recentMatches: [] })
+      playerStats: clone(result.value?.playerStats || { players: {}, rivalries: {}, recentMatches: [] }),
+      rankingResetAt: Number(result.value?.rankingResetAt) || 0,
+      playerStatsResetAt: Number(result.value?.playerStatsResetAt) || 0
     };
     this.bridge.applyOnlineStatsSnapshot?.(this.globalStatsSnapshot);
     if (this.ui.adminResult) {
