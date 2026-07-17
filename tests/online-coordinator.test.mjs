@@ -1,7 +1,7 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 
-import { FirebaseBackend, MockBackend, OnlineCoordinator } from "../online/online-room.js";
+import { applyMockPresenceDisconnect, FirebaseBackend, MockBackend, OnlineCoordinator } from "../online/online-room.js";
 
 const clone = (value) => value === undefined ? undefined : JSON.parse(JSON.stringify(value));
 
@@ -180,6 +180,28 @@ function createStore() {
     }
   };
 }
+
+test("mock disconnect marks only the reserved presence records offline", () => {
+  const root = {
+    rooms: {
+      ROOM: {
+        participants: { master: { online: true } },
+        seats: { red0: { online: true }, blue0: { online: true } }
+      }
+    }
+  };
+
+  const changed = applyMockPresenceDisconnect(root, [
+    "rooms/ROOM/participants/master",
+    "rooms/ROOM/seats/red0",
+    "rooms/ROOM/missing"
+  ], 1234);
+
+  assert.deepEqual(changed, ["rooms/ROOM/participants/master", "rooms/ROOM/seats/red0"]);
+  assert.deepEqual(root.rooms.ROOM.participants.master, { online: false, disconnectedAt: 1234 });
+  assert.deepEqual(root.rooms.ROOM.seats.red0, { online: false, disconnectedAt: 1234 });
+  assert.deepEqual(root.rooms.ROOM.seats.blue0, { online: true });
+});
 
 test("online busy state notifies the app bridge", () => {
   const coordinator = Object.create(OnlineCoordinator.prototype);

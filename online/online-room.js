@@ -94,6 +94,16 @@ function setAtPath(source, path, value) {
   return source;
 }
 
+export function applyMockPresenceDisconnect(root = {}, paths = [], now = Date.now()) {
+  return [...new Set(paths || [])].filter((path) => {
+    const record = getAtPath(root, path);
+    if (!record || typeof record !== "object") return false;
+    record.online = false;
+    record.disconnectedAt = now;
+    return true;
+  });
+}
+
 function roomStatusFromGame(game) {
   if (!game?.gameStarted) return "setup";
   if (game.winner) return "victory";
@@ -406,10 +416,13 @@ export class MockBackend {
     sessionStorage.setItem("teamBingo.mockUid", this.uid);
     this.channel = typeof BroadcastChannel !== "undefined" ? new BroadcastChannel(MOCK_CHANNEL) : null;
     this.listeners = new Set();
+    this.presenceDisconnectPaths = new Set();
+    this.handleMockDisconnect = () => this.applyPresenceDisconnect();
     this.channel?.addEventListener("message", (event) => this.notify(event.data?.paths || [""]));
     window.addEventListener("storage", (event) => {
       if (event.key === ROOT_KEY && !this.channel) this.notify([""]);
     });
+    window.addEventListener("pagehide", this.handleMockDisconnect);
   }
 
   async init() { return this; }
@@ -482,8 +495,23 @@ export class MockBackend {
     });
   }
 
-  async setPresenceDisconnect() {}
-  async clearPresenceDisconnect() { return true; }
+  async setPresenceDisconnect(participantPath, seatPath = "") {
+    if (participantPath) this.presenceDisconnectPaths.add(participantPath);
+    if (seatPath) this.presenceDisconnectPaths.add(seatPath);
+  }
+
+  applyPresenceDisconnect() {
+    const paths = [...this.presenceDisconnectPaths];
+    if (!paths.length) return;
+    const root = this.readRoot();
+    const changed = applyMockPresenceDisconnect(root, paths, this.serverNow());
+    if (changed.length) this.writeRoot(root, changed);
+  }
+
+  async clearPresenceDisconnect() {
+    this.presenceDisconnectPaths.clear();
+    return true;
+  }
   subscribeConnection(callback) {
     callback(true);
     return () => {};
