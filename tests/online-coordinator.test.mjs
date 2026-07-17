@@ -1597,6 +1597,35 @@ test("a large contiguous backlog plays only its latest live event", () => {
   assert.equal(guest.lastEventSeq, 70);
 });
 
+test("a large backlog never replays the latest local action", () => {
+  const store = createStore();
+  const guest = createCoordinator(store, "guest", "player", "blue");
+  const played = [];
+  guest.applyRoom = OnlineCoordinator.prototype.applyRoom.bind(guest);
+  guest.updateSessionUi = () => {};
+  guest.scheduleMasterHandover = () => {};
+  guest.bridge.playOnlineEvent = (event) => played.push(event.seq);
+  guest.lastEventSeq = 50;
+  guest.localActionIds.add("local-70");
+  const room = createRoom();
+  room.meta.eventSeq = 70;
+  room.events = Object.fromEntries(
+    Array.from({ length: 20 }, (_, offset) => {
+      const sequence = offset + 51;
+      return [sequence, {
+        actionId: sequence === 70 ? "local-70" : `remote-${sequence}`,
+        type: "toggle-cell"
+      }];
+    })
+  );
+
+  guest.applyRoom(room);
+
+  assert.deepEqual(played, []);
+  assert.equal(guest.localActionIds.size, 0);
+  assert.equal(guest.lastEventSeq, 70);
+});
+
 test("room history retains only the newest bounded event and action windows", async () => {
   const store = createStore();
   const master = createCoordinator(store, "master", "master", "red");

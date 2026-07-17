@@ -1856,9 +1856,10 @@ export class OnlineCoordinator {
         const backlogTooLarge = events.length > MAX_EVENT_REPLAY;
         if (historyGap || backlogTooLarge) {
           const latest = events.at(-1);
+          const latestIsLocal = Boolean(latest?.actionId && this.localActionIds.has(latest.actionId));
           this.localActionIds.clear();
           if (room.game?.gameStarted && room.game?.winner) this.bridge.showOnlineVictorySnapshot?.(room.game, room.lastVictory || null);
-          else if (latest) this.bridge.playOnlineEvent?.(latest);
+          else if (latest && !latestIsLocal) this.bridge.playOnlineEvent?.(latest);
         } else {
           events.forEach((event) => {
             if (!this.localActionIds.has(event.actionId)) this.bridge.playOnlineEvent?.(event);
