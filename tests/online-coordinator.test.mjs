@@ -1,5 +1,6 @@
 import test from "node:test";
 import assert from "node:assert/strict";
+import { readFileSync } from "node:fs";
 
 import {
   applyMockPresenceDisconnect,
@@ -226,9 +227,22 @@ test("online busy state notifies the app bridge", () => {
 });
 
 test("online reaction types are a closed allowlist", () => {
-  assert.equal(ONLINE_REACTIONS.length, 8);
+  assert.equal(ONLINE_REACTIONS.length, 32);
+  assert.equal(new Set(ONLINE_REACTIONS.map(({ id }) => id)).size, 32);
   assert.equal(normalizeOnlineReactionType("HYPE"), "hype");
+  assert.equal(normalizeOnlineReactionType("RAMEN"), "ramen");
   assert.equal(normalizeOnlineReactionType("unknown"), "");
+});
+
+test("online menus start collapsed and reaction sends keep the palette open", () => {
+  const source = readFileSync(new URL("../online/online-room.js", import.meta.url), "utf8");
+  const reactionHandler = source.match(/reactionMenu\.addEventListener\("click", \(event\) => \{([\s\S]*?)\n\s*\}\);/);
+
+  assert.match(source, /id="onlineSessionMenu" hidden/);
+  assert.match(source, /id="onlineReactionMenu" hidden/);
+  assert.ok(reactionHandler, "Reaction click handler was not found");
+  assert.match(reactionHandler[1], /this\.sendReaction/);
+  assert.doesNotMatch(reactionHandler[1], /setReactionMenuOpen\(false\)|reactionMenu\.hidden\s*=\s*true/);
 });
 
 test("connection rows put online participants and the master first", () => {

@@ -29,14 +29,38 @@ const ADMIN_PIN_HASH = "6440e6a91202aeddb45b070a80533f65a689c37d0cf1842ab2bd962e
 const REACTION_TTL_MS = 12000;
 
 export const ONLINE_REACTIONS = Object.freeze([
-  { id: "clap", label: "拍手", mark: "CLAP" },
-  { id: "nice", label: "ナイス", mark: "NICE" },
-  { id: "hype", label: "激アツ", mark: "HYPE" },
-  { id: "cheer", label: "うおお！", mark: "CHEER" },
-  { id: "bingo", label: "ビンゴ！", mark: "BINGO" },
-  { id: "comeback", label: "逆転！", mark: "TURN" },
-  { id: "pray", label: "祈る", mark: "PRAY" },
-  { id: "gg", label: "GG", mark: "GG" }
+  { id: "clap", label: "拍手", mark: "👏" },
+  { id: "nice", label: "ナイス", mark: "👍" },
+  { id: "hype", label: "激アツ", mark: "🔥" },
+  { id: "cheer", label: "うおお！", mark: "🙌" },
+  { id: "bingo", label: "ビンゴ！", mark: "🎯" },
+  { id: "comeback", label: "逆転！", mark: "🔄" },
+  { id: "pray", label: "祈る", mark: "🙏" },
+  { id: "gg", label: "GG", mark: "🤝" },
+  { id: "laugh", label: "爆笑", mark: "😂" },
+  { id: "wow", label: "びっくり", mark: "😲" },
+  { id: "love", label: "好き", mark: "❤️" },
+  { id: "star", label: "スター", mark: "⭐" },
+  { id: "party", label: "祝福", mark: "🎉" },
+  { id: "muscle", label: "つよい", mark: "💪" },
+  { id: "crown", label: "王者", mark: "👑" },
+  { id: "rocket", label: "いけー！", mark: "🚀" },
+  { id: "eyes", label: "注目", mark: "👀" },
+  { id: "sweat", label: "あぶない", mark: "😅" },
+  { id: "cry", label: "泣いた", mark: "😭" },
+  { id: "angry", label: "くやしい", mark: "😤" },
+  { id: "shock", label: "衝撃", mark: "⚡" },
+  { id: "sparkle", label: "キラキラ", mark: "✨" },
+  { id: "bell", label: "きた！", mark: "🔔" },
+  { id: "drum", label: "ドンドン", mark: "🥁" },
+  { id: "tofu", label: "とうふ", mark: "◻️" },
+  { id: "poop", label: "うんぴ", mark: "💩" },
+  { id: "ramen", label: "ラーメン", mark: "🍜" },
+  { id: "energy", label: "エナジー", mark: "🥤" },
+  { id: "sword", label: "斬れ！", mark: "⚔️" },
+  { id: "gun", label: "BAN！", mark: "🔫" },
+  { id: "punch", label: "スマッシュ", mark: "👊" },
+  { id: "question", label: "なぜ？", mark: "❓" }
 ]);
 
 export function normalizeOnlineReactionType(value) {
@@ -1149,17 +1173,20 @@ export class OnlineCoordinator {
         <span class="online-session-name" id="onlineSessionName"></span>
         <span class="online-session-role" id="onlineSessionRole"></span>
         <span class="online-session-presence" id="onlineSessionPresence"></span>
-        <button type="button" class="online-simple-button" id="onlineOpenStatus">STATUS</button>
-        <div class="online-reaction-control">
-          <button type="button" class="online-simple-button reaction" id="onlineOpenReactions" aria-expanded="false">REACT</button>
-          <div class="online-reaction-menu" id="onlineReactionMenu" hidden>
-            ${ONLINE_REACTIONS.map((reaction) => `<button type="button" data-online-reaction="${reaction.id}"><b>${reaction.mark}</b><span>${reaction.label}</span></button>`).join("")}
-          </div>
+        <button type="button" class="online-menu-toggle" id="onlineMenuToggle" aria-expanded="false" aria-label="オンラインメニューを開く">☰</button>
+        <div class="online-session-menu" id="onlineSessionMenu" hidden>
+          <button type="button" class="online-simple-button" id="onlineOpenStatus">STATUS</button>
+          <button type="button" class="online-simple-button" id="onlineOpenControl" hidden>CONTROL</button>
+          <button type="button" class="online-simple-button" id="onlineOpenLobby">ROOMS</button>
+          <button type="button" class="online-simple-button danger" id="onlineCloseRoom" hidden>ROOM CLOSE</button>
+          <button type="button" class="online-simple-button danger" id="onlineLeaveRoom">LEAVE</button>
         </div>
-        <button type="button" class="online-simple-button" id="onlineOpenControl" hidden>CONTROL</button>
-        <button type="button" class="online-simple-button" id="onlineOpenLobby">ROOMS</button>
-        <button type="button" class="online-simple-button danger" id="onlineCloseRoom" hidden>ROOM CLOSE</button>
-        <button type="button" class="online-simple-button danger" id="onlineLeaveRoom">LEAVE</button>
+      </div>
+      <div class="online-reaction-dock" id="onlineReactionDock" hidden>
+        <button type="button" class="online-reaction-toggle" id="onlineOpenReactions" aria-expanded="false"><span>😀</span><b>REACT</b></button>
+        <div class="online-reaction-menu" id="onlineReactionMenu" hidden>
+          ${ONLINE_REACTIONS.map((reaction) => `<button type="button" data-online-reaction="${reaction.id}" title="${reaction.label}" aria-label="${reaction.label}"><b>${reaction.mark}</b><span>${reaction.label}</span></button>`).join("")}
+        </div>
       </div>
     `);
     this.ui = {
@@ -1220,12 +1247,15 @@ export class OnlineCoordinator {
       emergencySync: document.getElementById("onlineEmergencySync"),
       reactionLayer: document.getElementById("onlineReactionLayer"),
       sessionBar: document.getElementById("onlineSessionBar"),
+      menuToggle: document.getElementById("onlineMenuToggle"),
+      sessionMenu: document.getElementById("onlineSessionMenu"),
       sessionStatus: document.getElementById("onlineSessionStatus"),
       sessionName: document.getElementById("onlineSessionName"),
       sessionRole: document.getElementById("onlineSessionRole"),
       sessionPresence: document.getElementById("onlineSessionPresence"),
       openStatus: document.getElementById("onlineOpenStatus"),
       openReactions: document.getElementById("onlineOpenReactions"),
+      reactionDock: document.getElementById("onlineReactionDock"),
       reactionMenu: document.getElementById("onlineReactionMenu"),
       openControl: document.getElementById("onlineOpenControl"),
       openLobby: document.getElementById("onlineOpenLobby"),
@@ -1310,24 +1340,25 @@ export class OnlineCoordinator {
         team: button.dataset.masterTeam || ""
       });
     });
+    this.ui.menuToggle.addEventListener("click", () => {
+      this.setSessionMenuOpen(this.ui.sessionMenu.hidden);
+    });
     this.ui.openStatus.addEventListener("click", () => {
+      this.setSessionMenuOpen(false);
       this.renderConnectionPanel();
       if (!this.ui.statusDialog.open) this.ui.statusDialog.showModal();
     });
     this.ui.statusClose.addEventListener("click", () => this.ui.statusDialog.close());
     this.ui.openReactions.addEventListener("click", () => {
-      const opening = this.ui.reactionMenu.hidden;
-      this.ui.reactionMenu.hidden = !opening;
-      this.ui.openReactions.setAttribute("aria-expanded", String(opening));
+      this.setReactionMenuOpen(this.ui.reactionMenu.hidden);
     });
     this.ui.reactionMenu.addEventListener("click", (event) => {
       const button = event.target.closest("[data-online-reaction]");
       if (!button) return;
       this.sendReaction(button.dataset.onlineReaction);
-      this.ui.reactionMenu.hidden = true;
-      this.ui.openReactions.setAttribute("aria-expanded", "false");
     });
     this.ui.openControl.addEventListener("click", () => {
+      this.setSessionMenuOpen(false);
       this.renderEmergencyPanel();
       if (!this.ui.controlDialog.open) this.ui.controlDialog.showModal();
     });
@@ -1336,6 +1367,7 @@ export class OnlineCoordinator {
     this.ui.emergencySkip.addEventListener("click", () => this.skipCurrentPresentation());
     this.ui.emergencySync.addEventListener("click", () => this.forceEmergencySync());
     this.ui.openLobby.addEventListener("click", () => {
+      this.setSessionMenuOpen(false);
       if (this.roomDraft) {
         this.cancelRoomDraft();
         return;
@@ -1353,6 +1385,10 @@ export class OnlineCoordinator {
     this.ui.leaveRoom.addEventListener("click", () => {
       if (this.roomDraft) this.cancelRoomDraft();
       else this.leaveRoom();
+    });
+    document.addEventListener("click", (event) => {
+      if (!this.ui.sessionBar.contains(event.target)) this.setSessionMenuOpen(false);
+      if (!this.ui.reactionDock.contains(event.target)) this.setReactionMenuOpen(false);
     });
     this.ui.roomList.addEventListener("click", (event) => {
       const deleteButton = event.target.closest("[data-online-delete-room]");
@@ -1700,6 +1736,8 @@ export class OnlineCoordinator {
     this.ui.closeRoom.hidden = true;
     this.ui.openStatus.hidden = true;
     this.ui.openReactions.hidden = true;
+    this.ui.reactionDock.hidden = true;
+    this.closeOnlineMenus();
     this.ui.openControl.hidden = true;
     this.ui.leaveRoom.hidden = false;
     this.ui.leaveRoom.textContent = "CANCEL";
@@ -1715,6 +1753,8 @@ export class OnlineCoordinator {
     document.body.classList.remove("online-room-draft");
     this.ui.leaveRoom.textContent = "LEAVE";
     this.ui.sessionBar.classList.remove("show");
+    this.ui.reactionDock.hidden = true;
+    this.closeOnlineMenus();
     this.bridge.setRoomDraftMode?.(false);
     this.showLobby();
   }
@@ -1856,6 +1896,8 @@ export class OnlineCoordinator {
     this.ui.closeRoom.hidden = true;
     this.ui.openStatus.hidden = true;
     this.ui.openReactions.hidden = true;
+    this.ui.reactionDock.hidden = true;
+    this.closeOnlineMenus();
     this.ui.openControl.hidden = true;
     this.ui.leaveRoom.hidden = true;
     this.ui.leaveRoom.textContent = "LEAVE";
@@ -2290,9 +2332,30 @@ export class OnlineCoordinator {
     if (previous?.meta?.masterUid !== room.meta?.masterUid) this.bridge.onMasterChanged?.(room.meta?.masterUid === this.backend.uid);
   }
 
+  setSessionMenuOpen(open) {
+    if (!this.ui?.sessionMenu || !this.ui?.menuToggle) return;
+    this.ui.sessionMenu.hidden = !open;
+    this.ui.menuToggle.setAttribute("aria-expanded", String(Boolean(open)));
+    this.ui.menuToggle.classList.toggle("active", Boolean(open));
+  }
+
+  setReactionMenuOpen(open) {
+    if (!this.ui?.reactionMenu || !this.ui?.openReactions) return;
+    this.ui.reactionMenu.hidden = !open;
+    this.ui.openReactions.setAttribute("aria-expanded", String(Boolean(open)));
+    this.ui.openReactions.classList.toggle("active", Boolean(open));
+  }
+
+  closeOnlineMenus() {
+    this.setSessionMenuOpen(false);
+    this.setReactionMenuOpen(false);
+  }
+
   updateSessionUi() {
     this.syncSpectatorControls();
     if (!this.roomId) {
+      this.ui.reactionDock.hidden = true;
+      this.closeOnlineMenus();
       if (!this.roomDraft && !this.localMode) this.ui.sessionBar.classList.remove("show");
       return;
     }
@@ -2312,6 +2375,7 @@ export class OnlineCoordinator {
     this.ui.openControl.hidden = !master;
     this.ui.openStatus.hidden = false;
     this.ui.openReactions.hidden = false;
+    this.ui.reactionDock.hidden = false;
     document.body.classList.toggle("online-readonly", !master);
     document.body.classList.toggle("online-spectator", this.role === "spectator");
     document.body.classList.toggle("online-team-red", !master && this.role === "player" && this.team === "red");
@@ -2399,7 +2463,7 @@ export class OnlineCoordinator {
     const type = normalizeOnlineReactionType(value);
     if (!type || !this.roomId || !this.room?.participants?.[this.backend?.uid]) return false;
     const now = this.backend.serverNow();
-    if (now - this.lastReactionSentAt < 350) return false;
+    if (now - this.lastReactionSentAt < 180) return false;
     this.lastReactionSentAt = now;
     const id = randomId("react");
     const reaction = {
