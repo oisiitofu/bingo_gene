@@ -1,13 +1,16 @@
 "use strict";
 
-const CACHE_VERSION = "team-bingo-v1-20260718-online-stats-retry-fix29";
+const CACHE_VERSION = "team-bingo-v1-20260718-player-monster-battle30";
 const SHELL_CACHE = `${CACHE_VERSION}-shell`;
 const ASSET_CACHE = `${CACHE_VERSION}-assets`;
 const SHELL_FILES = [
   "./",
   "./index.html",
+  "./monster-system.js",
+  "./monster-battle.css",
   "./online/online-room.css",
   "./online/online-room.js",
+  "./images/monster-battle/arena.png",
   "./images/ui/team-bingo-logo.png",
   "./images/ui/bg-arena-stage.png"
 ];
@@ -55,7 +58,7 @@ self.addEventListener("fetch", (event) => {
   if (request.method !== "GET") return;
   const url = new URL(request.url);
   if (url.origin !== self.location.origin) return;
-  if (url.pathname === "/" || url.pathname.endsWith("firebase-config.js") || url.pathname.endsWith("index.html") || url.pathname.endsWith("online-room.js") || url.pathname.endsWith("online-room.css")) {
+  if (url.pathname === "/" || url.pathname.endsWith("firebase-config.js") || url.pathname.endsWith("index.html") || url.pathname.endsWith("monster-system.js") || url.pathname.endsWith("monster-battle.css") || url.pathname.endsWith("online-room.js") || url.pathname.endsWith("online-room.css")) {
     event.respondWith(networkFirst(request));
     return;
   }

@@ -1,11 +1,11 @@
 {
   "version": 1,
-  "generatedAt": "2026-07-18T12:53:54.204Z",
+  "generatedAt": "2026-07-18T13:51:56.966Z",
   "totals": {
-    "all": 364,
-    "images": 206,
+    "all": 365,
+    "images": 207,
     "audio": 158,
-    "bytes": 173983808
+    "bytes": 176771810
   },
   "assets": [
     {
@@ -1477,6 +1477,12 @@
       "type": "image",
       "category": "images/characters",
       "bytes": 3417
+    },
+    {
+      "path": "images/monster-battle/arena.png",
+      "type": "image",
+      "category": "images/monster-battle",
+      "bytes": 2788002
     },
     {
       "path": "images/monsters/childhood.png",

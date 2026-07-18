@@ -77,22 +77,35 @@ test("every random event has dedicated artwork and valid stereo audio", () => {
 
 test("monster evolution has a complete binary tree, artwork, and online sync", () => {
   const html = readFileSync(new URL("../index.html", import.meta.url), "utf8");
-  const sourceMatch = html.match(/const MONSTER_STAGES = [\s\S]*?\n\s*function createMonsterState\(\)/);
-  assert.ok(sourceMatch, "Monster evolution definitions were not found");
-  const definitions = sourceMatch[0].replace(/\n\s*function createMonsterState\(\)[\s\S]*$/, "");
-  const result = new Function(`${definitions}; return { stages: MONSTER_STAGES, lineages: MONSTER_LINEAGES, nodes: MONSTER_NODES };`)();
+  const monsterSource = readFileSync(new URL("../monster-system.js", import.meta.url), "utf8");
+  const browserGlobal = {};
+  new Function("window", monsterSource)(browserGlobal);
+  const result = browserGlobal.TeamBingoMonsterSystem;
 
-  assert.equal(result.stages.length, 6, "Egg plus five evolution stages are required");
-  assert.equal(result.lineages.length, 8, "Expected eight mature lineages");
-  assert.equal(Object.keys(result.nodes).length, 63, "Expected a complete 1 + 2 + 4 + 8 + 16 + 32 tree");
+  assert.equal(result.STAGES.length, 6, "Egg plus five evolution stages are required");
+  assert.equal(result.LINEAGES.length, 8, "Expected eight mature lineages");
+  assert.equal(Object.keys(result.NODES).length, 63, "Expected a complete 1 + 2 + 4 + 8 + 16 + 32 tree");
   assert.deepEqual(
-    result.stages.map((_, stage) => Object.values(result.nodes).filter((node) => node.stage === stage).length),
+    result.STAGES.map((_, stage) => Object.values(result.NODES).filter((node) => node.stage === stage).length),
     [1, 2, 4, 8, 16, 32]
   );
-  Object.values(result.nodes).forEach((node) => {
+  Object.values(result.NODES).forEach((node) => {
     assert.equal(node.next.length, node.stage < 5 ? 2 : 0, `${node.id} has an invalid branch count`);
-    node.next.forEach((nextId) => assert.ok(result.nodes[nextId], `${node.id} points to missing ${nextId}`));
+    node.next.forEach((nextId) => assert.ok(result.NODES[nextId], `${node.id} points to missing ${nextId}`));
+    const stats = result.combatStats(node.id);
+    ["hp", "attack", "defense", "magic", "magicDefense", "speed"].forEach((key) => {
+      assert.ok(stats[key] > 0, `${node.id} has an invalid ${key}`);
+    });
+    assert.match(stats.attackType, /^(physical|magic)$/);
+    assert.ok(stats.special.length > 0, `${node.id} is missing a special move`);
   });
+
+  const party = result.syncPlayerMonsters([], ["PLAYER A", "PLAYER B"], "red");
+  const firstEvolution = result.evolvePlayerMonster(party[0], "red:3", () => 0);
+  const duplicateOpen = result.evolvePlayerMonster(firstEvolution.monster, "red:3", () => 0);
+  assert.equal(firstEvolution.monster.stage, 1, "A personal OPEN must evolve that player's egg");
+  assert.equal(duplicateOpen.monster.stage, 1, "The same player and cell must not evolve twice");
+  assert.equal(party[1].stage, 0, "A teammate's monster must remain independent");
 
   const monsterAssets = [
     "egg.png", "childhood.png", "growth.png", "lineage-inferno.png", "lineage-thunder.png",
@@ -102,10 +115,13 @@ test("monster evolution has a complete binary tree, artwork, and online sync", (
   monsterAssets.forEach((file) => {
     assert.ok(existsSync(new URL(`../images/monsters/${file}`, import.meta.url)), `Missing monster artwork: ${file}`);
   });
-  assert.match(html, /monster: cloneOnlineValue\(normalizeMonsterState\(side\.monster\)\)/);
-  assert.match(html, /monster: normalizeMonsterState\(snapshot\.monster\)/);
-  assert.match(html, /type === "monster-evolve"/);
-  assert.match(html, /effects\.has\("monster-evolve"\)/);
+  assert.match(html, /monsters: cloneOnlineValue\(MONSTER_SYSTEM\.syncPlayerMonsters/);
+  assert.match(html, /monsterBattleMode: state\.monsterBattleMode/);
+  assert.match(html, /type === "monster-battle-start"/);
+  assert.match(html, /effects\.has\("monster-battle-start"\)/);
+  assert.match(html, /kind: "monster-speech"/);
+  assert.ok(existsSync(new URL("../images/monster-battle/arena.png", import.meta.url)));
+  assert.ok(existsSync(new URL("../monster-battle.css", import.meta.url)));
 });
 
 test("season standings and automatic backup recovery are wired into stats", () => {
