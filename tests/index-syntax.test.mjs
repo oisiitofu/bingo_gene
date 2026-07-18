@@ -50,6 +50,31 @@ test("random events are setup-controlled and included in online game snapshots",
   assert.match(html, /event\.effects\.push\("random-event"\)/);
 });
 
+test("every random event has dedicated artwork and valid stereo audio", () => {
+  const html = readFileSync(new URL("../index.html", import.meta.url), "utf8");
+  const eventIds = ["gold-rush", "second-wind", "spotlight", "pressure-drop"];
+
+  eventIds.forEach((eventId) => {
+    const imagePath = `images/random-events/${eventId}.png`;
+    const audioPath = `audio/random-events/${eventId}.wav`;
+    const imageUrl = new URL(`../${imagePath}`, import.meta.url);
+    const audioUrl = new URL(`../${audioPath}`, import.meta.url);
+    const wave = readFileSync(audioUrl);
+
+    assert.match(html, new RegExp(imagePath.replaceAll("/", "\\/")));
+    assert.match(html, new RegExp(audioPath.replaceAll("/", "\\/")));
+    assert.ok(existsSync(imageUrl), `Missing random-event artwork: ${imagePath}`);
+    assert.ok(wave.length > 500000, `Random-event audio is unexpectedly small: ${audioPath}`);
+    assert.equal(wave.toString("ascii", 0, 4), "RIFF");
+    assert.equal(wave.toString("ascii", 8, 12), "WAVE");
+    assert.equal(wave.readUInt16LE(22), 2, `${audioPath} must be stereo`);
+    assert.equal(wave.readUInt32LE(24), 48000, `${audioPath} must be 48 kHz`);
+  });
+
+  assert.match(html, /playAudioUrl\(asset\.audio, "eventSe"/);
+  assert.match(html, /effects\.has\("random-event"\)[\s\S]*showRandomEvent\(payload\.randomEvent\)/);
+});
+
 test("season standings and automatic backup recovery are wired into stats", () => {
   const html = readFileSync(new URL("../index.html", import.meta.url), "utf8");
 

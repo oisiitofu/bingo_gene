@@ -1,11 +1,11 @@
 {
   "version": 1,
-  "generatedAt": "2026-07-18T02:59:29.394Z",
+  "generatedAt": "2026-07-18T09:50:31.306Z",
   "totals": {
-    "all": 345,
-    "images": 191,
-    "audio": 154,
-    "bytes": 144857256
+    "all": 353,
+    "images": 195,
+    "audio": 158,
+    "bytes": 154842560
   },
   "assets": [
     {
@@ -789,6 +789,30 @@
       "bytes": 11284
     },
     {
+      "path": "audio/random-events/gold-rush.wav",
+      "type": "audio",
+      "category": "audio/random-events",
+      "bytes": 864044
+    },
+    {
+      "path": "audio/random-events/pressure-drop.wav",
+      "type": "audio",
+      "category": "audio/random-events",
+      "bytes": 902444
+    },
+    {
+      "path": "audio/random-events/second-wind.wav",
+      "type": "audio",
+      "category": "audio/random-events",
+      "bytes": 921644
+    },
+    {
+      "path": "audio/random-events/spotlight.wav",
+      "type": "audio",
+      "category": "audio/random-events",
+      "bytes": 835244
+    },
+    {
       "path": "audio/reach-zero.mp3",
       "type": "audio",
       "category": "audio",
@@ -1453,6 +1477,30 @@
       "type": "image",
       "category": "images/characters",
       "bytes": 3417
+    },
+    {
+      "path": "images/random-events/gold-rush.png",
+      "type": "image",
+      "category": "images/random-events",
+      "bytes": 1589016
+    },
+    {
+      "path": "images/random-events/pressure-drop.png",
+      "type": "image",
+      "category": "images/random-events",
+      "bytes": 1762445
+    },
+    {
+      "path": "images/random-events/second-wind.png",
+      "type": "image",
+      "category": "images/random-events",
+      "bytes": 1608287
+    },
+    {
+      "path": "images/random-events/spotlight.png",
+      "type": "image",
+      "category": "images/random-events",
+      "bytes": 1502180
     },
     {
       "path": "images/ui/bg-arena-stage.png",
