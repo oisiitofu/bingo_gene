@@ -934,6 +934,53 @@ test("admin count import atomically replaces ranking and player stats", async ()
   }
 });
 
+test("admin auto backup restore atomically restores shared stats and local settings", async () => {
+  const store = createStore();
+  store.value.teamBingoV1.globalStats.ranking = { 1: 99 };
+  store.value.teamBingoV1.globalStats.playerStats.players.old = { name: "OLD", games: 8 };
+  const admin = prepareAdminCoordinator(store);
+  const backup = {
+    id: "backup-verified",
+    createdAt: "2026-07-18T03:00:00.000Z",
+    reason: "admin-manual",
+    data: {
+      ranking: { 53: 12, 69: 5 },
+      playerStats: {
+        players: { jan: { name: "JAN", games: 4, wins: 3, losses: 1, mvps: 2 } },
+        rivalries: {},
+        recentMatches: [{ id: "restored-match", winnerTeam: "red" }]
+      },
+      settings: { gridSize: 7, randomEventsEnabled: false }
+    }
+  };
+  let restoredId = "";
+  admin.ui.adminBackupRestore = { disabled: false };
+  admin.ui.adminBackupExport = { disabled: false };
+  admin.ui.adminBackupSummary = { textContent: "" };
+  admin.bridge.getLatestAutoBackup = () => clone(backup);
+  admin.bridge.getAutoBackups = () => [{ id: backup.id, createdAt: backup.createdAt, reason: backup.reason }];
+  admin.bridge.restoreAutoBackup = (id) => { restoredId = id; return clone(backup); };
+  const previousConfirm = window.confirm;
+  window.confirm = () => true;
+
+  try {
+    const restored = await admin.restoreAdminBackup();
+
+    assert.equal(restored, true);
+    assert.equal(restoredId, backup.id);
+    const stats = store.value.teamBingoV1.globalStats;
+    assert.deepEqual(stats.ranking, backup.data.ranking);
+    assert.equal(stats.playerStats.players.old, undefined);
+    assert.equal(stats.playerStats.players.jan.mvps, 2);
+    assert.equal(stats.playerStats.recentMatches[0].id, "restored-match");
+    assert.deepEqual(admin.testState.stats.ranking, backup.data.ranking);
+    assert.equal(admin.ui.adminBackupRestore.disabled, false);
+    assert.match(admin.ui.adminResult.textContent, /復元しました/);
+  } finally {
+    window.confirm = previousConfirm;
+  }
+});
+
 test("delayed stats queued before an import cannot contaminate restored counts", async () => {
   localStorage.clear();
   const store = createStore();
