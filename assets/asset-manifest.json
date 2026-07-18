@@ -1,11 +1,11 @@
 {
   "version": 1,
-  "generatedAt": "2026-07-18T09:50:31.306Z",
+  "generatedAt": "2026-07-18T12:53:54.204Z",
   "totals": {
-    "all": 353,
-    "images": 195,
+    "all": 364,
+    "images": 206,
     "audio": 158,
-    "bytes": 154842560
+    "bytes": 173983808
   },
   "assets": [
     {
@@ -1477,6 +1477,72 @@
       "type": "image",
       "category": "images/characters",
       "bytes": 3417
+    },
+    {
+      "path": "images/monsters/childhood.png",
+      "type": "image",
+      "category": "images/monsters",
+      "bytes": 1143546
+    },
+    {
+      "path": "images/monsters/egg.png",
+      "type": "image",
+      "category": "images/monsters",
+      "bytes": 1225482
+    },
+    {
+      "path": "images/monsters/growth.png",
+      "type": "image",
+      "category": "images/monsters",
+      "bytes": 1140741
+    },
+    {
+      "path": "images/monsters/lineage-abyss.png",
+      "type": "image",
+      "category": "images/monsters",
+      "bytes": 1875664
+    },
+    {
+      "path": "images/monsters/lineage-beetle.png",
+      "type": "image",
+      "category": "images/monsters",
+      "bytes": 1600672
+    },
+    {
+      "path": "images/monsters/lineage-cosmic.png",
+      "type": "image",
+      "category": "images/monsters",
+      "bytes": 1598353
+    },
+    {
+      "path": "images/monsters/lineage-grove.png",
+      "type": "image",
+      "category": "images/monsters",
+      "bytes": 2158893
+    },
+    {
+      "path": "images/monsters/lineage-inferno.png",
+      "type": "image",
+      "category": "images/monsters",
+      "bytes": 2301043
+    },
+    {
+      "path": "images/monsters/lineage-mecha.png",
+      "type": "image",
+      "category": "images/monsters",
+      "bytes": 2053734
+    },
+    {
+      "path": "images/monsters/lineage-spore.png",
+      "type": "image",
+      "category": "images/monsters",
+      "bytes": 2246948
+    },
+    {
+      "path": "images/monsters/lineage-thunder.png",
+      "type": "image",
+      "category": "images/monsters",
+      "bytes": 1796172
     },
     {
       "path": "images/random-events/gold-rush.png",

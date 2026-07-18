@@ -1506,6 +1506,252 @@
       gap: 12px;
     }
 
+    .team-battle-unit {
+      position: relative;
+      min-width: 0;
+    }
+
+    .monster-panel {
+      --monster-team: #ff385d;
+      position: absolute;
+      top: 18px;
+      z-index: 8;
+      width: 172px;
+      min-height: 430px;
+      padding: 12px 10px 14px;
+      border: 1px solid color-mix(in srgb, var(--monster-team) 66%, white 14%);
+      border-radius: 8px;
+      background:
+        linear-gradient(180deg, color-mix(in srgb, var(--monster-team) 18%, #070912), rgba(4, 6, 13, .96) 38%),
+        #05070d;
+      box-shadow:
+        inset 0 0 0 1px rgba(255,255,255,.08),
+        0 16px 40px rgba(0,0,0,.55),
+        0 0 26px color-mix(in srgb, var(--monster-team) 28%, transparent);
+      overflow: hidden;
+    }
+
+    .monster-panel.red { left: -184px; }
+    .monster-panel.blue {
+      --monster-team: #1687ff;
+      right: -184px;
+    }
+
+    .monster-panel::before {
+      content: "";
+      position: absolute;
+      inset: 0;
+      pointer-events: none;
+      background:
+        linear-gradient(135deg, transparent 0 47%, color-mix(in srgb, var(--monster-team) 18%, transparent) 48% 51%, transparent 52%),
+        linear-gradient(90deg, color-mix(in srgb, var(--monster-team) 30%, transparent), transparent 16% 84%, color-mix(in srgb, var(--monster-team) 30%, transparent));
+      opacity: .72;
+    }
+
+    .monster-panel-head,
+    .monster-stage-dots,
+    .monster-progress,
+    .monster-choice-label,
+    .monster-choices,
+    .monster-identity,
+    .monster-portrait {
+      position: relative;
+      z-index: 1;
+    }
+
+    .monster-panel-head {
+      display: flex;
+      align-items: baseline;
+      justify-content: space-between;
+      gap: 6px;
+      padding-bottom: 8px;
+      border-bottom: 1px solid color-mix(in srgb, var(--monster-team) 45%, transparent);
+    }
+
+    .monster-panel-head b {
+      color: #fff;
+      font-family: Impact, "Arial Black", sans-serif;
+      font-size: 17px;
+      letter-spacing: 0;
+    }
+
+    .monster-panel-head span {
+      color: color-mix(in srgb, var(--monster-team) 54%, white);
+      font-size: 10px;
+      font-weight: 900;
+      white-space: nowrap;
+    }
+
+    .monster-portrait {
+      width: 100%;
+      aspect-ratio: 1 / 1;
+      margin-top: 8px;
+      display: grid;
+      place-items: center;
+      border-radius: 6px;
+      background:
+        radial-gradient(circle, color-mix(in srgb, var(--monster-team) 28%, transparent), transparent 67%),
+        linear-gradient(180deg, rgba(255,255,255,.05), transparent);
+      overflow: hidden;
+    }
+
+    .monster-portrait::after {
+      content: "";
+      position: absolute;
+      inset: 9%;
+      border: 1px solid color-mix(in srgb, var(--monster-team) 42%, transparent);
+      transform: rotate(45deg);
+      animation: monsterCoreTurn 12s linear infinite;
+      pointer-events: none;
+    }
+
+    @keyframes monsterCoreTurn { to { transform: rotate(405deg); } }
+
+    .monster-sprite {
+      display: block;
+      width: 100%;
+      height: 100%;
+      background-image: var(--monster-image);
+      background-size: var(--monster-size, contain);
+      background-position: var(--monster-position, center);
+      background-repeat: no-repeat;
+      filter: drop-shadow(0 8px 7px rgba(0,0,0,.56));
+    }
+
+    .monster-portrait .monster-sprite {
+      position: relative;
+      z-index: 1;
+      transform: scale(1.12);
+      animation: monsterIdle 3.2s ease-in-out infinite;
+    }
+
+    @keyframes monsterIdle {
+      0%, 100% { transform: translateY(2px) scale(1.09); }
+      50% { transform: translateY(-5px) scale(1.13); }
+    }
+
+    .monster-identity {
+      min-height: 44px;
+      padding: 6px 2px 5px;
+      text-align: center;
+    }
+
+    .monster-name {
+      display: block;
+      color: #fff;
+      font-family: Impact, "Arial Black", sans-serif;
+      font-size: 17px;
+      line-height: 1.05;
+      text-shadow: 0 2px 0 #000, 0 0 12px var(--monster-team);
+    }
+
+    .monster-stage {
+      display: block;
+      margin-top: 4px;
+      color: #d7deea;
+      font-size: 10px;
+      font-weight: 900;
+    }
+
+    .monster-stage-dots {
+      display: grid;
+      grid-template-columns: repeat(6, 1fr);
+      gap: 3px;
+      margin: 2px 0 8px;
+    }
+
+    .monster-stage-dot {
+      height: 4px;
+      background: rgba(255,255,255,.12);
+      box-shadow: inset 0 0 0 1px rgba(255,255,255,.08);
+    }
+
+    .monster-stage-dot.reached {
+      background: var(--monster-team);
+      box-shadow: 0 0 8px var(--monster-team);
+    }
+
+    .monster-progress {
+      display: grid;
+      grid-template-columns: 1fr auto;
+      gap: 4px 6px;
+      align-items: center;
+      color: #bac4d5;
+      font-size: 9px;
+      font-weight: 900;
+    }
+
+    .monster-progress strong { color: #fff; }
+    .monster-progress-track {
+      grid-column: 1 / -1;
+      height: 7px;
+      background: rgba(255,255,255,.09);
+      overflow: hidden;
+    }
+
+    .monster-progress-fill {
+      height: 100%;
+      width: var(--monster-progress, 0%);
+      background: linear-gradient(90deg, var(--monster-team), #fff274);
+      box-shadow: 0 0 10px var(--monster-team);
+      transition: width .45s ease;
+    }
+
+    .monster-choice-label {
+      margin: 10px 0 5px;
+      color: #fff59c;
+      font-size: 10px;
+      font-weight: 1000;
+      text-align: center;
+    }
+
+    .monster-choice-label.ready { animation: monsterChoicePulse 1.25s ease-in-out infinite; }
+    @keyframes monsterChoicePulse { 50% { color: #fff; text-shadow: 0 0 10px #ffe95a; } }
+
+    .monster-choices {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 5px;
+    }
+
+    .monster-choice {
+      min-width: 0;
+      padding: 2px 2px 5px;
+      border: 1px solid color-mix(in srgb, var(--monster-team) 52%, white 12%);
+      border-radius: 5px;
+      color: #fff;
+      background: rgba(7,10,19,.92);
+      cursor: pointer;
+      box-shadow: inset 0 0 10px color-mix(in srgb, var(--monster-team) 16%, transparent);
+    }
+
+    .monster-choice:hover,
+    .monster-choice:focus-visible {
+      border-color: #fff36b;
+      transform: translateY(-2px);
+      box-shadow: 0 0 15px color-mix(in srgb, var(--monster-team) 60%, transparent);
+      outline: 0;
+    }
+
+    .monster-choice .monster-sprite { aspect-ratio: 1 / 1; }
+    .monster-choice b {
+      display: block;
+      min-height: 22px;
+      overflow-wrap: anywhere;
+      font-size: 8px;
+      line-height: 1.1;
+    }
+
+    .monster-max-mark {
+      margin-top: 10px;
+      padding: 7px 4px;
+      border-block: 1px solid color-mix(in srgb, var(--monster-team) 42%, transparent);
+      color: #fff59c;
+      font-size: 10px;
+      font-weight: 1000;
+      text-align: center;
+    }
+
     .board-card {
       position: relative;
       isolation: isolate;
@@ -6173,6 +6419,129 @@
       100% { transform: scale(1); }
     }
 
+    .monster-evolution-overlay {
+      --evolution-team: #ff385d;
+      background:
+        radial-gradient(circle at 50% 50%, color-mix(in srgb, var(--evolution-team) 32%, transparent), transparent 36%),
+        rgba(0, 2, 9, .72);
+      backdrop-filter: blur(3px) saturate(1.2);
+    }
+
+    .monster-evolution-overlay.blue { --evolution-team: #1687ff; }
+
+    .monster-evolution-energy {
+      position: absolute;
+      inset: -20%;
+      background:
+        repeating-conic-gradient(from 0deg, color-mix(in srgb, var(--evolution-team) 42%, transparent) 0deg 2deg, transparent 2deg 12deg);
+      mask: radial-gradient(circle, #000 0 16%, transparent 62%);
+      animation: evolutionEnergySpin 3.2s linear infinite;
+    }
+
+    @keyframes evolutionEnergySpin { to { transform: rotate(360deg) scale(1.08); } }
+
+    .monster-evolution-card {
+      position: relative;
+      width: min(1000px, 92vw);
+      min-height: min(650px, 84vh);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      color: #fff;
+      text-align: center;
+    }
+
+    .monster-evolution-kicker {
+      color: #fff36c;
+      font-family: Impact, "Arial Black", sans-serif;
+      font-size: clamp(18px, 2vw, 31px);
+      letter-spacing: 0;
+      text-shadow: 0 3px 0 #000, 0 0 22px var(--evolution-team);
+      animation: evolutionKickerIn .45s cubic-bezier(.2,.8,.2,1) both;
+    }
+
+    .monster-evolution-stage {
+      margin-top: 5px;
+      color: color-mix(in srgb, var(--evolution-team) 34%, white);
+      font-weight: 1000;
+      font-size: clamp(14px, 1.5vw, 22px);
+    }
+
+    .monster-evolution-visual {
+      width: 100%;
+      display: grid;
+      grid-template-columns: minmax(180px, .72fr) 90px minmax(260px, 1.18fr);
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+      min-height: min(470px, 58vh);
+    }
+
+    .monster-evolution-before,
+    .monster-evolution-after {
+      aspect-ratio: 1 / 1;
+      width: 100%;
+      min-width: 0;
+      filter: drop-shadow(0 18px 15px rgba(0,0,0,.7));
+    }
+
+    .monster-evolution-before {
+      opacity: .64;
+      transform: scale(.72);
+      animation: evolutionBeforeOut 1.8s ease-in-out both;
+    }
+
+    .monster-evolution-after {
+      animation: evolutionAfterIn 1.8s cubic-bezier(.16,.8,.2,1) both;
+    }
+
+    .monster-evolution-arrow {
+      color: #fff;
+      font-family: Impact, sans-serif;
+      font-size: 94px;
+      text-shadow: 0 0 22px #fff, 0 0 48px var(--evolution-team);
+      animation: evolutionArrowPulse .5s ease-in-out infinite alternate;
+    }
+
+    .monster-evolution-name {
+      margin-top: -20px;
+      color: #fff;
+      font-family: Impact, "Arial Black", sans-serif;
+      font-size: clamp(42px, 6vw, 92px);
+      line-height: .92;
+      letter-spacing: 0;
+      text-shadow:
+        0 5px 0 #000,
+        0 0 5px #fff,
+        0 0 28px var(--evolution-team),
+        0 0 60px var(--evolution-team);
+      animation: evolutionNameIn .7s 1s cubic-bezier(.16,.8,.2,1) both;
+    }
+
+    @keyframes evolutionKickerIn {
+      from { opacity: 0; transform: translateY(-24px); }
+      to { opacity: 1; transform: none; }
+    }
+
+    @keyframes evolutionBeforeOut {
+      0% { opacity: 0; transform: scale(.55); }
+      30% { opacity: .72; transform: scale(.74); }
+      100% { opacity: .22; transform: scale(.62); filter: brightness(3) blur(2px); }
+    }
+
+    @keyframes evolutionAfterIn {
+      0%, 34% { opacity: 0; transform: scale(.48); filter: brightness(5) blur(8px); }
+      70% { opacity: 1; transform: scale(1.12); filter: brightness(1.7) blur(0); }
+      100% { opacity: 1; transform: scale(1); filter: brightness(1); }
+    }
+
+    @keyframes evolutionArrowPulse { to { transform: scale(1.15); color: #fff36c; } }
+    @keyframes evolutionNameIn {
+      from { opacity: 0; transform: translateY(38px) scale(.72); }
+      to { opacity: 1; transform: none; }
+    }
+
     @media (max-width: 1100px) {
       .setup-layout,
       .boards,
@@ -6220,6 +6589,40 @@
         width: 100%;
         margin-left: 0;
       }
+
+      .team-battle-unit {
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+      }
+
+      .monster-panel,
+      .monster-panel.red,
+      .monster-panel.blue {
+        position: relative;
+        inset: auto;
+        width: 100%;
+        min-height: 0;
+        display: grid;
+        grid-template-columns: 96px minmax(120px, .75fr) minmax(210px, 1.25fr);
+        grid-template-rows: auto auto 1fr;
+        align-items: center;
+        gap: 2px 12px;
+        padding: 8px 12px;
+      }
+
+      .team-battle-unit.blue .monster-panel { order: -1; }
+      .monster-panel-head { grid-column: 2 / 4; }
+      .monster-portrait { grid-column: 1; grid-row: 1 / 4; margin: 0; }
+      .monster-identity { grid-column: 2; grid-row: 2; text-align: left; }
+      .monster-stage-dots { grid-column: 2; grid-row: 3; width: 100%; }
+      .monster-progress { grid-column: 3; grid-row: 2; width: 100%; }
+      .monster-choice-label { grid-column: 3; grid-row: 1; margin: 0; text-align: left; }
+      .monster-choices { grid-column: 3; grid-row: 3; width: 100%; }
+      .monster-choice { display: grid; grid-template-columns: 42px 1fr; align-items: center; text-align: left; }
+      .monster-choice .monster-sprite { width: 42px; }
+      .monster-choice b { min-height: 0; font-size: 10px; }
+      .monster-max-mark { grid-column: 3; grid-row: 2 / 4; margin: 0; }
 
       .voice-lane {
         display: none;
@@ -6269,6 +6672,31 @@
       .hype-wrap { grid-template-columns: 1fr; }
       .hype-center { order: -1; }
       .board-title { font-size: 20px; }
+      .monster-panel,
+      .monster-panel.red,
+      .monster-panel.blue {
+        grid-template-columns: 76px minmax(0, 1fr);
+        grid-template-rows: auto auto auto auto;
+        gap: 3px 9px;
+        padding: 7px 9px;
+      }
+      .monster-panel-head { grid-column: 2; grid-row: 1; }
+      .monster-portrait { grid-column: 1; grid-row: 1 / 4; }
+      .monster-identity { grid-column: 2; grid-row: 2; min-height: 0; padding: 2px 0; }
+      .monster-name { font-size: 15px; }
+      .monster-stage-dots { grid-column: 2; grid-row: 3; margin: 2px 0; }
+      .monster-progress { grid-column: 1 / -1; grid-row: 4; }
+      .monster-choice-label { grid-column: 1 / -1; grid-row: 5; text-align: center; margin-top: 5px; }
+      .monster-choices { grid-column: 1 / -1; grid-row: 6; }
+      .monster-choice { grid-template-columns: 54px 1fr; }
+      .monster-choice .monster-sprite { width: 54px; }
+      .monster-max-mark { grid-column: 1 / -1; grid-row: 5; }
+      .monster-evolution-visual {
+        grid-template-columns: 100px 34px minmax(180px, 1fr);
+        min-height: 44vh;
+      }
+      .monster-evolution-arrow { font-size: 52px; }
+      .monster-evolution-name { margin-top: 0; font-size: clamp(34px, 12vw, 56px); }
       .commentary {
         grid-template-columns: minmax(0, 1fr) auto;
         padding-right: 8px;
@@ -6490,7 +6918,9 @@
 
       <div class="arena">
         <div class="boards">
-          <section class="board-card red" id="redBoard">
+          <div class="team-battle-unit red">
+            <aside class="monster-panel red" id="redMonsterPanel" aria-label="RED TEAM MONSTER"></aside>
+            <section class="board-card red" id="redBoard">
             <div class="board-head">
               <div>
                 <h2 class="board-title" id="redTeamTitle">RED TEAM</h2>
@@ -6509,9 +6939,11 @@
                 </div>
               </div>
             </div>
-          </section>
+            </section>
+          </div>
 
-          <section class="board-card blue" id="blueBoard">
+          <div class="team-battle-unit blue">
+            <section class="board-card blue" id="blueBoard">
             <div class="board-head">
               <div>
                 <h2 class="board-title" id="blueTeamTitle">BLUE TEAM</h2>
@@ -6530,7 +6962,9 @@
                 </div>
               </div>
             </div>
-          </section>
+            </section>
+            <aside class="monster-panel blue" id="blueMonsterPanel" aria-label="BLUE TEAM MONSTER"></aside>
+          </div>
         </div>
 
         <section class="commentary" id="commentary">
@@ -6600,6 +7034,20 @@
     <img class="overlay-fg" src="images/ui/fg-ready.png" alt="" aria-hidden="true" />
     <div class="ready-card">
       <img class="ready-title-art" src="images/ui/title-ready-to-fight.png" alt="Ready to Fight!" />
+    </div>
+  </section>
+
+  <section class="overlay monster-evolution-overlay" id="monsterEvolutionOverlay" aria-hidden="true">
+    <div class="monster-evolution-energy" aria-hidden="true"></div>
+    <div class="monster-evolution-card">
+      <div class="monster-evolution-kicker">MONSTER EVOLUTION</div>
+      <div class="monster-evolution-stage" id="monsterEvolutionStage">幼少期</div>
+      <div class="monster-evolution-visual">
+        <div class="monster-evolution-before" id="monsterEvolutionBefore"></div>
+        <div class="monster-evolution-arrow" aria-hidden="true">›</div>
+        <div class="monster-evolution-after" id="monsterEvolutionAfter"></div>
+      </div>
+      <div class="monster-evolution-name" id="monsterEvolutionName">EMBER CUB</div>
     </div>
   </section>
 
@@ -7219,6 +7667,100 @@
     let customOpenSoundScanPromise = null;
     let openSoundAudioContext = null;
 
+    const MONSTER_STAGES = ["たまご", "幼少期", "成長期", "成熟期", "完全体", "究極体"];
+    const MONSTER_LINEAGES = [
+      {
+        id: "inferno", sheet: "lineage-inferno.png", mature: "FLARE LEO",
+        perfect: ["OBSIDIAN LEON", "MAGMA WYVERN"],
+        ultimate: ["SOLAR LEONIS", "CERBERUS REX", "INFERNO DRACROWN", "COMET CHIMERA"]
+      },
+      {
+        id: "thunder", sheet: "lineage-thunder.png", mature: "STORM FANG",
+        perfect: ["SABER VOLT", "CLOUD KIRIN"],
+        ultimate: ["VOLT FENRIR", "LIGHTNING TIGRON", "RAIJIN KIRIN", "TEMPEST DRACOLF"]
+      },
+      {
+        id: "mecha", sheet: "lineage-mecha.png", mature: "GEAR FALCON",
+        perfect: ["JET RAPTOR", "ARMOR OWL"],
+        ultimate: ["ORBITAL PHOENIX", "STEALTH GRYPHON", "FORTRESS NOCTUA", "SOLAR LASERWING"]
+      },
+      {
+        id: "beetle", sheet: "lineage-beetle.png", mature: "CHRONO BEETLE",
+        perfect: ["DRILL SCARAB", "GEAR STAG"],
+        ultimate: ["SIEGE COLOSSUS", "STEAM TITAN", "TIME EMPEROR", "RAZOR MANTIS"]
+      },
+      {
+        id: "grove", sheet: "lineage-grove.png", mature: "MOSS GUARDIAN",
+        perfect: ["VERDANT KNIGHT", "BLOSSOM SHAMAN"],
+        ultimate: ["WORLDROOT GIANT", "GROVE PALADIN", "SAKURA DEITY", "SUNWOOD DRAGON"]
+      },
+      {
+        id: "spore", sheet: "lineage-spore.png", mature: "SPORE GOBLIN",
+        perfect: ["POISON JESTER", "MYCELIUM WITCH"],
+        ultimate: ["PLAGUE CARNIVAL", "TOXIC CLOWN", "NIGHTMARE QUEEN", "COSMIC ORACLE"]
+      },
+      {
+        id: "abyss", sheet: "lineage-abyss.png", mature: "ABYSS SHARK",
+        perfect: ["ANCHOR ORCA", "SWORDFIN"],
+        ultimate: ["LEVIATHAN ORCA", "KRAKEN SHARK", "SEA EMPEROR", "SUBMARINE DRAGON"]
+      },
+      {
+        id: "cosmic", sheet: "lineage-cosmic.png", mature: "STAR JELLY",
+        perfect: ["NEBULA MAGE", "MOON MANTA"],
+        ultimate: ["GALAXY DEITY", "CONSTELLATION RAY", "MOON JELLY QUEEN", "BLACKHOLE OCTO"]
+      }
+    ];
+    const MONSTER_NODES = buildMonsterNodes();
+
+    function buildMonsterNodes() {
+      const nodes = {};
+      const add = (node) => { nodes[node.id] = Object.freeze(node); };
+      const sprite = (sheet, size, position) => ({ sheet: `images/monsters/${sheet}`, size, position });
+      add({ id: "egg", name: "MYSTERY EGG", stage: 0, sprite: sprite("egg.png", "contain", "center"), next: ["child-ember", "child-odd"] });
+      add({ id: "child-ember", name: "EMBER CUB", stage: 1, sprite: sprite("childhood.png", "200% 100%", "0% 50%"), next: ["growth-flare", "growth-gear"] });
+      add({ id: "child-odd", name: "ODDLING", stage: 1, sprite: sprite("childhood.png", "200% 100%", "100% 50%"), next: ["growth-moss", "growth-bubble"] });
+      [
+        ["growth-flare", "FLARE FANG", 0, ["inferno-mature", "thunder-mature"]],
+        ["growth-gear", "GEAR WING", 1, ["mecha-mature", "beetle-mature"]],
+        ["growth-moss", "MOSS MUNCH", 2, ["grove-mature", "spore-mature"]],
+        ["growth-bubble", "BUBBLE IMP", 3, ["abyss-mature", "cosmic-mature"]]
+      ].forEach(([id, name, x, next]) => add({ id, name, stage: 2, sprite: sprite("growth.png", "400% 100%", `${x * 33.333}% 50%`), next }));
+      MONSTER_LINEAGES.forEach((lineage) => {
+        const matureId = `${lineage.id}-mature`;
+        const perfectA = `${lineage.id}-perfect-a`;
+        const perfectB = `${lineage.id}-perfect-b`;
+        add({ id: matureId, name: lineage.mature, stage: 3, sprite: sprite(lineage.sheet, "400% 200%", "0% 0%"), next: [perfectA, perfectB] });
+        add({ id: perfectA, name: lineage.perfect[0], stage: 4, sprite: sprite(lineage.sheet, "400% 200%", "33.333% 0%"), next: [`${lineage.id}-ultimate-0`, `${lineage.id}-ultimate-1`] });
+        add({ id: perfectB, name: lineage.perfect[1], stage: 4, sprite: sprite(lineage.sheet, "400% 200%", "66.667% 0%"), next: [`${lineage.id}-ultimate-2`, `${lineage.id}-ultimate-3`] });
+        lineage.ultimate.forEach((name, index) => {
+          add({
+            id: `${lineage.id}-ultimate-${index}`,
+            name,
+            stage: 5,
+            sprite: sprite(lineage.sheet, "400% 200%", `${index * 33.333}% 100%`),
+            next: []
+          });
+        });
+      });
+      return Object.freeze(nodes);
+    }
+
+    function createMonsterState() {
+      return { nodeId: "egg", stage: 0, progress: 0, history: ["egg"] };
+    }
+
+    function normalizeMonsterState(value) {
+      const source = value && typeof value === "object" ? value : {};
+      const node = MONSTER_NODES[source.nodeId] || MONSTER_NODES.egg;
+      const history = Array.isArray(source.history) ? source.history.filter((id) => MONSTER_NODES[id]) : [];
+      return {
+        nodeId: node.id,
+        stage: node.stage,
+        progress: Math.max(0, Number(source.progress) || 0),
+        history: history.length ? history : [node.id]
+      };
+    }
+
     const state = {
       gridSize: 5,
       red: createTeamState("red"),
@@ -7310,7 +7852,8 @@
         specialCells: new Map(),
         openedBy: new Map(),
         comebackMoveCells: new Set(),
-        activeMemberIndex: 0
+        activeMemberIndex: 0,
+        monster: createMonsterState()
       };
     }
 
@@ -7384,7 +7927,7 @@
         "playShuffleButton", "roomIdInput", "hypeCenterButton", "hypeGaugeRed", "hypeGaugeBlue", "hypeFillRed", "hypeFillBlue", "redBoard", "blueBoard", "redTeamTitle",
         "blueTeamTitle", "redBoardMembers", "blueBoardMembers", "redOpenerRow", "blueOpenerRow", "redScore", "blueScore",
         "redGrid", "blueGrid", "redStatus", "blueStatus", "commentary", "commentaryLabel", "commentaryText", "commentarySub", "commentaryMascot",
-        "openRankingList", "voiceLogLaneLeft", "voiceLogLaneRight",
+        "openRankingList", "voiceLogLaneLeft", "voiceLogLaneRight", "redMonsterPanel", "blueMonsterPanel",
         "startBlackoutOverlay", "finishFlashOverlay", "introOverlay", "versusRedName", "versusRedMembers", "versusRedStats", "versusBlueName",
         "versusBlueMembers", "versusBlueStats", "readyOverlay", "firstBingoOverlay", "reachOverlay", "reachText",
         "skillOverlay", "skillTitleArt", "skillTeamLine", "skillMemberLine",
@@ -7395,7 +7938,8 @@
         "randomEventButton",
         "matchReplayModal", "replayMatchMeta", "replaySummary", "replayBoards", "replayTimeline", "replayCloseButton",
         "replayPrevButton", "replayPlayButton", "replayRange", "replayStepLabel",
-        "feverAura", "fxLayer", "openedByPopover", "victoryParticles", "setupThemePlayer", "copyrightToggle"
+        "feverAura", "fxLayer", "openedByPopover", "victoryParticles", "setupThemePlayer", "copyrightToggle",
+        "monsterEvolutionOverlay", "monsterEvolutionStage", "monsterEvolutionBefore", "monsterEvolutionAfter", "monsterEvolutionName"
       ].forEach((id) => { els[id] = document.getElementById(id); });
       els.players = Array.from(document.querySelectorAll("#playerInputs input"));
     }
@@ -7439,6 +7983,13 @@
       els.blueGrid.addEventListener("click", onGridClick);
       els.redGrid.addEventListener("keydown", onGridKeydown);
       els.blueGrid.addEventListener("keydown", onGridKeydown);
+      [els.redMonsterPanel, els.blueMonsterPanel].forEach((panel) => {
+        panel?.addEventListener("click", (event) => {
+          const button = event.target.closest("[data-monster-choice]");
+          if (!button || !panel.contains(button)) return;
+          chooseMonsterEvolution(button.dataset.monsterTeam, button.dataset.monsterChoice);
+        });
+      });
       document.querySelectorAll("[data-shuffle-team]").forEach((button) => {
         button.addEventListener("click", () => shuffleTeamCard(button.dataset.shuffleTeam));
       });
@@ -7995,7 +8546,8 @@
           specialCells: new Map(),
           openedBy: new Map(),
           comebackMoveCells: new Set(),
-          activeMemberIndex: 0
+          activeMemberIndex: 0,
+          monster: createMonsterState()
         });
       });
     }
@@ -8016,7 +8568,8 @@
         els.readyOverlay,
         els.introOverlay,
         els.startBlackoutOverlay,
-        els.finishFlashOverlay
+        els.finishFlashOverlay,
+        els.monsterEvolutionOverlay
       ].forEach((overlay) => {
         if (overlay) hideOverlay(overlay);
       });
@@ -8155,6 +8708,7 @@
       hideOverlay(els.introOverlay);
       hideOverlay(els.startBlackoutOverlay);
       hideOverlay(els.finishFlashOverlay);
+      hideOverlay(els.monsterEvolutionOverlay);
       clearVoiceLogs();
       scheduleOnlineStateSync("back-to-setup", 40);
       showCommentary("GAME STARTを押して開幕。", "勝利条件は先に2ライン。");
@@ -8175,9 +8729,130 @@
     function renderAll() {
       renderBoard("red");
       renderBoard("blue");
+      renderMonsterPanel("red");
+      renderMonsterPanel("blue");
       updateHypeUi();
       updateStatus();
       renderRankingTicker();
+    }
+
+    function getMonsterThresholds() {
+      return state.gridSize === 7 ? [2, 5, 9, 14, 20] : [1, 3, 5, 8, 12];
+    }
+
+    function getMonsterOpenCount(team) {
+      const side = state[team];
+      return side.marked.reduce((total, marked, index) => (
+        total + (marked && !side.card[index]?.free ? 1 : 0)
+      ), 0);
+    }
+
+    function refreshMonsterProgress(team) {
+      const side = state[team];
+      side.monster = normalizeMonsterState(side.monster);
+      side.monster.progress = Math.max(side.monster.progress, getMonsterOpenCount(team));
+    }
+
+    function getMonsterUnlockedStage(monster) {
+      return getMonsterThresholds().reduce((stage, threshold, index) => (
+        monster.progress >= threshold ? index + 1 : stage
+      ), 0);
+    }
+
+    function getMonsterChoices(team) {
+      const monster = normalizeMonsterState(state[team].monster);
+      const node = MONSTER_NODES[monster.nodeId];
+      if (!node?.next?.length || getMonsterUnlockedStage(monster) <= node.stage) return [];
+      return node.next.map((id) => MONSTER_NODES[id]).filter(Boolean);
+    }
+
+    function monsterSpriteMarkup(node, extraClass = "") {
+      if (!node?.sprite) return "";
+      const style = `--monster-image:url('${node.sprite.sheet}');--monster-size:${node.sprite.size};--monster-position:${node.sprite.position}`;
+      return `<span class="monster-sprite${extraClass ? ` ${extraClass}` : ""}" style="${style}" aria-hidden="true"></span>`;
+    }
+
+    function renderMonsterPanel(team) {
+      const panel = els[`${team}MonsterPanel`];
+      if (!panel) return;
+      const side = state[team];
+      side.monster = normalizeMonsterState(side.monster);
+      const monster = side.monster;
+      const node = MONSTER_NODES[monster.nodeId];
+      const thresholds = getMonsterThresholds();
+      const nextThreshold = thresholds[node.stage] || thresholds[thresholds.length - 1];
+      const previousThreshold = node.stage > 0 ? thresholds[node.stage - 1] : 0;
+      const range = Math.max(1, nextThreshold - previousThreshold);
+      const progressPercent = node.stage >= 5 ? 100 : Math.max(0, Math.min(100, ((monster.progress - previousThreshold) / range) * 100));
+      const choices = getMonsterChoices(team);
+      const stageDots = MONSTER_STAGES.map((_, index) => (
+        `<span class="monster-stage-dot${index <= node.stage ? " reached" : ""}"></span>`
+      )).join("");
+      const choiceHtml = choices.length ? `
+        <div class="monster-choice-label ready">進化先を選択</div>
+        <div class="monster-choices">
+          ${choices.map((choice) => `
+            <button type="button" class="monster-choice" data-monster-team="${team}" data-monster-choice="${choice.id}">
+              ${monsterSpriteMarkup(choice)}
+              <b>${choice.name}</b>
+            </button>
+          `).join("")}
+        </div>
+      ` : (node.stage >= 5
+        ? `<div class="monster-max-mark">ULTIMATE COMPLETE</div>`
+        : `<div class="monster-choice-label">NEXT: ${Math.max(0, nextThreshold - monster.progress)} OPEN</div>`);
+      panel.innerHTML = `
+        <div class="monster-panel-head"><b>MONSTER</b><span>${team.toUpperCase()} PARTNER</span></div>
+        <div class="monster-portrait">${monsterSpriteMarkup(node)}</div>
+        <div class="monster-identity">
+          <strong class="monster-name">${node.name}</strong>
+          <span class="monster-stage">${MONSTER_STAGES[node.stage]}</span>
+        </div>
+        <div class="monster-stage-dots">${stageDots}</div>
+        <div class="monster-progress">
+          <span>GROWTH</span><strong>${monster.progress}${node.stage >= 5 ? " OPEN" : ` / ${nextThreshold}`}</strong>
+          <div class="monster-progress-track"><div class="monster-progress-fill" style="--monster-progress:${progressPercent}%"></div></div>
+        </div>
+        ${choiceHtml}
+      `;
+    }
+
+    function chooseMonsterEvolution(team, nodeId, options = {}) {
+      if (team !== "red" && team !== "blue") return false;
+      if (shouldUseOnlineAction(options)) {
+        return runOnlineAction(
+          { type: "monster-evolve", payload: { team, nodeId } },
+          () => chooseMonsterEvolution(team, nodeId, { ...options, onlineBypass: true })
+        );
+      }
+      const side = state[team];
+      side.monster = normalizeMonsterState(side.monster);
+      const current = MONSTER_NODES[side.monster.nodeId];
+      const next = MONSTER_NODES[nodeId];
+      if (!current?.next?.includes(nodeId) || !next || getMonsterUnlockedStage(side.monster) <= current.stage) return false;
+      const previousId = current.id;
+      side.monster.nodeId = next.id;
+      side.monster.stage = next.stage;
+      side.monster.history = [...side.monster.history, next.id];
+      renderMonsterPanel(team);
+      addMatchHighlight("monster", `${getTeamLabel(team)} MONSTER EVOLUTION`, `${current.name} → ${next.name}`, team);
+      enqueueEffect(() => showMonsterEvolution(team, previousId, next.id));
+      return true;
+    }
+
+    function showMonsterEvolution(team, previousId, nextId) {
+      const previous = MONSTER_NODES[previousId] || MONSTER_NODES.egg;
+      const next = MONSTER_NODES[nextId] || previous;
+      const overlay = els.monsterEvolutionOverlay;
+      if (!overlay) return Promise.resolve();
+      overlay.classList.remove("red", "blue");
+      overlay.classList.add(team);
+      els.monsterEvolutionStage.textContent = MONSTER_STAGES[next.stage];
+      els.monsterEvolutionBefore.innerHTML = monsterSpriteMarkup(previous);
+      els.monsterEvolutionAfter.innerHTML = monsterSpriteMarkup(next);
+      els.monsterEvolutionName.textContent = next.name;
+      screenShake();
+      return showTimedOverlay(overlay, 3300);
     }
 
     function renderBoard(team) {
@@ -8749,6 +9424,7 @@
         side.openedBy.set(index, [playerStatsKey(openerName)]);
         if (!isSpecialCell) playOpenSound(team, side.bingoCount, cell.id);
         handleSkillOpenEffectsAfterOpen(team);
+        refreshMonsterProgress(team);
         renderAll();
         return;
       }
@@ -8805,6 +9481,7 @@
 
       clearReachTargets();
       if (!becameWinner) computeReachTargets();
+      refreshMonsterProgress(team);
       renderAll();
       const willShowReach = !becameWinner && shouldShowReach(team);
       const eventHypeMoments = [];
@@ -12832,7 +13509,8 @@
         specialCells: onlineMapToObject(side.specialCells),
         openedBy: onlineMapToObject(side.openedBy),
         comebackMoveCells: [...side.comebackMoveCells],
-        activeMemberIndex: side.activeMemberIndex
+        activeMemberIndex: side.activeMemberIndex,
+        monster: cloneOnlineValue(normalizeMonsterState(side.monster))
       };
     }
 
@@ -12947,7 +13625,8 @@
         specialCells: onlineObjectToMap(snapshot.specialCells),
         openedBy: onlineObjectToMap(snapshot.openedBy),
         comebackMoveCells: new Set(snapshot.comebackMoveCells || []),
-        activeMemberIndex: Number(snapshot.activeMemberIndex) || 0
+        activeMemberIndex: Number(snapshot.activeMemberIndex) || 0,
+        monster: normalizeMonsterState(snapshot.monster)
       });
       side.reachPairMap = buildReachPairMap(side.reachPairs);
     }
@@ -13096,6 +13775,11 @@
         }
       }
       if (type === "activate-skill") event.effects.push("skill");
+      if (type === "monster-evolve") {
+        event.effects.push("monster-evolve");
+        event.payload.previousMonsterId = before?.[payload.team]?.monster?.nodeId || "egg";
+        event.payload.monsterId = after?.[payload.team]?.monster?.nodeId || payload.nodeId;
+      }
       if (type === "hype-voice") event.effects.push("hype-voice");
       if (type === "emergency-pause") event.effects.push("emergency-pause");
       if (type === "emergency-skip") event.effects.push("emergency-skip");
@@ -13163,6 +13847,9 @@
       if (effects.has("skill")) {
         const skill = getTeamSkill(payload.team, payload.skillId);
         if (skill) enqueueEffect(() => showSkillActivation(payload.team, skill));
+      }
+      if (effects.has("monster-evolve")) {
+        enqueueEffect(() => showMonsterEvolution(payload.team, payload.previousMonsterId, payload.monsterId));
       }
       if (effects.has("hype-voice")) playAudio("hype");
       if (effects.has("emergency-pause")) {

@@ -75,6 +75,39 @@ test("every random event has dedicated artwork and valid stereo audio", () => {
   assert.match(html, /effects\.has\("random-event"\)[\s\S]*showRandomEvent\(payload\.randomEvent\)/);
 });
 
+test("monster evolution has a complete binary tree, artwork, and online sync", () => {
+  const html = readFileSync(new URL("../index.html", import.meta.url), "utf8");
+  const sourceMatch = html.match(/const MONSTER_STAGES = [\s\S]*?\n\s*function createMonsterState\(\)/);
+  assert.ok(sourceMatch, "Monster evolution definitions were not found");
+  const definitions = sourceMatch[0].replace(/\n\s*function createMonsterState\(\)[\s\S]*$/, "");
+  const result = new Function(`${definitions}; return { stages: MONSTER_STAGES, lineages: MONSTER_LINEAGES, nodes: MONSTER_NODES };`)();
+
+  assert.equal(result.stages.length, 6, "Egg plus five evolution stages are required");
+  assert.equal(result.lineages.length, 8, "Expected eight mature lineages");
+  assert.equal(Object.keys(result.nodes).length, 63, "Expected a complete 1 + 2 + 4 + 8 + 16 + 32 tree");
+  assert.deepEqual(
+    result.stages.map((_, stage) => Object.values(result.nodes).filter((node) => node.stage === stage).length),
+    [1, 2, 4, 8, 16, 32]
+  );
+  Object.values(result.nodes).forEach((node) => {
+    assert.equal(node.next.length, node.stage < 5 ? 2 : 0, `${node.id} has an invalid branch count`);
+    node.next.forEach((nextId) => assert.ok(result.nodes[nextId], `${node.id} points to missing ${nextId}`));
+  });
+
+  const monsterAssets = [
+    "egg.png", "childhood.png", "growth.png", "lineage-inferno.png", "lineage-thunder.png",
+    "lineage-mecha.png", "lineage-beetle.png", "lineage-grove.png", "lineage-spore.png",
+    "lineage-abyss.png", "lineage-cosmic.png"
+  ];
+  monsterAssets.forEach((file) => {
+    assert.ok(existsSync(new URL(`../images/monsters/${file}`, import.meta.url)), `Missing monster artwork: ${file}`);
+  });
+  assert.match(html, /monster: cloneOnlineValue\(normalizeMonsterState\(side\.monster\)\)/);
+  assert.match(html, /monster: normalizeMonsterState\(snapshot\.monster\)/);
+  assert.match(html, /type === "monster-evolve"/);
+  assert.match(html, /effects\.has\("monster-evolve"\)/);
+});
+
 test("season standings and automatic backup recovery are wired into stats", () => {
   const html = readFileSync(new URL("../index.html", import.meta.url), "utf8");
 
