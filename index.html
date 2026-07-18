@@ -420,7 +420,7 @@
 
     .setup-player-controls {
       display: grid;
-      grid-template-columns: minmax(170px, .9fr) repeat(3, minmax(150px, 1fr));
+      grid-template-columns: minmax(170px, .9fr) repeat(4, minmax(120px, 1fr));
       gap: 10px;
       align-items: center;
       margin: 14px 0 12px;
@@ -429,6 +429,58 @@
     .setup-player-controls .segmented,
     .setup-player-controls .btn {
       width: 100%;
+    }
+
+    #randomEventButton.active {
+      color: #071019;
+      border-color: #8fffe1;
+      background: linear-gradient(180deg, #dffff5, #55e0bb);
+      box-shadow: 0 0 18px rgba(85,224,187,.34), inset 0 1px 0 #fff;
+    }
+
+    .random-event-banner {
+      --event-accent: #55e0bb;
+      position: fixed;
+      z-index: 8900;
+      left: 50%;
+      top: 43%;
+      width: min(760px, 88vw);
+      padding: 18px 28px 20px;
+      transform: translate(-50%, -50%) skewX(-7deg);
+      border: 2px solid var(--event-accent);
+      background: linear-gradient(100deg, rgba(2,8,15,.96), rgba(8,19,28,.9));
+      box-shadow: 0 0 34px color-mix(in srgb, var(--event-accent) 52%, transparent), inset 0 0 28px rgba(255,255,255,.06);
+      text-align: center;
+      pointer-events: none;
+      animation: randomEventIn 2.7s cubic-bezier(.2,.8,.2,1) both;
+    }
+
+    .random-event-banner strong,
+    .random-event-banner span {
+      display: block;
+      transform: skewX(7deg);
+      letter-spacing: 0;
+    }
+
+    .random-event-banner strong {
+      color: #fff;
+      font-size: clamp(28px, 5vw, 58px);
+      line-height: 1;
+      font-weight: 1000;
+      text-shadow: 0 0 16px var(--event-accent), 0 3px 0 #05070d;
+    }
+
+    .random-event-banner span {
+      margin-top: 8px;
+      color: #eafcff;
+      font-size: clamp(12px, 1.8vw, 18px);
+      font-weight: 1000;
+    }
+
+    @keyframes randomEventIn {
+      0% { opacity: 0; transform: translate(-54%, -50%) skewX(-7deg) scale(.82); }
+      16%, 78% { opacity: 1; transform: translate(-50%, -50%) skewX(-7deg) scale(1); }
+      100% { opacity: 0; transform: translate(-46%, -50%) skewX(-7deg) scale(.96); }
     }
 
     .panel {
@@ -4776,6 +4828,47 @@
       text-shadow: 0 2px 0 #050711, 0 0 14px rgba(249,199,79,.28);
     }
 
+    .stats-season-section { grid-column: 1 / -1; }
+    .stats-season-head {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      margin-bottom: 10px;
+    }
+    .stats-season-head h3 { margin: 0; }
+    .stats-season-select {
+      min-width: 150px;
+      padding: 7px 28px 7px 10px;
+      border: 1px solid rgba(255,255,255,.24);
+      border-radius: 5px;
+      color: #fff;
+      background: #0a111c;
+      font: 1000 11px/1 sans-serif;
+    }
+    .stats-season-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+    .stats-standing-list { display: grid; gap: 5px; }
+    .stats-standing {
+      display: grid;
+      grid-template-columns: 30px minmax(0, 1fr) auto;
+      align-items: center;
+      gap: 8px;
+      min-height: 38px;
+      padding: 6px 9px;
+      border-left: 3px solid rgba(255,255,255,.3);
+      background: rgba(255,255,255,.07);
+      color: #eaf2ff;
+      font-size: 11px;
+      font-weight: 900;
+    }
+    .stats-standing:nth-child(1) { border-left-color: #ffd84d; background: rgba(255,216,77,.12); }
+    .stats-standing:nth-child(2) { border-left-color: #d9e1ec; }
+    .stats-standing:nth-child(3) { border-left-color: #d4935d; }
+    .stats-standing-rank { color: #fff8c2; font-size: 15px; font-weight: 1000; }
+    .stats-standing-name { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .stats-standing-score { color: #fff; text-align: right; }
+    .stats-standing-score small { display: block; color: rgba(255,255,255,.58); font-size: 8px; }
+
     .stats-highlight-list,
     .stats-rivalry-list {
       display: grid;
@@ -5980,6 +6073,7 @@
       .match-result-grid {
         grid-template-columns: 1fr;
       }
+      .stats-season-grid { grid-template-columns: 1fr; }
       .stats-match-list { grid-template-columns: 1fr; }
       .replay-stage { grid-template-columns: 1fr; }
       .replay-timeline { max-height: 220px; }
@@ -6139,6 +6233,7 @@
               <button type="button" class="btn frame" id="setupShuffleButton">TEAM SHUFFLE</button>
               <button type="button" class="btn" id="deckModeButton">DECK MODE</button>
               <button type="button" class="btn" id="setupStatsButton">STATS</button>
+              <button type="button" class="btn active" id="randomEventButton" aria-pressed="true">EVENT ON</button>
             </div>
 
             <div class="deck-hub" id="deckHub">
@@ -6423,6 +6518,22 @@
           <h3>RIVALRY CARDS</h3>
           <div class="stats-rivalry-list" id="statsRivalryList"></div>
         </section>
+        <section class="stats-section stats-season-section">
+          <div class="stats-season-head">
+            <h3>SEASON / TOURNAMENT</h3>
+            <select class="stats-season-select" id="statsSeasonSelect" aria-label="シーズン"></select>
+          </div>
+          <div class="stats-season-grid">
+            <div>
+              <h3>PLAYER STANDINGS</h3>
+              <div class="stats-standing-list" id="statsSeasonList"></div>
+            </div>
+            <div>
+              <h3>TEAM TOURNAMENT</h3>
+              <div class="stats-standing-list" id="statsTournamentList"></div>
+            </div>
+          </div>
+        </section>
         <section class="stats-section stats-match-section">
           <h3>MATCH HISTORY</h3>
           <div class="stats-match-list" id="statsMatchList"></div>
@@ -6467,7 +6578,9 @@
       gridSize: "teamBingo.gridSize.v2",
       redDeck: "teamBingo.redDeck.v2",
       blueDeck: "teamBingo.blueDeck.v2",
-      playerStats: "teamBingo.playerStats.v1"
+      playerStats: "teamBingo.playerStats.v1",
+      randomEvents: "teamBingo.randomEvents.v1",
+      autoBackups: "teamBingo.autoBackups.v1"
     };
 
     const TEAM_NAMES_FIGHTING = [
@@ -6934,6 +7047,8 @@
       gameStarted: false,
       inputLocked: false,
       emergencyPaused: false,
+      randomEventsEnabled: true,
+      randomEventMilestones: [],
       winner: null,
       readyShown: false,
       ranking: {},
@@ -6972,7 +7087,9 @@
       matchStatsFinalized: false,
       activeReplayMatchId: "",
       activeReplayStep: 0,
+      activeStatsSeasonId: "",
       replayTimer: null,
+      autoBackupTimer: null,
       openedByPopoverTimer: null,
       currentOpenAttribution: null,
       tofuCopyrightMode: false
@@ -7095,6 +7212,8 @@
         "victoryOverlay", "victoryTeam", "victoryPraise", "victorySpecialBadge", "mvpImage", "mvpName", "mvpTitle", "winnerTitles", "victoryResultPanel",
         "closeVictoryButton",
         "statsModal", "statsSummary", "statsPlayerList", "statsHighlightList", "statsRivalryList", "statsMatchList", "statsCloseButton",
+        "statsSeasonSelect", "statsSeasonList", "statsTournamentList",
+        "randomEventButton",
         "matchReplayModal", "replayMatchMeta", "replaySummary", "replayBoards", "replayTimeline", "replayCloseButton",
         "replayPrevButton", "replayPlayButton", "replayRange", "replayStepLabel",
         "feverAura", "fxLayer", "openedByPopover", "victoryParticles", "setupThemePlayer", "copyrightToggle"
@@ -7128,6 +7247,7 @@
       els.mode5.addEventListener("click", () => setGridSize(5));
       els.mode7.addEventListener("click", () => setGridSize(7));
       els.deckModeButton.addEventListener("click", () => els.deckHub.classList.toggle("show"));
+      els.randomEventButton?.addEventListener("click", toggleRandomEvents);
       els.setupStatsButton.addEventListener("click", showStatsPage);
       els.playStatsButton.addEventListener("click", showStatsPage);
       els.randomDeckButton.addEventListener("click", selectRandomDeck);
@@ -7157,6 +7277,10 @@
       els.statsMatchList?.addEventListener("click", (event) => {
         const button = event.target.closest("[data-replay-match]");
         if (button) openMatchReplay(button.dataset.replayMatch);
+      });
+      els.statsSeasonSelect?.addEventListener("change", (event) => {
+        state.activeStatsSeasonId = event.target.value;
+        renderSeasonStandings();
       });
       els.replayCloseButton?.addEventListener("click", closeMatchReplay);
       els.replayPrevButton?.addEventListener("click", () => setReplayStep(state.activeReplayStep - 1));
@@ -7398,12 +7522,15 @@
       state.audioVolume = storedVolume === null ? .7 : clampVolume(Number(storedVolume));
       if (state.audioVolume === 0) state.soundEnabled = false;
       state.gridSize = Number(localStorage.getItem(STORAGE.gridSize)) || 5;
+      state.randomEventsEnabled = localStorage.getItem(STORAGE.randomEvents) !== "off";
       state.teamDecks.red = loadJson(STORAGE.redDeck, null);
       state.teamDecks.blue = loadJson(STORAGE.blueDeck, null);
       els.setupRoomIdInput.value = state.roomId;
       els.roomIdInput.value = state.roomId;
       if (state.teamDecks.red) els.redDeckLoadCode.value = encodeDeck(state.teamDecks.red);
       if (state.teamDecks.blue) els.blueDeckLoadCode.value = encodeDeck(state.teamDecks.blue);
+      updateRandomEventButton();
+      scheduleAutoBackup("startup", 1500);
     }
 
     function loadJson(key, fallback) {
@@ -7417,6 +7544,100 @@
 
     function saveJson(key, value) {
       localStorage.setItem(key, JSON.stringify(value));
+      if ([STORAGE.ranking, STORAGE.playerStats, STORAGE.redDeck, STORAGE.blueDeck].includes(key)) {
+        scheduleAutoBackup("data-change");
+      }
+    }
+
+    function getAutoBackups() {
+      const backups = loadJson(STORAGE.autoBackups, []);
+      return Array.isArray(backups)
+        ? backups.filter((backup) => backup && typeof backup === "object" && backup.data).slice(0, 4)
+        : [];
+    }
+
+    function hashBackupSignature(value) {
+      let hash = 2166136261;
+      for (let index = 0; index < value.length; index += 1) {
+        hash ^= value.charCodeAt(index);
+        hash = Math.imul(hash, 16777619);
+      }
+      return (hash >>> 0).toString(36);
+    }
+
+    function createAutoBackup(reason = "manual", force = false) {
+      const data = {
+        ranking: cloneOnlineValue(state.ranking || {}),
+        playerStats: cloneOnlineValue(state.playerStats || { players: {}, rivalries: {}, recentMatches: [] }),
+        settings: {
+          gridSize: state.gridSize,
+          soundEnabled: state.soundEnabled,
+          audioVolume: state.audioVolume,
+          randomEventsEnabled: state.randomEventsEnabled,
+          teamDecks: cloneOnlineValue(state.teamDecks),
+          players: els.players?.map((input) => input.value.trim()) || []
+        }
+      };
+      const signature = hashBackupSignature(JSON.stringify(data));
+      const backups = getAutoBackups();
+      if (!force && backups[0]?.signature === signature) return backups[0];
+      const backup = {
+        id: `${Date.now()}-${Math.random().toString(36).slice(2, 7)}`,
+        createdAt: new Date().toISOString(),
+        reason,
+        signature,
+        data
+      };
+      try {
+        localStorage.setItem(STORAGE.autoBackups, JSON.stringify([backup, ...backups].slice(0, 4)));
+      } catch {
+        try {
+          localStorage.setItem(STORAGE.autoBackups, JSON.stringify([backup]));
+        } catch {
+          return null;
+        }
+      }
+      return backup;
+    }
+
+    function scheduleAutoBackup(reason = "data-change", delayMs = 900) {
+      window.clearTimeout(state.autoBackupTimer);
+      state.autoBackupTimer = window.setTimeout(() => createAutoBackup(reason), delayMs);
+    }
+
+    function restoreAutoBackup(backupId = "") {
+      const backup = getAutoBackups().find((item) => !backupId || item.id === backupId);
+      if (!backup?.data) return null;
+      const data = backup.data;
+      state.ranking = cloneOnlineValue(data.ranking || {});
+      state.playerStats = normalizePlayerStats(data.playerStats || { players: {} });
+      const settings = data.settings || {};
+      state.gridSize = Number(settings.gridSize) === 7 ? 7 : 5;
+      state.soundEnabled = settings.soundEnabled !== false;
+      state.audioVolume = clampVolume(Number(settings.audioVolume ?? .7));
+      state.randomEventsEnabled = settings.randomEventsEnabled !== false;
+      state.teamDecks = cloneOnlineValue(settings.teamDecks || { red: null, blue: null });
+      if (Array.isArray(settings.players)) {
+        els.players.forEach((input, index) => { input.value = settings.players[index] || ""; });
+        divideTeams();
+      }
+      localStorage.setItem(STORAGE.ranking, JSON.stringify(state.ranking));
+      localStorage.setItem(STORAGE.playerStats, JSON.stringify(state.playerStats));
+      localStorage.setItem(STORAGE.gridSize, String(state.gridSize));
+      localStorage.setItem(STORAGE.sound, state.soundEnabled ? "on" : "off");
+      localStorage.setItem(STORAGE.volume, String(state.audioVolume));
+      localStorage.setItem(STORAGE.randomEvents, state.randomEventsEnabled ? "on" : "off");
+      localStorage.setItem(STORAGE.redDeck, JSON.stringify(state.teamDecks.red));
+      localStorage.setItem(STORAGE.blueDeck, JSON.stringify(state.teamDecks.blue));
+      updateGridButtons();
+      updateRandomEventButton();
+      updateSoundButton();
+      updateVolumeControls();
+      updateCachedAudioVolume();
+      renderSetupPreview();
+      renderRankingTicker();
+      if (els.statsModal?.classList.contains("show")) renderStatsPage();
+      return cloneOnlineValue(backup);
     }
 
     function renderFixedMembers() {
@@ -7489,6 +7710,7 @@
       }
       state.gridSize = size;
       localStorage.setItem(STORAGE.gridSize, String(size));
+      scheduleAutoBackup("grid-setting");
       updateGridButtons();
       clearDeckSelection();
       renderDeckGrid();
@@ -7499,6 +7721,23 @@
     function updateGridButtons() {
       els.mode5.classList.toggle("active", state.gridSize === 5);
       els.mode7.classList.toggle("active", state.gridSize === 7);
+    }
+
+    function toggleRandomEvents() {
+      if (onlineCoordinator?.isOnline?.() && !onlineCoordinator.canEditSetup?.()) return;
+      state.randomEventsEnabled = !state.randomEventsEnabled;
+      localStorage.setItem(STORAGE.randomEvents, state.randomEventsEnabled ? "on" : "off");
+      scheduleAutoBackup("event-setting");
+      updateRandomEventButton();
+      scheduleOnlineSetupPublish(40);
+    }
+
+    function updateRandomEventButton() {
+      if (!els.randomEventButton) return;
+      els.randomEventButton.classList.toggle("active", state.randomEventsEnabled);
+      els.randomEventButton.setAttribute("aria-pressed", String(state.randomEventsEnabled));
+      els.randomEventButton.textContent = state.randomEventsEnabled ? "EVENT ON" : "EVENT OFF";
+      els.randomEventButton.disabled = Boolean(onlineCoordinator?.isOnline?.() && !onlineCoordinator.canEditSetup?.());
     }
 
     function startGame(options = {}) {
@@ -7543,6 +7782,7 @@
       state.lastOpenTeam = null;
       state.streak = 0;
       state.streakAnnounced = false;
+      state.randomEventMilestones = [];
       state.skillCharges = { red: false, blue: false };
       state.skillChargeAnnounced = { red: false, blue: false };
       state.skillEffects = createSkillEffects();
@@ -8398,6 +8638,7 @@
         if (reachHype) eventHypeMoments.push(reachHype);
         side.reachAnnounced = true;
       }
+      const randomEvent = !becameWinner ? maybeTriggerRandomEvent(team) : null;
       if ([hypeMoment, ...eventHypeMoments].some((moment) => moment?.type === "fever")) {
         state.feverTeam = team;
       }
@@ -8441,7 +8682,9 @@
         flowEffects.forEach((flowEffect) => enqueueEffect(flowEffect));
       }
 
-      if (becameFirstBingo || willShowReach || flowMoment || hypeMoment) return;
+      if (randomEvent) enqueueEffect(() => showRandomEvent(randomEvent));
+
+      if (becameFirstBingo || willShowReach || flowMoment || hypeMoment || randomEvent) return;
 
       const showedRare = maybeShowRareCutin(team, cell.id, voiceLine, { tofuMode: tofuCommentMode });
       if (!showedRare) maybeGeneralCommentary(team, { tofuMode: tofuCommentMode });
@@ -8518,6 +8761,70 @@
     function getMatchTeamOpenCount(team) {
       const bucket = state.matchTracker?.players?.[team] || {};
       return Object.values(bucket).reduce((total, entry) => total + Math.max(0, Number(entry.opens) || 0), 0);
+    }
+
+    function getRandomEventOpenCount() {
+      return ["red", "blue"].reduce((total, team) => (
+        total + state[team].marked.reduce((count, marked, index) => (
+          count + (marked && !state[team].card[index]?.free ? 1 : 0)
+        ), 0)
+      ), 0);
+    }
+
+    function hashRandomEventSeed(value) {
+      let hash = 2166136261;
+      String(value || "").split("").forEach((character) => {
+        hash ^= character.charCodeAt(0);
+        hash = Math.imul(hash, 16777619);
+      });
+      return hash >>> 0;
+    }
+
+    function maybeTriggerRandomEvent(openingTeam) {
+      if (!state.randomEventsEnabled || state.winner) return null;
+      const openCount = getRandomEventOpenCount();
+      if (openCount < 5 || openCount % 5 !== 0) return null;
+      if (state.randomEventMilestones.some((item) => Number(item?.openCount) === openCount)) return null;
+      const opponent = getOpponentTeam(openingTeam);
+      const trailingTeam = state.red.hype === state.blue.hype
+        ? opponent
+        : (state.red.hype < state.blue.hype ? "red" : "blue");
+      const definitions = [
+        { id: "gold-rush", title: "GOLD RUSH", team: openingTeam, delta: 20, accent: "#ffd84d" },
+        { id: "second-wind", title: "SECOND WIND", team: trailingTeam, delta: 25, accent: "#65d8ff" },
+        { id: "spotlight", title: "SPOTLIGHT", team: openingTeam, delta: 15, accent: "#ff77c8" },
+        { id: "pressure-drop", title: "PRESSURE DROP", team: "both", delta: -15, accent: "#bd9bff" }
+      ];
+      const index = hashRandomEventSeed(`${state.matchTracker?.id}:${openCount}`) % definitions.length;
+      const selected = definitions[index];
+      const targets = selected.team === "both" ? ["red", "blue"] : [selected.team];
+      targets.forEach((team) => {
+        if (selected.delta > 0) setHype(team, Math.min(95, state[team].hype + selected.delta));
+        else addHype(team, selected.delta);
+      });
+      const amount = `${selected.delta > 0 ? "+" : ""}${selected.delta}`;
+      const targetLabel = selected.team === "both" ? "BOTH TEAM" : getTeamLabel(selected.team);
+      const event = {
+        ...selected,
+        openCount,
+        sub: `${targetLabel} HYPE ${amount}`,
+        at: new Date().toISOString()
+      };
+      state.randomEventMilestones.push(event);
+      addMatchHighlight("random-event", event.title, event.sub, selected.team === "both" ? "" : selected.team);
+      return event;
+    }
+
+    function showRandomEvent(event) {
+      if (!event?.title) return;
+      const banner = document.createElement("div");
+      banner.className = "random-event-banner";
+      banner.style.setProperty("--event-accent", event.accent || "#55e0bb");
+      banner.innerHTML = `<strong>${escapeHtml(event.title)}</strong><span>${escapeHtml(event.sub || "")}</span>`;
+      document.body.appendChild(banner);
+      window.setTimeout(() => banner.remove(), 2900);
+      showCommentary("RANDOM EVENT", `${event.title} / ${event.sub || ""}`, 5200);
+      screenShake();
     }
 
     function trackStreak(team) {
@@ -10485,11 +10792,12 @@
           winnerTeam: typeof match.winnerTeam === "string" ? match.winnerTeam : "",
           winnerTitle: typeof match.winnerTitle === "string" ? match.winnerTitle : "",
           victoryKind: typeof match.victoryKind === "string" ? match.victoryKind : "normal",
+          seasonId: typeof match.seasonId === "string" ? match.seasonId : getSeasonId(match.endedAt || match.startedAt),
           mvpName: typeof match.mvpName === "string" ? match.mvpName : "",
           highlights: Array.isArray(match.highlights) ? match.highlights.slice(0, 40) : [],
           replay: normalizeMatchReplay(match.replay)
         }))
-        .slice(0, 20);
+        .slice(0, 100);
     }
 
     function normalizeMatchReplay(value) {
@@ -10880,13 +11188,14 @@
         endedAt: state.matchTracker.endedAt,
         winnerTeam,
         winnerTitle: state[winnerTeam].teamTitle,
+        seasonId: getSeasonId(state.matchTracker.endedAt),
         victoryKind,
         mvpName,
         highlights: state.matchTracker.highlights.slice(-24),
         replay: cloneOnlineValue(state.matchTracker.replay)
       };
       if (match.replay) match.replay.finalScore = { red: state.red.bingoCount, blue: state.blue.bingoCount };
-      state.playerStats.recentMatches = [match, ...(state.playerStats.recentMatches || [])].slice(0, 20);
+      state.playerStats.recentMatches = [match, ...(state.playerStats.recentMatches || [])].slice(0, 100);
     }
 
     function recordPlayerOpen(playerName, characterId, team) {
@@ -11007,6 +11316,7 @@
           ? rivalries.map(renderRivalryCard).join("")
           : `<div class="stats-empty">因縁カードはまだありません。</div>`;
       }
+      renderSeasonStandings();
       if (els.statsMatchList) renderMatchHistory();
     }
 
@@ -11062,8 +11372,84 @@
       `;
     }
 
+    function getSeasonId(value = new Date()) {
+      const date = value instanceof Date ? value : new Date(value || Date.now());
+      const valid = Number.isNaN(date.getTime()) ? new Date() : date;
+      return `${valid.getFullYear()}-${String(valid.getMonth() + 1).padStart(2, "0")}`;
+    }
+
+    function formatSeasonLabel(seasonId) {
+      const [year, month] = String(seasonId || "").split("-");
+      return year && month ? `${year}.${month} SEASON` : "CURRENT SEASON";
+    }
+
+    function getSeasonCatalog() {
+      const ids = new Set((state.playerStats.recentMatches || []).map((match) => match.seasonId || getSeasonId(match.endedAt || match.startedAt)));
+      ids.add(getSeasonId());
+      return [...ids].filter(Boolean).sort((a, b) => b.localeCompare(a));
+    }
+
+    function calculateSeasonStandings(seasonId) {
+      const players = new Map();
+      const teams = new Map();
+      (state.playerStats.recentMatches || [])
+        .filter((match) => (match.seasonId || getSeasonId(match.endedAt || match.startedAt)) === seasonId)
+        .forEach((match) => {
+          ["red", "blue"].forEach((team) => {
+            const members = [...new Set((match.replay?.[team]?.members || []).map((name) => normalizePlayerName(name)))];
+            const won = match.winnerTeam === team;
+            members.forEach((name) => {
+              const key = playerStatsKey(name);
+              const record = players.get(key) || { name, plays: 0, wins: 0, losses: 0, mvps: 0, points: 0 };
+              record.plays += 1;
+              if (won) record.wins += 1;
+              else record.losses += 1;
+              if (playerStatsKey(match.mvpName) === key) record.mvps += 1;
+              record.points = record.wins * 3 + record.mvps;
+              players.set(key, record);
+            });
+            if (!members.length) return;
+            const lineupKey = members.map(playerStatsKey).sort().join("::");
+            const lineup = teams.get(lineupKey) || { name: members.join(" / "), plays: 0, wins: 0, losses: 0, points: 0 };
+            lineup.plays += 1;
+            if (won) lineup.wins += 1;
+            else lineup.losses += 1;
+            lineup.points = lineup.wins * 3;
+            teams.set(lineupKey, lineup);
+          });
+        });
+      const sortStandings = (a, b) => b.points - a.points || b.wins - a.wins || b.plays - a.plays || a.name.localeCompare(b.name, "ja-JP");
+      return {
+        players: [...players.values()].sort(sortStandings),
+        teams: [...teams.values()].sort(sortStandings)
+      };
+    }
+
+    function renderStandingRows(records, kind) {
+      if (!records.length) return `<div class="stats-empty">このシーズンの完了試合はまだありません。</div>`;
+      return records.slice(0, 12).map((record, index) => `
+        <div class="stats-standing">
+          <span class="stats-standing-rank">${index + 1}</span>
+          <span class="stats-standing-name">${escapeHtml(record.name)}</span>
+          <span class="stats-standing-score">${record.points} PT<small>${record.wins}W ${record.losses}L${kind === "player" ? ` / ${record.mvps} MVP` : ""}</small></span>
+        </div>
+      `).join("");
+    }
+
+    function renderSeasonStandings() {
+      if (!els.statsSeasonSelect || !els.statsSeasonList || !els.statsTournamentList) return;
+      const seasons = getSeasonCatalog();
+      if (!seasons.includes(state.activeStatsSeasonId)) state.activeStatsSeasonId = seasons[0] || getSeasonId();
+      els.statsSeasonSelect.innerHTML = seasons.map((seasonId) => (
+        `<option value="${escapeHtml(seasonId)}"${seasonId === state.activeStatsSeasonId ? " selected" : ""}>${escapeHtml(formatSeasonLabel(seasonId))}</option>`
+      )).join("");
+      const standings = calculateSeasonStandings(state.activeStatsSeasonId);
+      els.statsSeasonList.innerHTML = renderStandingRows(standings.players, "player");
+      els.statsTournamentList.innerHTML = renderStandingRows(standings.teams, "team");
+    }
+
     function renderMatchHistory() {
-      const matches = state.playerStats.recentMatches || [];
+      const matches = (state.playerStats.recentMatches || []).slice(0, 20);
       els.statsMatchList.innerHTML = matches.length ? matches.map((match) => {
         const replay = match.replay;
         const redTitle = replay?.red?.title || (match.winnerTeam === "red" ? match.winnerTitle : "RED TEAM");
@@ -11446,6 +11832,7 @@
       localStorage.setItem(STORAGE.sound, state.soundEnabled ? "on" : "off");
       updateSoundButton();
       updateCachedAudioVolume();
+      scheduleAutoBackup("sound-setting");
     }
 
     function updateSoundButton() {
@@ -11484,6 +11871,7 @@
       updateSoundButton();
       updateVolumeControls();
       updateCachedAudioVolume();
+      scheduleAutoBackup("volume-setting");
     }
 
     function updateVolumeControls() {
@@ -12156,6 +12544,10 @@
         setOnlineVolume: (value) => setVolumePercent(value),
         getOnlineSoundEnabled: () => state.soundEnabled,
         toggleOnlineSound: () => toggleSound(),
+        getAutoBackups: () => getAutoBackups().map((backup) => ({ id: backup.id, createdAt: backup.createdAt, reason: backup.reason })),
+        getLatestAutoBackup: () => cloneOnlineValue(getAutoBackups()[0] || null),
+        createAutoBackupNow: (reason = "admin-manual") => cloneOnlineValue(createAutoBackup(reason, true)),
+        restoreAutoBackup: (backupId) => restoreAutoBackup(backupId),
         showOnlineMessage: (main, sub) => showCommentary(main, sub, 7000),
         setEmergencyPause,
         skipOnlinePresentation,
@@ -12245,7 +12637,8 @@
         redMembers: [...state.red.members],
         blueMembers: [...state.blue.members],
         teamDecks: cloneOnlineValue(state.teamDecks),
-        selectedDeck: [...state.selectedDeck]
+        selectedDeck: [...state.selectedDeck],
+        randomEventsEnabled: state.randomEventsEnabled
       };
     }
 
@@ -12286,8 +12679,11 @@
         blue: Array.isArray(snapshot.teamDecks?.blue) ? [...snapshot.teamDecks.blue] : null
       };
       state.selectedDeck = new Set(snapshot.selectedDeck || []);
+      state.randomEventsEnabled = snapshot.randomEventsEnabled !== false;
+      localStorage.setItem(STORAGE.randomEvents, state.randomEventsEnabled ? "on" : "off");
       syncTeamMemberIndexes();
       updateGridButtons();
+      updateRandomEventButton();
       renderSetupPreview();
       updateDeckStatus();
       if (!options.silent) renderAll();
@@ -12308,6 +12704,8 @@
         lastOpenTeam: state.lastOpenTeam,
         streak: state.streak,
         streakAnnounced: state.streakAnnounced,
+        randomEventsEnabled: state.randomEventsEnabled,
+        randomEventMilestones: cloneOnlineValue(state.randomEventMilestones),
         skillCharges: cloneOnlineValue(state.skillCharges),
         skillChargeAnnounced: cloneOnlineValue(state.skillChargeAnnounced),
         skillEffects: cloneOnlineValue(state.skillEffects),
@@ -12364,6 +12762,8 @@
       state.lastOpenTeam = snapshot.lastOpenTeam || null;
       state.streak = Number(snapshot.streak) || 0;
       state.streakAnnounced = Boolean(snapshot.streakAnnounced);
+      state.randomEventsEnabled = snapshot.randomEventsEnabled !== false;
+      state.randomEventMilestones = Array.isArray(snapshot.randomEventMilestones) ? cloneOnlineValue(snapshot.randomEventMilestones) : [];
       state.skillCharges = cloneOnlineValue(snapshot.skillCharges || { red: false, blue: false });
       state.skillChargeAnnounced = cloneOnlineValue(snapshot.skillChargeAnnounced || { red: false, blue: false });
       state.skillEffects = cloneOnlineValue(snapshot.skillEffects || createSkillEffects());
@@ -12377,6 +12777,7 @@
       document.body.classList.toggle("online-emergency-paused", state.emergencyPaused);
       syncTeamMemberIndexes();
       updateGridButtons();
+      updateRandomEventButton();
       renderSetupPreview();
       renderAll();
       updateHypeUi();
@@ -12440,6 +12841,7 @@
       if (!snapshot) return;
       state.ranking = cloneOnlineValue(snapshot.ranking || {});
       state.playerStats = normalizePlayerStats(snapshot.playerStats || { players: {} });
+      scheduleAutoBackup("online-stats");
       renderRankingTicker();
       if (els.statsModal?.classList.contains("show")) renderStatsPage();
     }
@@ -12492,6 +12894,12 @@
       if (type === "emergency-skip") event.effects.push("emergency-skip");
       if (type === "emergency-force-sync") event.effects.push("emergency-sync");
       if (type.includes("shuffle")) event.effects.push("shuffle");
+      const beforeRandomCount = Array.isArray(before?.randomEventMilestones) ? before.randomEventMilestones.length : 0;
+      const afterRandomEvents = Array.isArray(after?.randomEventMilestones) ? after.randomEventMilestones : [];
+      if (afterRandomEvents.length > beforeRandomCount) {
+        event.effects.push("random-event");
+        event.payload.randomEvent = cloneOnlineValue(afterRandomEvents[afterRandomEvents.length - 1]);
+      }
       if (!before?.winner && after?.winner) {
         event.effects.push("victory");
         event.victory = cloneOnlineValue(after.lastVictory || onlineLastVictory || {
@@ -12559,6 +12967,7 @@
       if (effects.has("reach") && !effects.has("victory")) enqueueEffect(() => showReach(payload.team, { syncState: false }));
       if (effects.has("fever") && !effects.has("victory")) enqueueEffect(() => showFeverTime(payload.team, { syncState: false }));
       if (effects.has("comeback") && !effects.has("victory")) enqueueEffect(() => showComebackMoment(payload.team, payload.previousTeam));
+      if (effects.has("random-event") && !effects.has("victory")) enqueueEffect(() => showRandomEvent(payload.randomEvent));
       if (effects.has("shuffle")) {
         if (payload.team) playTeamDealAnimation(payload.team);
         else playDealAnimation();

@@ -40,3 +40,33 @@ test("match history includes board replay controls and timeline recording", () =
   assert.match(html, /function recordReplayStep\(/);
   assert.match(html, /function renderReplayBoard\(/);
 });
+
+test("random events are setup-controlled and included in online game snapshots", () => {
+  const html = readFileSync(new URL("../index.html", import.meta.url), "utf8");
+
+  assert.match(html, /id="randomEventButton"/);
+  assert.match(html, /function maybeTriggerRandomEvent\(/);
+  assert.match(html, /randomEventMilestones: cloneOnlineValue\(state\.randomEventMilestones\)/);
+  assert.match(html, /event\.effects\.push\("random-event"\)/);
+});
+
+test("season standings and automatic backup recovery are wired into stats", () => {
+  const html = readFileSync(new URL("../index.html", import.meta.url), "utf8");
+
+  assert.match(html, /id="statsSeasonList"/);
+  assert.match(html, /id="statsTournamentList"/);
+  assert.match(html, /function calculateSeasonStandings\(/);
+  assert.match(html, /function createAutoBackup\(/);
+  assert.match(html, /function restoreAutoBackup\(/);
+});
+
+test("generated asset manifest covers every declared image and audio file", () => {
+  const manifest = JSON.parse(readFileSync(new URL("../assets/asset-manifest.json", import.meta.url), "utf8"));
+  const missing = manifest.assets.filter((asset) => !existsSync(new URL(`../${asset.path}`, import.meta.url)));
+
+  assert.equal(manifest.totals.all, manifest.assets.length);
+  assert.equal(manifest.totals.images + manifest.totals.audio, manifest.totals.all);
+  assert.ok(manifest.totals.images > 100);
+  assert.ok(manifest.totals.audio > 100);
+  assert.deepEqual(missing, []);
+});

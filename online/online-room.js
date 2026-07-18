@@ -731,6 +731,9 @@ export class OnlineCoordinator {
     this.adminMode = false;
     this.adminExpiresAt = 0;
     this.adminExpiryTimer = 0;
+    this.assetManifest = null;
+    this.assetAudio = null;
+    this.assetVerification = new Map();
     this.cleanupInFlight = false;
     this.ghostCleanupTimer = 0;
     this.nextOrphanRoomCleanupAt = 0;
@@ -1039,10 +1042,47 @@ export class OnlineCoordinator {
               </div>
               <button type="button" class="online-simple-button danger" id="onlineAdminDeleteGhosts">GHOST CLEANUP</button>
             </div>
+            <div class="online-admin-operation">
+              <div>
+                <strong>ASSET MANAGER</strong>
+                <span>画像・音声素材の一覧、試聴、欠損検査を行います。</span>
+              </div>
+              <button type="button" class="online-simple-button" id="onlineAdminAssets">OPEN</button>
+            </div>
+            <div class="online-admin-operation">
+              <div>
+                <strong>AUTO BACKUP</strong>
+                <span id="onlineAdminBackupSummary">バックアップ状態を確認しています。</span>
+              </div>
+              <div class="online-admin-operation-actions">
+                <button type="button" class="online-simple-button" id="onlineAdminBackupNow">BACKUP</button>
+                <button type="button" class="online-simple-button" id="onlineAdminBackupExport">EXPORT</button>
+                <button type="button" class="online-simple-button primary" id="onlineAdminBackupRestore">RESTORE</button>
+              </div>
+            </div>
             <div class="online-admin-result" id="onlineAdminResult" role="status">管理操作を選択してください。</div>
           </div>
         </section>
       </div>
+      <dialog class="online-seat-dialog online-asset-dialog" id="onlineAssetDialog">
+        <header class="online-seat-head">
+          <div>
+            <div class="online-seat-title">ASSET MANAGER</div>
+            <div class="online-asset-summary" id="onlineAssetSummary">素材台帳を読み込んでいます。</div>
+          </div>
+          <button type="button" class="online-simple-button" id="onlineAssetClose">CLOSE</button>
+        </header>
+        <div class="online-asset-toolbar">
+          <input id="onlineAssetSearch" type="search" placeholder="素材名・フォルダを検索" autocomplete="off" />
+          <select id="onlineAssetType" aria-label="素材タイプ">
+            <option value="all">ALL</option>
+            <option value="image">IMAGES</option>
+            <option value="audio">AUDIO</option>
+          </select>
+          <button type="button" class="online-simple-button primary" id="onlineAssetVerify">VERIFY</button>
+        </div>
+        <div class="online-asset-list" id="onlineAssetList"></div>
+      </dialog>
       <dialog class="online-seat-dialog online-admin-dialog" id="onlineAdminDialog">
         <header class="online-seat-head">
           <div>
@@ -1142,7 +1182,19 @@ export class OnlineCoordinator {
       adminImportFile: document.getElementById("onlineAdminImportFile"),
       adminDeleteGhosts: document.getElementById("onlineAdminDeleteGhosts"),
       adminGhostSummary: document.getElementById("onlineAdminGhostSummary"),
+      adminAssets: document.getElementById("onlineAdminAssets"),
+      adminBackupSummary: document.getElementById("onlineAdminBackupSummary"),
+      adminBackupNow: document.getElementById("onlineAdminBackupNow"),
+      adminBackupExport: document.getElementById("onlineAdminBackupExport"),
+      adminBackupRestore: document.getElementById("onlineAdminBackupRestore"),
       adminResult: document.getElementById("onlineAdminResult"),
+      assetDialog: document.getElementById("onlineAssetDialog"),
+      assetClose: document.getElementById("onlineAssetClose"),
+      assetSummary: document.getElementById("onlineAssetSummary"),
+      assetSearch: document.getElementById("onlineAssetSearch"),
+      assetType: document.getElementById("onlineAssetType"),
+      assetVerify: document.getElementById("onlineAssetVerify"),
+      assetList: document.getElementById("onlineAssetList"),
       adminDialog: document.getElementById("onlineAdminDialog"),
       adminForm: document.getElementById("onlineAdminForm"),
       adminClose: document.getElementById("onlineAdminClose"),
@@ -1229,6 +1281,18 @@ export class OnlineCoordinator {
       if (!window.confirm(`GHOST部屋 ${count}件をまとめて削除しますか？`)) return;
       await this.deleteGhostRooms({ requireAdmin: true });
     });
+    this.ui.adminAssets.addEventListener("click", () => this.openAssetManager());
+    this.ui.assetClose.addEventListener("click", () => this.closeAssetManager());
+    this.ui.assetSearch.addEventListener("input", () => this.renderAssetManager());
+    this.ui.assetType.addEventListener("change", () => this.renderAssetManager());
+    this.ui.assetVerify.addEventListener("click", () => this.verifyAssets());
+    this.ui.assetList.addEventListener("click", (event) => {
+      const button = event.target.closest("[data-asset-audio]");
+      if (button) this.previewAssetAudio(button.dataset.assetAudio);
+    });
+    this.ui.adminBackupNow.addEventListener("click", () => this.createAdminBackup());
+    this.ui.adminBackupExport.addEventListener("click", () => this.exportAdminBackup());
+    this.ui.adminBackupRestore.addEventListener("click", () => this.restoreAdminBackup());
     this.ui.seatClose.addEventListener("click", () => this.ui.seatDialog.close());
     this.ui.masterClose.addEventListener("click", () => {
       this.pendingDraftRoom = null;
@@ -1337,6 +1401,7 @@ export class OnlineCoordinator {
     if (!this.isAdminMode()) return;
     this.hideLobby();
     this.syncAdminGhostControls();
+    this.syncAdminBackupControls();
     this.ui.adminResult.textContent = "管理操作を選択してください。";
     this.ui.adminPage.classList.add("show");
     this.ui.adminPage.setAttribute("aria-hidden", "false");
@@ -1375,6 +1440,179 @@ export class OnlineCoordinator {
     this.ui.adminGhostSummary.textContent = count
       ? `現在 ${count}件のGHOST部屋があります。まとめて完全削除できます。`
       : "現在、削除対象のGHOST部屋はありません。";
+  }
+
+  syncAdminBackupControls() {
+    if (!this.ui?.adminBackupSummary) return;
+    const backups = this.bridge.getAutoBackups?.() || [];
+    const latest = backups[0];
+    this.ui.adminBackupSummary.textContent = latest
+      ? `${backups.length}世代保存 / 最新 ${new Date(latest.createdAt).toLocaleString("ja-JP")}`
+      : "まだ自動バックアップがありません。";
+    this.ui.adminBackupRestore.disabled = !latest;
+    this.ui.adminBackupExport.disabled = !latest;
+  }
+
+  async openAssetManager() {
+    if (!this.isAdminMode()) return;
+    if (!this.ui.assetDialog.open) this.ui.assetDialog.showModal();
+    this.ui.assetSummary.textContent = "素材台帳を読み込んでいます。";
+    try {
+      if (!this.assetManifest) {
+        const response = await fetch("assets/asset-manifest.json", { cache: "no-store" });
+        if (!response.ok) throw new Error(`HTTP ${response.status}`);
+        this.assetManifest = await response.json();
+      }
+      this.renderAssetManager();
+    } catch (error) {
+      this.ui.assetSummary.textContent = `MANIFEST ERROR: ${String(error?.message || error)}`;
+      this.ui.assetList.innerHTML = `<div class="online-room-empty">素材台帳を読み込めませんでした。</div>`;
+    }
+  }
+
+  closeAssetManager() {
+    this.assetAudio?.pause();
+    this.assetAudio = null;
+    this.ui.assetDialog.close();
+  }
+
+  getFilteredAssets() {
+    const query = String(this.ui.assetSearch.value || "").trim().toLocaleLowerCase("ja-JP");
+    const type = this.ui.assetType.value || "all";
+    return (this.assetManifest?.assets || []).filter((asset) => (
+      (type === "all" || asset.type === type) &&
+      (!query || String(asset.path).toLocaleLowerCase("ja-JP").includes(query))
+    ));
+  }
+
+  formatAssetBytes(bytes) {
+    const value = Math.max(0, Number(bytes) || 0);
+    if (value >= 1024 * 1024) return `${(value / 1024 / 1024).toFixed(1)} MB`;
+    return `${Math.max(1, Math.round(value / 1024))} KB`;
+  }
+
+  renderAssetManager() {
+    if (!this.assetManifest) return;
+    const assets = this.getFilteredAssets();
+    const totals = this.assetManifest.totals || {};
+    const verified = [...this.assetVerification.values()].filter((value) => value === "ok").length;
+    const missing = [...this.assetVerification.values()].filter((value) => value === "missing").length;
+    this.ui.assetSummary.textContent = `${totals.all || 0} ASSETS / ${totals.images || 0} IMAGES / ${totals.audio || 0} AUDIO${this.assetVerification.size ? ` / VERIFIED ${verified} / MISSING ${missing}` : ""}`;
+    this.ui.assetList.innerHTML = assets.length ? assets.map((asset) => {
+      const path = this.bridge.escapeHtml?.(asset.path) || asset.path;
+      const state = this.assetVerification.get(asset.path) || "unchecked";
+      const preview = asset.type === "image"
+        ? `<img src="${path}" alt="" loading="lazy" />`
+        : `<button type="button" class="online-asset-play" data-asset-audio="${path}" aria-label="音声を試聴">PLAY</button>`;
+      return `<article class="online-asset-item ${state}">
+        <div class="online-asset-preview">${preview}</div>
+        <div class="online-asset-detail"><strong>${path.split("/").pop()}</strong><span>${path}</span></div>
+        <div class="online-asset-meta">${asset.type.toUpperCase()}<small>${this.formatAssetBytes(asset.bytes)}</small></div>
+      </article>`;
+    }).join("") : `<div class="online-room-empty">条件に一致する素材がありません。</div>`;
+  }
+
+  previewAssetAudio(path) {
+    this.bridge.unlockAudio?.();
+    this.assetAudio?.pause();
+    this.assetAudio = new Audio(path);
+    this.assetAudio.volume = Math.max(0, Math.min(1, (Number(this.bridge.getOnlineVolume?.()) || 70) / 100));
+    this.assetAudio.play().catch((error) => {
+      this.ui.assetSummary.textContent = `PLAY ERROR: ${String(error?.message || error)}`;
+    });
+  }
+
+  async verifyAssets() {
+    if (!this.assetManifest || this.ui.assetVerify.disabled) return;
+    this.ui.assetVerify.disabled = true;
+    this.assetVerification.clear();
+    const assets = this.assetManifest.assets || [];
+    let cursor = 0;
+    const worker = async () => {
+      while (cursor < assets.length) {
+        const asset = assets[cursor++];
+        try {
+          const response = await fetch(asset.path, { method: "HEAD", cache: "no-store" });
+          this.assetVerification.set(asset.path, response.ok ? "ok" : "missing");
+        } catch {
+          this.assetVerification.set(asset.path, "missing");
+        }
+      }
+    };
+    try {
+      await Promise.all(Array.from({ length: Math.min(10, assets.length) }, worker));
+      this.renderAssetManager();
+    } finally {
+      this.ui.assetVerify.disabled = false;
+    }
+  }
+
+  createAdminBackup() {
+    const backup = this.bridge.createAutoBackupNow?.("admin-manual");
+    this.syncAdminBackupControls();
+    this.ui.adminResult.textContent = backup?.createdAt
+      ? `バックアップを作成しました: ${new Date(backup.createdAt).toLocaleString("ja-JP")}`
+      : "バックアップを作成できませんでした。";
+  }
+
+  exportAdminBackup() {
+    const backup = this.bridge.getLatestAutoBackup?.();
+    if (!backup) return;
+    const payload = { format: "team-bingo-auto-backup", version: 1, ...backup };
+    const blob = new Blob([`${JSON.stringify(payload, null, 2)}\n`], { type: "application/json" });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.href = url;
+    link.download = `team-bingo-backup-${nowIso().slice(0, 10)}.json`;
+    document.body.appendChild(link);
+    link.click();
+    link.remove();
+    window.setTimeout(() => URL.revokeObjectURL(url), 1000);
+    this.ui.adminResult.textContent = "最新版の自動バックアップを保存しました。";
+  }
+
+  async restoreAdminBackup() {
+    const backup = this.bridge.getLatestAutoBackup?.();
+    if (!backup?.data || !this.isAdminMode()) return false;
+    if (!window.confirm(`${new Date(backup.createdAt).toLocaleString("ja-JP")} のバックアップへ復元しますか？`)) return false;
+    this.ui.adminBackupRestore.disabled = true;
+    try {
+      if (!await this.verifyAdminSession()) throw new Error("管理者モードの有効期限が切れました");
+      const imported = normalizeCountBackup(backup.data);
+      const actionId = randomId("auto-backup-restore");
+      const result = await this.backend.transaction(this.path("globalStats"), (stats) => {
+        const next = isPlainObject(stats) ? stats : {};
+        const updatedAt = this.backend.serverNow();
+        next.ranking = clone(imported.ranking);
+        next.rankingUpdatedAt = updatedAt;
+        next.rankingResetAt = updatedAt;
+        next.playerStats = clone(imported.playerStats);
+        next.playerStatsResetAt = updatedAt;
+        next.processedActions ||= {};
+        next.processedActions[actionId] = updatedAt;
+        next.processedActions = Object.fromEntries(
+          Object.entries(next.processedActions).sort(([, a], [, b]) => Number(b) - Number(a)).slice(0, 500)
+        );
+        return next;
+      });
+      if (!result.committed) throw new Error("データベースを更新できませんでした");
+      this.bridge.restoreAutoBackup?.(backup.id);
+      this.globalStatsSnapshot = {
+        ranking: clone(imported.ranking),
+        playerStats: clone(imported.playerStats),
+        rankingResetAt: Number(result.value?.rankingResetAt) || 0,
+        playerStatsResetAt: Number(result.value?.playerStatsResetAt) || 0
+      };
+      this.bridge.applyOnlineStatsSnapshot?.(this.globalStatsSnapshot);
+      this.ui.adminResult.textContent = "自動バックアップから共通戦績と設定を復元しました。";
+      this.syncAdminBackupControls();
+      return true;
+    } catch (error) {
+      this.ui.adminResult.textContent = `RESTORE ERROR: ${String(error?.message || error)}`;
+      return false;
+    } finally {
+      this.ui.adminBackupRestore.disabled = false;
+    }
   }
 
   showError(title, error) {

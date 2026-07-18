@@ -1,0 +1,2082 @@
+{
+  "version": 1,
+  "generatedAt": "2026-07-18T02:59:29.394Z",
+  "totals": {
+    "all": 345,
+    "images": 191,
+    "audio": 154,
+    "bytes": 144857256
+  },
+  "assets": [
+    {
+      "path": "audio/bingo-bgm.mp3",
+      "type": "audio",
+      "category": "audio",
+      "bytes": 5093586
+    },
+    {
+      "path": "audio/bingo-se.mp3",
+      "type": "audio",
+      "category": "audio",
+      "bytes": 73197
+    },
+    {
+      "path": "audio/bingo-win.mp3",
+      "type": "audio",
+      "category": "audio",
+      "bytes": 67081
+    },
+    {
+      "path": "audio/cheer.mp3",
+      "type": "audio",
+      "category": "audio",
+      "bytes": 67392
+    },
+    {
+      "path": "audio/comeback-oh.mp3",
+      "type": "audio",
+      "category": "audio",
+      "bytes": 12537
+    },
+    {
+      "path": "audio/eda-prayer.mp3",
+      "type": "audio",
+      "category": "audio",
+      "bytes": 163630
+    },
+    {
+      "path": "audio/eda-trinity-arms.mp3",
+      "type": "audio",
+      "category": "audio",
+      "bytes": 7007435
+    },
+    {
+      "path": "audio/fever-rise.mp3",
+      "type": "audio",
+      "category": "audio",
+      "bytes": 166169
+    },
+    {
+      "path": "audio/final-stock-rush.mp3",
+      "type": "audio",
+      "category": "audio",
+      "bytes": 7998330
+    },
+    {
+      "path": "audio/first-bingo.mp3",
+      "type": "audio",
+      "category": "audio",
+      "bytes": 97174
+    },
+    {
+      "path": "audio/game-set.wav",
+      "type": "audio",
+      "category": "audio",
+      "bytes": 138098
+    },
+    {
+      "path": "audio/hype-voice.wav",
+      "type": "audio",
+      "category": "audio",
+      "bytes": 113956
+    },
+    {
+      "path": "audio/intro-cheer-source.mp3",
+      "type": "audio",
+      "category": "audio",
+      "bytes": 337581
+    },
+    {
+      "path": "audio/intro-crowd-bgm.mp3",
+      "type": "audio",
+      "category": "audio",
+      "bytes": 337581
+    },
+    {
+      "path": "audio/intro-entry-sting.wav",
+      "type": "audio",
+      "category": "audio",
+      "bytes": 529936
+    },
+    {
+      "path": "audio/jan-change.mp3",
+      "type": "audio",
+      "category": "audio",
+      "bytes": 2859899
+    },
+    {
+      "path": "audio/open-blue-one.mp3",
+      "type": "audio",
+      "category": "audio",
+      "bytes": 14418
+    },
+    {
+      "path": "audio/open-blue-zero.mp3",
+      "type": "audio",
+      "category": "audio",
+      "bytes": 10657
+    },
+    {
+      "path": "audio/open-cells/1.wav",
+      "type": "audio",
+      "category": "audio/open-cells",
+      "bytes": 42308
+    },
+    {
+      "path": "audio/open-cells/10.mp3",
+      "type": "audio",
+      "category": "audio/open-cells",
+      "bytes": 19488
+    },
+    {
+      "path": "audio/open-cells/11.wav",
+      "type": "audio",
+      "category": "audio/open-cells",
+      "bytes": 83792
+    },
+    {
+      "path": "audio/open-cells/12.wav",
+      "type": "audio",
+      "category": "audio/open-cells",
+      "bytes": 146426
+    },
+    {
+      "path": "audio/open-cells/13.wav",
+      "type": "audio",
+      "category": "audio/open-cells",
+      "bytes": 152252
+    },
+    {
+      "path": "audio/open-cells/14.wav",
+      "type": "audio",
+      "category": "audio/open-cells",
+      "bytes": 38766
+    },
+    {
+      "path": "audio/open-cells/15_1.wav",
+      "type": "audio",
+      "category": "audio/open-cells",
+      "bytes": 20108
+    },
+    {
+      "path": "audio/open-cells/15.wav",
+      "type": "audio",
+      "category": "audio/open-cells",
+      "bytes": 20774
+    },
+    {
+      "path": "audio/open-cells/16.wav",
+      "type": "audio",
+      "category": "audio/open-cells",
+      "bytes": 44656
+    },
+    {
+      "path": "audio/open-cells/17.wav",
+      "type": "audio",
+      "category": "audio/open-cells",
+      "bytes": 73058
+    },
+    {
+      "path": "audio/open-cells/18.wav",
+      "type": "audio",
+      "category": "audio/open-cells",
+      "bytes": 53226
+    },
+    {
+      "path": "audio/open-cells/19.wav",
+      "type": "audio",
+      "category": "audio/open-cells",
+      "bytes": 219832
+    },
+    {
+      "path": "audio/open-cells/2_1.wav",
+      "type": "audio",
+      "category": "audio/open-cells",
+      "bytes": 70242
+    },
+    {
+      "path": "audio/open-cells/2.wav",
+      "type": "audio",
+      "category": "audio/open-cells",
+      "bytes": 352726
+    },
+    {
+      "path": "audio/open-cells/20.wav",
+      "type": "audio",
+      "category": "audio/open-cells",
+      "bytes": 155790
+    },
+    {
+      "path": "audio/open-cells/21.wav",
+      "type": "audio",
+      "category": "audio/open-cells",
+      "bytes": 240914
+    },
+    {
+      "path": "audio/open-cells/22.wav",
+      "type": "audio",
+      "category": "audio/open-cells",
+      "bytes": 100980
+    },
+    {
+      "path": "audio/open-cells/23.wav",
+      "type": "audio",
+      "category": "audio/open-cells",
+      "bytes": 35218
+    },
+    {
+      "path": "audio/open-cells/24.wav",
+      "type": "audio",
+      "category": "audio/open-cells",
+      "bytes": 80830
+    },
+    {
+      "path": "audio/open-cells/25.wav",
+      "type": "audio",
+      "category": "audio/open-cells",
+      "bytes": 224576
+    },
+    {
+      "path": "audio/open-cells/26.wav",
+      "type": "audio",
+      "category": "audio/open-cells",
+      "bytes": 68852
+    },
+    {
+      "path": "audio/open-cells/27.wav",
+      "type": "audio",
+      "category": "audio/open-cells",
+      "bytes": 15374
+    },
+    {
+      "path": "audio/open-cells/28.wav",
+      "type": "audio",
+      "category": "audio/open-cells",
+      "bytes": 91684
+    },
+    {
+      "path": "audio/open-cells/29.wav",
+      "type": "audio",
+      "category": "audio/open-cells",
+      "bytes": 50594
+    },
+    {
+      "path": "audio/open-cells/3_1.wav",
+      "type": "audio",
+      "category": "audio/open-cells",
+      "bytes": 66220
+    },
+    {
+      "path": "audio/open-cells/3.wav",
+      "type": "audio",
+      "category": "audio/open-cells",
+      "bytes": 748686
+    },
+    {
+      "path": "audio/open-cells/30.wav",
+      "type": "audio",
+      "category": "audio/open-cells",
+      "bytes": 69864
+    },
+    {
+      "path": "audio/open-cells/31.wav",
+      "type": "audio",
+      "category": "audio/open-cells",
+      "bytes": 72624
+    },
+    {
+      "path": "audio/open-cells/32.wav",
+      "type": "audio",
+      "category": "audio/open-cells",
+      "bytes": 65988
+    },
+    {
+      "path": "audio/open-cells/33.wav",
+      "type": "audio",
+      "category": "audio/open-cells",
+      "bytes": 93802
+    },
+    {
+      "path": "audio/open-cells/34.wav",
+      "type": "audio",
+      "category": "audio/open-cells",
+      "bytes": 108758
+    },
+    {
+      "path": "audio/open-cells/35_1.wav",
+      "type": "audio",
+      "category": "audio/open-cells",
+      "bytes": 35356
+    },
+    {
+      "path": "audio/open-cells/35.wav",
+      "type": "audio",
+      "category": "audio/open-cells",
+      "bytes": 38072
+    },
+    {
+      "path": "audio/open-cells/36.wav",
+      "type": "audio",
+      "category": "audio/open-cells",
+      "bytes": 25466
+    },
+    {
+      "path": "audio/open-cells/37.wav",
+      "type": "audio",
+      "category": "audio/open-cells",
+      "bytes": 82094
+    },
+    {
+      "path": "audio/open-cells/38.wav",
+      "type": "audio",
+      "category": "audio/open-cells",
+      "bytes": 266056
+    },
+    {
+      "path": "audio/open-cells/39.wav",
+      "type": "audio",
+      "category": "audio/open-cells",
+      "bytes": 119634
+    },
+    {
+      "path": "audio/open-cells/4_1.wav",
+      "type": "audio",
+      "category": "audio/open-cells",
+      "bytes": 102444
+    },
+    {
+      "path": "audio/open-cells/4.wav",
+      "type": "audio",
+      "category": "audio/open-cells",
+      "bytes": 158244
+    },
+    {
+      "path": "audio/open-cells/40_1.wav",
+      "type": "audio",
+      "category": "audio/open-cells",
+      "bytes": 46560
+    },
+    {
+      "path": "audio/open-cells/40.wav",
+      "type": "audio",
+      "category": "audio/open-cells",
+      "bytes": 46988
+    },
+    {
+      "path": "audio/open-cells/41.wav",
+      "type": "audio",
+      "category": "audio/open-cells",
+      "bytes": 22170
+    },
+    {
+      "path": "audio/open-cells/42.wav",
+      "type": "audio",
+      "category": "audio/open-cells",
+      "bytes": 22614
+    },
+    {
+      "path": "audio/open-cells/43.wav",
+      "type": "audio",
+      "category": "audio/open-cells",
+      "bytes": 57558
+    },
+    {
+      "path": "audio/open-cells/44.wav",
+      "type": "audio",
+      "category": "audio/open-cells",
+      "bytes": 204844
+    },
+    {
+      "path": "audio/open-cells/45_1.mp3",
+      "type": "audio",
+      "category": "audio/open-cells",
+      "bytes": 34971
+    },
+    {
+      "path": "audio/open-cells/45_2.mp3",
+      "type": "audio",
+      "category": "audio/open-cells",
+      "bytes": 33051
+    },
+    {
+      "path": "audio/open-cells/45_3.mp3",
+      "type": "audio",
+      "category": "audio/open-cells",
+      "bytes": 39195
+    },
+    {
+      "path": "audio/open-cells/46.wav",
+      "type": "audio",
+      "category": "audio/open-cells",
+      "bytes": 55544
+    },
+    {
+      "path": "audio/open-cells/47_1.wav",
+      "type": "audio",
+      "category": "audio/open-cells",
+      "bytes": 121102
+    },
+    {
+      "path": "audio/open-cells/47.wav",
+      "type": "audio",
+      "category": "audio/open-cells",
+      "bytes": 167636
+    },
+    {
+      "path": "audio/open-cells/48.wav",
+      "type": "audio",
+      "category": "audio/open-cells",
+      "bytes": 83394
+    },
+    {
+      "path": "audio/open-cells/49.wav",
+      "type": "audio",
+      "category": "audio/open-cells",
+      "bytes": 369348
+    },
+    {
+      "path": "audio/open-cells/5.wav",
+      "type": "audio",
+      "category": "audio/open-cells",
+      "bytes": 268564
+    },
+    {
+      "path": "audio/open-cells/50.wav",
+      "type": "audio",
+      "category": "audio/open-cells",
+      "bytes": 195962
+    },
+    {
+      "path": "audio/open-cells/51.wav",
+      "type": "audio",
+      "category": "audio/open-cells",
+      "bytes": 70542
+    },
+    {
+      "path": "audio/open-cells/52.wav",
+      "type": "audio",
+      "category": "audio/open-cells",
+      "bytes": 13904
+    },
+    {
+      "path": "audio/open-cells/53_1.wav",
+      "type": "audio",
+      "category": "audio/open-cells",
+      "bytes": 97038
+    },
+    {
+      "path": "audio/open-cells/53.wav",
+      "type": "audio",
+      "category": "audio/open-cells",
+      "bytes": 82752
+    },
+    {
+      "path": "audio/open-cells/54_1.wav",
+      "type": "audio",
+      "category": "audio/open-cells",
+      "bytes": 106270
+    },
+    {
+      "path": "audio/open-cells/54_2.wav",
+      "type": "audio",
+      "category": "audio/open-cells",
+      "bytes": 158698
+    },
+    {
+      "path": "audio/open-cells/55.wav",
+      "type": "audio",
+      "category": "audio/open-cells",
+      "bytes": 50384
+    },
+    {
+      "path": "audio/open-cells/56.wav",
+      "type": "audio",
+      "category": "audio/open-cells",
+      "bytes": 12042
+    },
+    {
+      "path": "audio/open-cells/57.wav",
+      "type": "audio",
+      "category": "audio/open-cells",
+      "bytes": 404706
+    },
+    {
+      "path": "audio/open-cells/58.wav",
+      "type": "audio",
+      "category": "audio/open-cells",
+      "bytes": 82280
+    },
+    {
+      "path": "audio/open-cells/59_1.wav",
+      "type": "audio",
+      "category": "audio/open-cells",
+      "bytes": 107482
+    },
+    {
+      "path": "audio/open-cells/59.wav",
+      "type": "audio",
+      "category": "audio/open-cells",
+      "bytes": 106122
+    },
+    {
+      "path": "audio/open-cells/6.wav",
+      "type": "audio",
+      "category": "audio/open-cells",
+      "bytes": 143000
+    },
+    {
+      "path": "audio/open-cells/60.wav",
+      "type": "audio",
+      "category": "audio/open-cells",
+      "bytes": 86248
+    },
+    {
+      "path": "audio/open-cells/61.wav",
+      "type": "audio",
+      "category": "audio/open-cells",
+      "bytes": 54342
+    },
+    {
+      "path": "audio/open-cells/62.wav",
+      "type": "audio",
+      "category": "audio/open-cells",
+      "bytes": 126066
+    },
+    {
+      "path": "audio/open-cells/63.wav",
+      "type": "audio",
+      "category": "audio/open-cells",
+      "bytes": 36408
+    },
+    {
+      "path": "audio/open-cells/64.wav",
+      "type": "audio",
+      "category": "audio/open-cells",
+      "bytes": 67756
+    },
+    {
+      "path": "audio/open-cells/65.wav",
+      "type": "audio",
+      "category": "audio/open-cells",
+      "bytes": 44910
+    },
+    {
+      "path": "audio/open-cells/66.wav",
+      "type": "audio",
+      "category": "audio/open-cells",
+      "bytes": 31596
+    },
+    {
+      "path": "audio/open-cells/67.wav",
+      "type": "audio",
+      "category": "audio/open-cells",
+      "bytes": 272876
+    },
+    {
+      "path": "audio/open-cells/68.wav",
+      "type": "audio",
+      "category": "audio/open-cells",
+      "bytes": 91144
+    },
+    {
+      "path": "audio/open-cells/69_2.wav",
+      "type": "audio",
+      "category": "audio/open-cells",
+      "bytes": 80464
+    },
+    {
+      "path": "audio/open-cells/69.wav",
+      "type": "audio",
+      "category": "audio/open-cells",
+      "bytes": 92330
+    },
+    {
+      "path": "audio/open-cells/7.wav",
+      "type": "audio",
+      "category": "audio/open-cells",
+      "bytes": 35422
+    },
+    {
+      "path": "audio/open-cells/70.wav",
+      "type": "audio",
+      "category": "audio/open-cells",
+      "bytes": 47132
+    },
+    {
+      "path": "audio/open-cells/71.wav",
+      "type": "audio",
+      "category": "audio/open-cells",
+      "bytes": 121432
+    },
+    {
+      "path": "audio/open-cells/72.wav",
+      "type": "audio",
+      "category": "audio/open-cells",
+      "bytes": 81452
+    },
+    {
+      "path": "audio/open-cells/73.wav",
+      "type": "audio",
+      "category": "audio/open-cells",
+      "bytes": 56750
+    },
+    {
+      "path": "audio/open-cells/74.wav",
+      "type": "audio",
+      "category": "audio/open-cells",
+      "bytes": 80960
+    },
+    {
+      "path": "audio/open-cells/75.wav",
+      "type": "audio",
+      "category": "audio/open-cells",
+      "bytes": 38868
+    },
+    {
+      "path": "audio/open-cells/76.wav",
+      "type": "audio",
+      "category": "audio/open-cells",
+      "bytes": 123674
+    },
+    {
+      "path": "audio/open-cells/77_1.wav",
+      "type": "audio",
+      "category": "audio/open-cells",
+      "bytes": 108962
+    },
+    {
+      "path": "audio/open-cells/77.wav",
+      "type": "audio",
+      "category": "audio/open-cells",
+      "bytes": 92106
+    },
+    {
+      "path": "audio/open-cells/78.wav",
+      "type": "audio",
+      "category": "audio/open-cells",
+      "bytes": 36908
+    },
+    {
+      "path": "audio/open-cells/79.wav",
+      "type": "audio",
+      "category": "audio/open-cells",
+      "bytes": 26734
+    },
+    {
+      "path": "audio/open-cells/8.wav",
+      "type": "audio",
+      "category": "audio/open-cells",
+      "bytes": 60582
+    },
+    {
+      "path": "audio/open-cells/80.wav",
+      "type": "audio",
+      "category": "audio/open-cells",
+      "bytes": 110604
+    },
+    {
+      "path": "audio/open-cells/81.wav",
+      "type": "audio",
+      "category": "audio/open-cells",
+      "bytes": 207944
+    },
+    {
+      "path": "audio/open-cells/82_2.wav",
+      "type": "audio",
+      "category": "audio/open-cells",
+      "bytes": 63984
+    },
+    {
+      "path": "audio/open-cells/82_3.wav",
+      "type": "audio",
+      "category": "audio/open-cells",
+      "bytes": 76152
+    },
+    {
+      "path": "audio/open-cells/82_4.wav",
+      "type": "audio",
+      "category": "audio/open-cells",
+      "bytes": 211290
+    },
+    {
+      "path": "audio/open-cells/82.wav",
+      "type": "audio",
+      "category": "audio/open-cells",
+      "bytes": 52608
+    },
+    {
+      "path": "audio/open-cells/83.wav",
+      "type": "audio",
+      "category": "audio/open-cells",
+      "bytes": 81144
+    },
+    {
+      "path": "audio/open-cells/84_1.wav",
+      "type": "audio",
+      "category": "audio/open-cells",
+      "bytes": 32136
+    },
+    {
+      "path": "audio/open-cells/84_2.wav",
+      "type": "audio",
+      "category": "audio/open-cells",
+      "bytes": 76474
+    },
+    {
+      "path": "audio/open-cells/84.wav",
+      "type": "audio",
+      "category": "audio/open-cells",
+      "bytes": 16856
+    },
+    {
+      "path": "audio/open-cells/85_1.wav",
+      "type": "audio",
+      "category": "audio/open-cells",
+      "bytes": 32136
+    },
+    {
+      "path": "audio/open-cells/85_2.wav",
+      "type": "audio",
+      "category": "audio/open-cells",
+      "bytes": 76474
+    },
+    {
+      "path": "audio/open-cells/85.wav",
+      "type": "audio",
+      "category": "audio/open-cells",
+      "bytes": 16856
+    },
+    {
+      "path": "audio/open-cells/86_1.wav",
+      "type": "audio",
+      "category": "audio/open-cells",
+      "bytes": 32136
+    },
+    {
+      "path": "audio/open-cells/86_2.wav",
+      "type": "audio",
+      "category": "audio/open-cells",
+      "bytes": 76474
+    },
+    {
+      "path": "audio/open-cells/86.wav",
+      "type": "audio",
+      "category": "audio/open-cells",
+      "bytes": 16856
+    },
+    {
+      "path": "audio/open-cells/87.wav",
+      "type": "audio",
+      "category": "audio/open-cells",
+      "bytes": 88936
+    },
+    {
+      "path": "audio/open-cells/9.mp3",
+      "type": "audio",
+      "category": "audio/open-cells",
+      "bytes": 11955
+    },
+    {
+      "path": "audio/open-red-one.mp3",
+      "type": "audio",
+      "category": "audio",
+      "bytes": 20061
+    },
+    {
+      "path": "audio/open-red-zero.mp3",
+      "type": "audio",
+      "category": "audio",
+      "bytes": 11284
+    },
+    {
+      "path": "audio/reach-zero.mp3",
+      "type": "audio",
+      "category": "audio",
+      "bytes": 58931
+    },
+    {
+      "path": "audio/reach.mp3",
+      "type": "audio",
+      "category": "audio",
+      "bytes": 58931
+    },
+    {
+      "path": "audio/ready-go-bgm.wav",
+      "type": "audio",
+      "category": "audio",
+      "bytes": 375584
+    },
+    {
+      "path": "audio/ready-sting.wav",
+      "type": "audio",
+      "category": "audio",
+      "bytes": 255824
+    },
+    {
+      "path": "audio/ready-voice-only.wav",
+      "type": "audio",
+      "category": "audio",
+      "bytes": 257060
+    },
+    {
+      "path": "audio/ready-voice-rise.wav",
+      "type": "audio",
+      "category": "audio",
+      "bytes": 44034
+    },
+    {
+      "path": "audio/rima-gunshot.mp3",
+      "type": "audio",
+      "category": "audio",
+      "bytes": 17812
+    },
+    {
+      "path": "audio/setup-theme.mp3",
+      "type": "audio",
+      "category": "audio",
+      "bytes": 6737141
+    },
+    {
+      "path": "audio/shuffle.mp3",
+      "type": "audio",
+      "category": "audio",
+      "bytes": 43257
+    },
+    {
+      "path": "audio/skill-kirakira.mp3",
+      "type": "audio",
+      "category": "audio",
+      "bytes": 237440
+    },
+    {
+      "path": "audio/start.mp3",
+      "type": "audio",
+      "category": "audio",
+      "bytes": 100936
+    },
+    {
+      "path": "audio/start1.mp3",
+      "type": "audio",
+      "category": "audio",
+      "bytes": 25703
+    },
+    {
+      "path": "audio/start2.mp3",
+      "type": "audio",
+      "category": "audio",
+      "bytes": 57600
+    },
+    {
+      "path": "audio/start3.mp3",
+      "type": "audio",
+      "category": "audio",
+      "bytes": 97801
+    },
+    {
+      "path": "audio/team-intro-announcer-today-voice-only.wav",
+      "type": "audio",
+      "category": "audio",
+      "bytes": 94438
+    },
+    {
+      "path": "audio/team-intro-bgm.wav",
+      "type": "audio",
+      "category": "audio",
+      "bytes": 538064
+    },
+    {
+      "path": "audio/team-intro-cheer-announcer-single.wav",
+      "type": "audio",
+      "category": "audio",
+      "bytes": 943780
+    },
+    {
+      "path": "audio/team-intro-cheer-announcer-today.wav",
+      "type": "audio",
+      "category": "audio",
+      "bytes": 445454
+    },
+    {
+      "path": "audio/team-intro-cheer-announcer.wav",
+      "type": "audio",
+      "category": "audio",
+      "bytes": 943780
+    },
+    {
+      "path": "audio/team-intro-showcall-v2.wav",
+      "type": "audio",
+      "category": "audio",
+      "bytes": 913796
+    },
+    {
+      "path": "audio/team-intro-showcall-v3.wav",
+      "type": "audio",
+      "category": "audio",
+      "bytes": 943780
+    },
+    {
+      "path": "audio/team-intro-showcall.wav",
+      "type": "audio",
+      "category": "audio",
+      "bytes": 890864
+    },
+    {
+      "path": "audio/tofu-space-flavor.mp3",
+      "type": "audio",
+      "category": "audio",
+      "bytes": 3383660
+    },
+    {
+      "path": "audio/victory-bingo.mp3",
+      "type": "audio",
+      "category": "audio",
+      "bytes": 2005096
+    },
+    {
+      "path": "images/characters/1.png",
+      "type": "image",
+      "category": "images/characters",
+      "bytes": 3816
+    },
+    {
+      "path": "images/characters/10.png",
+      "type": "image",
+      "category": "images/characters",
+      "bytes": 3040
+    },
+    {
+      "path": "images/characters/11.png",
+      "type": "image",
+      "category": "images/characters",
+      "bytes": 3887
+    },
+    {
+      "path": "images/characters/12.png",
+      "type": "image",
+      "category": "images/characters",
+      "bytes": 3106
+    },
+    {
+      "path": "images/characters/13.png",
+      "type": "image",
+      "category": "images/characters",
+      "bytes": 3787
+    },
+    {
+      "path": "images/characters/14.png",
+      "type": "image",
+      "category": "images/characters",
+      "bytes": 3490
+    },
+    {
+      "path": "images/characters/15.png",
+      "type": "image",
+      "category": "images/characters",
+      "bytes": 2843
+    },
+    {
+      "path": "images/characters/16.png",
+      "type": "image",
+      "category": "images/characters",
+      "bytes": 3979
+    },
+    {
+      "path": "images/characters/17.png",
+      "type": "image",
+      "category": "images/characters",
+      "bytes": 4061
+    },
+    {
+      "path": "images/characters/18.png",
+      "type": "image",
+      "category": "images/characters",
+      "bytes": 4011
+    },
+    {
+      "path": "images/characters/19.png",
+      "type": "image",
+      "category": "images/characters",
+      "bytes": 3006
+    },
+    {
+      "path": "images/characters/2.png",
+      "type": "image",
+      "category": "images/characters",
+      "bytes": 3024
+    },
+    {
+      "path": "images/characters/20.png",
+      "type": "image",
+      "category": "images/characters",
+      "bytes": 3592
+    },
+    {
+      "path": "images/characters/21.png",
+      "type": "image",
+      "category": "images/characters",
+      "bytes": 3425
+    },
+    {
+      "path": "images/characters/22.png",
+      "type": "image",
+      "category": "images/characters",
+      "bytes": 3941
+    },
+    {
+      "path": "images/characters/23.png",
+      "type": "image",
+      "category": "images/characters",
+      "bytes": 3456
+    },
+    {
+      "path": "images/characters/24.png",
+      "type": "image",
+      "category": "images/characters",
+      "bytes": 3537
+    },
+    {
+      "path": "images/characters/25.png",
+      "type": "image",
+      "category": "images/characters",
+      "bytes": 2937
+    },
+    {
+      "path": "images/characters/26.png",
+      "type": "image",
+      "category": "images/characters",
+      "bytes": 3786
+    },
+    {
+      "path": "images/characters/27.png",
+      "type": "image",
+      "category": "images/characters",
+      "bytes": 2169
+    },
+    {
+      "path": "images/characters/28.png",
+      "type": "image",
+      "category": "images/characters",
+      "bytes": 2729
+    },
+    {
+      "path": "images/characters/29.png",
+      "type": "image",
+      "category": "images/characters",
+      "bytes": 3923
+    },
+    {
+      "path": "images/characters/3.png",
+      "type": "image",
+      "category": "images/characters",
+      "bytes": 3848
+    },
+    {
+      "path": "images/characters/30.png",
+      "type": "image",
+      "category": "images/characters",
+      "bytes": 3349
+    },
+    {
+      "path": "images/characters/31.png",
+      "type": "image",
+      "category": "images/characters",
+      "bytes": 3680
+    },
+    {
+      "path": "images/characters/32.png",
+      "type": "image",
+      "category": "images/characters",
+      "bytes": 4113
+    },
+    {
+      "path": "images/characters/33.png",
+      "type": "image",
+      "category": "images/characters",
+      "bytes": 3494
+    },
+    {
+      "path": "images/characters/34.png",
+      "type": "image",
+      "category": "images/characters",
+      "bytes": 3679
+    },
+    {
+      "path": "images/characters/35.png",
+      "type": "image",
+      "category": "images/characters",
+      "bytes": 3269
+    },
+    {
+      "path": "images/characters/36.png",
+      "type": "image",
+      "category": "images/characters",
+      "bytes": 3072
+    },
+    {
+      "path": "images/characters/37.png",
+      "type": "image",
+      "category": "images/characters",
+      "bytes": 2814
+    },
+    {
+      "path": "images/characters/38.png",
+      "type": "image",
+      "category": "images/characters",
+      "bytes": 3425
+    },
+    {
+      "path": "images/characters/39.png",
+      "type": "image",
+      "category": "images/characters",
+      "bytes": 3186
+    },
+    {
+      "path": "images/characters/4.png",
+      "type": "image",
+      "category": "images/characters",
+      "bytes": 3724
+    },
+    {
+      "path": "images/characters/40.png",
+      "type": "image",
+      "category": "images/characters",
+      "bytes": 3562
+    },
+    {
+      "path": "images/characters/41.png",
+      "type": "image",
+      "category": "images/characters",
+      "bytes": 3652
+    },
+    {
+      "path": "images/characters/42.png",
+      "type": "image",
+      "category": "images/characters",
+      "bytes": 3036
+    },
+    {
+      "path": "images/characters/43.png",
+      "type": "image",
+      "category": "images/characters",
+      "bytes": 3112
+    },
+    {
+      "path": "images/characters/44.png",
+      "type": "image",
+      "category": "images/characters",
+      "bytes": 3746
+    },
+    {
+      "path": "images/characters/45.png",
+      "type": "image",
+      "category": "images/characters",
+      "bytes": 3123
+    },
+    {
+      "path": "images/characters/46.png",
+      "type": "image",
+      "category": "images/characters",
+      "bytes": 3243
+    },
+    {
+      "path": "images/characters/47.png",
+      "type": "image",
+      "category": "images/characters",
+      "bytes": 3029
+    },
+    {
+      "path": "images/characters/48.png",
+      "type": "image",
+      "category": "images/characters",
+      "bytes": 3419
+    },
+    {
+      "path": "images/characters/49.png",
+      "type": "image",
+      "category": "images/characters",
+      "bytes": 3226
+    },
+    {
+      "path": "images/characters/5.png",
+      "type": "image",
+      "category": "images/characters",
+      "bytes": 3031
+    },
+    {
+      "path": "images/characters/50.png",
+      "type": "image",
+      "category": "images/characters",
+      "bytes": 3850
+    },
+    {
+      "path": "images/characters/51.png",
+      "type": "image",
+      "category": "images/characters",
+      "bytes": 4378
+    },
+    {
+      "path": "images/characters/52.png",
+      "type": "image",
+      "category": "images/characters",
+      "bytes": 2235
+    },
+    {
+      "path": "images/characters/53.png",
+      "type": "image",
+      "category": "images/characters",
+      "bytes": 3487
+    },
+    {
+      "path": "images/characters/54.png",
+      "type": "image",
+      "category": "images/characters",
+      "bytes": 3868
+    },
+    {
+      "path": "images/characters/55.png",
+      "type": "image",
+      "category": "images/characters",
+      "bytes": 3037
+    },
+    {
+      "path": "images/characters/56.png",
+      "type": "image",
+      "category": "images/characters",
+      "bytes": 4168
+    },
+    {
+      "path": "images/characters/57.png",
+      "type": "image",
+      "category": "images/characters",
+      "bytes": 3965
+    },
+    {
+      "path": "images/characters/58.png",
+      "type": "image",
+      "category": "images/characters",
+      "bytes": 3501
+    },
+    {
+      "path": "images/characters/59.png",
+      "type": "image",
+      "category": "images/characters",
+      "bytes": 3427
+    },
+    {
+      "path": "images/characters/6.png",
+      "type": "image",
+      "category": "images/characters",
+      "bytes": 2765
+    },
+    {
+      "path": "images/characters/60.png",
+      "type": "image",
+      "category": "images/characters",
+      "bytes": 3915
+    },
+    {
+      "path": "images/characters/61.png",
+      "type": "image",
+      "category": "images/characters",
+      "bytes": 3767
+    },
+    {
+      "path": "images/characters/62.png",
+      "type": "image",
+      "category": "images/characters",
+      "bytes": 2851
+    },
+    {
+      "path": "images/characters/63.png",
+      "type": "image",
+      "category": "images/characters",
+      "bytes": 3737
+    },
+    {
+      "path": "images/characters/64.png",
+      "type": "image",
+      "category": "images/characters",
+      "bytes": 2965
+    },
+    {
+      "path": "images/characters/65.png",
+      "type": "image",
+      "category": "images/characters",
+      "bytes": 3407
+    },
+    {
+      "path": "images/characters/66.png",
+      "type": "image",
+      "category": "images/characters",
+      "bytes": 3574
+    },
+    {
+      "path": "images/characters/67.png",
+      "type": "image",
+      "category": "images/characters",
+      "bytes": 3376
+    },
+    {
+      "path": "images/characters/68.png",
+      "type": "image",
+      "category": "images/characters",
+      "bytes": 3603
+    },
+    {
+      "path": "images/characters/69.png",
+      "type": "image",
+      "category": "images/characters",
+      "bytes": 3457
+    },
+    {
+      "path": "images/characters/7.png",
+      "type": "image",
+      "category": "images/characters",
+      "bytes": 4151
+    },
+    {
+      "path": "images/characters/70.png",
+      "type": "image",
+      "category": "images/characters",
+      "bytes": 3856
+    },
+    {
+      "path": "images/characters/71.png",
+      "type": "image",
+      "category": "images/characters",
+      "bytes": 3539
+    },
+    {
+      "path": "images/characters/72.png",
+      "type": "image",
+      "category": "images/characters",
+      "bytes": 3171
+    },
+    {
+      "path": "images/characters/73.png",
+      "type": "image",
+      "category": "images/characters",
+      "bytes": 3118
+    },
+    {
+      "path": "images/characters/74.png",
+      "type": "image",
+      "category": "images/characters",
+      "bytes": 3597
+    },
+    {
+      "path": "images/characters/75.png",
+      "type": "image",
+      "category": "images/characters",
+      "bytes": 3624
+    },
+    {
+      "path": "images/characters/76.png",
+      "type": "image",
+      "category": "images/characters",
+      "bytes": 3639
+    },
+    {
+      "path": "images/characters/77.png",
+      "type": "image",
+      "category": "images/characters",
+      "bytes": 3323
+    },
+    {
+      "path": "images/characters/78.png",
+      "type": "image",
+      "category": "images/characters",
+      "bytes": 3700
+    },
+    {
+      "path": "images/characters/79.png",
+      "type": "image",
+      "category": "images/characters",
+      "bytes": 2516
+    },
+    {
+      "path": "images/characters/8.png",
+      "type": "image",
+      "category": "images/characters",
+      "bytes": 3597
+    },
+    {
+      "path": "images/characters/80.png",
+      "type": "image",
+      "category": "images/characters",
+      "bytes": 3494
+    },
+    {
+      "path": "images/characters/81.png",
+      "type": "image",
+      "category": "images/characters",
+      "bytes": 3760
+    },
+    {
+      "path": "images/characters/82.png",
+      "type": "image",
+      "category": "images/characters",
+      "bytes": 2749
+    },
+    {
+      "path": "images/characters/83.png",
+      "type": "image",
+      "category": "images/characters",
+      "bytes": 3827
+    },
+    {
+      "path": "images/characters/84.png",
+      "type": "image",
+      "category": "images/characters",
+      "bytes": 2932
+    },
+    {
+      "path": "images/characters/85.png",
+      "type": "image",
+      "category": "images/characters",
+      "bytes": 2908
+    },
+    {
+      "path": "images/characters/86.png",
+      "type": "image",
+      "category": "images/characters",
+      "bytes": 2977
+    },
+    {
+      "path": "images/characters/87.png",
+      "type": "image",
+      "category": "images/characters",
+      "bytes": 1328
+    },
+    {
+      "path": "images/characters/9.png",
+      "type": "image",
+      "category": "images/characters",
+      "bytes": 3417
+    },
+    {
+      "path": "images/ui/bg-arena-stage.png",
+      "type": "image",
+      "category": "images/ui",
+      "bytes": 2274393
+    },
+    {
+      "path": "images/ui/board-frame-blue.png",
+      "type": "image",
+      "category": "images/ui",
+      "bytes": 1431768
+    },
+    {
+      "path": "images/ui/board-frame-red.png",
+      "type": "image",
+      "category": "images/ui",
+      "bytes": 1374461
+    },
+    {
+      "path": "images/ui/board-skin-blue.png",
+      "type": "image",
+      "category": "images/ui",
+      "bytes": 2205506
+    },
+    {
+      "path": "images/ui/board-skin-red.png",
+      "type": "image",
+      "category": "images/ui",
+      "bytes": 1920343
+    },
+    {
+      "path": "images/ui/button-primary-gold-skin.png",
+      "type": "image",
+      "category": "images/ui",
+      "bytes": 13660
+    },
+    {
+      "path": "images/ui/button-primary-skin.png",
+      "type": "image",
+      "category": "images/ui",
+      "bytes": 1574860
+    },
+    {
+      "path": "images/ui/button-skin-blue.png",
+      "type": "image",
+      "category": "images/ui",
+      "bytes": 8068
+    },
+    {
+      "path": "images/ui/button-skin-red.png",
+      "type": "image",
+      "category": "images/ui",
+      "bytes": 7960
+    },
+    {
+      "path": "images/ui/button-skin.png",
+      "type": "image",
+      "category": "images/ui",
+      "bytes": 1016651
+    },
+    {
+      "path": "images/ui/button-utility-danger.svg",
+      "type": "image",
+      "category": "images/ui",
+      "bytes": 1054
+    },
+    {
+      "path": "images/ui/button-utility-simple.svg",
+      "type": "image",
+      "category": "images/ui",
+      "bytes": 1047
+    },
+    {
+      "path": "images/ui/card-shuffle-button.svg",
+      "type": "image",
+      "category": "images/ui",
+      "bytes": 1704
+    },
+    {
+      "path": "images/ui/cell-tile-white.png",
+      "type": "image",
+      "category": "images/ui",
+      "bytes": 774982
+    },
+    {
+      "path": "images/ui/cell-victory-target.png",
+      "type": "image",
+      "category": "images/ui",
+      "bytes": 2293121
+    },
+    {
+      "path": "images/ui/commentator-face-1.png",
+      "type": "image",
+      "category": "images/ui",
+      "bytes": 196417
+    },
+    {
+      "path": "images/ui/commentator-face-2.png",
+      "type": "image",
+      "category": "images/ui",
+      "bytes": 194267
+    },
+    {
+      "path": "images/ui/commentator-face-3.png",
+      "type": "image",
+      "category": "images/ui",
+      "bytes": 175292
+    },
+    {
+      "path": "images/ui/commentator-face-4.png",
+      "type": "image",
+      "category": "images/ui",
+      "bytes": 178298
+    },
+    {
+      "path": "images/ui/commentator-face-5.png",
+      "type": "image",
+      "category": "images/ui",
+      "bytes": 194371
+    },
+    {
+      "path": "images/ui/commentator-face-6.png",
+      "type": "image",
+      "category": "images/ui",
+      "bytes": 193130
+    },
+    {
+      "path": "images/ui/commentator-face-7.png",
+      "type": "image",
+      "category": "images/ui",
+      "bytes": 165778
+    },
+    {
+      "path": "images/ui/commentator-face-8.png",
+      "type": "image",
+      "category": "images/ui",
+      "bytes": 165790
+    },
+    {
+      "path": "images/ui/commentator-intro.png",
+      "type": "image",
+      "category": "images/ui",
+      "bytes": 1493783
+    },
+    {
+      "path": "images/ui/cutin-frame-gold.png",
+      "type": "image",
+      "category": "images/ui",
+      "bytes": 23738
+    },
+    {
+      "path": "images/ui/fg-bingo.png",
+      "type": "image",
+      "category": "images/ui",
+      "bytes": 1885885
+    },
+    {
+      "path": "images/ui/fg-reach.png",
+      "type": "image",
+      "category": "images/ui",
+      "bytes": 1347016
+    },
+    {
+      "path": "images/ui/fg-ready.png",
+      "type": "image",
+      "category": "images/ui",
+      "bytes": 2027997
+    },
+    {
+      "path": "images/ui/fg-team-intro.png",
+      "type": "image",
+      "category": "images/ui",
+      "bytes": 1601212
+    },
+    {
+      "path": "images/ui/fg-victory.png",
+      "type": "image",
+      "category": "images/ui",
+      "bytes": 1472076
+    },
+    {
+      "path": "images/ui/global-text-texture-readable.png",
+      "type": "image",
+      "category": "images/ui",
+      "bytes": 79353
+    },
+    {
+      "path": "images/ui/global-text-texture.png",
+      "type": "image",
+      "category": "images/ui",
+      "bytes": 1767908
+    },
+    {
+      "path": "images/ui/hype-fill-energy.png",
+      "type": "image",
+      "category": "images/ui",
+      "bytes": 925254
+    },
+    {
+      "path": "images/ui/hype-gauge-frame.png",
+      "type": "image",
+      "category": "images/ui",
+      "bytes": 926208
+    },
+    {
+      "path": "images/ui/intro-shout-bubble.png",
+      "type": "image",
+      "category": "images/ui",
+      "bytes": 537308
+    },
+    {
+      "path": "images/ui/karaoke-lyric-frame-source-transparent.png",
+      "type": "image",
+      "category": "images/ui",
+      "bytes": 988469
+    },
+    {
+      "path": "images/ui/karaoke-lyric-frame.png",
+      "type": "image",
+      "category": "images/ui",
+      "bytes": 977626
+    },
+    {
+      "path": "images/ui/lines-counter-frame-blue.png",
+      "type": "image",
+      "category": "images/ui",
+      "bytes": 13621
+    },
+    {
+      "path": "images/ui/lines-counter-frame-green.png",
+      "type": "image",
+      "category": "images/ui",
+      "bytes": 1570262
+    },
+    {
+      "path": "images/ui/lines-counter-frame-red.png",
+      "type": "image",
+      "category": "images/ui",
+      "bytes": 13050
+    },
+    {
+      "path": "images/ui/lines-counter-frame.png",
+      "type": "image",
+      "category": "images/ui",
+      "bytes": 1245399
+    },
+    {
+      "path": "images/ui/overlay-bingo.png",
+      "type": "image",
+      "category": "images/ui",
+      "bytes": 2465298
+    },
+    {
+      "path": "images/ui/overlay-reach.png",
+      "type": "image",
+      "category": "images/ui",
+      "bytes": 2683065
+    },
+    {
+      "path": "images/ui/overlay-ready.png",
+      "type": "image",
+      "category": "images/ui",
+      "bytes": 2398714
+    },
+    {
+      "path": "images/ui/overlay-team-intro.png",
+      "type": "image",
+      "category": "images/ui",
+      "bytes": 2204751
+    },
+    {
+      "path": "images/ui/overlay-victory.png",
+      "type": "image",
+      "category": "images/ui",
+      "bytes": 2470895
+    },
+    {
+      "path": "images/ui/ready-race-backing.png",
+      "type": "image",
+      "category": "images/ui",
+      "bytes": 680156
+    },
+    {
+      "path": "images/ui/ready-title-backing.png",
+      "type": "image",
+      "category": "images/ui",
+      "bytes": 2189879
+    },
+    {
+      "path": "images/ui/rima-ban-impact.png",
+      "type": "image",
+      "category": "images/ui",
+      "bytes": 611187
+    },
+    {
+      "path": "images/ui/rima-fps-assets-source-transparent.png",
+      "type": "image",
+      "category": "images/ui",
+      "bytes": 1014854
+    },
+    {
+      "path": "images/ui/rima-fps-reticle.png",
+      "type": "image",
+      "category": "images/ui",
+      "bytes": 290715
+    },
+    {
+      "path": "images/ui/skill-activation-bg.png",
+      "type": "image",
+      "category": "images/ui",
+      "bytes": 2053963
+    },
+    {
+      "path": "images/ui/skill-button-blue.png",
+      "type": "image",
+      "category": "images/ui",
+      "bytes": 16012
+    },
+    {
+      "path": "images/ui/skill-button-clean-blue.svg",
+      "type": "image",
+      "category": "images/ui",
+      "bytes": 1733
+    },
+    {
+      "path": "images/ui/skill-button-clean-red.svg",
+      "type": "image",
+      "category": "images/ui",
+      "bytes": 1732
+    },
+    {
+      "path": "images/ui/skill-button-red.png",
+      "type": "image",
+      "category": "images/ui",
+      "bytes": 15785
+    },
+    {
+      "path": "images/ui/skill-change-eda.svg",
+      "type": "image",
+      "category": "images/ui",
+      "bytes": 2674
+    },
+    {
+      "path": "images/ui/skill-change-jan.svg",
+      "type": "image",
+      "category": "images/ui",
+      "bytes": 2243
+    },
+    {
+      "path": "images/ui/special-mark-eda.svg",
+      "type": "image",
+      "category": "images/ui",
+      "bytes": 2495
+    },
+    {
+      "path": "images/ui/special-mark-jan.svg",
+      "type": "image",
+      "category": "images/ui",
+      "bytes": 1666
+    },
+    {
+      "path": "images/ui/speech-bubble-frame.png",
+      "type": "image",
+      "category": "images/ui",
+      "bytes": 1412210
+    },
+    {
+      "path": "images/ui/team-bingo-kun-card-green.png",
+      "type": "image",
+      "category": "images/ui",
+      "bytes": 2050009
+    },
+    {
+      "path": "images/ui/team-bingo-kun-card.png",
+      "type": "image",
+      "category": "images/ui",
+      "bytes": 1632139
+    },
+    {
+      "path": "images/ui/team-bingo-kun-green.png",
+      "type": "image",
+      "category": "images/ui",
+      "bytes": 1959438
+    },
+    {
+      "path": "images/ui/team-bingo-kun.png",
+      "type": "image",
+      "category": "images/ui",
+      "bytes": 1379901
+    },
+    {
+      "path": "images/ui/team-bingo-logo.png",
+      "type": "image",
+      "category": "images/ui",
+      "bytes": 1604897
+    },
+    {
+      "path": "images/ui/team-name-frame-blue.png",
+      "type": "image",
+      "category": "images/ui",
+      "bytes": 591713
+    },
+    {
+      "path": "images/ui/team-name-frame-red.png",
+      "type": "image",
+      "category": "images/ui",
+      "bytes": 587466
+    },
+    {
+      "path": "images/ui/team-name-frames-green.png",
+      "type": "image",
+      "category": "images/ui",
+      "bytes": 1866472
+    },
+    {
+      "path": "images/ui/team-name-frames.png",
+      "type": "image",
+      "category": "images/ui",
+      "bytes": 1180521
+    },
+    {
+      "path": "images/ui/team-name-texture.png",
+      "type": "image",
+      "category": "images/ui",
+      "bytes": 1844624
+    },
+    {
+      "path": "images/ui/title-1-bingo.png",
+      "type": "image",
+      "category": "images/ui",
+      "bytes": 1503050
+    },
+    {
+      "path": "images/ui/title-comeback-victory.png",
+      "type": "image",
+      "category": "images/ui",
+      "bytes": 30536
+    },
+    {
+      "path": "images/ui/title-counter-move.png",
+      "type": "image",
+      "category": "images/ui",
+      "bytes": 2426957
+    },
+    {
+      "path": "images/ui/title-fever.png",
+      "type": "image",
+      "category": "images/ui",
+      "bytes": 2518300
+    },
+    {
+      "path": "images/ui/title-one-away-victory.png",
+      "type": "image",
+      "category": "images/ui",
+      "bytes": 796129
+    },
+    {
+      "path": "images/ui/title-reach.png",
+      "type": "image",
+      "category": "images/ui",
+      "bytes": 1683198
+    },
+    {
+      "path": "images/ui/title-ready-fight.png",
+      "type": "image",
+      "category": "images/ui",
+      "bytes": 969050
+    },
+    {
+      "path": "images/ui/title-ready-to-fight.png",
+      "type": "image",
+      "category": "images/ui",
+      "bytes": 1422063
+    },
+    {
+      "path": "images/ui/title-skill-activation.png",
+      "type": "image",
+      "category": "images/ui",
+      "bytes": 113893
+    },
+    {
+      "path": "images/ui/title-skill-eda.png",
+      "type": "image",
+      "category": "images/ui",
+      "bytes": 2461389
+    },
+    {
+      "path": "images/ui/title-skill-jan.png",
+      "type": "image",
+      "category": "images/ui",
+      "bytes": 2213020
+    },
+    {
+      "path": "images/ui/title-skill-kento.svg",
+      "type": "image",
+      "category": "images/ui",
+      "bytes": 3301
+    },
+    {
+      "path": "images/ui/title-skill-lickey.svg",
+      "type": "image",
+      "category": "images/ui",
+      "bytes": 3131
+    },
+    {
+      "path": "images/ui/title-skill-rima.svg",
+      "type": "image",
+      "category": "images/ui",
+      "bytes": 4120
+    },
+    {
+      "path": "images/ui/title-skill-tofu.svg",
+      "type": "image",
+      "category": "images/ui",
+      "bytes": 3856
+    },
+    {
+      "path": "images/ui/title-straight-victory.png",
+      "type": "image",
+      "category": "images/ui",
+      "bytes": 29329
+    },
+    {
+      "path": "images/ui/title-victory.png",
+      "type": "image",
+      "category": "images/ui",
+      "bytes": 2221470
+    },
+    {
+      "path": "images/ui/victory-badge-panel-blue.png",
+      "type": "image",
+      "category": "images/ui",
+      "bytes": 17327
+    },
+    {
+      "path": "images/ui/victory-badge-panel.png",
+      "type": "image",
+      "category": "images/ui",
+      "bytes": 16500
+    },
+    {
+      "path": "images/ui/victory-mvp-panel-blue.png",
+      "type": "image",
+      "category": "images/ui",
+      "bytes": 16749
+    },
+    {
+      "path": "images/ui/victory-mvp-panel.png",
+      "type": "image",
+      "category": "images/ui",
+      "bytes": 15318
+    },
+    {
+      "path": "images/ui/victory-praise-panel-blue.png",
+      "type": "image",
+      "category": "images/ui",
+      "bytes": 15864
+    },
+    {
+      "path": "images/ui/victory-praise-panel.png",
+      "type": "image",
+      "category": "images/ui",
+      "bytes": 15305
+    },
+    {
+      "path": "images/ui/victory-text-panel-blue.png",
+      "type": "image",
+      "category": "images/ui",
+      "bytes": 21823
+    },
+    {
+      "path": "images/ui/victory-text-panel.png",
+      "type": "image",
+      "category": "images/ui",
+      "bytes": 20066
+    },
+    {
+      "path": "images/ui/victory-title-item-panel-blue.png",
+      "type": "image",
+      "category": "images/ui",
+      "bytes": 12216
+    },
+    {
+      "path": "images/ui/victory-title-item-panel.png",
+      "type": "image",
+      "category": "images/ui",
+      "bytes": 11099
+    },
+    {
+      "path": "images/ui/voice-comment-bubble-blue-right.png",
+      "type": "image",
+      "category": "images/ui",
+      "bytes": 21061
+    },
+    {
+      "path": "images/ui/voice-comment-bubble-blue.png",
+      "type": "image",
+      "category": "images/ui",
+      "bytes": 21135
+    },
+    {
+      "path": "images/ui/voice-comment-bubble-red-right.png",
+      "type": "image",
+      "category": "images/ui",
+      "bytes": 20796
+    },
+    {
+      "path": "images/ui/voice-comment-bubble-red.png",
+      "type": "image",
+      "category": "images/ui",
+      "bytes": 20904
+    },
+    {
+      "path": "images/ui/voice-comment-bubble-right.png",
+      "type": "image",
+      "category": "images/ui",
+      "bytes": 4215
+    },
+    {
+      "path": "images/ui/voice-comment-bubble.png",
+      "type": "image",
+      "category": "images/ui",
+      "bytes": 4460
+    }
+  ]
+}

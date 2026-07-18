@@ -3,6 +3,7 @@
   "private": true,
   "type": "module",
   "scripts": {
+    "assets:manifest": "node scripts/generate-asset-manifest.mjs",
     "test": "node --test tests/*.test.mjs",
     "test:firebase": "node tests/firebase-online-smoke.mjs"
   }
