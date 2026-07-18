@@ -26,6 +26,38 @@ const START_INTRO_END_MS = 4330;
 const START_READY_END_MS = 5330;
 const ADMIN_PIN = "9071";
 const ADMIN_PIN_HASH = "6440e6a91202aeddb45b070a80533f65a689c37d0cf1842ab2bd962e33377880";
+const REACTION_TTL_MS = 12000;
+
+export const ONLINE_REACTIONS = Object.freeze([
+  { id: "clap", label: "拍手", mark: "CLAP" },
+  { id: "nice", label: "ナイス", mark: "NICE" },
+  { id: "hype", label: "激アツ", mark: "HYPE" },
+  { id: "cheer", label: "うおお！", mark: "CHEER" },
+  { id: "bingo", label: "ビンゴ！", mark: "BINGO" },
+  { id: "comeback", label: "逆転！", mark: "TURN" },
+  { id: "pray", label: "祈る", mark: "PRAY" },
+  { id: "gg", label: "GG", mark: "GG" }
+]);
+
+export function normalizeOnlineReactionType(value) {
+  const type = String(value || "").trim().toLowerCase();
+  return ONLINE_REACTIONS.some((reaction) => reaction.id === type) ? type : "";
+}
+
+export function buildOnlineConnectionRows(room = {}, now = Date.now()) {
+  const masterUid = room?.meta?.masterUid || "";
+  return Object.values(room?.participants || {})
+    .filter((participant) => participant?.uid)
+    .map((participant) => ({
+      uid: participant.uid,
+      name: participant.memberName || (participant.role === "spectator" ? "観戦" : "参加者"),
+      role: participant.uid === masterUid ? "master" : (participant.role || "player"),
+      team: participant.team === "blue" ? "blue" : (participant.team === "red" ? "red" : ""),
+      online: participant.online === true,
+      lastSeenMs: Math.max(0, Number(now) - (Number(participant.lastSeenAt) || Number(participant.joinedAt) || Number(now)))
+    }))
+    .sort((a, b) => Number(b.online) - Number(a.online) || Number(a.role !== "master") - Number(b.role !== "master") || a.name.localeCompare(b.name, "ja"));
+}
 
 function clone(value) {
   if (value === undefined) return undefined;
@@ -673,6 +705,9 @@ export class OnlineCoordinator {
     this.roomUnsubscribe = null;
     this.lobbyUnsubscribe = null;
     this.statsUnsubscribe = null;
+    this.reactionUnsubscribe = null;
+    this.seenReactionIds = new Set();
+    this.lastReactionSentAt = 0;
     this.localActionIds = new Set();
     this.lastEventSeq = 0;
     this.busy = false;
@@ -713,6 +748,7 @@ export class OnlineCoordinator {
   path(part = "") { return [this.root, part].filter(Boolean).join("/"); }
   roomPath(roomId = this.roomId, part = "") { return this.path(["rooms", roomId, part].filter(Boolean).join("/")); }
   lobbyPath(roomId = this.roomId) { return this.path(["lobby", roomId].filter(Boolean).join("/")); }
+  reactionPath(roomId = this.roomId, part = "") { return this.path(["reactions", roomId, part].filter(Boolean).join("/")); }
 
   seatReclaimStorageKey(roomId, seatKey) {
     return `teamBingo.seatReclaim.v1.${encodeURIComponent(roomId)}.${encodeURIComponent(seatKey)}`;
@@ -1041,11 +1077,46 @@ export class OnlineCoordinator {
         </header>
         <div class="online-seat-list" id="onlineMasterList"></div>
       </dialog>
+      <dialog class="online-seat-dialog online-status-dialog" id="onlineStatusDialog">
+        <header class="online-seat-head">
+          <div>
+            <div class="online-seat-title">CONNECTION</div>
+            <div class="online-lobby-sub">参加者の接続状況</div>
+          </div>
+          <button type="button" class="online-simple-button" id="onlineStatusClose">CLOSE</button>
+        </header>
+        <div class="online-connection-summary" id="onlineConnectionSummary"></div>
+        <div class="online-connection-list" id="onlineConnectionList"></div>
+      </dialog>
+      <dialog class="online-seat-dialog online-control-dialog" id="onlineControlDialog">
+        <header class="online-seat-head">
+          <div>
+            <div class="online-seat-title">EMERGENCY CONTROL</div>
+            <div class="online-lobby-sub">全端末へ同期するマスター操作</div>
+          </div>
+          <button type="button" class="online-simple-button" id="onlineControlClose">CLOSE</button>
+        </header>
+        <div class="online-control-grid">
+          <button type="button" class="online-control-action pause" id="onlineEmergencyPause"><b>PAUSE</b><span>試合操作を一時停止</span></button>
+          <button type="button" class="online-control-action" id="onlineEmergencySkip"><b>SKIP FX</b><span>現在の演出を終了</span></button>
+          <button type="button" class="online-control-action sync" id="onlineEmergencySync"><b>FORCE SYNC</b><span>現在状態を全端末へ再送</span></button>
+        </div>
+        <div class="online-control-result" id="onlineControlResult">操作を選択してください。</div>
+      </dialog>
+      <div class="online-reaction-layer" id="onlineReactionLayer" aria-live="polite"></div>
       <div class="online-session-bar" id="onlineSessionBar">
         <span class="online-mode-badge online" id="onlineSessionStatus">ONLINE</span>
         <span class="online-session-name" id="onlineSessionName"></span>
         <span class="online-session-role" id="onlineSessionRole"></span>
         <span class="online-session-presence" id="onlineSessionPresence"></span>
+        <button type="button" class="online-simple-button" id="onlineOpenStatus">STATUS</button>
+        <div class="online-reaction-control">
+          <button type="button" class="online-simple-button reaction" id="onlineOpenReactions" aria-expanded="false">REACT</button>
+          <div class="online-reaction-menu" id="onlineReactionMenu" hidden>
+            ${ONLINE_REACTIONS.map((reaction) => `<button type="button" data-online-reaction="${reaction.id}"><b>${reaction.mark}</b><span>${reaction.label}</span></button>`).join("")}
+          </div>
+        </div>
+        <button type="button" class="online-simple-button" id="onlineOpenControl" hidden>CONTROL</button>
         <button type="button" class="online-simple-button" id="onlineOpenLobby">ROOMS</button>
         <button type="button" class="online-simple-button danger" id="onlineCloseRoom" hidden>ROOM CLOSE</button>
         <button type="button" class="online-simple-button danger" id="onlineLeaveRoom">LEAVE</button>
@@ -1085,11 +1156,26 @@ export class OnlineCoordinator {
       masterDialog: document.getElementById("onlineMasterDialog"),
       masterList: document.getElementById("onlineMasterList"),
       masterClose: document.getElementById("onlineMasterClose"),
+      statusDialog: document.getElementById("onlineStatusDialog"),
+      statusClose: document.getElementById("onlineStatusClose"),
+      connectionSummary: document.getElementById("onlineConnectionSummary"),
+      connectionList: document.getElementById("onlineConnectionList"),
+      controlDialog: document.getElementById("onlineControlDialog"),
+      controlClose: document.getElementById("onlineControlClose"),
+      controlResult: document.getElementById("onlineControlResult"),
+      emergencyPause: document.getElementById("onlineEmergencyPause"),
+      emergencySkip: document.getElementById("onlineEmergencySkip"),
+      emergencySync: document.getElementById("onlineEmergencySync"),
+      reactionLayer: document.getElementById("onlineReactionLayer"),
       sessionBar: document.getElementById("onlineSessionBar"),
       sessionStatus: document.getElementById("onlineSessionStatus"),
       sessionName: document.getElementById("onlineSessionName"),
       sessionRole: document.getElementById("onlineSessionRole"),
       sessionPresence: document.getElementById("onlineSessionPresence"),
+      openStatus: document.getElementById("onlineOpenStatus"),
+      openReactions: document.getElementById("onlineOpenReactions"),
+      reactionMenu: document.getElementById("onlineReactionMenu"),
+      openControl: document.getElementById("onlineOpenControl"),
       openLobby: document.getElementById("onlineOpenLobby"),
       closeRoom: document.getElementById("onlineCloseRoom"),
       leaveRoom: document.getElementById("onlineLeaveRoom")
@@ -1160,6 +1246,31 @@ export class OnlineCoordinator {
         team: button.dataset.masterTeam || ""
       });
     });
+    this.ui.openStatus.addEventListener("click", () => {
+      this.renderConnectionPanel();
+      if (!this.ui.statusDialog.open) this.ui.statusDialog.showModal();
+    });
+    this.ui.statusClose.addEventListener("click", () => this.ui.statusDialog.close());
+    this.ui.openReactions.addEventListener("click", () => {
+      const opening = this.ui.reactionMenu.hidden;
+      this.ui.reactionMenu.hidden = !opening;
+      this.ui.openReactions.setAttribute("aria-expanded", String(opening));
+    });
+    this.ui.reactionMenu.addEventListener("click", (event) => {
+      const button = event.target.closest("[data-online-reaction]");
+      if (!button) return;
+      this.sendReaction(button.dataset.onlineReaction);
+      this.ui.reactionMenu.hidden = true;
+      this.ui.openReactions.setAttribute("aria-expanded", "false");
+    });
+    this.ui.openControl.addEventListener("click", () => {
+      this.renderEmergencyPanel();
+      if (!this.ui.controlDialog.open) this.ui.controlDialog.showModal();
+    });
+    this.ui.controlClose.addEventListener("click", () => this.ui.controlDialog.close());
+    this.ui.emergencyPause.addEventListener("click", () => this.setEmergencyPause(!Boolean(this.room?.game?.emergencyPaused)));
+    this.ui.emergencySkip.addEventListener("click", () => this.skipCurrentPresentation());
+    this.ui.emergencySync.addEventListener("click", () => this.forceEmergencySync());
     this.ui.openLobby.addEventListener("click", () => {
       if (this.roomDraft) {
         this.cancelRoomDraft();
@@ -1349,6 +1460,9 @@ export class OnlineCoordinator {
     this.ui.sessionPresence.textContent = "";
     this.ui.openLobby.textContent = "ROOMS";
     this.ui.closeRoom.hidden = true;
+    this.ui.openStatus.hidden = true;
+    this.ui.openReactions.hidden = true;
+    this.ui.openControl.hidden = true;
     this.ui.leaveRoom.hidden = false;
     this.ui.leaveRoom.textContent = "CANCEL";
     this.bridge.setRoomDraftMode?.(true);
@@ -1502,6 +1616,9 @@ export class OnlineCoordinator {
     this.ui.sessionPresence.textContent = "";
     this.ui.openLobby.textContent = "ONLINE ROOMS";
     this.ui.closeRoom.hidden = true;
+    this.ui.openStatus.hidden = true;
+    this.ui.openReactions.hidden = true;
+    this.ui.openControl.hidden = true;
     this.ui.leaveRoom.hidden = true;
     this.ui.leaveRoom.textContent = "LEAVE";
     this.bridge.setRoomDraftMode?.(false);
@@ -1551,7 +1668,8 @@ export class OnlineCoordinator {
     try {
       await this.backend.update({
         [this.roomPath(roomId)]: null,
-        [this.lobbyPath(roomId)]: null
+        [this.lobbyPath(roomId)]: null,
+        [this.reactionPath(roomId)]: null
       });
       this.clearError();
       return true;
@@ -1782,6 +1900,7 @@ export class OnlineCoordinator {
     this.updateSessionUi();
     this.applyRoom(this.room, { initial: true });
     this.roomUnsubscribe = this.backend.subscribe(this.roomPath(roomId), (room) => this.onRoomValue(room));
+    this.startReactionSubscription();
     this.subscribeGlobalStats();
     this.startHeartbeat();
     this.startConnectionMonitor();
@@ -1927,6 +2046,8 @@ export class OnlineCoordinator {
     } finally {
       this.applyingRemote = false;
     }
+    this.renderConnectionPanel();
+    this.renderEmergencyPanel();
     if (this.isMaster()) this.recoverRoomStats(room).catch((error) => console.warn("Room stats recovery failed", error));
     if (previous?.meta?.masterUid !== room.meta?.masterUid) this.bridge.onMasterChanged?.(room.meta?.masterUid === this.backend.uid);
   }
@@ -1950,12 +2071,155 @@ export class OnlineCoordinator {
     this.ui.sessionRole.textContent = "";
     this.ui.sessionPresence.textContent = "";
     this.ui.closeRoom.hidden = !master;
+    this.ui.openControl.hidden = !master;
+    this.ui.openStatus.hidden = false;
+    this.ui.openReactions.hidden = false;
     document.body.classList.toggle("online-readonly", !master);
     document.body.classList.toggle("online-spectator", this.role === "spectator");
     document.body.classList.toggle("online-team-red", !master && this.role === "player" && this.team === "red");
     document.body.classList.toggle("online-team-blue", !master && this.role === "player" && this.team === "blue");
     this.bridge.setOnlineSession?.({ roomId: this.roomId, role: this.role, team: this.team, memberName: this.memberName, master });
     window.setTimeout(() => this.placeSessionBar(), 0);
+  }
+
+  renderConnectionPanel() {
+    if (!this.ui?.connectionList) return;
+    const rows = buildOnlineConnectionRows(this.room, this.backend?.serverNow?.() || Date.now());
+    const onlineCount = rows.filter((row) => row.online).length;
+    this.ui.connectionSummary.textContent = `${onlineCount} ONLINE / ${rows.length} PARTICIPANTS`;
+    this.ui.connectionList.innerHTML = rows.length ? rows.map((row) => {
+      const role = row.role === "master" ? "MASTER" : (row.role === "spectator" ? "WATCH" : (row.team ? `${row.team.toUpperCase()} TEAM` : "PLAYER"));
+      const age = row.online ? "NOW" : (row.lastSeenMs < 60000 ? `${Math.max(1, Math.ceil(row.lastSeenMs / 1000))} SEC AGO` : `${Math.max(1, Math.ceil(row.lastSeenMs / 60000))} MIN AGO`);
+      const safeName = this.bridge.escapeHtml?.(row.name) || row.name;
+      return `<div class="online-connection-row ${row.online ? "online" : "offline"} ${row.team}">
+        <span class="online-connection-light"></span>
+        <strong>${safeName}</strong>
+        <span class="online-connection-role">${role}</span>
+        <time>${age}</time>
+      </div>`;
+    }).join("") : `<div class="online-empty">参加者情報を取得中です。</div>`;
+  }
+
+  renderEmergencyPanel() {
+    if (!this.ui?.emergencyPause) return;
+    const paused = Boolean(this.room?.game?.emergencyPaused);
+    const playable = Boolean(this.room?.game?.gameStarted && this.room?.game?.readyShown && !this.room?.game?.winner);
+    this.ui.emergencyPause.disabled = !playable || !this.isMaster();
+    this.ui.emergencySkip.disabled = !playable || !this.isMaster();
+    this.ui.emergencySync.disabled = !this.isMaster();
+    this.ui.emergencyPause.querySelector("b").textContent = paused ? "RESUME" : "PAUSE";
+    this.ui.emergencyPause.querySelector("span").textContent = paused ? "試合操作を再開" : "試合操作を一時停止";
+    this.ui.emergencyPause.classList.toggle("active", paused);
+  }
+
+  async setEmergencyPause(paused) {
+    if (!this.isMaster()) return false;
+    this.ui.controlResult.textContent = paused ? "全端末を一時停止しています…" : "全端末を再開しています…";
+    const changed = await this.requestAction(
+      { type: "emergency-pause", payload: { paused: Boolean(paused) }, masterOnly: true },
+      () => this.bridge.setEmergencyPause?.(Boolean(paused))
+    );
+    this.ui.controlResult.textContent = changed ? (paused ? "試合を一時停止しました。" : "試合を再開しました。") : "操作を同期できませんでした。";
+    this.renderEmergencyPanel();
+    return changed;
+  }
+
+  async skipCurrentPresentation() {
+    if (!this.isMaster()) return false;
+    this.ui.controlResult.textContent = "演出終了を同期しています…";
+    const changed = await this.requestAction(
+      { type: "emergency-skip", payload: {}, masterOnly: true },
+      () => this.bridge.skipOnlinePresentation?.()
+    );
+    this.ui.controlResult.textContent = changed ? "現在の演出を終了しました。" : "操作を同期できませんでした。";
+    return changed;
+  }
+
+  async forceEmergencySync() {
+    if (!this.isMaster()) return false;
+    this.ui.controlResult.textContent = "現在状態を全端末へ再送しています…";
+    const changed = await this.syncCurrentState("emergency-force-sync");
+    this.ui.controlResult.textContent = changed ? "全端末へ再同期しました。" : "再同期できませんでした。";
+    return changed;
+  }
+
+  showReaction(reaction) {
+    const type = normalizeOnlineReactionType(reaction?.type);
+    const definition = ONLINE_REACTIONS.find((item) => item.id === type);
+    if (!definition || !this.ui?.reactionLayer) return;
+    const node = document.createElement("div");
+    node.className = `online-reaction-burst reaction-${type} ${reaction.team === "blue" ? "blue" : (reaction.team === "red" ? "red" : "")}`;
+    const safeName = this.bridge.escapeHtml?.(reaction.actorName || "GUEST") || (reaction.actorName || "GUEST");
+    node.innerHTML = `<b>${definition.mark}</b><span>${definition.label}</span><small>${safeName}</small>`;
+    node.style.setProperty("--reaction-x", `${10 + Math.round(Math.random() * 80)}%`);
+    this.ui.reactionLayer.appendChild(node);
+    window.setTimeout(() => node.remove(), 3600);
+    this.bridge.onOnlineReaction?.({ ...reaction, type, label: definition.label });
+  }
+
+  async sendReaction(value) {
+    const type = normalizeOnlineReactionType(value);
+    if (!type || !this.roomId || !this.room?.participants?.[this.backend?.uid]) return false;
+    const now = this.backend.serverNow();
+    if (now - this.lastReactionSentAt < 350) return false;
+    this.lastReactionSentAt = now;
+    const id = randomId("react");
+    const reaction = {
+      id,
+      type,
+      actorUid: this.backend.uid,
+      actorName: this.memberName || (this.role === "spectator" ? "観戦" : "参加者"),
+      role: this.role || "player",
+      team: this.team || "",
+      createdAt: now,
+      expiresAt: now + REACTION_TTL_MS
+    };
+    this.seenReactionIds ||= new Set();
+    this.seenReactionIds.add(id);
+    this.showReaction(reaction);
+    try {
+      await this.backend.set(this.reactionPath(this.roomId, id), reaction);
+      return true;
+    } catch (error) {
+      this.showError("REACTION ERROR", error);
+      return false;
+    }
+  }
+
+  startReactionSubscription() {
+    this.stopReactionSubscription();
+    if (!this.roomId) return;
+    this.seenReactionIds ||= new Set();
+    const roomId = this.roomId;
+    let initial = true;
+    this.reactionUnsubscribe = this.backend.subscribe(this.reactionPath(roomId), (records) => {
+      if (this.roomId !== roomId) return;
+      const now = this.backend.serverNow();
+      const entries = Object.entries(records || {}).sort(([, a], [, b]) => (Number(a?.createdAt) || 0) - (Number(b?.createdAt) || 0));
+      if (initial) {
+        entries.forEach(([id]) => this.seenReactionIds.add(id));
+        initial = false;
+        return;
+      }
+      entries.forEach(([id, reaction]) => {
+        if (this.seenReactionIds.has(id)) return;
+        this.seenReactionIds.add(id);
+        if ((Number(reaction?.expiresAt) || 0) >= now && normalizeOnlineReactionType(reaction?.type)) this.showReaction(reaction);
+      });
+      if (this.isMaster()) {
+        const expired = entries.filter(([, reaction]) => (Number(reaction?.expiresAt) || 0) < now - 2000);
+        if (expired.length) {
+          const updates = Object.fromEntries(expired.map(([id]) => [this.reactionPath(roomId, id), null]));
+          this.backend.update(updates).catch(() => {});
+        }
+      }
+    });
+  }
+
+  stopReactionSubscription() {
+    this.reactionUnsubscribe?.();
+    this.reactionUnsubscribe = null;
+    this.seenReactionIds?.clear?.();
   }
 
   syncSpectatorControls() {
@@ -1969,9 +2233,11 @@ export class OnlineCoordinator {
   placeSessionBar() {
     if ((!this.roomId && !this.roomDraft && !this.localMode) || !this.ui?.sessionBar) return;
     const setupScreen = document.querySelector("#setupScreen.active");
-    const target = document.querySelector("#playScreen.active .top-right")
+    const playScreen = document.querySelector("#playScreen.active");
+    const target = (playScreen ? document.body : null)
       || setupScreen?.querySelector(this.roomDraft ? ".setup-top-center" : ".setup-top-right")
       || document.body;
+    this.ui.sessionBar.classList.toggle("play-floating", Boolean(playScreen));
     if (this.ui.sessionBar.parentElement !== target) target.appendChild(this.ui.sessionBar);
   }
 
@@ -2053,6 +2319,7 @@ export class OnlineCoordinator {
     await this.clearStatsWriter(roomId);
     this.roomUnsubscribe?.();
     this.roomUnsubscribe = null;
+    this.stopReactionSubscription();
     if (!options.preserveReclaimToken) this.clearSeatReclaimToken(roomId, key);
     this.roomId = "";
     this.room = null;
@@ -2091,6 +2358,7 @@ export class OnlineCoordinator {
       return false;
     }
     try {
+      await this.backend.set(this.reactionPath(roomId), null).catch(() => {});
       await this.backend.update({
         [this.roomPath(roomId)]: null,
         [this.lobbyPath(roomId)]: null
@@ -2802,6 +3070,7 @@ export class OnlineCoordinator {
     ghosts.forEach(([id]) => {
       updates[this.lobbyPath(id)] = null;
       updates[this.roomPath(id)] = null;
+      updates[this.reactionPath(id)] = null;
     });
     this.cleanupInFlight = true;
     try {
@@ -2851,6 +3120,7 @@ export class OnlineCoordinator {
     orphanIds.forEach((id) => {
       updates[this.roomPath(id)] = null;
       updates[this.lobbyPath(id)] = null;
+      updates[this.reactionPath(id)] = null;
     });
     this.cleanupInFlight = true;
     try {

@@ -232,6 +232,19 @@ try {
   assert.equal(outsiderWrite.ok, false, "A non-participant unexpectedly changed the game");
   assert.equal(outsiderWrite.status, 401, "A non-participant should receive permission_denied");
 
+  const outsiderReaction = await databaseRequest("PUT", `reactions/${roomId}/outsider-reaction`, outsider.idToken, {
+    id: "outsider-reaction",
+    type: "clap",
+    actorUid: outsider.localId,
+    actorName: "Outsider",
+    role: "spectator",
+    team: "",
+    createdAt: Date.now(),
+    expiresAt: Date.now() + 12000
+  });
+  assert.equal(outsiderReaction.ok, false, "A non-participant unexpectedly sent a room reaction");
+  assert.equal(outsiderReaction.status, 401, "A non-participant reaction should receive permission_denied");
+
   const outsiderFreshDelete = await databaseRequest("DELETE", `rooms/${roomId}`, outsider.idToken);
   assert.equal(outsiderFreshDelete.ok, false, "A non-participant unexpectedly deleted a fresh room");
   assert.equal(outsiderFreshDelete.status, 401, "A fresh room delete should receive permission_denied");
@@ -281,6 +294,32 @@ try {
     lastSeenAt: Date.now()
   });
   assert.equal(spectatorJoined.ok, true, `Spectator could not join room: ${JSON.stringify(spectatorJoined)}`);
+  const reactionCreatedAt = Date.now();
+  const spectatorReaction = await databaseRequest("PUT", `reactions/${roomId}/spectator-nice`, outsider.idToken, {
+    id: "spectator-nice",
+    type: "nice",
+    actorUid: outsider.localId,
+    actorName: "観戦",
+    role: "spectator",
+    team: "",
+    createdAt: reactionCreatedAt,
+    expiresAt: reactionCreatedAt + 12000
+  });
+  assert.equal(spectatorReaction.ok, true, `Spectator could not send a reaction: ${JSON.stringify(spectatorReaction)}`);
+  const invalidReaction = await databaseRequest("PUT", `reactions/${roomId}/spectator-invalid`, outsider.idToken, {
+    id: "spectator-invalid",
+    type: "admin",
+    actorUid: outsider.localId,
+    actorName: "観戦",
+    role: "spectator",
+    team: "",
+    createdAt: reactionCreatedAt,
+    expiresAt: reactionCreatedAt + 12000
+  });
+  assert.equal(invalidReaction.ok, false, "An invalid reaction type unexpectedly passed validation");
+  assert.equal(invalidReaction.status, 401, "An invalid reaction should receive permission_denied");
+  const spectatorReactionDelete = await databaseRequest("DELETE", `reactions/${roomId}/spectator-nice`, outsider.idToken);
+  assert.equal(spectatorReactionDelete.ok, true, `Spectator could not clean its own reaction: ${JSON.stringify(spectatorReactionDelete)}`);
   const spectatorDisconnected = await databaseRequest("PATCH", `rooms/${roomId}/participants/${outsider.localId}`, outsider.idToken, {
     online: false,
     disconnectedAt: Date.now()
@@ -420,6 +459,7 @@ try {
   if (master?.idToken) {
     await databaseRequest("DELETE", `rooms/${roomId}`, master.idToken).catch(() => {});
     await databaseRequest("DELETE", `lobby/${roomId}`, master.idToken).catch(() => {});
+    await databaseRequest("DELETE", `reactions/${roomId}`, master.idToken).catch(() => {});
     if (ghostId) {
       await databaseRequest("DELETE", `lobby/${ghostId}`, master.idToken).catch(() => {});
       await databaseRequest("DELETE", `rooms/${ghostId}`, master.idToken).catch(() => {});

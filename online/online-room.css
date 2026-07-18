@@ -452,6 +452,52 @@
 
 .online-create-dialog { width: min(760px, calc(100% - 28px)); }
 .online-admin-dialog { width: min(430px, calc(100% - 28px)); }
+.online-status-dialog { width: min(620px, calc(100% - 28px)); }
+.online-control-dialog { width: min(640px, calc(100% - 28px)); }
+.online-connection-summary {
+  padding: 12px 16px 0;
+  color: #8ee3b1;
+  font-size: 11px;
+  font-weight: 950;
+}
+.online-connection-list { display: grid; gap: 7px; padding: 12px 16px 16px; }
+.online-connection-row {
+  display: grid;
+  grid-template-columns: 10px minmax(0, 1fr) 92px 78px;
+  align-items: center;
+  gap: 9px;
+  min-height: 42px;
+  padding: 7px 10px;
+  border: 1px solid rgba(255, 255, 255, .13);
+  border-left: 3px solid #6c7788;
+  background: #151d2a;
+}
+.online-connection-row.red { border-left-color: #ff405d; }
+.online-connection-row.blue { border-left-color: #408cff; }
+.online-connection-row.offline { opacity: .56; }
+.online-connection-light { width: 8px; height: 8px; border-radius: 50%; background: #697386; box-shadow: 0 0 0 3px rgba(105, 115, 134, .12); }
+.online-connection-row.online .online-connection-light { background: #48ee91; box-shadow: 0 0 10px rgba(72, 238, 145, .8); }
+.online-connection-row strong { overflow: hidden; font-size: 13px; text-overflow: ellipsis; white-space: nowrap; }
+.online-connection-role { color: #f1d777; font-size: 9px; font-weight: 950; }
+.online-connection-row time { color: #9daabd; font-size: 9px; font-weight: 900; text-align: right; }
+.online-control-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 9px; padding: 16px; }
+.online-control-action {
+  min-height: 96px;
+  padding: 14px 10px;
+  border: 1px solid rgba(255, 255, 255, .18);
+  border-bottom: 3px solid #7e8999;
+  background: #182130;
+  color: #fff;
+  cursor: pointer;
+}
+.online-control-action:hover:not(:disabled) { border-color: #f1d777; background: #222f43; }
+.online-control-action:disabled { cursor: default; opacity: .36; }
+.online-control-action b { display: block; margin-bottom: 8px; color: #fff; font-size: 17px; }
+.online-control-action span { color: #aeb9c9; font-size: 10px; font-weight: 850; }
+.online-control-action.pause { border-bottom-color: #ff526c; }
+.online-control-action.pause.active { border-color: #ff526c; background: #4d1420; }
+.online-control-action.sync { border-bottom-color: #48c7ff; }
+.online-control-result { margin: 0 16px 16px; padding: 9px 10px; border-left: 3px solid #f1d777; background: #111824; color: #dce4ef; font-size: 11px; font-weight: 850; }
 .online-create-form { display: grid; gap: 14px; padding: 16px; }
 .online-admin-form { display: grid; gap: 12px; padding: 16px; }
 .online-field { display: grid; gap: 6px; }
@@ -556,6 +602,21 @@
 }
 
 .online-session-bar.show { display: flex; }
+.online-session-bar.play-floating {
+  left: auto;
+  right: 10px;
+  top: 10px;
+  width: 102px;
+  max-width: none;
+  flex-direction: column;
+  align-items: stretch;
+  transform: none;
+}
+.online-session-bar.play-floating .online-simple-button,
+.online-session-bar.play-floating .online-mode-badge { width: 100%; }
+.online-session-bar.play-floating .online-reaction-control { width: 100%; }
+.online-session-bar.play-floating .online-reaction-menu { right: calc(100% + 8px); top: 0; }
+}
 .setup-top-center .online-session-bar,
 .setup-top-right .online-session-bar,
 .top-right .online-session-bar {
@@ -567,6 +628,89 @@
 .online-session-role { color: #f1d777; font-size: 9px; font-weight: 950; }
 .online-session-presence { color: #8ee3b1; font-size: 9px; font-weight: 900; }
 .online-session-bar .online-simple-button { min-height: 28px; padding: 0 9px; font-size: 9px; }
+.online-session-bar .online-simple-button.reaction { border-color: rgba(244, 207, 93, .55); color: #ffe37d; }
+.online-reaction-control { position: relative; }
+.online-reaction-menu {
+  position: absolute;
+  right: 0;
+  top: calc(100% + 9px);
+  z-index: 230;
+  display: grid;
+  grid-template-columns: repeat(2, 112px);
+  gap: 5px;
+  padding: 7px;
+  border: 1px solid rgba(255, 255, 255, .22);
+  background: rgba(7, 11, 19, .98);
+  box-shadow: 0 16px 42px rgba(0, 0, 0, .62);
+}
+.online-reaction-menu[hidden] { display: none; }
+.online-reaction-menu button {
+  display: grid;
+  grid-template-columns: 42px 1fr;
+  align-items: center;
+  min-height: 38px;
+  border: 1px solid rgba(255, 255, 255, .13);
+  background: #182130;
+  color: #fff;
+  cursor: pointer;
+  text-align: left;
+}
+.online-reaction-menu button:hover { border-color: #f4cf5d; background: #263247; }
+.online-reaction-menu b { color: #ffd95c; font-size: 9px; text-align: center; }
+.online-reaction-menu span { font-size: 11px; font-weight: 950; }
+.online-reaction-layer { position: fixed; inset: 0; z-index: 185; overflow: hidden; pointer-events: none; }
+.online-reaction-burst {
+  position: absolute;
+  left: var(--reaction-x, 50%);
+  bottom: 8%;
+  display: grid;
+  min-width: 148px;
+  padding: 10px 14px;
+  border: 2px solid #f5d75c;
+  background: rgba(8, 12, 20, .94);
+  color: #fff;
+  text-align: center;
+  transform: translateX(-50%);
+  box-shadow: 0 0 28px rgba(245, 215, 92, .42);
+  animation: online-reaction-rise 3.5s cubic-bezier(.12, .72, .16, 1) forwards;
+}
+.online-reaction-burst.red { border-color: #ff526c; box-shadow: 0 0 30px rgba(255, 64, 93, .5); }
+.online-reaction-burst.blue { border-color: #52a0ff; box-shadow: 0 0 30px rgba(64, 140, 255, .5); }
+.online-reaction-burst b { color: #ffe36f; font-size: 25px; line-height: 1; }
+.online-reaction-burst span { margin-top: 5px; font-size: 13px; font-weight: 1000; }
+.online-reaction-burst small { margin-top: 4px; color: #aeb9c9; font-size: 9px; font-weight: 900; }
+.online-reaction-burst.reaction-clap { transform: translateX(-50%) rotate(-3deg); }
+.online-reaction-burst.reaction-nice { transform: translateX(-50%) rotate(3deg); }
+.online-reaction-burst.reaction-hype,
+.online-reaction-burst.reaction-comeback { border-width: 3px; animation-name: online-reaction-impact; }
+.online-reaction-burst.reaction-pray { filter: saturate(.65); }
+.online-reaction-burst.reaction-gg { background: rgba(24, 28, 35, .96); }
+@keyframes online-reaction-rise {
+  0% { opacity: 0; translate: 0 70px; scale: .72; }
+  12%, 72% { opacity: 1; }
+  100% { opacity: 0; translate: 0 -46vh; scale: 1.08; }
+}
+@keyframes online-reaction-impact {
+  0% { opacity: 0; translate: 0 20px; scale: 1.8; }
+  10% { opacity: 1; translate: 0 0; scale: .92; }
+  18%, 72% { opacity: 1; scale: 1; }
+  100% { opacity: 0; translate: 0 -34vh; scale: 1.16; }
+}
+body.online-emergency-paused::before {
+  position: fixed;
+  inset: 0;
+  z-index: 116;
+  display: grid;
+  place-items: center;
+  border: 8px solid rgba(255, 74, 99, .72);
+  background: rgba(3, 6, 11, .52);
+  color: #fff;
+  content: "MATCH PAUSED";
+  font-size: clamp(30px, 6vw, 86px);
+  font-weight: 1000;
+  text-shadow: 0 3px 0 #8c1326, 0 0 26px rgba(255, 70, 96, .72);
+  pointer-events: none;
+}
 .online-session-bar .online-mode-badge {
   flex: 0 0 auto;
   justify-content: center;
@@ -691,9 +835,29 @@ body.online-active .online-session-presence { display: none; }
   .online-room-list { grid-template-columns: 1fr; }
   .online-room-teams { grid-template-columns: 1fr; }
   .online-seat-buttons { grid-template-columns: 1fr; }
+  .online-connection-row { grid-template-columns: 10px minmax(0, 1fr) 72px; }
+  .online-connection-row time { display: none; }
+  .online-control-grid { grid-template-columns: 1fr; }
+  .online-control-action { min-height: 70px; }
+  .online-reaction-menu { right: -52px; grid-template-columns: repeat(2, minmax(88px, 1fr)); width: min(250px, calc(100vw - 24px)); }
   .online-create-members { grid-template-columns: 1fr; }
   .online-create-footer { align-items: stretch; flex-direction: column; }
   .online-session-bar { top: 4px; }
+  .online-session-bar.play-floating {
+    left: 5px;
+    right: 5px;
+    top: auto;
+    bottom: 5px;
+    width: auto;
+    max-width: none;
+    flex-direction: row;
+    flex-wrap: wrap;
+    transform: none;
+  }
+  .online-session-bar.play-floating .online-simple-button,
+  .online-session-bar.play-floating .online-mode-badge,
+  .online-session-bar.play-floating .online-reaction-control { width: auto; }
+  .online-session-bar.play-floating .online-reaction-menu { right: 0; top: auto; bottom: calc(100% + 8px); }
   body.online-room-draft .setup-top-center .online-session-bar { width: 100%; max-width: 100%; }
   body.online-room-draft .setup-top-center .online-session-bar { justify-content: center; }
   body.online-room-draft .online-session-name,

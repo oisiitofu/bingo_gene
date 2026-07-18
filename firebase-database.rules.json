@@ -26,6 +26,15 @@
           ".validate": "!newData.exists() || newData.hasChildren(['active', 'phase', 'updatedAt'])"
         }
       },
+      "reactions": {
+        "$roomId": {
+          ".indexOn": ["createdAt", "expiresAt"],
+          "$reactionId": {
+            ".write": "auth != null && ((!data.exists() && newData.exists() && root.child('teamBingoV1').child('rooms').child($roomId).child('participants').child(auth.uid).exists() && newData.child('actorUid').val() === auth.uid) || (data.exists() && !newData.exists() && (data.child('actorUid').val() === auth.uid || root.child('teamBingoV1').child('rooms').child($roomId).child('meta').child('masterUid').val() === auth.uid || (root.child('teamBingoV1').child('adminSessions').child(auth.uid).child('expiresAt').isNumber() && root.child('teamBingoV1').child('adminSessions').child(auth.uid).child('expiresAt').val() > now))))",
+            ".validate": "!newData.exists() || (newData.hasChildren(['id', 'type', 'actorUid', 'actorName', 'role', 'createdAt', 'expiresAt']) && newData.child('id').val() === $reactionId && newData.child('actorUid').val() === auth.uid && newData.child('actorName').isString() && newData.child('actorName').val().length <= 32 && (newData.child('role').val() === 'master' || newData.child('role').val() === 'player' || newData.child('role').val() === 'spectator') && (newData.child('team').val() === null || newData.child('team').val() === '' || newData.child('team').val() === 'red' || newData.child('team').val() === 'blue') && (newData.child('type').val() === 'clap' || newData.child('type').val() === 'nice' || newData.child('type').val() === 'hype' || newData.child('type').val() === 'cheer' || newData.child('type').val() === 'bingo' || newData.child('type').val() === 'comeback' || newData.child('type').val() === 'pray' || newData.child('type').val() === 'gg') && newData.child('createdAt').isNumber() && newData.child('expiresAt').isNumber() && newData.child('expiresAt').val() > newData.child('createdAt').val() && newData.child('expiresAt').val() <= newData.child('createdAt').val() + 15000)"
+          }
+        }
+      },
       "statsWriters": {
         "$uid": {
           ".write": "auth != null && auth.uid === $uid && (!newData.exists() || (newData.child('uid').val() === auth.uid && newData.child('roomId').isString() && root.child('teamBingoV1').child('rooms').child(newData.child('roomId').val()).child('participants').child(auth.uid).exists()))",

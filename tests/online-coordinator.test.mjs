@@ -1,7 +1,15 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 
-import { applyMockPresenceDisconnect, FirebaseBackend, MockBackend, OnlineCoordinator } from "../online/online-room.js";
+import {
+  applyMockPresenceDisconnect,
+  buildOnlineConnectionRows,
+  FirebaseBackend,
+  MockBackend,
+  normalizeOnlineReactionType,
+  ONLINE_REACTIONS,
+  OnlineCoordinator
+} from "../online/online-room.js";
 
 const clone = (value) => value === undefined ? undefined : JSON.parse(JSON.stringify(value));
 
@@ -215,6 +223,56 @@ test("online busy state notifies the app bridge", () => {
 
   assert.equal(coordinator.isBusy(), false);
   assert.deepEqual(changes, [true, false]);
+});
+
+test("online reaction types are a closed allowlist", () => {
+  assert.equal(ONLINE_REACTIONS.length, 8);
+  assert.equal(normalizeOnlineReactionType("HYPE"), "hype");
+  assert.equal(normalizeOnlineReactionType("unknown"), "");
+});
+
+test("connection rows put online participants and the master first", () => {
+  const now = 100000;
+  const rows = buildOnlineConnectionRows({
+    meta: { masterUid: "master" },
+    participants: {
+      offline: { uid: "offline", role: "player", team: "blue", memberName: "Old", online: false, lastSeenAt: 40000 },
+      guest: { uid: "guest", role: "spectator", memberName: "観戦", online: true, lastSeenAt: 99000 },
+      master: { uid: "master", role: "master", team: "red", memberName: "Host", online: true, lastSeenAt: 100000 }
+    }
+  }, now);
+
+  assert.deepEqual(rows.map((row) => row.uid), ["master", "guest", "offline"]);
+  assert.equal(rows[0].role, "master");
+  assert.equal(rows[2].lastSeenMs, 60000);
+});
+
+test("spectators can send allowlisted reactions without mutating the room", async () => {
+  const store = createStore();
+  store.value.teamBingoV1.rooms.ROOM.participants.guest.role = "spectator";
+  store.value.teamBingoV1.rooms.ROOM.participants.guest.team = "";
+  const spectator = createCoordinator(store, "guest", "spectator", "");
+  spectator.memberName = "観戦";
+  spectator.seenReactionIds = new Set();
+  spectator.lastReactionSentAt = 0;
+  spectator.showReaction = (reaction) => { spectator.lastReaction = clone(reaction); };
+
+  const sent = await spectator.sendReaction("nice");
+  const reactions = store.value.teamBingoV1.reactions.ROOM;
+
+  assert.equal(sent, true);
+  assert.equal(Object.values(reactions)[0].type, "nice");
+  assert.equal(Object.values(reactions)[0].role, "spectator");
+  assert.equal(spectator.lastReaction.actorName, "観戦");
+  assert.equal(store.value.teamBingoV1.rooms.ROOM.meta.revision, 0);
+});
+
+test("unknown reactions are rejected before any database write", async () => {
+  const store = createStore();
+  const player = createCoordinator(store, "guest", "player", "blue");
+  player.seenReactionIds = new Set();
+  assert.equal(await player.sendReaction("DROP TABLE"), false);
+  assert.equal(store.value.teamBingoV1.reactions, undefined);
 });
 
 function prepareJoinCoordinator(store, uid, deviceId) {

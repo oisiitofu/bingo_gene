@@ -6836,6 +6836,7 @@
       blue: createTeamState("blue"),
       gameStarted: false,
       inputLocked: false,
+      emergencyPaused: false,
       winner: null,
       readyShown: false,
       ranking: {},
@@ -7424,6 +7425,8 @@
 
     function clearMatchState() {
       resetMatchPresentation();
+      state.emergencyPaused = false;
+      document.body.classList.remove("online-emergency-paused");
       state.winner = null;
       state.lastOpenTeam = null;
       state.streak = 0;
@@ -7601,6 +7604,8 @@
       }
       state.gameStarted = false;
       state.inputLocked = false;
+      state.emergencyPaused = false;
+      document.body.classList.remove("online-emergency-paused");
       state.winner = null;
       onlineLastVictory = null;
       state.pendingSkill = null;
@@ -11765,6 +11770,9 @@
         getOnlineSoundEnabled: () => state.soundEnabled,
         toggleOnlineSound: () => toggleSound(),
         showOnlineMessage: (main, sub) => showCommentary(main, sub, 7000),
+        setEmergencyPause,
+        skipOnlinePresentation,
+        onOnlineReaction: () => {},
         setOnlineSession,
         setRoomDraftMode: (active) => {
           els.setupStartButton.textContent = active ? "ROOM CREATE" : "GAME START";
@@ -11854,6 +11862,30 @@
       };
     }
 
+    function setEmergencyPause(paused) {
+      if (!state.gameStarted || !state.readyShown || state.winner) return false;
+      state.emergencyPaused = Boolean(paused);
+      state.inputLocked = state.emergencyPaused;
+      document.body.classList.toggle("online-emergency-paused", state.emergencyPaused);
+      renderAll();
+      showCommentary(
+        state.emergencyPaused ? "MATCH PAUSED" : "MATCH RESUME",
+        state.emergencyPaused ? "マスターが試合を一時停止しました。" : "試合を再開します。",
+        5000
+      );
+      return true;
+    }
+
+    function skipOnlinePresentation(options = {}) {
+      if (!state.gameStarted || state.winner) return false;
+      resetMatchPresentation();
+      state.readyShown = true;
+      state.inputLocked = Boolean(state.emergencyPaused);
+      renderAll();
+      if (options.announce) showCommentary("FX SKIPPED", "現在の演出を終了しました。", 3500);
+      return true;
+    }
+
     function applyOnlineSetupSnapshot(snapshot, options = {}) {
       if (!snapshot || typeof snapshot !== "object") return;
       if (Number(snapshot.gridSize) === 5 || Number(snapshot.gridSize) === 7) state.gridSize = Number(snapshot.gridSize);
@@ -11880,6 +11912,7 @@
         gridSize: state.gridSize,
         gameStarted: state.gameStarted,
         inputLocked: state.inputLocked,
+        emergencyPaused: state.emergencyPaused,
         winner: state.winner,
         readyShown: state.readyShown,
         red: serializeOnlineTeam(state.red),
@@ -11935,6 +11968,7 @@
       state.gridSize = Number(snapshot.gridSize) === 7 ? 7 : 5;
       state.gameStarted = Boolean(snapshot.gameStarted);
       state.inputLocked = Boolean(snapshot.inputLocked);
+      state.emergencyPaused = Boolean(snapshot.emergencyPaused);
       state.winner = snapshot.winner || null;
       state.readyShown = Boolean(snapshot.readyShown);
       hydrateOnlineTeam("red", snapshot.red);
@@ -11953,6 +11987,7 @@
       onlineLastVictory = cloneOnlineValue(snapshot.lastVictory || null);
       state.pendingSkill = hydrateOnlineSkillRef(snapshot.pendingSkill);
       state.nextOpenSkill = hydrateOnlineSkillRef(snapshot.nextOpenSkill);
+      document.body.classList.toggle("online-emergency-paused", state.emergencyPaused);
       syncTeamMemberIndexes();
       updateGridButtons();
       renderSetupPreview();
@@ -12066,6 +12101,9 @@
       }
       if (type === "activate-skill") event.effects.push("skill");
       if (type === "hype-voice") event.effects.push("hype-voice");
+      if (type === "emergency-pause") event.effects.push("emergency-pause");
+      if (type === "emergency-skip") event.effects.push("emergency-skip");
+      if (type === "emergency-force-sync") event.effects.push("emergency-sync");
       if (type.includes("shuffle")) event.effects.push("shuffle");
       if (!before?.winner && after?.winner) {
         event.effects.push("victory");
@@ -12125,6 +12163,11 @@
         if (skill) enqueueEffect(() => showSkillActivation(payload.team, skill));
       }
       if (effects.has("hype-voice")) playAudio("hype");
+      if (effects.has("emergency-pause")) {
+        showCommentary(payload.paused ? "MATCH PAUSED" : "MATCH RESUME", payload.paused ? "マスターが試合を一時停止しました。" : "試合を再開します。", 5000);
+      }
+      if (effects.has("emergency-skip")) skipOnlinePresentation({ announce: true });
+      if (effects.has("emergency-sync")) showCommentary("SYNC COMPLETE", "全端末の試合状態を再同期しました。", 3500);
       if (effects.has("first-bingo") && !effects.has("reach") && !effects.has("victory")) enqueueEffect(() => showFirstBingo(payload.team));
       if (effects.has("reach") && !effects.has("victory")) enqueueEffect(() => showReach(payload.team, { syncState: false }));
       if (effects.has("fever") && !effects.has("victory")) enqueueEffect(() => showFeverTime(payload.team, { syncState: false }));
