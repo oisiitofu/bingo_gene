@@ -280,7 +280,17 @@ test("count backup round-trips ranking, player, rivalry, and recent match data",
         }
       },
       recentMatches: [
-        { id: "match-1", winner: "red", endedAt: "2026-07-17T10:00:00.000Z" }
+        {
+          id: "match-1",
+          winner: "red",
+          endedAt: "2026-07-17T10:00:00.000Z",
+          replay: {
+            gridSize: 5,
+            red: { card: [{ id: 53, free: false }] },
+            blue: { card: [{ id: 69, free: false }] },
+            timeline: [{ type: "open", team: "red", index: 0, characterId: 53 }]
+          }
+        }
       ]
     }
   });
@@ -292,6 +302,7 @@ test("count backup round-trips ranking, player, rivalry, and recent match data",
   assert.equal(restored.playerStats.rivalries["jan-vs-eda"].games, 3);
   assert.deepEqual(restored.playerStats.rivalries["jan-vs-eda"].wins, { jan: 2, eda: 1 });
   assert.equal(restored.playerStats.recentMatches[0].id, "match-1");
+  assert.equal(restored.playerStats.recentMatches[0].replay.timeline[0].characterId, 53);
 });
 
 test("a changed match id resets stale victory presentation even after READY", () => {

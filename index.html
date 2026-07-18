@@ -4694,6 +4694,69 @@
       margin-top: 14px;
     }
 
+    .stats-match-section { grid-column: 1 / -1; }
+    .stats-match-list { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; }
+    .stats-match-card {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) auto;
+      align-items: center;
+      gap: 10px;
+      min-height: 78px;
+      padding: 10px 11px;
+      border: 1px solid rgba(255,255,255,.15);
+      border-left: 4px solid var(--gold);
+      background: rgba(255,255,255,.07);
+    }
+    .stats-match-card.red { border-left-color: #ff405d; }
+    .stats-match-card.blue { border-left-color: #408cff; }
+    .stats-match-title { color: #fff; font-size: 14px; font-weight: 1000; overflow-wrap: anywhere; }
+    .stats-match-title span { color: rgba(248,250,252,.56); padding: 0 5px; font-size: 10px; }
+    .stats-match-meta { margin-top: 5px; color: rgba(248,250,252,.64); font-size: 10px; font-weight: 900; }
+    .stats-match-card .btn { min-width: 86px; min-height: 34px; padding: 7px 10px; font-size: 10px; }
+
+    .replay-modal-card {
+      width: min(1120px, 96vw);
+      max-height: min(92vh, 900px);
+      overflow: auto;
+      padding: 16px;
+    }
+    .replay-summary {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 12px;
+      padding: 10px;
+      border: 1px solid rgba(255,255,255,.16);
+      background: rgba(255,255,255,.06);
+    }
+    .replay-team { min-width: 0; color: #fff; font-size: 15px; font-weight: 1000; overflow-wrap: anywhere; }
+    .replay-team.blue { text-align: right; }
+    .replay-score { color: #fff8c2; font-size: 28px; font-weight: 1000; text-shadow: 0 2px 0 #050711; }
+    .replay-stage { display: grid; grid-template-columns: minmax(0, 1fr) 280px; gap: 12px; }
+    .replay-boards { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
+    .replay-board-panel { min-width: 0; padding: 8px; border: 1px solid rgba(255,255,255,.16); background: #0c111c; }
+    .replay-board-title { margin-bottom: 7px; color: #fff; font-size: 11px; font-weight: 1000; }
+    .replay-board { display: grid; grid-template-columns: repeat(var(--replay-size, 5), minmax(0, 1fr)); gap: 3px; aspect-ratio: 1; }
+    .replay-cell { position: relative; min-width: 0; overflow: hidden; border: 1px solid rgba(255,255,255,.2); background: #f7f8fb; }
+    .replay-cell img { width: 100%; height: 100%; object-fit: contain; }
+    .replay-free { display: grid; width: 100%; height: 100%; place-items: center; color: #fff; background: #202a3a; font-size: clamp(7px, 1vw, 11px); font-weight: 1000; }
+    .replay-cell.marked { background: #141925; filter: saturate(.65) brightness(.58); }
+    .replay-cell.marked::after { position: absolute; inset: 20%; border: 2px solid #fff; content: ""; transform: rotate(45deg); box-shadow: 0 0 8px #fff; }
+    .replay-cell.special { border: 2px solid #f4cf5d; box-shadow: inset 0 0 8px #f4cf5d; }
+    .replay-timeline { display: grid; align-content: start; gap: 5px; max-height: 430px; overflow: auto; }
+    .replay-event { padding: 7px 8px; border-left: 3px solid #697589; background: rgba(255,255,255,.07); color: rgba(248,250,252,.7); font-size: 10px; font-weight: 850; }
+    .replay-event.red { border-left-color: #ff405d; }
+    .replay-event.blue { border-left-color: #408cff; }
+    .replay-event.active { background: rgba(249,199,79,.2); color: #fff; box-shadow: inset 0 0 0 1px rgba(249,199,79,.45); }
+    .replay-event b { display: block; color: #fff; font-size: 11px; }
+    .replay-controls { display: grid; grid-template-columns: auto auto minmax(120px, 1fr) auto; align-items: center; gap: 7px; margin-top: 12px; }
+    .replay-controls .btn { min-height: 36px; padding: 7px 11px; font-size: 10px; }
+    .replay-controls input { width: 100%; accent-color: var(--gold); }
+    .replay-step-label { min-width: 64px; color: #fff8c2; font-size: 10px; font-weight: 1000; text-align: right; }
+    .intro-statline:not(:empty) { display: flex; }
+    .intro-statline.rivalry-active { border-color: rgba(255,255,255,.68); animation: introMvpGlow 1.1s ease-in-out infinite alternate; }
+
     .stats-section {
       min-width: 0;
       padding: 12px;
@@ -5917,6 +5980,9 @@
       .match-result-grid {
         grid-template-columns: 1fr;
       }
+      .stats-match-list { grid-template-columns: 1fr; }
+      .replay-stage { grid-template-columns: 1fr; }
+      .replay-timeline { max-height: 220px; }
 
       .intro-commentator-wrap {
         right: 0;
@@ -6010,6 +6076,10 @@
       .match-result-grid {
         grid-template-columns: 1fr;
       }
+      .replay-summary { grid-template-columns: 1fr auto 1fr; }
+      .replay-boards { gap: 5px; }
+      .replay-controls { grid-template-columns: auto auto 1fr; }
+      .replay-step-label { grid-column: 1 / -1; justify-self: end; }
     }
   </style>
 </head>
@@ -6353,6 +6423,33 @@
           <h3>RIVALRY CARDS</h3>
           <div class="stats-rivalry-list" id="statsRivalryList"></div>
         </section>
+        <section class="stats-section stats-match-section">
+          <h3>MATCH HISTORY</h3>
+          <div class="stats-match-list" id="statsMatchList"></div>
+        </section>
+      </div>
+    </div>
+  </section>
+
+  <section class="modal" id="matchReplayModal" aria-hidden="true">
+    <div class="modal-card replay-modal-card">
+      <div class="stats-head">
+        <div>
+          <h2>MATCH REPLAY</h2>
+          <p id="replayMatchMeta"></p>
+        </div>
+        <button type="button" class="btn primary" id="replayCloseButton">CLOSE</button>
+      </div>
+      <div class="replay-summary" id="replaySummary"></div>
+      <div class="replay-stage">
+        <div class="replay-boards" id="replayBoards"></div>
+        <div class="replay-timeline" id="replayTimeline"></div>
+      </div>
+      <div class="replay-controls">
+        <button type="button" class="btn frame" id="replayPrevButton">PREV</button>
+        <button type="button" class="btn primary" id="replayPlayButton">PLAY</button>
+        <input id="replayRange" type="range" min="0" max="0" value="0" aria-label="リプレイ位置" />
+        <span class="replay-step-label" id="replayStepLabel">0 / 0</span>
       </div>
     </div>
   </section>
@@ -6873,6 +6970,9 @@
       commentaryFaceIndex: -1,
       usedTofuVoiceLines: [],
       matchStatsFinalized: false,
+      activeReplayMatchId: "",
+      activeReplayStep: 0,
+      replayTimer: null,
       openedByPopoverTimer: null,
       currentOpenAttribution: null,
       tofuCopyrightMode: false
@@ -6924,6 +7024,7 @@
         startedAt: "",
         endedAt: "",
         highlights: [],
+        replay: null,
         players: { red: {}, blue: {} }
       };
     }
@@ -6934,6 +7035,7 @@
         ...createMatchTracker(),
         ...cloneOnlineValue(source),
         highlights: Array.isArray(source.highlights) ? cloneOnlineValue(source.highlights) : [],
+        replay: normalizeMatchReplay(source.replay),
         players: { red: {}, blue: {} }
       };
       ["red", "blue"].forEach((team) => {
@@ -6992,7 +7094,9 @@
         "skillOverlay", "skillTitleArt", "skillTeamLine", "skillMemberLine",
         "victoryOverlay", "victoryTeam", "victoryPraise", "victorySpecialBadge", "mvpImage", "mvpName", "mvpTitle", "winnerTitles", "victoryResultPanel",
         "closeVictoryButton",
-        "statsModal", "statsSummary", "statsPlayerList", "statsHighlightList", "statsRivalryList", "statsCloseButton",
+        "statsModal", "statsSummary", "statsPlayerList", "statsHighlightList", "statsRivalryList", "statsMatchList", "statsCloseButton",
+        "matchReplayModal", "replayMatchMeta", "replaySummary", "replayBoards", "replayTimeline", "replayCloseButton",
+        "replayPrevButton", "replayPlayButton", "replayRange", "replayStepLabel",
         "feverAura", "fxLayer", "openedByPopover", "victoryParticles", "setupThemePlayer", "copyrightToggle"
       ].forEach((id) => { els[id] = document.getElementById(id); });
       els.players = Array.from(document.querySelectorAll("#playerInputs input"));
@@ -7050,6 +7154,14 @@
         button.addEventListener("click", () => loadDeckFromInput(button.dataset.loadDeck));
       });
       els.statsCloseButton.addEventListener("click", () => hideModal(els.statsModal));
+      els.statsMatchList?.addEventListener("click", (event) => {
+        const button = event.target.closest("[data-replay-match]");
+        if (button) openMatchReplay(button.dataset.replayMatch);
+      });
+      els.replayCloseButton?.addEventListener("click", closeMatchReplay);
+      els.replayPrevButton?.addEventListener("click", () => setReplayStep(state.activeReplayStep - 1));
+      els.replayPlayButton?.addEventListener("click", toggleReplayPlayback);
+      els.replayRange?.addEventListener("input", (event) => setReplayStep(Number(event.target.value)));
       document.querySelectorAll("[data-opener-row]").forEach((row) => {
         row.addEventListener("click", (event) => {
           const button = event.target.closest("[data-opener-index]");
@@ -8192,6 +8304,7 @@
       if (side.marked[index]) {
         const openerKeys = getOpenedByKeys(side, index);
         side.marked[index] = false;
+        if (!state.winner) recordReplayStep("close", { team, index, characterId: cell.id, title: `${cell.id} CLOSE` });
         if (!isSpecialCell) {
           recordClose(cell.id);
           recordPlayerClose(openerKeys, cell.id);
@@ -8235,6 +8348,14 @@
       const openerName = options.openerName || getActivePlayerName(team);
       const openerKey = playerStatsKey(openerName);
       side.openedBy.set(index, [openerKey]);
+      recordReplayStep("open", {
+        team,
+        index,
+        characterId: cell.id,
+        openerName,
+        title: `${cell.id} OPEN`,
+        sub: openerName
+      });
       if (!isSpecialCell) {
         recordOpen(cell.id);
         recordPlayerOpen(openerName, cell.id, team);
@@ -8306,6 +8427,8 @@
           mvp: cloneOnlineValue(preparedMvp),
           presentation: createVictoryPresentation(team, victoryKind, preparedMvp)
         };
+        addMatchHighlight("victory", `${getTeamLabel(team)} VICTORY`, `${preparedMvp.name} がMVP`, team, preparedMvp.imageId);
+        recordVictory(team, victoryKind, preparedMvp.name);
         enqueueEffect(() => finishGame(team, victoryKind, victoryMvpHint));
         return;
       }
@@ -8362,6 +8485,15 @@
       }
       const skillId = pending.skill?.profile?.id || "special";
       side.specialCells.set(index, skillId);
+      recordReplayStep("special", {
+        team: pending.team,
+        index,
+        characterId: cell.id,
+        openerName: pending.skill.member,
+        skillId,
+        title: `${pending.skill.member} SPECIAL`,
+        sub: `${cell.id}番を特殊マスに変更`
+      });
       recordPlayerSpecialCell(pending.skill.member, cell.id, pending.team);
       state.pendingSkill = null;
       addMatchHighlight("skill", `${pending.skill.member} SPECIAL CELL`, `${cell.id}番を特殊マスにした`, pending.team, cell.id);
@@ -9171,8 +9303,10 @@
         ? cloneOnlineValue(onlineLastVictory.presentation)
         : createVictoryPresentation(team, victoryKind, mvp);
       onlineLastVictory = { team, victoryKind, mvp: cloneOnlineValue(mvp), presentation: victoryPresentation };
-      addMatchHighlight("victory", `${getTeamLabel(team)} VICTORY`, `${mvp.name} がMVP`, team, mvp.imageId);
-      recordVictory(team, victoryKind, mvp.name);
+      if (!state.matchStatsFinalized) {
+        addMatchHighlight("victory", `${getTeamLabel(team)} VICTORY`, `${mvp.name} がMVP`, team, mvp.imageId);
+        recordVictory(team, victoryKind, mvp.name);
+      }
       renderAll();
       const special = getVictorySpecial(victoryKind);
       showCommentary(special.commentTitle || "VICTORY！", special.commentSub || `${state[team].teamTitle} が2ライン達成。`, 12000);
@@ -9401,8 +9535,7 @@
       els.versusRedMembers.innerHTML = renderIntroMembers("red");
       els.versusBlueName.textContent = state.blue.teamTitle;
       els.versusBlueMembers.innerHTML = renderIntroMembers("blue");
-      if (els.versusRedStats) els.versusRedStats.innerHTML = "";
-      if (els.versusBlueStats) els.versusBlueStats.innerHTML = "";
+      renderIntroRivalry();
       applyIntroNameFit(els.versusRedName, state.red.teamTitle);
       applyIntroNameFit(els.versusBlueName, state.blue.teamTitle);
       playAudio("intro");
@@ -9433,6 +9566,40 @@
       const recent = state.playerStats?.recentMatches || [];
       const match = recent.find((item) => item && typeof item.mvpName === "string" && item.mvpName.trim());
       return match?.mvpName || "";
+    }
+
+    function getFeaturedRivalryForCurrentMatch() {
+      const candidates = [];
+      getUniqueTeamMembers("red").forEach((redName) => {
+        const redKey = playerStatsKey(redName);
+        getUniqueTeamMembers("blue").forEach((blueName) => {
+          const blueKey = playerStatsKey(blueName);
+          const rivalryKey = [redKey, blueKey].sort().join("::");
+          const record = state.playerStats.rivalries?.[rivalryKey];
+          if (!record || Number(record.games) < 2) return;
+          candidates.push({
+            redName,
+            blueName,
+            redWins: Number(record.wins?.[redKey]) || 0,
+            blueWins: Number(record.wins?.[blueKey]) || 0,
+            games: Number(record.games) || 0,
+            lastPlayedAt: record.lastPlayedAt || ""
+          });
+        });
+      });
+      return candidates.sort((a, b) => b.games - a.games || String(b.lastPlayedAt).localeCompare(String(a.lastPlayedAt)))[0] || null;
+    }
+
+    function renderIntroRivalry() {
+      const rivalry = getFeaturedRivalryForCurrentMatch();
+      [els.versusRedStats, els.versusBlueStats].forEach((element) => {
+        if (!element) return;
+        element.classList.toggle("rivalry-active", Boolean(rivalry));
+        element.innerHTML = "";
+      });
+      if (!rivalry) return;
+      els.versusRedStats.innerHTML = `<span>RIVALRY</span> ${escapeHtml(rivalry.redName)} <b>${rivalry.redWins}</b>`;
+      els.versusBlueStats.innerHTML = `<b>${rivalry.blueWins}</b> ${escapeHtml(rivalry.blueName)} <span>${rivalry.games} GAMES</span>`;
     }
 
     function buildIntroHypeHtml(team) {
@@ -10319,9 +10486,44 @@
           winnerTitle: typeof match.winnerTitle === "string" ? match.winnerTitle : "",
           victoryKind: typeof match.victoryKind === "string" ? match.victoryKind : "normal",
           mvpName: typeof match.mvpName === "string" ? match.mvpName : "",
-          highlights: Array.isArray(match.highlights) ? match.highlights.slice(0, 40) : []
+          highlights: Array.isArray(match.highlights) ? match.highlights.slice(0, 40) : [],
+          replay: normalizeMatchReplay(match.replay)
         }))
         .slice(0, 20);
+    }
+
+    function normalizeMatchReplay(value) {
+      if (!value || typeof value !== "object") return null;
+      const gridSize = Number(value.gridSize) === 7 ? 7 : 5;
+      const normalizeSide = (side, fallbackTitle) => ({
+        title: String(side?.title || fallbackTitle).slice(0, 48),
+        members: Array.isArray(side?.members) ? side.members.map((name) => normalizePlayerName(name)).slice(0, 4) : [],
+        card: Array.isArray(side?.card) ? side.card.slice(0, gridSize * gridSize).map((cell) => ({
+          id: Number(cell?.id) || 0,
+          free: Boolean(cell?.free)
+        })) : []
+      });
+      const timeline = Array.isArray(value.timeline) ? value.timeline.slice(0, 140).map((item) => ({
+        type: String(item?.type || "event").slice(0, 24),
+        team: item?.team === "blue" ? "blue" : (item?.team === "red" ? "red" : ""),
+        index: Number.isInteger(Number(item?.index)) ? Number(item.index) : -1,
+        characterId: Number(item?.characterId) || null,
+        openerName: String(item?.openerName || "").slice(0, 32),
+        skillId: String(item?.skillId || "").slice(0, 24),
+        title: String(item?.title || "").slice(0, 80),
+        sub: String(item?.sub || "").slice(0, 120),
+        elapsedMs: Math.max(0, Number(item?.elapsedMs) || 0)
+      })) : [];
+      return {
+        gridSize,
+        red: normalizeSide(value.red, "RED TEAM"),
+        blue: normalizeSide(value.blue, "BLUE TEAM"),
+        finalScore: {
+          red: Math.max(0, Number(value.finalScore?.red) || 0),
+          blue: Math.max(0, Number(value.finalScore?.blue) || 0)
+        },
+        timeline
+      };
     }
 
     function toStatNumber(value) {
@@ -10434,6 +10636,25 @@
       };
       state.matchTracker.highlights.push(item);
       if (state.matchTracker.highlights.length > 40) state.matchTracker.highlights.shift();
+      recordReplayStep(type, { title: item.title, sub: item.sub, team: item.team, characterId: item.characterId });
+    }
+
+    function recordReplayStep(type, detail = {}) {
+      const replay = state.matchTracker?.replay;
+      if (!replay || !Array.isArray(replay.timeline)) return;
+      const startedAt = new Date(state.matchTracker.startedAt || Date.now()).getTime();
+      replay.timeline.push({
+        type: String(type || "event"),
+        team: detail.team === "red" || detail.team === "blue" ? detail.team : "",
+        index: Number.isInteger(Number(detail.index)) ? Number(detail.index) : -1,
+        characterId: Number(detail.characterId) || null,
+        openerName: String(detail.openerName || ""),
+        skillId: String(detail.skillId || ""),
+        title: String(detail.title || ""),
+        sub: String(detail.sub || ""),
+        elapsedMs: Math.max(0, Date.now() - startedAt)
+      });
+      if (replay.timeline.length > 140) replay.timeline.shift();
     }
 
     function getMatchPlayerEntries(team) {
@@ -10557,6 +10778,21 @@
     function recordMatchStart() {
       state.matchTracker = createMatchTracker();
       state.matchTracker.startedAt = new Date().toISOString();
+      state.matchTracker.replay = {
+        gridSize: state.gridSize,
+        red: {
+          title: state.red.teamTitle,
+          members: [...state.red.members],
+          card: state.red.card.map((cell) => ({ id: Number(cell?.id) || 0, free: Boolean(cell?.free) }))
+        },
+        blue: {
+          title: state.blue.teamTitle,
+          members: [...state.blue.members],
+          card: state.blue.card.map((cell) => ({ id: Number(cell?.id) || 0, free: Boolean(cell?.free) }))
+        },
+        finalScore: { red: 0, blue: 0 },
+        timeline: []
+      };
       ["red", "blue"].forEach((team) => {
         getUniqueTeamMembers(team).forEach((member) => {
           const stat = getPlayerStat(member);
@@ -10646,8 +10882,10 @@
         winnerTitle: state[winnerTeam].teamTitle,
         victoryKind,
         mvpName,
-        highlights: state.matchTracker.highlights.slice(-24)
+        highlights: state.matchTracker.highlights.slice(-24),
+        replay: cloneOnlineValue(state.matchTracker.replay)
       };
+      if (match.replay) match.replay.finalScore = { red: state.red.bingoCount, blue: state.blue.bingoCount };
       state.playerStats.recentMatches = [match, ...(state.playerStats.recentMatches || [])].slice(0, 20);
     }
 
@@ -10769,6 +11007,7 @@
           ? rivalries.map(renderRivalryCard).join("")
           : `<div class="stats-empty">因縁カードはまだありません。</div>`;
       }
+      if (els.statsMatchList) renderMatchHistory();
     }
 
     function getTodayHighlights(limit = 12) {
@@ -10821,6 +11060,154 @@
           <div class="rival-meta">GAMES ${record.games}${lastWinner ? ` / LAST WIN ${escapeHtml(lastWinner)}` : ""}</div>
         </article>
       `;
+    }
+
+    function renderMatchHistory() {
+      const matches = state.playerStats.recentMatches || [];
+      els.statsMatchList.innerHTML = matches.length ? matches.map((match) => {
+        const replay = match.replay;
+        const redTitle = replay?.red?.title || (match.winnerTeam === "red" ? match.winnerTitle : "RED TEAM");
+        const blueTitle = replay?.blue?.title || (match.winnerTeam === "blue" ? match.winnerTitle : "BLUE TEAM");
+        const kind = match.victoryKind === "straight" ? "STRAIGHT" : (match.victoryKind === "comeback" ? "COMEBACK" : "VICTORY");
+        const date = formatMatchDate(match.endedAt || match.startedAt);
+        return `<article class="stats-match-card ${match.winnerTeam}">
+          <div>
+            <div class="stats-match-title">${escapeHtml(redTitle)} <span>VS</span> ${escapeHtml(blueTitle)}</div>
+            <div class="stats-match-meta">${escapeHtml(date)} / ${kind}${match.mvpName ? ` / MVP ${escapeHtml(match.mvpName)}` : ""}</div>
+          </div>
+          <button type="button" class="btn frame" data-replay-match="${escapeHtml(match.id)}">${replay?.timeline?.length ? "REPLAY" : "HIGHLIGHT"}</button>
+        </article>`;
+      }).join("") : `<div class="stats-empty">完了した試合の履歴はまだありません。</div>`;
+    }
+
+    function formatMatchDate(value) {
+      const date = new Date(value || "");
+      if (Number.isNaN(date.getTime())) return "DATE UNKNOWN";
+      return date.toLocaleString("ja-JP", { month: "2-digit", day: "2-digit", hour: "2-digit", minute: "2-digit" });
+    }
+
+    function getReplayMatch() {
+      return (state.playerStats.recentMatches || []).find((match) => match.id === state.activeReplayMatchId) || null;
+    }
+
+    function getReplayTimeline(match) {
+      if (match?.replay?.timeline?.length) return match.replay.timeline;
+      return (match?.highlights || []).map((item) => ({
+        ...item,
+        elapsedMs: Math.max(0, new Date(item.at || 0).getTime() - new Date(match.startedAt || 0).getTime())
+      }));
+    }
+
+    function openMatchReplay(matchId) {
+      const match = (state.playerStats.recentMatches || []).find((item) => item.id === matchId);
+      if (!match) return;
+      stopReplayPlayback();
+      state.activeReplayMatchId = matchId;
+      state.activeReplayStep = 0;
+      renderMatchReplay();
+      showModal(els.matchReplayModal);
+    }
+
+    function closeMatchReplay() {
+      stopReplayPlayback();
+      hideModal(els.matchReplayModal);
+      state.activeReplayMatchId = "";
+      state.activeReplayStep = 0;
+    }
+
+    function setReplayStep(value) {
+      const match = getReplayMatch();
+      if (!match) return;
+      const total = getReplayTimeline(match).length;
+      state.activeReplayStep = Math.max(0, Math.min(total, Number(value) || 0));
+      renderMatchReplay();
+    }
+
+    function toggleReplayPlayback() {
+      if (state.replayTimer) {
+        stopReplayPlayback();
+        renderMatchReplay();
+        return;
+      }
+      const match = getReplayMatch();
+      if (!match) return;
+      const total = getReplayTimeline(match).length;
+      if (!total) return;
+      if (state.activeReplayStep >= total) state.activeReplayStep = 0;
+      state.replayTimer = window.setInterval(() => {
+        if (state.activeReplayStep >= total) {
+          stopReplayPlayback();
+          renderMatchReplay();
+          return;
+        }
+        state.activeReplayStep += 1;
+        renderMatchReplay();
+      }, 850);
+      renderMatchReplay();
+    }
+
+    function stopReplayPlayback() {
+      if (state.replayTimer) window.clearInterval(state.replayTimer);
+      state.replayTimer = null;
+    }
+
+    function renderMatchReplay() {
+      const match = getReplayMatch();
+      if (!match || !els.matchReplayModal) return;
+      const replay = match.replay;
+      const timeline = getReplayTimeline(match);
+      const total = timeline.length;
+      state.activeReplayStep = Math.max(0, Math.min(total, state.activeReplayStep));
+      const redTitle = replay?.red?.title || (match.winnerTeam === "red" ? match.winnerTitle : "RED TEAM");
+      const blueTitle = replay?.blue?.title || (match.winnerTeam === "blue" ? match.winnerTitle : "BLUE TEAM");
+      const redScore = replay?.finalScore?.red ?? (match.winnerTeam === "red" ? 2 : 0);
+      const blueScore = replay?.finalScore?.blue ?? (match.winnerTeam === "blue" ? 2 : 0);
+      els.replayMatchMeta.textContent = `${formatMatchDate(match.endedAt || match.startedAt)}${match.mvpName ? ` / MVP ${match.mvpName}` : ""}`;
+      els.replaySummary.innerHTML = `<div class="replay-team">${escapeHtml(redTitle)}</div><div class="replay-score">${redScore} - ${blueScore}</div><div class="replay-team blue">${escapeHtml(blueTitle)}</div>`;
+      els.replayBoards.innerHTML = replay
+        ? ["red", "blue"].map((team) => renderReplayBoard(replay, timeline, team, state.activeReplayStep)).join("")
+        : `<div class="stats-empty">この試合は盤面リプレイ保存前の履歴です。</div>`;
+      els.replayTimeline.innerHTML = timeline.length ? timeline.map((item, index) => {
+        const active = index === state.activeReplayStep - 1;
+        const seconds = Math.floor((Number(item.elapsedMs) || 0) / 1000);
+        return `<div class="replay-event ${item.team || ""}${active ? " active" : ""}">
+          <b>${escapeHtml(item.title || replayEventLabel(item))}</b>
+          ${item.sub ? `<span>${escapeHtml(item.sub)}</span>` : ""}
+          <div class="highlight-meta">${seconds}s${item.openerName ? ` / ${escapeHtml(item.openerName)}` : ""}</div>
+        </div>`;
+      }).join("") : `<div class="stats-empty">保存されたハイライトはありません。</div>`;
+      els.replayRange.max = String(total);
+      els.replayRange.value = String(state.activeReplayStep);
+      els.replayRange.disabled = total === 0;
+      els.replayPrevButton.disabled = state.activeReplayStep <= 0;
+      els.replayPlayButton.disabled = total === 0;
+      els.replayPlayButton.textContent = state.replayTimer ? "PAUSE" : "PLAY";
+      els.replayStepLabel.textContent = `${state.activeReplayStep} / ${total}`;
+    }
+
+    function renderReplayBoard(replay, timeline, team, step) {
+      const side = replay[team] || {};
+      const marked = new Set();
+      const special = new Set();
+      (side.card || []).forEach((cell, index) => { if (cell.free) marked.add(index); });
+      timeline.slice(0, step).forEach((item) => {
+        if (item.team !== team || item.index < 0) return;
+        if (item.type === "open") marked.add(item.index);
+        if (item.type === "close") marked.delete(item.index);
+        if (item.type === "special") special.add(item.index);
+      });
+      const cells = (side.card || []).map((cell, index) => {
+        const content = cell.free ? `<span class="replay-free">FREE</span>` : `<img src="${imagePath(cell.id)}" alt="" />`;
+        return `<div class="replay-cell${marked.has(index) ? " marked" : ""}${special.has(index) ? " special" : ""}">${content}</div>`;
+      }).join("");
+      return `<section class="replay-board-panel"><div class="replay-board-title">${team.toUpperCase()} / ${escapeHtml(side.title || getTeamLabel(team))}</div><div class="replay-board" style="--replay-size:${replay.gridSize}">${cells}</div></section>`;
+    }
+
+    function replayEventLabel(item) {
+      const type = String(item?.type || "event").toUpperCase();
+      if (type === "OPEN" && item.characterId) return `${item.characterId} OPEN`;
+      if (type === "CLOSE" && item.characterId) return `${item.characterId} CLOSE`;
+      return type;
     }
 
     function formatStatsTime(value) {
