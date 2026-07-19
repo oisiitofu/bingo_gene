@@ -10,8 +10,19 @@
     { id: "grove", sheet: "lineage-grove.png", mature: "苔の守り手", perfect: ["深緑の騎士", "桜花シャーマン"], ultimate: ["世界樹巨神", "森羅パラディン", "桜花神", "太陽樹竜"] },
     { id: "spore", sheet: "lineage-spore.png", mature: "キノコロリン", perfect: ["猛毒道化師", "菌糸の魔女"], ultimate: ["疫病カーニバル", "毒笑クラウン", "悪夢女王", "宇宙予言者"] },
     { id: "abyss", sheet: "lineage-abyss.png", mature: "アビスシャーク", perfect: ["アンカーオルカ", "剣ヒレ"], ultimate: ["深海王オルカ", "クラーケンシャーク", "海皇", "潜水ドラゴン"] },
-    { id: "cosmic", sheet: "lineage-cosmic.png", mature: "ほしクラゲ", perfect: ["星雲魔導士", "月光マンタ"], ultimate: ["銀河神", "星座エイ", "月姫クラゲ", "黒穴タコ"] }
+    { id: "cosmic", sheet: "lineage-cosmic.png", mature: "ほしクラゲ", perfect: ["星雲魔導士", "月光マンタ"], ultimate: ["銀河神", "星座エイ", "月姫クラゲ", "黒穴タコ"] },
+    { id: "glacier", sheet: "lineage-glacier.png", mature: "氷牙ウルフ", perfect: ["凍刃フェンリル", "雪嵐キマイラ"], ultimate: ["氷皇ベオウルフ", "永久凍土ガルム", "白銀氷竜", "極光獣王"] },
+    { id: "crystal", sheet: "lineage-crystal.png", mature: "水晶フクロウ", perfect: ["宝石グリフォン", "鏡晶魔導鳥"], ultimate: ["虹晶鳳凰", "金剛賢者", "万華鏡竜", "星晶裁定者"] },
+    { id: "sky", sheet: "lineage-sky.png", mature: "蒼天グリフォン", perfect: ["雲海ペガサス", "雷雲ロック"], ultimate: ["天空王", "蒼穹神竜", "日輪ホルス", "星風ケツァル"] },
+    { id: "tempest", sheet: "lineage-tempest.png", mature: "嵐角バイソン", perfect: ["竜巻タイガー", "暴風ガルーダ"], ultimate: ["台風大帝", "天災ベヒモス", "暴嵐竜神", "雷雲巨神"] },
+    { id: "shadow", sheet: "lineage-shadow.png", mature: "月影ネコマタ", perfect: ["黒月アサシン", "夢喰いスフィンクス"], ultimate: ["冥月女帝", "夜刀神", "影獣バステト", "月蝕ケルベロス"] },
+    { id: "spirit", sheet: "lineage-spirit.png", mature: "灯火キツネ", perfect: ["百鬼オオカミ", "魂導ミコ"], ultimate: ["黄泉九尾", "鬼火大将", "千霊神狐", "幽界守護神"] },
+    { id: "candy", sheet: "lineage-candy.png", mature: "キャンディベア", perfect: ["パフェナイト", "ショコラウィッチ"], ultimate: ["菓子王国皇帝", "夢色ユニコーン", "飴細工ドラゴン", "混沌スイーツ神"] },
+    { id: "junk", sheet: "lineage-junk.png", mature: "ガラクタロボ", perfect: ["スクラップタンク", "ゼンマイ博士"], ultimate: ["廃材要塞王", "超合金ポンコツ", "爆走ジャンク竜", "終末ブリキ神"] }
   ];
+
+  const LEGENDARY_IDS = ["legend-sun", "legend-night"];
+  const LEGENDARY_CHANCE = .075;
 
   const COMBAT_ARCHETYPES = {
     egg:     { hp: 1.05, attack: .82, defense: 1.04, magic: .82, magicDefense: 1.08, speed: .78, type: "physical", special: "たまご大爆発" },
@@ -24,7 +35,17 @@
     grove:   { hp: 1.22, attack: .82, defense: 1.12, magic: 1.12, magicDefense: 1.28, speed: .72, type: "magic", special: "世界樹開花" },
     spore:   { hp: .94, attack: .72, defense: .84, magic: 1.33, magicDefense: 1.12, speed: .95, type: "magic", special: "悪夢胞子" },
     abyss:   { hp: 1.12, attack: 1.18, defense: 1.02, magic: .88, magicDefense: .96, speed: 1.02, type: "physical", special: "深海大津波" },
-    cosmic:  { hp: .92, attack: .72, defense: .82, magic: 1.38, magicDefense: 1.22, speed: 1.12, type: "magic", special: "銀河崩壊" }
+    cosmic:  { hp: .92, attack: .72, defense: .82, magic: 1.38, magicDefense: 1.22, speed: 1.12, type: "magic", special: "銀河崩壊" },
+    glacier: { hp: 1.08, attack: 1.16, defense: 1.16, magic: .92, magicDefense: 1.06, speed: .96, type: "physical", special: "永久氷獄" },
+    crystal: { hp: .96, attack: .84, defense: 1.04, magic: 1.28, magicDefense: 1.32, speed: .94, type: "magic", special: "万華晶界" },
+    sky:     { hp: .92, attack: 1.10, defense: .88, magic: 1.08, magicDefense: .96, speed: 1.34, type: "physical", special: "蒼穹天翔" },
+    tempest: { hp: 1.16, attack: 1.22, defense: 1.08, magic: .88, magicDefense: .90, speed: .98, type: "physical", special: "天災大旋風" },
+    shadow:  { hp: .90, attack: 1.08, defense: .82, magic: 1.30, magicDefense: 1.04, speed: 1.24, type: "magic", special: "月蝕冥界" },
+    spirit:  { hp: 1.02, attack: .94, defense: .96, magic: 1.24, magicDefense: 1.22, speed: 1.06, type: "magic", special: "千霊百鬼夜行" },
+    candy:   { hp: 1.24, attack: .90, defense: 1.12, magic: 1.14, magicDefense: 1.08, speed: .78, type: "magic", special: "夢色甘味大爆発" },
+    junk:    { hp: 1.20, attack: 1.14, defense: 1.28, magic: .76, magicDefense: .92, speed: .76, type: "physical", special: "終末ゼンマイ砲" },
+    "legend-sun": { hp: 1.34, attack: 1.32, defense: 1.28, magic: 1.34, magicDefense: 1.30, speed: 1.20, type: "magic", special: "天照・万象光輪" },
+    "legend-night": { hp: 1.30, attack: 1.36, defense: 1.24, magic: 1.38, magicDefense: 1.26, speed: 1.24, type: "physical", special: "冥星・虚空終焉" }
   };
 
   const DIALOGUE = {
@@ -85,28 +106,89 @@
     }
   };
 
+  Object.assign(DIALOGUE, {
+    glacier: {
+      idle: ["ひんやり行こう。頭は冷たく、勝負は熱く！", "氷の匂いがする。次の一手はそこだ！"],
+      open: ["氷牙が冴えた！いいマスだ！"], evolve: ["凍てつく力が、新しい姿を作る！"],
+      attack: ["凍れ、氷牙突進！"], hurt: ["冷たいくらいがちょうどいい！"], special: ["すべてを止めろ、永久氷獄！"], win: ["氷の勝利、きれいに決まったな！"], defeat: ["雪の下で鍛え直してくる……。"]
+    },
+    crystal: {
+      idle: ["水晶に次の未来が映っています。", "きらり。勝利の光を見つけました。"],
+      open: ["その一手、宝石より美しいです。"], evolve: ["結晶が重なり、輝きが増していく！"],
+      attack: ["晶光よ、貫きなさい！"], hurt: ["ひびは輝きに変えられます。"], special: ["世界を映せ、万華晶界！"], win: ["勝利の色は、こんなにも鮮やか。"], defeat: ["欠片から、また結晶します……。"]
+    },
+    sky: {
+      idle: ["空は広いぞ。もっと高く飛ぼう！", "風向き良好、勝利まで一直線だ！"],
+      open: ["ナイス！追い風が来たぞ！"], evolve: ["雲を突き抜ける翼になった！"],
+      attack: ["天空から急降下だ！"], hurt: ["まだ落ちない、風が支えている！"], special: ["空を制せ、蒼穹天翔！"], win: ["一番高い空から勝利を見届けたぞ！"], defeat: ["次はもっと高く飛ぶ……。"]
+    },
+    tempest: {
+      idle: ["嵐の前は静かだな。暴れる準備はできた！", "角がうずく。派手な一手を頼むぞ！"],
+      open: ["来たぞ、盤面に暴風警報だ！"], evolve: ["風圧限界突破！嵐そのものになる！"],
+      attack: ["まとめて吹き飛べ！"], hurt: ["この巨体は嵐でも倒れん！"], special: ["天災級だ、天災大旋風！"], win: ["嵐が去った後に残るのは勝者だけだ！"], defeat: ["風を集め直して出直すぞ……。"]
+    },
+    shadow: {
+      idle: ["月影から、こっそり応援してるよ。", "ふふ、次のマスはもう影が教えてくれた。"],
+      open: ["その一手、夜より鮮やかだね。"], evolve: ["影が深くなって、姿が変わる……！"],
+      attack: ["影縫い、逃がさないよ。"], hurt: ["それ、本当に本体だった？"], special: ["月を隠せ、月蝕冥界！"], win: ["静かな夜ほど、勝利はよく響くね。"], defeat: ["影に戻って、次を待つよ……。"]
+    },
+    spirit: {
+      idle: ["鬼火が楽しそう。いい勝負になりそうだね。", "魂の声が、もう一歩だって言ってるよ。"],
+      open: ["灯りがひとつ増えた。いいマスだね。"], evolve: ["集まれ魂たち、新しい姿を照らして！"],
+      attack: ["狐火よ、舞いなさい！"], hurt: ["魂は傷ついても消えません。"], special: ["千の魂よ、千霊百鬼夜行！"], win: ["みんなの魂でつかんだ勝利だね。"], defeat: ["灯りを絶やさず、また会いましょう。"]
+    },
+    candy: {
+      idle: ["勝ったらごほうび、特大パフェね！", "甘い匂いのするマス、どーこだ？"],
+      open: ["あまーい！これは当たりマス！"], evolve: ["砂糖と夢を足したら、でっかくなった！"],
+      attack: ["キャンディミサイル、ぽーん！"], hurt: ["ちょっと欠けたけど、まだおいしいよ！"], special: ["全部盛り、夢色甘味大爆発！"], win: ["勝利の味は、最高にあまーい！"], defeat: ["溶ける前に冷蔵庫へ帰るね……。"]
+    },
+    junk: {
+      idle: ["ギコギコ正常！たぶん正常！", "余ったネジ、勝利に使えるかな？"],
+      open: ["ピコーン！いいマス判定、たぶん！"], evolve: ["部品増量！説明書なしで超進化！"],
+      attack: ["ガラクタ全弾発射！"], hurt: ["部品が一個飛んだだけ！予備ある！"], special: ["ゼンマイ最大、終末ゼンマイ砲！"], win: ["ポンコツでも勝てる！むしろ勝った！"], defeat: ["分解整備して、だいたい直る予定……。"]
+    },
+    "legend-sun": {
+      idle: ["光は満ちた。勝利への道を照らそう。"], open: ["その一手、天へ届いた。"], evolve: ["太陽の門が開く。伝説はここに降り立つ！"],
+      attack: ["光輪よ、悪しきを焼き払え！"], hurt: ["この光は、まだ陰らない。"], special: ["天照・万象光輪！"], win: ["見事だ。汝らの勝利を太陽に刻もう。"], defeat: ["光は沈み、また昇る……。"]
+    },
+    "legend-night": {
+      idle: ["星々が沈黙した。終焉の刻を待っている。"], open: ["運命の星が、いま砕けた。"], evolve: ["虚空が裂け、冥星の伝説が顕現する！"],
+      attack: ["星ごと喰らい尽くす。"], hurt: ["虚無に傷は残らない。"], special: ["冥星・虚空終焉！"], win: ["勝利だけが、この宇宙に残った。"], defeat: ["我は星の闇へ還る……。"]
+    }
+  });
+
   function buildNodes() {
     const nodes = {};
     const add = (node) => { nodes[node.id] = Object.freeze(node); };
-    const sprite = (sheet, size, position, aspect = 1) => ({ sheet: `images/monsters/${sheet}`, size, position, aspect });
-    add({ id: "egg", name: "ふしぎタマゴ", stage: 0, lineage: "egg", sprite: sprite("egg.png", "contain", "center", 1), next: ["child-ember", "child-odd"] });
-    add({ id: "child-ember", name: "ヒノコロン", stage: 1, lineage: "beast", sprite: sprite("childhood.png", "200% 100%", "0% 50%", .75), next: ["growth-flare", "growth-gear"] });
-    add({ id: "child-odd", name: "ぷるるん", stage: 1, lineage: "odd", sprite: sprite("childhood.png", "200% 100%", "100% 50%", .75), next: ["growth-moss", "growth-bubble"] });
+    const sprite = (sheet, size, position, aspect = 1, zoom = 1.12) => ({ sheet: `images/monsters/${sheet}`, size, position, aspect, zoom });
+    add({ id: "egg", name: "ふしぎタマゴ", stage: 0, lineage: "egg", sprite: sprite("egg.png", "contain", "center", 1, 1.16), next: ["child-ember", "child-odd", "child-frost", "child-shadow"] });
+    add({ id: "child-ember", name: "ヒノコロン", stage: 1, lineage: "beast", sprite: sprite("childhood.png", "200% 100%", "0% 50%", .75, 1.16), next: ["growth-flare", "growth-gear"] });
+    add({ id: "child-odd", name: "ぷるるん", stage: 1, lineage: "odd", sprite: sprite("childhood.png", "200% 100%", "100% 50%", .75, 1.16), next: ["growth-moss", "growth-bubble"] });
+    add({ id: "child-frost", name: "ユキマル", stage: 1, lineage: "glacier", sprite: sprite("childhood-extra.png", "200% 100%", "0% 50%", .75, 1.12), next: ["growth-frost", "growth-storm"] });
+    add({ id: "child-shadow", name: "ヨイフワ", stage: 1, lineage: "shadow", sprite: sprite("childhood-extra.png", "200% 100%", "100% 50%", .75, 1.12), next: ["growth-shadow", "growth-toy"] });
     [
       ["growth-flare", "ほむらガオ", 0, "beast", ["inferno-mature", "thunder-mature"]],
       ["growth-gear", "ギアピヨン", 1, "mecha", ["mecha-mature", "beetle-mature"]],
       ["growth-moss", "モスモグ", 2, "grove", ["grove-mature", "spore-mature"]],
       ["growth-bubble", "アワプク", 3, "odd", ["abyss-mature", "cosmic-mature"]]
-    ].forEach(([id, name, x, lineage, next]) => add({ id, name, stage: 2, lineage, sprite: sprite("growth.png", "400% 100%", `${x * 33.333}% 50%`, .375), next }));
+    ].forEach(([id, name, x, lineage, next]) => add({ id, name, stage: 2, lineage, sprite: sprite("growth.png", "400% 100%", `${x * 33.333}% 50%`, .375, 1.18), next }));
+    [
+      ["growth-frost", "コオリヒョウ", 0, "glacier", ["glacier-mature", "crystal-mature"]],
+      ["growth-storm", "ソラバネ", 1, "sky", ["sky-mature", "tempest-mature"]],
+      ["growth-shadow", "ヨルカゲ", 2, "shadow", ["shadow-mature", "spirit-mature"]],
+      ["growth-toy", "オモチャバコ", 3, "junk", ["candy-mature", "junk-mature"]]
+    ].forEach(([id, name, x, lineage, next]) => add({ id, name, stage: 2, lineage, sprite: sprite("growth-extra.png", "400% 100%", `${x * 33.333}% 50%`, .375, 1.15), next }));
     LINEAGES.forEach((lineage) => {
       const matureId = `${lineage.id}-mature`;
       const perfectA = `${lineage.id}-perfect-a`;
       const perfectB = `${lineage.id}-perfect-b`;
-      add({ id: matureId, name: lineage.mature, stage: 3, lineage: lineage.id, sprite: sprite(lineage.sheet, "400% 200%", "0% 0%", .75), next: [perfectA, perfectB] });
-      add({ id: perfectA, name: lineage.perfect[0], stage: 4, lineage: lineage.id, sprite: sprite(lineage.sheet, "400% 200%", "33.333% 0%", .75), next: [`${lineage.id}-ultimate-0`, `${lineage.id}-ultimate-1`] });
-      add({ id: perfectB, name: lineage.perfect[1], stage: 4, lineage: lineage.id, sprite: sprite(lineage.sheet, "400% 200%", "66.667% 0%", .75), next: [`${lineage.id}-ultimate-2`, `${lineage.id}-ultimate-3`] });
-      lineage.ultimate.forEach((name, index) => add({ id: `${lineage.id}-ultimate-${index}`, name, stage: 5, lineage: lineage.id, sprite: sprite(lineage.sheet, "400% 200%", `${index * 33.333}% 100%`, .75), next: [] }));
+      add({ id: matureId, name: lineage.mature, stage: 3, lineage: lineage.id, sprite: sprite(lineage.sheet, "400% 200%", "0% 0%", .75, 1.16), next: [perfectA, perfectB] });
+      add({ id: perfectA, name: lineage.perfect[0], stage: 4, lineage: lineage.id, sprite: sprite(lineage.sheet, "400% 200%", "33.333% 0%", .75, 1.16), next: [`${lineage.id}-ultimate-0`, `${lineage.id}-ultimate-1`] });
+      add({ id: perfectB, name: lineage.perfect[1], stage: 4, lineage: lineage.id, sprite: sprite(lineage.sheet, "400% 200%", "66.667% 0%", .75, 1.16), next: [`${lineage.id}-ultimate-2`, `${lineage.id}-ultimate-3`] });
+      lineage.ultimate.forEach((name, index) => add({ id: `${lineage.id}-ultimate-${index}`, name, stage: 5, lineage: lineage.id, sprite: sprite(lineage.sheet, "400% 200%", `${index * 33.333}% 100%`, .75, 1.14), next: [] }));
     });
+    add({ id: "legend-sun", name: "天照皇レイオーン", stage: 5, lineage: "legend-sun", legendary: true, sprite: sprite("legendary.png", "200% 100%", "0% 50%", .75, 1.04), next: [] });
+    add({ id: "legend-night", name: "冥星王ゼロノクス", stage: 5, lineage: "legend-night", legendary: true, sprite: sprite("legendary.png", "200% 100%", "100% 50%", .75, 1.04), next: [] });
     return Object.freeze(nodes);
   }
 
@@ -157,7 +239,14 @@
     const minimum = Math.min(...counts);
     const candidates = counts.map((count, index) => count === minimum ? index : -1).filter((index) => index >= 0);
     const selected = candidates[Math.min(candidates.length - 1, Math.floor(random() * candidates.length))] || 0;
-    return () => (selected + .25) / current.next.length;
+    let branchSelected = false;
+    return () => {
+      if (!branchSelected) {
+        branchSelected = true;
+        return (selected + .25) / current.next.length;
+      }
+      return random();
+    };
   }
 
   function evolvePlayerMonster(value, cellToken = "", random = Math.random) {
@@ -170,7 +259,11 @@
     const current = NODES[previousId];
     if (!current?.next?.length) return { monster, evolved: false, previousId };
     const nextIndex = Math.max(0, Math.min(current.next.length - 1, Math.floor(random() * current.next.length)));
-    const next = NODES[current.next[nextIndex]];
+    let next = NODES[current.next[nextIndex]];
+    if (current.stage === 4 && random() < LEGENDARY_CHANCE) {
+      const legendaryIndex = Math.max(0, Math.min(LEGENDARY_IDS.length - 1, Math.floor(random() * LEGENDARY_IDS.length)));
+      next = NODES[LEGENDARY_IDS[legendaryIndex]] || next;
+    }
     monster.nodeId = next.id;
     monster.stage = next.stage;
     monster.history.push(next.id);
@@ -205,6 +298,11 @@
     };
   }
 
+  function specialChanceForHype(value) {
+    const hype = Math.max(0, Math.min(100, Number(value) || 0));
+    return .06 + (hype / 100) * .42;
+  }
+
   function dialogue(nodeId, moment = "idle", random = Math.random) {
     const node = NODES[nodeId] || NODES.egg;
     const tone = DIALOGUE[node.lineage] || DIALOGUE.odd;
@@ -224,7 +322,7 @@
   }
 
   global.TeamBingoMonsterSystem = Object.freeze({
-    STAGES, LINEAGES, NODES, createPlayerMonster, normalizePlayerMonster, syncPlayerMonsters,
-    distributedEvolutionRandom, evolvePlayerMonster, combatStats, dialogue, playerKey, seededRandom
+    STAGES, LINEAGES, LEGENDARY_IDS, LEGENDARY_CHANCE, NODES, createPlayerMonster, normalizePlayerMonster, syncPlayerMonsters,
+    distributedEvolutionRandom, evolvePlayerMonster, combatStats, specialChanceForHype, dialogue, playerKey, seededRandom
   });
 })(window);

@@ -75,7 +75,7 @@ test("every random event has dedicated artwork and valid stereo audio", () => {
   assert.match(html, /effects\.has\("random-event"\)[\s\S]*showRandomEvent\(payload\.randomEvent\)/);
 });
 
-test("monster evolution has a complete binary tree, artwork, and online sync", () => {
+test("monster evolution has four childhood entries, complete branches, legends, artwork, and online sync", () => {
   const html = readFileSync(new URL("../index.html", import.meta.url), "utf8");
   const monsterSource = readFileSync(new URL("../monster-system.js", import.meta.url), "utf8");
   const browserGlobal = {};
@@ -83,14 +83,16 @@ test("monster evolution has a complete binary tree, artwork, and online sync", (
   const result = browserGlobal.TeamBingoMonsterSystem;
 
   assert.equal(result.STAGES.length, 6, "Egg plus five evolution stages are required");
-  assert.equal(result.LINEAGES.length, 8, "Expected eight mature lineages");
-  assert.equal(Object.keys(result.NODES).length, 63, "Expected a complete 1 + 2 + 4 + 8 + 16 + 32 tree");
+  assert.equal(result.LINEAGES.length, 16, "Expected sixteen mature lineages");
+  assert.equal(result.LEGENDARY_IDS.length, 2, "Expected two legendary monsters");
+  assert.equal(Object.keys(result.NODES).length, 127, "Expected four childhood entries, sixteen lineages, and two legends");
   assert.deepEqual(
     result.STAGES.map((_, stage) => Object.values(result.NODES).filter((node) => node.stage === stage).length),
-    [1, 2, 4, 8, 16, 32]
+    [1, 4, 8, 16, 32, 66]
   );
   Object.values(result.NODES).forEach((node) => {
-    assert.equal(node.next.length, node.stage < 5 ? 2 : 0, `${node.id} has an invalid branch count`);
+    const expectedBranches = node.stage === 0 ? 4 : (node.stage < 5 ? 2 : 0);
+    assert.equal(node.next.length, expectedBranches, `${node.id} has an invalid branch count`);
     node.next.forEach((nextId) => assert.ok(result.NODES[nextId], `${node.id} points to missing ${nextId}`));
     const stats = result.combatStats(node.id);
     ["hp", "attack", "defense", "magic", "magicDefense", "speed"].forEach((key) => {
@@ -119,8 +121,8 @@ test("monster evolution has a complete binary tree, artwork, and online sync", (
   });
   assert.deepEqual(
     Object.values(Object.groupBy(balancedParty, (monster) => monster.nodeId)).map((group) => group.length).sort(),
-    [2, 2],
-    "The first branch should distribute four players evenly"
+    [1, 1, 1, 1],
+    "The first branch should distribute four players across all childhood entries"
   );
   balancedParty.forEach((monster, index) => {
     balancedParty[index] = result.evolvePlayerMonster(
@@ -129,12 +131,24 @@ test("monster evolution has a complete binary tree, artwork, and online sync", (
       result.distributedEvolutionRandom(monster, balancedParty, () => .12)
     ).monster;
   });
-  assert.equal(new Set(balancedParty.map((monster) => monster.nodeId)).size, 4, "Four players should reach distinct growth branches");
+  assert.equal(new Set(balancedParty.map((monster) => monster.nodeId)).size, 4, "Four players should retain distinct growth branches");
+
+  const perfect = result.createPlayerMonster("LEGEND TEST", "red");
+  perfect.nodeId = "inferno-perfect-a";
+  perfect.stage = 4;
+  const values = [0, 0, 0];
+  const legendary = result.evolvePlayerMonster(perfect, "red:legend", () => values.shift() ?? 0);
+  assert.equal(legendary.monster.nodeId, "legend-sun", "A successful legendary roll must replace the ordinary ultimate branch");
+  assert.equal(result.specialChanceForHype(0), .06);
+  assert.equal(result.specialChanceForHype(100), .48);
+  assert.ok(result.specialChanceForHype(80) > result.specialChanceForHype(20));
 
   const monsterAssets = [
     "egg.png", "childhood.png", "growth.png", "lineage-inferno.png", "lineage-thunder.png",
     "lineage-mecha.png", "lineage-beetle.png", "lineage-grove.png", "lineage-spore.png",
-    "lineage-abyss.png", "lineage-cosmic.png"
+    "lineage-abyss.png", "lineage-cosmic.png", "childhood-extra.png", "growth-extra.png",
+    "lineage-glacier.png", "lineage-crystal.png", "lineage-sky.png", "lineage-tempest.png",
+    "lineage-shadow.png", "lineage-spirit.png", "lineage-candy.png", "lineage-junk.png", "legendary.png"
   ];
   monsterAssets.forEach((file) => {
     assert.ok(existsSync(new URL(`../images/monsters/${file}`, import.meta.url)), `Missing monster artwork: ${file}`);
@@ -148,6 +162,9 @@ test("monster evolution has a complete binary tree, artwork, and online sync", (
   assert.ok(existsSync(new URL("../monster-battle.css", import.meta.url)));
   assert.match(html, /audio\/monster-battle\/battle-bgm\.wav/);
   assert.match(html, /state\.monsterBattle\?\.status/);
+  assert.match(html, /id="statsMonsterDexGrid"/);
+  assert.match(html, /function renderMonsterDex\(/);
+  assert.match(html, /specialChanceForHype\(attacker\.hype\)/);
 });
 
 test("monster battle audio is dedicated stereo material", () => {

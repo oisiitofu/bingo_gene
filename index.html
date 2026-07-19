@@ -1611,6 +1611,8 @@
       display: block;
       width: 100%;
       height: 100%;
+      scale: var(--monster-zoom, 1);
+      transform-origin: center;
       background-image: var(--monster-image);
       background-size: var(--monster-size, contain);
       background-position: var(--monster-position, center);
@@ -3479,9 +3481,9 @@
       position: fixed;
       top: 50%;
       z-index: 60;
-      width: 300px;
+      width: 230px;
       display: grid;
-      gap: 10px;
+      gap: 7px;
       transform: translateY(-50%);
       pointer-events: none;
     }
@@ -3492,10 +3494,10 @@
     .voice-item {
       position: relative;
       display: grid;
-      grid-template-columns: 58px minmax(0, 1fr);
+      grid-template-columns: 44px minmax(0, 1fr);
       gap: 0;
       align-items: center;
-      min-height: 92px;
+      min-height: 68px;
       padding: 0;
       border: 0;
       background: transparent;
@@ -3518,14 +3520,14 @@
     }
 
     .voice-item.blue {
-      grid-template-columns: minmax(0, 1fr) 58px;
+      grid-template-columns: minmax(0, 1fr) 44px;
     }
 
     .voice-item img {
       position: relative;
       z-index: 2;
-      width: 58px;
-      height: 58px;
+      width: 44px;
+      height: 44px;
       object-fit: contain;
       border-radius: 5px;
       background: rgba(255, 255, 255, .08);
@@ -3548,14 +3550,14 @@
     .voice-item span {
       position: relative;
       z-index: 1;
-      min-height: 86px;
+      min-height: 64px;
       display: grid;
       align-items: center;
       margin-left: -8px;
-      padding: 20px 28px 22px 44px;
+      padding: 14px 20px 16px 32px;
       background: url("images/ui/voice-comment-bubble-red.png") center / 100% 100% no-repeat;
       color: #050711;
-      font-size: 14px;
+      font-size: 11px;
       font-weight: 1000;
       line-height: 1.25;
       overflow-wrap: anywhere;
@@ -3567,7 +3569,7 @@
       grid-row: 1;
       margin-right: -8px;
       margin-left: 0;
-      padding: 20px 44px 22px 28px;
+      padding: 14px 32px 16px 20px;
       background-image: url("images/ui/voice-comment-bubble-blue-right.png");
     }
 
@@ -5003,6 +5005,100 @@
       grid-template-columns: repeat(2, minmax(0, 1fr));
       gap: 12px;
     }
+
+    .monster-dex-section {
+      margin: 4px 0 16px;
+      padding: 14px 0;
+      border-block: 1px solid rgba(255,255,255,.16);
+      background: linear-gradient(90deg, transparent, rgba(12,18,30,.7) 7% 93%, transparent);
+    }
+
+    .monster-dex-head {
+      display: flex;
+      align-items: end;
+      justify-content: space-between;
+      gap: 14px;
+      padding: 0 10px 11px;
+    }
+
+    .monster-dex-head h3 {
+      margin: 0;
+      color: #fff8c2;
+      font-size: 18px;
+      font-weight: 1000;
+    }
+
+    .monster-dex-head p { margin: 4px 0 0; font-size: 11px; }
+
+    .monster-dex-head select {
+      min-width: 190px;
+      padding: 9px 30px 9px 11px;
+      border: 1px solid rgba(255,255,255,.3);
+      border-radius: 4px;
+      color: #fff;
+      background: #0a111c;
+      font: 1000 12px/1 sans-serif;
+    }
+
+    .monster-dex-grid {
+      display: grid;
+      grid-template-columns: repeat(8, minmax(0, 1fr));
+      gap: 7px;
+      max-height: 520px;
+      padding: 2px 10px 8px;
+      overflow: auto;
+    }
+
+    .monster-dex-card {
+      position: relative;
+      min-width: 0;
+      aspect-ratio: .82;
+      display: grid;
+      grid-template-rows: auto minmax(0, 1fr) auto;
+      gap: 3px;
+      padding: 6px;
+      overflow: hidden;
+      border: 1px solid rgba(255,255,255,.2);
+      border-radius: 5px;
+      color: #fff;
+      background: linear-gradient(160deg, #192333, #070a11 72%);
+      cursor: zoom-in;
+    }
+
+    .monster-dex-card.discovered:hover,
+    .monster-dex-card.discovered:focus-visible {
+      border-color: #fff36c;
+      outline: 0;
+      box-shadow: 0 0 18px rgba(255,243,108,.35);
+    }
+
+    .monster-dex-card.locked {
+      color: rgba(255,255,255,.34);
+      background: #080b11;
+      filter: saturate(.2);
+      cursor: default;
+    }
+
+    .monster-dex-card.legendary.discovered {
+      border-color: #f8dc72;
+      background: radial-gradient(circle at 50% 35%, rgba(122,85,255,.34), rgba(7,9,17,.96) 70%);
+      box-shadow: inset 0 0 18px rgba(255,218,91,.22), 0 0 15px rgba(114,83,255,.25);
+    }
+
+    .monster-dex-number {
+      position: relative;
+      z-index: 2;
+      color: rgba(255,255,255,.55);
+      font-size: 8px;
+      font-weight: 1000;
+      text-align: left;
+    }
+
+    .monster-dex-card.legendary .monster-dex-number { color: #ffe97d; }
+    .monster-dex-art { min-height: 0; display: grid; place-items: center; overflow: hidden; }
+    .monster-dex-art .monster-sprite { width: 100%; height: 100%; }
+    .monster-dex-unknown { color: rgba(255,255,255,.22); font: 1000 42px/1 Impact, sans-serif; }
+    .monster-dex-card strong { min-width: 0; overflow: hidden; font-size: 10px; line-height: 1.1; text-overflow: ellipsis; white-space: nowrap; }
 
     .stats-player-card {
       padding: 12px;
@@ -6632,6 +6728,8 @@
         grid-template-columns: 1fr;
       }
 
+      .monster-dex-grid { grid-template-columns: repeat(5, minmax(0, 1fr)); }
+
       .stats-extra-grid,
       .match-result-grid {
         grid-template-columns: 1fr;
@@ -6753,6 +6851,9 @@
       .titles-list { grid-template-columns: 1fr; }
       .stats-head { flex-direction: column; }
       .stats-summary { grid-template-columns: 1fr 1fr; }
+      .monster-dex-head { align-items: stretch; flex-direction: column; }
+      .monster-dex-head select { width: 100%; }
+      .monster-dex-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); }
       .stats-grid { grid-template-columns: 1fr 1fr; }
       .stats-extra-grid,
       .match-result-grid {
@@ -7154,6 +7255,16 @@
         </div>
       </div>
       <div class="stats-summary" id="statsSummary"></div>
+      <section class="monster-dex-section">
+        <div class="monster-dex-head">
+          <div>
+            <h3>MONSTER ENCYCLOPEDIA</h3>
+            <p id="statsMonsterDexSummary">獲得したモンスターをプレイヤー別に記録します。</p>
+          </div>
+          <select id="statsMonsterPlayerSelect" aria-label="図鑑を見るプレイヤー"></select>
+        </div>
+        <div class="monster-dex-grid" id="statsMonsterDexGrid"></div>
+      </section>
       <div class="stats-player-list" id="statsPlayerList"></div>
       <div class="stats-extra-grid">
         <section class="stats-section">
@@ -7853,6 +7964,7 @@
       activeReplayMatchId: "",
       activeReplayStep: 0,
       activeStatsSeasonId: "",
+      activeStatsMonsterPlayerKey: "",
       replayTimer: null,
       autoBackupTimer: null,
       openedByPopoverTimer: null,
@@ -7978,6 +8090,7 @@
         "victoryOverlay", "victoryTeam", "victoryPraise", "victorySpecialBadge", "mvpImage", "mvpName", "mvpTitle", "winnerTitles", "victoryResultPanel",
         "closeVictoryButton",
         "statsModal", "statsSummary", "statsPlayerList", "statsHighlightList", "statsRivalryList", "statsMatchList", "statsCloseButton",
+        "statsMonsterDexSummary", "statsMonsterPlayerSelect", "statsMonsterDexGrid",
         "statsSeasonSelect", "statsSeasonList", "statsTournamentList",
         "randomEventButton", "monsterBattleModeButton",
         "matchReplayModal", "replayMatchMeta", "replaySummary", "replayBoards", "replayTimeline", "replayCloseButton",
@@ -8065,6 +8178,15 @@
       els.statsSeasonSelect?.addEventListener("change", (event) => {
         state.activeStatsSeasonId = event.target.value;
         renderSeasonStandings();
+      });
+      els.statsMonsterPlayerSelect?.addEventListener("change", (event) => {
+        state.activeStatsMonsterPlayerKey = event.target.value;
+        renderMonsterDex();
+      });
+      els.statsMonsterDexGrid?.addEventListener("click", (event) => {
+        const button = event.target.closest("[data-dex-monster]");
+        if (!button || !els.statsMonsterDexGrid.contains(button)) return;
+        showMonsterNodeZoom(button.dataset.dexMonster, button.dataset.dexPlayer || "MONSTER ENCYCLOPEDIA", "#f7c64a");
       });
       els.replayCloseButton?.addEventListener("click", closeMatchReplay);
       els.replayPrevButton?.addEventListener("click", () => setReplayStep(state.activeReplayStep - 1));
@@ -8568,6 +8690,7 @@
       assignTeamTitles();
       dealCards();
       state.gameStarted = true;
+      unlockCurrentMonsterEggs();
       recordMatchStart();
       state.inputLocked = true;
       state.readyShown = false;
@@ -8825,7 +8948,7 @@
 
     function monsterSpriteMarkup(node, extraClass = "") {
       if (!node?.sprite) return "";
-      const style = `--monster-image:url('${node.sprite.sheet}');--monster-size:${node.sprite.size};--monster-position:${node.sprite.position};--monster-aspect:${node.sprite.aspect || 1}`;
+      const style = `--monster-image:url('${node.sprite.sheet}');--monster-size:${node.sprite.size};--monster-position:${node.sprite.position};--monster-aspect:${node.sprite.aspect || 1};--monster-zoom:${node.sprite.zoom || 1}`;
       return `<span class="monster-sprite${extraClass ? ` ${extraClass}` : ""}" style="${style}" aria-hidden="true"></span>`;
     }
 
@@ -8901,6 +9024,7 @@
         getDistributedEvolutionRandom(side.monsters[monsterIndex])
       );
       side.monsters[monsterIndex] = result.monster;
+      if (result.evolved) unlockPlayerMonster(playerName, result.monster.nodeId, team);
       renderMonsterPanel(team);
       const moment = result.evolved ? "evolve" : "open";
       const line = MONSTER_SYSTEM.dialogue(result.monster.nodeId, moment);
@@ -8940,22 +9064,28 @@
       showMonsterSpeech(team, monster.playerKey, MONSTER_SYSTEM.dialogue(monster.nodeId, moment), 5000);
     }
 
-    function showMonsterZoom(team, playerKey) {
-      const monster = getPlayerMonster(team, playerKey);
-      if (!monster || !els.monsterZoomOverlay) return;
-      const node = MONSTER_NODES[monster.nodeId] || MONSTER_NODES.egg;
+    function showMonsterNodeZoom(nodeId, playerLabel = "MONSTER ENCYCLOPEDIA", accent = "#f7c64a") {
+      if (!els.monsterZoomOverlay) return;
+      const node = MONSTER_NODES[nodeId] || MONSTER_NODES.egg;
       const stats = MONSTER_SYSTEM.combatStats(node.id);
-      els.monsterZoomOverlay.style.setProperty("--zoom-team", getTeamColor(team));
-      els.monsterZoomPlayer.textContent = `${monster.playerName} / ${team.toUpperCase()} TEAM`;
+      els.monsterZoomOverlay.style.setProperty("--zoom-team", accent);
+      els.monsterZoomPlayer.textContent = playerLabel;
       els.monsterZoomArt.innerHTML = monsterSpriteMarkup(node);
       els.monsterZoomName.textContent = node.name;
-      els.monsterZoomStage.textContent = stats.attackType === "magic" ? "魔法タイプ" : "物理タイプ";
+      els.monsterZoomStage.textContent = `${stats.attackType === "magic" ? "魔法" : "物理"}タイプ${node.legendary ? " / 伝説のモンスター" : ""}`;
       els.monsterZoomStats.innerHTML = [
         ["HP", stats.hp], ["攻撃", stats.attack], ["防御", stats.defense],
         ["魔攻", stats.magic], ["魔防", stats.magicDefense], ["素早さ", stats.speed]
       ].map(([label, value]) => `<span class="monster-stat-row"><span>${label}</span><strong>${value}</strong></span>`).join("");
       els.monsterZoomSpecial.textContent = `必殺技 / ${stats.special}`;
       showOverlay(els.monsterZoomOverlay);
+    }
+
+    function showMonsterZoom(team, playerKey) {
+      const monster = getPlayerMonster(team, playerKey);
+      if (!monster || !els.monsterZoomOverlay) return;
+      const node = MONSTER_NODES[monster.nodeId] || MONSTER_NODES.egg;
+      showMonsterNodeZoom(node.id, `${monster.playerName} / ${team.toUpperCase()} TEAM`, getTeamColor(team));
       showMonsterSpeech(team, monster.playerKey, MONSTER_SYSTEM.dialogue(node.id, "idle"), 5000);
     }
 
@@ -10655,6 +10785,7 @@
 
     function createMonsterBattleFighters(team) {
       const side = state[team];
+      const hype = Math.max(0, Math.min(100, Number(side.hype) || 0));
       side.monsters = MONSTER_SYSTEM.syncPlayerMonsters(side.monsters, side.members, team);
       return side.monsters.map((monster, index) => {
         const node = MONSTER_NODES[monster.nodeId] || MONSTER_NODES.egg;
@@ -10668,7 +10799,8 @@
           name: node.name,
           stats,
           hp: stats.hp,
-          energy: 0,
+          hype,
+          energy: Math.round(hype * .55),
           ko: false
         };
       });
@@ -10682,9 +10814,9 @@
         return `<article class="battle-fighter" data-battle-fighter="${fighter.id}">
           <div class="battle-fighter-art">${monsterSpriteMarkup(node)}</div>
           <div class="battle-fighter-ui">
-            <b>${escapeHtml(fighter.name)}</b><small>${escapeHtml(fighter.playerName)} / ${fighter.stats.attackType === "magic" ? "魔法" : "物理"}</small>
+            <b>${escapeHtml(fighter.name)}</b><small>${escapeHtml(fighter.playerName)} / ${fighter.stats.attackType === "magic" ? "魔法" : "物理"} / HYPE ${fighter.hype}</small>
             <div class="battle-hp-track"><div class="battle-hp-fill" style="--hp:100%"></div></div>
-            <div class="battle-energy-track"><div class="battle-energy-fill" style="--energy:0%"></div></div>
+            <div class="battle-energy-track"><div class="battle-energy-fill" style="--energy:${Math.min(100, fighter.energy)}%"></div></div>
           </div>
         </article>`;
       }).join("");
@@ -10787,11 +10919,14 @@
         const attacker = weightedBattleFighter(parties[attackingTeam], random);
         const target = weightedBattleFighter(parties[defendingTeam], random);
         if (!attacker || !target) break;
-        const special = attacker.energy >= 100 || (turn > 21 && attacker.energy >= 72);
+        const hypeChance = MONSTER_SYSTEM.specialChanceForHype(attacker.hype);
+        const special = attacker.energy >= 100 ||
+          (attacker.energy >= 45 && random() < hypeChance) ||
+          (turn > 21 && attacker.energy >= 72);
         const damage = calculateMonsterDamage(attacker, target, special, random, turn);
         const line = MONSTER_SYSTEM.dialogue(attacker.nodeId, special ? "special" : "attack", random);
-        attacker.energy = special ? 0 : Math.min(100, attacker.energy + 34);
-        target.energy = Math.min(100, target.energy + 18);
+        attacker.energy = special ? 0 : Math.min(100, attacker.energy + 28 + Math.round(attacker.hype * .1));
+        target.energy = Math.min(100, target.energy + 14 + Math.round(target.hype * .05));
         await animateMonsterBattleAction(attacker, target, damage, special, line);
         target.hp = Math.max(0, target.hp - damage);
         if (target.hp <= 0) {
@@ -11948,6 +12083,7 @@
         stat.specialCharacters = normalizeCountMap(value.specialCharacters);
         stat.winCharacters = normalizeCountMap(value.winCharacters);
         stat.skillUsage = normalizeCountMap(value.skillUsage);
+        stat.monsterDex = normalizeCountMap(value.monsterDex);
         players[playerStatsKey(name)] = stat;
       });
       return {
@@ -11976,6 +12112,7 @@
         specialCharacters: {},
         winCharacters: {},
         skillUsage: {},
+        monsterDex: {},
         lastTeam: "",
         lastPlayedAt: ""
       };
@@ -12303,6 +12440,29 @@
       if (els.statsModal && els.statsModal.classList.contains("show")) renderStatsPage();
     }
 
+    function unlockPlayerMonster(playerName, nodeId, team = "", saveNow = true) {
+      if (!MONSTER_NODES[nodeId]) return false;
+      const stat = getPlayerStat(playerName);
+      if (stat.monsterDex?.[nodeId]) return false;
+      if (!stat.monsterDex || typeof stat.monsterDex !== "object") stat.monsterDex = {};
+      stat.monsterDex[nodeId] = 1;
+      touchPlayerStat(stat, team);
+      if (saveNow) savePlayerStats();
+      return true;
+    }
+
+    function unlockCurrentMonsterEggs() {
+      if (!state.monsterBattleMode) return;
+      let changed = false;
+      ["red", "blue"].forEach((team) => {
+        state[team].monsters = MONSTER_SYSTEM.syncPlayerMonsters(state[team].monsters, state[team].members, team);
+        state[team].monsters.forEach((monster) => {
+          changed = unlockPlayerMonster(monster.playerName, monster.nodeId, team, false) || changed;
+        });
+      });
+      if (changed) savePlayerStats();
+    }
+
     function touchPlayerStat(stat, team = "") {
       stat.lastPlayedAt = new Date().toISOString();
       if (team) stat.lastTeam = team.toUpperCase();
@@ -12533,9 +12693,50 @@
         `<div class="stats-summary-card"><span class="stats-label">${label}</span><span class="stats-value">${value}</span></div>`
       )).join("");
       renderStatsExtras();
+      renderMonsterDex(records);
       els.statsPlayerList.innerHTML = records.length
         ? records.map(renderStatsPlayerCard).join("")
         : `<div class="stats-empty">まだ戦績がありません。GAME START後のプレイから記録されます。</div>`;
+    }
+
+    function getMonsterDexNodes() {
+      return Object.values(MONSTER_NODES).sort((a, b) => (
+        Number(Boolean(a.legendary)) - Number(Boolean(b.legendary)) ||
+        a.stage - b.stage ||
+        a.name.localeCompare(b.name, "ja-JP")
+      ));
+    }
+
+    function renderMonsterDex(records = getPlayerStatsRecords()) {
+      if (!els.statsMonsterPlayerSelect || !els.statsMonsterDexGrid || !els.statsMonsterDexSummary) return;
+      if (!records.length) {
+        state.activeStatsMonsterPlayerKey = "";
+        els.statsMonsterPlayerSelect.innerHTML = `<option value="">NO PLAYER</option>`;
+        els.statsMonsterPlayerSelect.disabled = true;
+        els.statsMonsterDexSummary.textContent = "試合を開始するとプレイヤーごとの図鑑が作られます。";
+        els.statsMonsterDexGrid.innerHTML = `<div class="stats-empty">まだモンスターを発見していません。</div>`;
+        return;
+      }
+      els.statsMonsterPlayerSelect.disabled = false;
+      const keys = records.map((record) => playerStatsKey(record.name));
+      if (!keys.includes(state.activeStatsMonsterPlayerKey)) state.activeStatsMonsterPlayerKey = keys[0];
+      els.statsMonsterPlayerSelect.innerHTML = records.map((record) => {
+        const key = playerStatsKey(record.name);
+        return `<option value="${escapeHtml(key)}"${key === state.activeStatsMonsterPlayerKey ? " selected" : ""}>${escapeHtml(record.name)}</option>`;
+      }).join("");
+      const record = state.playerStats.players[state.activeStatsMonsterPlayerKey] || records[0];
+      const nodes = getMonsterDexNodes();
+      const unlocked = record.monsterDex || {};
+      const acquired = nodes.filter((node) => unlocked[node.id]).length;
+      els.statsMonsterDexSummary.textContent = `${record.name}　${acquired} / ${nodes.length} DISCOVERED`;
+      els.statsMonsterDexGrid.innerHTML = nodes.map((node, index) => {
+        const found = Boolean(unlocked[node.id]);
+        return `<button type="button" class="monster-dex-card${found ? " discovered" : " locked"}${node.legendary ? " legendary" : ""}"${found ? ` data-dex-monster="${escapeHtml(node.id)}" data-dex-player="${escapeHtml(record.name)}"` : " disabled"} aria-label="${found ? `${escapeHtml(node.name)}を拡大` : "未発見のモンスター"}">
+          <span class="monster-dex-number">${node.legendary ? "LEGEND" : `No.${String(index + 1).padStart(3, "0")}`}</span>
+          <span class="monster-dex-art">${found ? monsterSpriteMarkup(node) : `<span class="monster-dex-unknown">?</span>`}</span>
+          <strong>${found ? escapeHtml(node.name) : "？？？？"}</strong>
+        </button>`;
+      }).join("");
     }
 
     function renderStatsExtras() {

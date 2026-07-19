@@ -1,11 +1,11 @@
 {
   "version": 1,
-  "generatedAt": "2026-07-19T01:30:54.282Z",
+  "generatedAt": "2026-07-19T03:12:46.015Z",
   "totals": {
-    "all": 369,
-    "images": 207,
+    "all": 380,
+    "images": 218,
     "audio": 162,
-    "bytes": 183482386
+    "bytes": 208377538
   },
   "assets": [
     {
@@ -1509,6 +1509,12 @@
       "bytes": 2788002
     },
     {
+      "path": "images/monsters/childhood-extra.png",
+      "type": "image",
+      "category": "images/monsters",
+      "bytes": 1334191
+    },
+    {
       "path": "images/monsters/childhood.png",
       "type": "image",
       "category": "images/monsters",
@@ -1521,10 +1527,22 @@
       "bytes": 1225482
     },
     {
+      "path": "images/monsters/growth-extra.png",
+      "type": "image",
+      "category": "images/monsters",
+      "bytes": 1345312
+    },
+    {
       "path": "images/monsters/growth.png",
       "type": "image",
       "category": "images/monsters",
       "bytes": 1140741
+    },
+    {
+      "path": "images/monsters/legendary.png",
+      "type": "image",
+      "category": "images/monsters",
+      "bytes": 3207130
     },
     {
       "path": "images/monsters/lineage-abyss.png",
@@ -1539,10 +1557,28 @@
       "bytes": 1600672
     },
     {
+      "path": "images/monsters/lineage-candy.png",
+      "type": "image",
+      "category": "images/monsters",
+      "bytes": 2518503
+    },
+    {
       "path": "images/monsters/lineage-cosmic.png",
       "type": "image",
       "category": "images/monsters",
       "bytes": 1598353
+    },
+    {
+      "path": "images/monsters/lineage-crystal.png",
+      "type": "image",
+      "category": "images/monsters",
+      "bytes": 2272090
+    },
+    {
+      "path": "images/monsters/lineage-glacier.png",
+      "type": "image",
+      "category": "images/monsters",
+      "bytes": 2762565
     },
     {
       "path": "images/monsters/lineage-grove.png",
@@ -1557,16 +1593,46 @@
       "bytes": 2301043
     },
     {
+      "path": "images/monsters/lineage-junk.png",
+      "type": "image",
+      "category": "images/monsters",
+      "bytes": 2313345
+    },
+    {
       "path": "images/monsters/lineage-mecha.png",
       "type": "image",
       "category": "images/monsters",
       "bytes": 2053734
     },
     {
+      "path": "images/monsters/lineage-shadow.png",
+      "type": "image",
+      "category": "images/monsters",
+      "bytes": 1877946
+    },
+    {
+      "path": "images/monsters/lineage-sky.png",
+      "type": "image",
+      "category": "images/monsters",
+      "bytes": 2425505
+    },
+    {
+      "path": "images/monsters/lineage-spirit.png",
+      "type": "image",
+      "category": "images/monsters",
+      "bytes": 2380159
+    },
+    {
       "path": "images/monsters/lineage-spore.png",
       "type": "image",
       "category": "images/monsters",
       "bytes": 2246948
+    },
+    {
+      "path": "images/monsters/lineage-tempest.png",
+      "type": "image",
+      "category": "images/monsters",
+      "bytes": 2458406
     },
     {
       "path": "images/monsters/lineage-thunder.png",

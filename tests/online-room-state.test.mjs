@@ -93,6 +93,7 @@ test("player counters and character maps are included in stats deltas", () => {
     winCharacters: { 69: 1 },
     specialCharacters: { 53: 1 },
     skillUsage: { jan: 1 },
+    monsterDex: { egg: 1, "child-ember": 1 },
     lastTeam: "RED",
     lastPlayedAt: "2026-07-17T00:00:00.000Z"
   };
@@ -101,6 +102,7 @@ test("player counters and character maps are included in stats deltas", () => {
   assert.equal(result.playerStats.players.jan.opens, 3);
   assert.equal(result.playerStats.players.jan.mvps, 1);
   assert.deepEqual(result.playerStats.players.jan.openedCharacters, { 53: 2, 69: 1 });
+  assert.deepEqual(result.playerStats.players.jan.monsterDex, { egg: 1, "child-ember": 1 });
 });
 
 test("legacy rankings merge into shared online stats", () => {

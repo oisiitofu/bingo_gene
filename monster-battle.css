@@ -38,13 +38,13 @@
 .monster-panel,
 .monster-panel.red,
 .monster-panel.blue {
-  width: 210px;
+  width: 280px;
   padding: 9px;
   overflow: visible;
 }
 
-.monster-panel.red { left: -224px; }
-.monster-panel.blue { right: -224px; }
+.monster-panel.red { left: -294px; }
+.monster-panel.blue { right: -294px; }
 
 .monster-player-list {
   position: relative;
@@ -61,9 +61,9 @@
   min-width: 0;
   display: grid;
   grid-template-columns: 1fr;
-  grid-template-rows: 148px auto;
+  grid-template-rows: 200px auto;
   gap: 3px;
-  min-height: 188px;
+  min-height: 240px;
   padding: 5px 5px 7px;
   border-left: 3px solid var(--monster-card-accent);
   background: linear-gradient(90deg, color-mix(in srgb, var(--monster-card-accent) 17%, #070a12), rgba(4,6,12,.9));
@@ -73,7 +73,7 @@
 .monster-portrait-button {
   position: relative;
   width: 100%;
-  height: 148px;
+  height: 200px;
   display: grid;
   place-items: center;
   padding: 0;
@@ -104,6 +104,8 @@
   margin: auto;
   flex: 0 0 auto;
 }
+
+.monster-portrait-button .monster-sprite { scale: calc(var(--monster-zoom, 1) + .08); }
 
 .monster-player-info { min-width: 0; text-align: center; }
 .monster-player-name {
@@ -155,7 +157,7 @@
 .monster-speech-burst {
   position: absolute;
   z-index: 16;
-  left: 118px;
+  left: 160px;
   right: -210px;
   top: 8px;
   min-width: 220px;
@@ -174,7 +176,7 @@
 
 .monster-panel.blue .monster-speech-burst {
   left: -210px;
-  right: 118px;
+  right: 160px;
 }
 
 .monster-speech-burst::after {
@@ -395,7 +397,11 @@
 @media (max-width: 1100px) {
   .monster-panel,
   .monster-panel.red,
-  .monster-panel.blue { width: 100%; }
+  .monster-panel.blue {
+    left: auto;
+    right: auto;
+    width: 100%;
+  }
   .monster-panel .monster-player-list { grid-column: 1 / -1; grid-row: 4; grid-template-columns: repeat(2,minmax(0,1fr)); }
   .monster-panel .monster-player-card { grid-template-rows: 112px auto; min-height: 148px; }
   .monster-panel .monster-portrait-button { height: 112px; }
