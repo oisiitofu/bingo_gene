@@ -18,10 +18,26 @@
     { id: "shadow", sheet: "lineage-shadow.png", mature: "月影ネコマタ", perfect: ["黒月アサシン", "夢喰いスフィンクス"], ultimate: ["冥月女帝", "夜刀神", "影獣バステト", "月蝕ケルベロス"] },
     { id: "spirit", sheet: "lineage-spirit.png", mature: "灯火キツネ", perfect: ["百鬼オオカミ", "魂導ミコ"], ultimate: ["黄泉九尾", "鬼火大将", "千霊神狐", "幽界守護神"] },
     { id: "candy", sheet: "lineage-candy.png", mature: "キャンディベア", perfect: ["パフェナイト", "ショコラウィッチ"], ultimate: ["菓子王国皇帝", "夢色ユニコーン", "飴細工ドラゴン", "混沌スイーツ神"] },
-    { id: "junk", sheet: "lineage-junk.png", mature: "ガラクタロボ", perfect: ["スクラップタンク", "ゼンマイ博士"], ultimate: ["廃材要塞王", "超合金ポンコツ", "爆走ジャンク竜", "終末ブリキ神"] }
+    { id: "junk", sheet: "lineage-junk.png", mature: "ガラクタロボ", perfect: ["スクラップタンク", "ゼンマイ博士"], ultimate: ["廃材要塞王", "超合金ポンコツ", "爆走ジャンク竜", "終末ブリキ神"] },
+    { id: "coral", sheet: "lineage-coral.png", aspect: 1, mature: "サンゴリュウ", perfect: ["珊瑚騎竜", "真珠海蛇"], ultimate: ["珊瑚海神", "潮皇ネプティス", "光礁鳳凰", "貝殻巨獣"] },
+    { id: "corsair", sheet: "lineage-corsair.png", aspect: 1, mature: "コルセアラッコ", perfect: ["鮫船長バルカ", "幽霊タコ航海士"], ultimate: ["海賊王クラーケン", "戦艦鯨アドミラ", "幽海竜ドレイク", "宝島蟹皇"] },
+    { id: "dune", sheet: "lineage-dune.png", aspect: 1, mature: "サンドアルマ", perfect: ["琥珀サソリ", "砂宮ジャッカル"], ultimate: ["大砂竜ワーム", "黄金獅子ファラオ", "砂城亀バスティア", "玻璃嵐ジン"] },
+    { id: "fossil", sheet: "lineage-fossil.png", aspect: 1, mature: "ホネラプター", perfect: ["化石トリケラ", "琥珀プテラ"], ultimate: ["骨王ティラノ", "琥珀鳳凰", "太古マンモス", "化石冥竜ヒュドラ"] },
+    { id: "samurai", sheet: "lineage-samurai.png", aspect: .937, mature: "ムシャカマキリ", perfect: ["青鬼クワガタ", "白鶴槍士"], ultimate: ["炎将軍竜", "双刃鬼大将", "天鎧キリン", "城塞武神"] },
+    { id: "dojo", sheet: "lineage-dojo.png", aspect: 1, mature: "トラケンポウ", perfect: ["翡翠ゴリラ僧", "白兎蹴闘士"], ultimate: ["金龍大師", "山嶽熊王", "百拳阿修羅", "天武麒麟"] },
+    { id: "sonic", sheet: "lineage-sonic.png", aspect: 1, mature: "オトギツネ", perfect: ["雷弦ウルフ", "電奏フクロウ"], ultimate: ["爆音竜アンプリオン", "宇宙楽鳳凰", "重低音ゴリラ", "交響ユニコーン"] },
+    { id: "festival", sheet: "lineage-festival.png", aspect: 1, mature: "ちょうちんタヌキ", perfect: ["太鼓イノシシ", "花火ツル"], ultimate: ["祭獅子大山車", "大花火竜", "千灯九尾", "踊神タコマツリ"] },
+    { id: "bloom", sheet: "lineage-bloom.png", aspect: .75, mature: "ハナツノジカ", perfect: ["薔薇騎士鹿", "蓮華ツル"], ultimate: ["世界花竜", "春神キリン", "茨聖堂巨人", "虹庭鳳凰"] },
+    { id: "dream", sheet: "lineage-dream.png", aspect: 1, mature: "ねむねむバク", perfect: ["月枕クマ", "星羊の魔導士"], ultimate: ["夢喰獣バクオウ", "月宮鯨", "悪夢翼獅子", "目覚時計神"] },
+    { id: "slime", sheet: "lineage-slime.png", aspect: .889, mature: "ぷるナイト", perfect: ["ゼリー竜", "錬金スライム"], ultimate: ["虹粘王", "プリンヒュドラ", "水銀騎神", "宇宙泡アメーバ"] },
+    { id: "gourmet", sheet: "lineage-gourmet.png", aspect: 1, mature: "コックレッサー", perfect: ["オーブンイノシシ", "麺龍シェフ"], ultimate: ["饗宴竜皇", "火鍋蟹王", "寿司鳳凰", "三ツ星鬼厨神"] },
+    { id: "ink", sheet: "lineage-ink.png", aspect: 1, mature: "スミガラス", perfect: ["墨絵白虎", "紙鶴仙人"], ultimate: ["水墨龍", "筆鎧武神", "墨嵐鳳凰", "黒月画神"] },
+    { id: "ninja", sheet: "lineage-ninja.png", aspect: 1, mature: "カゲガラス", perfect: ["黒豹シノビ", "煙蛙忍"], ultimate: ["八尾幻狐", "月影忍竜", "手裏剣フクロウ", "虚煙鬼王"] },
+    { id: "rail", sheet: "lineage-rail.png", aspect: 1, mature: "きかんリュウ", perfect: ["新幹ワイバーン", "蒸気サイ"], ultimate: ["大陸鉄竜", "磁雷蛇マグネオ", "駅城機神", "王蒸気クジャク"] },
+    { id: "ryu", sheet: "lineage-ryu.png", aspect: 1, mature: "マキモノリュウ", perfect: ["翠河龍", "白雲龍"], ultimate: ["紅帝龍", "蒼海龍王", "黄金天龍", "陰陽双龍"] }
   ];
 
-  const LEGENDARY_IDS = ["legend-sun", "legend-night"];
+  const LEGENDARY_IDS = ["legend-sun", "legend-night", "legend-world", "legend-time"];
   const LEGENDARY_CHANCE = .075;
 
   const COMBAT_ARCHETYPES = {
@@ -44,8 +60,26 @@
     spirit:  { hp: 1.02, attack: .94, defense: .96, magic: 1.24, magicDefense: 1.22, speed: 1.06, type: "magic", special: "千霊百鬼夜行" },
     candy:   { hp: 1.24, attack: .90, defense: 1.12, magic: 1.14, magicDefense: 1.08, speed: .78, type: "magic", special: "夢色甘味大爆発" },
     junk:    { hp: 1.20, attack: 1.14, defense: 1.28, magic: .76, magicDefense: .92, speed: .76, type: "physical", special: "終末ゼンマイ砲" },
+    coral:   { hp: 1.12, attack: .90, defense: 1.10, magic: 1.22, magicDefense: 1.20, speed: .88, type: "magic", special: "珊瑚海嘯" },
+    corsair: { hp: 1.04, attack: 1.22, defense: .94, magic: .88, magicDefense: .90, speed: 1.18, type: "physical", special: "大海賊砲撃" },
+    dune:    { hp: 1.18, attack: 1.08, defense: 1.30, magic: .82, magicDefense: 1.08, speed: .72, type: "physical", special: "黄金砂嵐" },
+    fossil:  { hp: 1.16, attack: 1.26, defense: 1.14, magic: .72, magicDefense: .88, speed: .90, type: "physical", special: "太古絶滅衝" },
+    samurai: { hp: 1.00, attack: 1.30, defense: 1.08, magic: .78, magicDefense: .94, speed: 1.15, type: "physical", special: "天下無双斬" },
+    dojo:    { hp: 1.16, attack: 1.22, defense: 1.14, magic: .74, magicDefense: 1.00, speed: .98, type: "physical", special: "百拳天衝" },
+    sonic:   { hp: .88, attack: .84, defense: .80, magic: 1.32, magicDefense: .98, speed: 1.38, type: "magic", special: "超音轟奏" },
+    festival:{ hp: 1.08, attack: 1.02, defense: .98, magic: 1.20, magicDefense: 1.04, speed: 1.02, type: "magic", special: "万発大花火" },
+    bloom:   { hp: 1.20, attack: .78, defense: 1.08, magic: 1.24, magicDefense: 1.30, speed: .82, type: "magic", special: "百花天輪" },
+    dream:   { hp: 1.10, attack: .70, defense: .92, magic: 1.34, magicDefense: 1.34, speed: .82, type: "magic", special: "夢界大睡眠" },
+    slime:   { hp: 1.32, attack: .84, defense: 1.12, magic: 1.12, magicDefense: 1.34, speed: .62, type: "magic", special: "虹粘超分裂" },
+    gourmet: { hp: 1.30, attack: 1.12, defense: 1.16, magic: .94, magicDefense: 1.02, speed: .70, type: "physical", special: "究極満漢全席" },
+    ink:     { hp: .94, attack: .88, defense: .90, magic: 1.32, magicDefense: 1.18, speed: 1.16, type: "magic", special: "天地水墨画" },
+    ninja:   { hp: .86, attack: 1.22, defense: .78, magic: 1.08, magicDefense: .90, speed: 1.42, type: "physical", special: "影分身絶影刃" },
+    rail:    { hp: 1.22, attack: 1.18, defense: 1.26, magic: .76, magicDefense: .94, speed: .92, type: "physical", special: "超特急轢撃" },
+    ryu:     { hp: 1.08, attack: 1.14, defense: 1.02, magic: 1.20, magicDefense: 1.10, speed: 1.04, type: "magic", special: "天地龍脈波" },
     "legend-sun": { hp: 1.34, attack: 1.32, defense: 1.28, magic: 1.34, magicDefense: 1.30, speed: 1.20, type: "magic", special: "天照・万象光輪" },
-    "legend-night": { hp: 1.30, attack: 1.36, defense: 1.24, magic: 1.38, magicDefense: 1.26, speed: 1.24, type: "physical", special: "冥星・虚空終焉" }
+    "legend-night": { hp: 1.30, attack: 1.36, defense: 1.24, magic: 1.38, magicDefense: 1.26, speed: 1.24, type: "physical", special: "冥星・虚空終焉" },
+    "legend-world": { hp: 1.42, attack: 1.28, defense: 1.38, magic: 1.36, magicDefense: 1.40, speed: 1.14, type: "magic", special: "翠環・世界新生" },
+    "legend-time": { hp: 1.30, attack: 1.40, defense: 1.24, magic: 1.40, magicDefense: 1.28, speed: 1.36, type: "physical", special: "時焔・永劫破断" }
   };
 
   const DIALOGUE = {
@@ -147,6 +181,86 @@
       open: ["ピコーン！いいマス判定、たぶん！"], evolve: ["部品増量！説明書なしで超進化！"],
       attack: ["ガラクタ全弾発射！"], hurt: ["部品が一個飛んだだけ！予備ある！"], special: ["ゼンマイ最大、終末ゼンマイ砲！"], win: ["ポンコツでも勝てる！むしろ勝った！"], defeat: ["分解整備して、だいたい直る予定……。"]
     },
+    coral: {
+      idle: ["潮の香りだ。珊瑚の海が呼んでるぞ！", "ぷくぷく、次の波に乗ろう！"],
+      open: ["いい波だ！珊瑚が一斉に光った！"], evolve: ["海の命をまとって、大きくなるぞ！"],
+      attack: ["潮の牙を受けろ！"], hurt: ["波に揺れただけさ！"], special: ["海底まで響け、珊瑚海嘯！"], win: ["青い海ぜんぶが勝利を祝ってる！"], defeat: ["潮が満ちたら、また会おう……。"]
+    },
+    corsair: {
+      idle: ["ヨーソロー！お宝マスはあっちだ！", "船長命令、派手に開けろー！"],
+      open: ["大当たりだ！宝箱に入れとこう！"], evolve: ["新しい船と力を手に入れたぞ！"],
+      attack: ["全砲門、ぶっぱなせ！"], hurt: ["船がちょいと揺れただけだ！"], special: ["海賊旗を上げろ、大海賊砲撃！"], win: ["勝利のお宝、ぜんぶいただき！"], defeat: ["沈んでも海賊は戻ってくるぞ……。"]
+    },
+    dune: {
+      idle: ["砂は全部覚えている。勝ち筋もな。", "焦るな、砂嵐はこれからだ。"],
+      open: ["砂の下から当たりを掘り出したぞ！"], evolve: ["砂岩の鎧が、さらに厚くなる！"],
+      attack: ["砂ごと押し潰す！"], hurt: ["この装甲は崩れん！"], special: ["砂漠を覆え、黄金砂嵐！"], win: ["砂上に刻んだ勝利は消えない！"], defeat: ["砂に潜って出直すか……。"]
+    },
+    fossil: {
+      idle: ["ガシャガシャ！太古の血が騒ぐ！", "一億年前から勝つ気だったぞ！"],
+      open: ["発掘成功！とんでもない一手だ！"], evolve: ["眠っていた太古の姿が蘇る！"],
+      attack: ["骨まで響く一撃だ！"], hurt: ["骨一本くらい予備がある！"], special: ["時代ごと吹き飛べ、太古絶滅衝！"], win: ["歴史に新しい勝者を刻んだぞ！"], defeat: ["また化石になって待ってる……。"]
+    },
+    samurai: {
+      idle: ["静かに構えよ。勝機は一瞬。", "我が刃、次の一手を待っている。"],
+      open: ["見事！迷いなき一手でござる！"], evolve: ["新たな鎧と覚悟、ここに！"],
+      attack: ["一閃、参る！"], hurt: ["まだ膝はつかぬ！"], special: ["天下に轟け、天下無双斬！"], win: ["勝負あり。良き戦であった！"], defeat: ["修行を重ね、再び参る……。"]
+    },
+    dojo: {
+      idle: ["押忍！一手一手が修行だ！", "構えろ、盤面も相手もまっすぐ見る！"],
+      open: ["押忍！芯の通ったいいマスだ！"], evolve: ["鍛錬の成果、いま形となる！"],
+      attack: ["正拳、まっすぐ撃ち抜く！"], hurt: ["痛みも修行のうち！"], special: ["百の拳を一瞬に、百拳天衝！"], win: ["礼！最高の勝負だった！"], defeat: ["腕立て千回して戻るぞ……。"]
+    },
+    sonic: {
+      idle: ["ボリューム上げてくよ！準備はいい？", "次のマス、リズムに乗ってる！"],
+      open: ["ナイスビート！盤面が跳ねた！"], evolve: ["新しいサウンドが体を駆け巡る！"],
+      attack: ["低音をくらえー！"], hurt: ["ノイズくらいじゃ止まらない！"], special: ["会場ごと揺らせ、超音轟奏！"], win: ["アンコール！勝利の曲をもう一回！"], defeat: ["次のライブは絶対勝つからね……。"]
+    },
+    festival: {
+      idle: ["わっしょい！盤面が祭りを待ってるぞ！", "太鼓鳴らして景気よくいこう！"],
+      open: ["たーまやー！いいマス開いた！"], evolve: ["祭りはここから本番だー！"],
+      attack: ["ドンドコ突撃だ！"], hurt: ["祭りの熱でへっちゃらだ！"], special: ["夜空を埋めろ、万発大花火！"], win: ["勝利だ、朝まで踊れー！"], defeat: ["来年の祭りでリベンジだ……。"]
+    },
+    bloom: {
+      idle: ["つぼみが揺れてる。いいことが起きそう。", "一緒に勝利の花を咲かせよう。"],
+      open: ["ほら、きれいな一手が咲いたよ！"], evolve: ["春の力が、新しい姿をくれた！"],
+      attack: ["花びらの刃、舞って！"], hurt: ["散ってもまた咲けるよ。"], special: ["世界いっぱいに、百花天輪！"], win: ["みんなの勝利が満開だね！"], defeat: ["次の春まで根を伸ばすね……。"]
+    },
+    dream: {
+      idle: ["すやぁ……勝つ夢、見えてるよ。", "次のマスは雲の向こう……たぶん。"],
+      open: ["むにゃ！夢と同じマスが開いた！"], evolve: ["もっと大きな夢の姿になるよ……。"],
+      attack: ["おやすみ雲、えいっ。"], hurt: ["夢だから痛く……ちょっと痛い。"], special: ["みんな眠れ、夢界大睡眠！"], win: ["勝った夢じゃなくて、本当に勝った！"], defeat: ["もう五分だけ寝たら本気出す……。"]
+    },
+    slime: {
+      idle: ["ぷるぷる。形はないけど作戦はある！", "今日は丸め？それとも四角め？"],
+      open: ["ぷるん！いい感じにへこんだ！"], evolve: ["ぷるるるる！体積が増えたー！"],
+      attack: ["べちゃっと体当たり！"], hurt: ["飛び散った分を回収中！"], special: ["増えて混ざって、虹粘超分裂！"], win: ["勝利の形になりましたー！"], defeat: ["びんに入って休んでくる……。"]
+    },
+    gourmet: {
+      idle: ["勝利のフルコース、仕込みは完璧！", "次のマス、いい匂いがするぞ！"],
+      open: ["絶妙な焼き加減！ナイスオープン！"], evolve: ["火力最大、新メニュー完成だ！"],
+      attack: ["熱々の一皿をくらえ！"], hurt: ["味見の刺激より軽い！"], special: ["全部盛りだ、究極満漢全席！"], win: ["勝利をおいしくいただきます！"], defeat: ["レシピを直して出直すぞ……。"]
+    },
+    ink: {
+      idle: ["白い盤面に、勝利の一筆を。", "墨の流れが次のマスを示している。"],
+      open: ["見事な一画。盤面が締まった！"], evolve: ["墨が踊り、新たな姿を描き出す！"],
+      attack: ["黒き筆勢、走れ！"], hurt: ["にじみも絵の味だ。"], special: ["天地を描き替えろ、天地水墨画！"], win: ["勝利の落款、ここに完成。"], defeat: ["紙を替えて描き直そう……。"]
+    },
+    ninja: {
+      idle: ["ニン。次のマスはすでに見切った。", "気配を消して、勝利へ近づく。"],
+      open: ["任務成功。鮮やかな一手だ。"], evolve: ["秘伝の術で、新たな姿へ！"],
+      attack: ["影より速く斬る！"], hurt: ["今のは残像……ではない！"], special: ["千の影よ、影分身絶影刃！"], win: ["任務完了。誰にも見つからず勝利。"], defeat: ["煙玉！次こそ仕留める……。"]
+    },
+    rail: {
+      idle: ["出発進行！勝利駅までノンストップ！", "次のマスへ定刻通り参ります！"],
+      open: ["ポイント切替よし！いいルートだ！"], evolve: ["車両増結、超進化急行だ！"],
+      attack: ["特急通過、道を空けろ！"], hurt: ["少々の遅延、すぐ回復！"], special: ["終点まで一直線、超特急轢撃！"], win: ["勝利駅に定刻到着！"], defeat: ["車庫で整備して折り返します……。"]
+    },
+    ryu: {
+      idle: ["龍脈が騒いでおる。次は良き一手ぞ。", "雲を呼び、勝運を集めよう。"],
+      open: ["見事。盤面に龍の道が通った！"], evolve: ["天地の気よ、我を新たな龍へ！"],
+      attack: ["龍爪、雲を裂け！"], hurt: ["この鱗、まだ砕けぬ。"], special: ["大地を巡れ、天地龍脈波！"], win: ["龍は勝者とともに天へ昇る。"], defeat: ["深き淵で力を蓄えよう……。"]
+    },
     "legend-sun": {
       idle: ["光は満ちた。勝利への道を照らそう。"], open: ["その一手、天へ届いた。"], evolve: ["太陽の門が開く。伝説はここに降り立つ！"],
       attack: ["光輪よ、悪しきを焼き払え！"], hurt: ["この光は、まだ陰らない。"], special: ["天照・万象光輪！"], win: ["見事だ。汝らの勝利を太陽に刻もう。"], defeat: ["光は沈み、また昇る……。"]
@@ -154,6 +268,14 @@
     "legend-night": {
       idle: ["星々が沈黙した。終焉の刻を待っている。"], open: ["運命の星が、いま砕けた。"], evolve: ["虚空が裂け、冥星の伝説が顕現する！"],
       attack: ["星ごと喰らい尽くす。"], hurt: ["虚無に傷は残らない。"], special: ["冥星・虚空終焉！"], win: ["勝利だけが、この宇宙に残った。"], defeat: ["我は星の闇へ還る……。"]
+    },
+    "legend-world": {
+      idle: ["森も海も空も、汝らの一手を見守っている。"], open: ["世界の環が、勝利へひとつ巡った。"], evolve: ["翠の大地よ目覚めよ。世界の伝説が顕現する！"],
+      attack: ["大地の脈動を受けよ。"], hurt: ["世界樹の根は揺るがない。"], special: ["万物よ蘇れ、翠環・世界新生！"], win: ["新しい世界に、汝らの勝利を刻もう。"], defeat: ["大地へ還り、再生の時を待つ……。"]
+    },
+    "legend-time": {
+      idle: ["時の翼は、すでに勝利の瞬間を見た。"], open: ["その一手で未来が鮮烈に変わった。"], evolve: ["時輪よ砕け。永劫を越える伝説が降臨する！"],
+      attack: ["一秒ごと焼き尽くす。"], hurt: ["傷つく前の時へ戻るだけだ。"], special: ["永遠を断て、時焔・永劫破断！"], win: ["この勝利は、すべての時代に残る。"], defeat: ["次の時代で再び相まみえよう……。"]
     }
   });
 
@@ -161,11 +283,15 @@
     const nodes = {};
     const add = (node) => { nodes[node.id] = Object.freeze(node); };
     const sprite = (sheet, size, position, aspect = 1, zoom = 1.12) => ({ sheet: `images/monsters/${sheet}`, size, position, aspect, zoom });
-    add({ id: "egg", name: "ふしぎタマゴ", stage: 0, lineage: "egg", sprite: sprite("egg.png", "contain", "center", 1, 1.16), next: ["child-ember", "child-odd", "child-frost", "child-shadow"] });
+    add({ id: "egg", name: "ふしぎタマゴ", stage: 0, lineage: "egg", sprite: sprite("egg.png", "contain", "center", 1, 1.16), next: ["child-ember", "child-odd", "child-frost", "child-shadow", "child-tide", "child-rune", "child-bloom", "child-scroll"] });
     add({ id: "child-ember", name: "ヒノコロン", stage: 1, lineage: "beast", sprite: sprite("childhood.png", "200% 100%", "0% 50%", .75, 1.16), next: ["growth-flare", "growth-gear"] });
     add({ id: "child-odd", name: "ぷるるん", stage: 1, lineage: "odd", sprite: sprite("childhood.png", "200% 100%", "100% 50%", .75, 1.16), next: ["growth-moss", "growth-bubble"] });
     add({ id: "child-frost", name: "ユキマル", stage: 1, lineage: "glacier", sprite: sprite("childhood-extra.png", "200% 100%", "0% 50%", .75, 1.12), next: ["growth-frost", "growth-storm"] });
     add({ id: "child-shadow", name: "ヨイフワ", stage: 1, lineage: "shadow", sprite: sprite("childhood-extra.png", "200% 100%", "100% 50%", .75, 1.12), next: ["growth-shadow", "growth-toy"] });
+    add({ id: "child-tide", name: "しずくポヨ", stage: 1, lineage: "coral", sprite: sprite("childhood-new.png", "400% 100%", "0% 50%", .75, 1.13), next: ["growth-coral", "growth-dune"] });
+    add({ id: "child-rune", name: "ルーンコ", stage: 1, lineage: "sonic", sprite: sprite("childhood-new.png", "400% 100%", "33.333% 50%", .75, 1.13), next: ["growth-blade", "growth-sonic"] });
+    add({ id: "child-bloom", name: "はなピィ", stage: 1, lineage: "bloom", sprite: sprite("childhood-new.png", "400% 100%", "66.667% 50%", .75, 1.13), next: ["growth-bloom", "growth-slime"] });
+    add({ id: "child-scroll", name: "まきものん", stage: 1, lineage: "ryu", sprite: sprite("childhood-new.png", "400% 100%", "100% 50%", .75, 1.13), next: ["growth-ink", "growth-rail"] });
     [
       ["growth-flare", "ほむらガオ", 0, "beast", ["inferno-mature", "thunder-mature"]],
       ["growth-gear", "ギアピヨン", 1, "mecha", ["mecha-mature", "beetle-mature"]],
@@ -178,17 +304,32 @@
       ["growth-shadow", "ヨルカゲ", 2, "shadow", ["shadow-mature", "spirit-mature"]],
       ["growth-toy", "オモチャバコ", 3, "junk", ["candy-mature", "junk-mature"]]
     ].forEach(([id, name, x, lineage, next]) => add({ id, name, stage: 2, lineage, sprite: sprite("growth-extra.png", "400% 200%", `${x * 33.333}% 50%`, 1, 1.15), next }));
+    [
+      ["growth-coral", "サンゴッコ", 0, "coral", ["coral-mature", "corsair-mature"]],
+      ["growth-dune", "スナゴロ", 1, "dune", ["dune-mature", "fossil-mature"]],
+      ["growth-blade", "カタナッコ", 2, "samurai", ["samurai-mature", "dojo-mature"]],
+      ["growth-sonic", "オトタマ", 3, "sonic", ["sonic-mature", "festival-mature"]]
+    ].forEach(([id, name, x, lineage, next]) => add({ id, name, stage: 2, lineage, sprite: sprite("growth-new-a.png", "400% 100%", `${x * 33.333}% 50%`, .625, 1.15), next }));
+    [
+      ["growth-bloom", "ハナモリ", 0, "bloom", ["bloom-mature", "dream-mature"]],
+      ["growth-slime", "ぷるゼリー", 1, "slime", ["slime-mature", "gourmet-mature"]],
+      ["growth-ink", "スミマル", 2, "ink", ["ink-mature", "ninja-mature"]],
+      ["growth-rail", "ちびドラ号", 3, "rail", ["rail-mature", "ryu-mature"]]
+    ].forEach(([id, name, x, lineage, next]) => add({ id, name, stage: 2, lineage, sprite: sprite("growth-new-b.png", "400% 100%", `${x * 33.333}% 50%`, .75, 1.15), next }));
     LINEAGES.forEach((lineage) => {
       const matureId = `${lineage.id}-mature`;
       const perfectA = `${lineage.id}-perfect-a`;
       const perfectB = `${lineage.id}-perfect-b`;
-      add({ id: matureId, name: lineage.mature, stage: 3, lineage: lineage.id, sprite: sprite(lineage.sheet, "400% 200%", "0% 0%", .75, 1.16), next: [perfectA, perfectB] });
-      add({ id: perfectA, name: lineage.perfect[0], stage: 4, lineage: lineage.id, sprite: sprite(lineage.sheet, "400% 200%", "33.333% 0%", .75, 1.16), next: [`${lineage.id}-ultimate-0`, `${lineage.id}-ultimate-1`] });
-      add({ id: perfectB, name: lineage.perfect[1], stage: 4, lineage: lineage.id, sprite: sprite(lineage.sheet, "400% 200%", "66.667% 0%", .75, 1.16), next: [`${lineage.id}-ultimate-2`, `${lineage.id}-ultimate-3`] });
-      lineage.ultimate.forEach((name, index) => add({ id: `${lineage.id}-ultimate-${index}`, name, stage: 5, lineage: lineage.id, sprite: sprite(lineage.sheet, "400% 200%", `${index * 33.333}% 100%`, .75, 1.14), next: [] }));
+      const aspect = lineage.aspect || .75;
+      add({ id: matureId, name: lineage.mature, stage: 3, lineage: lineage.id, sprite: sprite(lineage.sheet, "400% 200%", "0% 0%", aspect, 1.16), next: [perfectA, perfectB] });
+      add({ id: perfectA, name: lineage.perfect[0], stage: 4, lineage: lineage.id, sprite: sprite(lineage.sheet, "400% 200%", "33.333% 0%", aspect, 1.16), next: [`${lineage.id}-ultimate-0`, `${lineage.id}-ultimate-1`] });
+      add({ id: perfectB, name: lineage.perfect[1], stage: 4, lineage: lineage.id, sprite: sprite(lineage.sheet, "400% 200%", "66.667% 0%", aspect, 1.16), next: [`${lineage.id}-ultimate-2`, `${lineage.id}-ultimate-3`] });
+      lineage.ultimate.forEach((name, index) => add({ id: `${lineage.id}-ultimate-${index}`, name, stage: 5, lineage: lineage.id, sprite: sprite(lineage.sheet, "400% 200%", `${index * 33.333}% 100%`, aspect, 1.14), next: [] }));
     });
     add({ id: "legend-sun", name: "天照皇レイオーン", stage: 5, lineage: "legend-sun", legendary: true, sprite: sprite("legendary.png", "200% 100%", "0% 50%", .75, 1.04), next: [] });
     add({ id: "legend-night", name: "冥星王ゼロノクス", stage: 5, lineage: "legend-night", legendary: true, sprite: sprite("legendary.png", "200% 100%", "100% 50%", .75, 1.04), next: [] });
+    add({ id: "legend-world", name: "翠環神ユグドラグーン", stage: 5, lineage: "legend-world", legendary: true, sprite: sprite("legendary-new.png", "200% 100%", "0% 50%", .875, 1.02), next: [] });
+    add({ id: "legend-time", name: "時焔皇クロノフェニクス", stage: 5, lineage: "legend-time", legendary: true, sprite: sprite("legendary-new.png", "200% 100%", "100% 50%", .875, 1.02), next: [] });
     return Object.freeze(nodes);
   }
 

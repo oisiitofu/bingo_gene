@@ -75,7 +75,7 @@ test("every random event has dedicated artwork and valid stereo audio", () => {
   assert.match(html, /effects\.has\("random-event"\)[\s\S]*showRandomEvent\(payload\.randomEvent\)/);
 });
 
-test("monster evolution has four childhood entries, complete branches, legends, artwork, and online sync", () => {
+test("monster evolution has eight childhood entries, doubled branches, legends, artwork, and online sync", () => {
   const html = readFileSync(new URL("../index.html", import.meta.url), "utf8");
   const monsterSource = readFileSync(new URL("../monster-system.js", import.meta.url), "utf8");
   const browserGlobal = {};
@@ -83,19 +83,19 @@ test("monster evolution has four childhood entries, complete branches, legends, 
   const result = browserGlobal.TeamBingoMonsterSystem;
 
   assert.equal(result.STAGES.length, 6, "Egg plus five evolution stages are required");
-  assert.equal(result.LINEAGES.length, 16, "Expected sixteen mature lineages");
-  assert.equal(result.LEGENDARY_IDS.length, 2, "Expected two legendary monsters");
-  assert.equal(Object.keys(result.NODES).length, 127, "Expected four childhood entries, sixteen lineages, and two legends");
+  assert.equal(result.LINEAGES.length, 32, "Expected thirty-two mature lineages");
+  assert.equal(result.LEGENDARY_IDS.length, 4, "Expected four legendary monsters");
+  assert.equal(Object.keys(result.NODES).length, 253, "Expected eight childhood entries, thirty-two lineages, and four legends");
   assert.deepEqual(
     result.STAGES.map((_, stage) => Object.values(result.NODES).filter((node) => node.stage === stage).length),
-    [1, 4, 8, 16, 32, 66]
+    [1, 8, 16, 32, 64, 132]
   );
   Object.values(result.NODES).filter((node) => node.stage === 2).forEach((node) => {
-    assert.equal(node.sprite.size, "400% 200%", `${node.id} must preserve the growth sheet aspect ratio`);
-    assert.equal(node.sprite.aspect, 1, `${node.id} must render in a square stage frame`);
+    assert.match(node.sprite.size, /^400% (?:100|200)%$/, `${node.id} must use a four-column growth sheet`);
+    assert.ok(node.sprite.aspect > 0, `${node.id} must preserve its source cell aspect ratio`);
   });
   Object.values(result.NODES).forEach((node) => {
-    const expectedBranches = node.stage === 0 ? 4 : (node.stage < 5 ? 2 : 0);
+    const expectedBranches = node.stage === 0 ? 8 : (node.stage < 5 ? 2 : 0);
     assert.equal(node.next.length, expectedBranches, `${node.id} has an invalid branch count`);
     node.next.forEach((nextId) => assert.ok(result.NODES[nextId], `${node.id} points to missing ${nextId}`));
     const stats = result.combatStats(node.id);
@@ -115,7 +115,7 @@ test("monster evolution has four childhood entries, complete branches, legends, 
   assert.equal(duplicateOpen.monster.stage, 1, "The same player and cell must not evolve twice");
   assert.equal(party[1].stage, 0, "A teammate's monster must remain independent");
 
-  let balancedParty = result.syncPlayerMonsters([], ["A", "B", "C", "D"], "red");
+  let balancedParty = result.syncPlayerMonsters([], ["A", "B", "C", "D", "E", "F", "G", "H"], "red");
   balancedParty.forEach((monster, index) => {
     balancedParty[index] = result.evolvePlayerMonster(
       monster,
@@ -125,8 +125,8 @@ test("monster evolution has four childhood entries, complete branches, legends, 
   });
   assert.deepEqual(
     Object.values(Object.groupBy(balancedParty, (monster) => monster.nodeId)).map((group) => group.length).sort(),
-    [1, 1, 1, 1],
-    "The first branch should distribute four players across all childhood entries"
+    [1, 1, 1, 1, 1, 1, 1, 1],
+    "The first branch should distribute eight players across all childhood entries"
   );
   balancedParty.forEach((monster, index) => {
     balancedParty[index] = result.evolvePlayerMonster(
@@ -135,7 +135,7 @@ test("monster evolution has four childhood entries, complete branches, legends, 
       result.distributedEvolutionRandom(monster, balancedParty, () => .12)
     ).monster;
   });
-  assert.equal(new Set(balancedParty.map((monster) => monster.nodeId)).size, 4, "Four players should retain distinct growth branches");
+  assert.equal(new Set(balancedParty.map((monster) => monster.nodeId)).size, 8, "Eight players should retain distinct growth branches");
 
   const perfect = result.createPlayerMonster("LEGEND TEST", "red");
   perfect.nodeId = "inferno-perfect-a";
@@ -152,7 +152,13 @@ test("monster evolution has four childhood entries, complete branches, legends, 
     "lineage-mecha.png", "lineage-beetle.png", "lineage-grove.png", "lineage-spore.png",
     "lineage-abyss.png", "lineage-cosmic.png", "childhood-extra.png", "growth-extra.png",
     "lineage-glacier.png", "lineage-crystal.png", "lineage-sky.png", "lineage-tempest.png",
-    "lineage-shadow.png", "lineage-spirit.png", "lineage-candy.png", "lineage-junk.png", "legendary.png"
+    "lineage-shadow.png", "lineage-spirit.png", "lineage-candy.png", "lineage-junk.png",
+    "childhood-new.png", "growth-new-a.png", "growth-new-b.png",
+    "lineage-coral.png", "lineage-corsair.png", "lineage-dune.png", "lineage-fossil.png",
+    "lineage-samurai.png", "lineage-dojo.png", "lineage-sonic.png", "lineage-festival.png",
+    "lineage-bloom.png", "lineage-dream.png", "lineage-slime.png", "lineage-gourmet.png",
+    "lineage-ink.png", "lineage-ninja.png", "lineage-rail.png", "lineage-ryu.png",
+    "legendary.png", "legendary-new.png"
   ];
   monsterAssets.forEach((file) => {
     assert.ok(existsSync(new URL(`../images/monsters/${file}`, import.meta.url)), `Missing monster artwork: ${file}`);
@@ -169,7 +175,7 @@ test("monster evolution has four childhood entries, complete branches, legends, 
   assert.match(html, /BOSS_BATTLE_BGM_CANDIDATES = \[\s*"audio\/monster-battle\/boss-bgm\/bgm\.mp3"/);
   assert.match(html, /grid-auto-rows: 142px/);
   assert.match(html, /contain: layout paint/);
-  assert.match(html, /\.monster-dex-art \.monster-sprite[\s\S]*aspect-ratio: 1/);
+  assert.match(html, /\.monster-dex-art \.monster-sprite[\s\S]*aspect-ratio: var\(--monster-aspect, 1\)/);
   assert.match(html, /id="monsterBattleEntrance"/);
   assert.match(html, /function showMonsterBattleEntrances\(/);
   assert.match(html, /remotePresentation: true/);
