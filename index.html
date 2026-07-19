@@ -428,7 +428,7 @@
 
     .setup-player-controls {
       display: grid;
-      grid-template-columns: minmax(170px, .9fr) repeat(4, minmax(120px, 1fr));
+      grid-template-columns: minmax(170px, .9fr) repeat(5, minmax(120px, 1fr));
       gap: 10px;
       align-items: center;
       margin: 14px 0 12px;
@@ -7590,7 +7590,7 @@
       }
     });
 
-    const MANAGED_BGM_KEYS = new Set(["introBgm", "firstBingoBgm", "reachRush", "victory", "janSkillBgm", "edaSkillBgm"]);
+    const MANAGED_BGM_KEYS = new Set(["introBgm", "firstBingoBgm", "reachRush", "victory", "janSkillBgm", "edaSkillBgm", "monsterBattleBgm"]);
 
     const OPEN_SOUND_EXTENSIONS = ["mp3", "wav", "ogg", "m4a"];
     const OPEN_SOUND_DIRECTORY = "audio/open-cells/";
@@ -8844,7 +8844,6 @@
 
     function renderPlayerMonsterCard(team, monster) {
       const node = MONSTER_NODES[monster.nodeId] || MONSTER_NODES.egg;
-      const progress = Math.min(100, (node.stage / 5) * 100);
       return `
         <article class="monster-player-card" data-monster-player="${escapeHtml(monster.playerKey)}">
           <button type="button" class="monster-portrait-button" data-monster-team="${team}" data-monster-zoom="${escapeHtml(monster.playerKey)}" title="${escapeHtml(node.name)}を拡大">
@@ -8853,8 +8852,6 @@
           <div class="monster-player-info">
             <strong class="monster-player-name">${escapeHtml(monster.playerName)}</strong>
             <span class="monster-player-monster">${escapeHtml(node.name)}</span>
-            <span class="monster-player-meta"><span>${MONSTER_STAGES[node.stage]}</span><span>OPEN ${monster.opens}</span></span>
-            <div class="monster-mini-progress"><span style="--progress:${progress}%"></span></div>
           </div>
         </article>
       `;
@@ -8871,11 +8868,11 @@
       if (!overlay) return Promise.resolve();
       overlay.classList.remove("red", "blue");
       overlay.classList.add(team);
-      els.monsterEvolutionStage.textContent = `${playerName ? `${playerName} / ` : ""}${MONSTER_STAGES[next.stage]}`;
+      els.monsterEvolutionStage.textContent = playerName ? `${playerName}のモンスター` : "モンスター進化";
       els.monsterEvolutionBefore.innerHTML = monsterSpriteMarkup(previous);
       els.monsterEvolutionAfter.innerHTML = monsterSpriteMarkup(next);
       els.monsterEvolutionName.textContent = next.name;
-      if (line) showMonsterSpeech(team, playerStatsKey(playerName), line, 3400, { capture: false });
+      if (line) showMonsterSpeech(team, playerStatsKey(playerName), line, 6000, { capture: false });
       screenShake();
       return showTimedOverlay(overlay, 3300);
     }
@@ -8887,6 +8884,10 @@
       return side.monsters.find((monster) => monster.playerKey === key) || null;
     }
 
+    function getDistributedEvolutionRandom(monster) {
+      return MONSTER_SYSTEM.distributedEvolutionRandom(monster, [...state.red.monsters, ...state.blue.monsters]);
+    }
+
     function advancePlayerMonster(team, playerName, cellIndex, options = {}) {
       if (!state.monsterBattleMode) return null;
       const side = state[team];
@@ -8894,12 +8895,16 @@
       const key = playerStatsKey(playerName);
       const monsterIndex = side.monsters.findIndex((monster) => monster.playerKey === key);
       if (monsterIndex < 0) return null;
-      const result = MONSTER_SYSTEM.evolvePlayerMonster(side.monsters[monsterIndex], `${team}:${cellIndex}`);
+      const result = MONSTER_SYSTEM.evolvePlayerMonster(
+        side.monsters[monsterIndex],
+        `${team}:${cellIndex}`,
+        getDistributedEvolutionRandom(side.monsters[monsterIndex])
+      );
       side.monsters[monsterIndex] = result.monster;
       renderMonsterPanel(team);
       const moment = result.evolved ? "evolve" : "open";
       const line = MONSTER_SYSTEM.dialogue(result.monster.nodeId, moment);
-      showMonsterSpeech(team, result.monster.playerKey, line, result.evolved ? 3500 : 2600);
+      showMonsterSpeech(team, result.monster.playerKey, line, result.evolved ? 6000 : 5000);
       if (result.evolved) {
         const previous = MONSTER_NODES[result.previousId] || MONSTER_NODES.egg;
         const next = MONSTER_NODES[result.monster.nodeId] || previous;
@@ -8909,7 +8914,7 @@
       return { ...result, team, playerName, line };
     }
 
-    function showMonsterSpeech(team, playerNameOrKey, line, duration = 2800, options = {}) {
+    function showMonsterSpeech(team, playerNameOrKey, line, duration = 5000, options = {}) {
       if (!state.monsterBattleMode || !line) return;
       const key = playerStatsKey(playerNameOrKey);
       const card = els[`${team}MonsterPanel`]?.querySelector(`[data-monster-player="${CSS.escape(key)}"]`);
@@ -8932,7 +8937,7 @@
       side.monsters = MONSTER_SYSTEM.syncPlayerMonsters(side.monsters, side.members, team);
       const monster = pick(side.monsters);
       if (!monster) return;
-      showMonsterSpeech(team, monster.playerKey, MONSTER_SYSTEM.dialogue(monster.nodeId, moment), 3200);
+      showMonsterSpeech(team, monster.playerKey, MONSTER_SYSTEM.dialogue(monster.nodeId, moment), 5000);
     }
 
     function showMonsterZoom(team, playerKey) {
@@ -8944,14 +8949,14 @@
       els.monsterZoomPlayer.textContent = `${monster.playerName} / ${team.toUpperCase()} TEAM`;
       els.monsterZoomArt.innerHTML = monsterSpriteMarkup(node);
       els.monsterZoomName.textContent = node.name;
-      els.monsterZoomStage.textContent = `${MONSTER_STAGES[node.stage]} / ${stats.attackType === "magic" ? "魔法タイプ" : "物理タイプ"}`;
+      els.monsterZoomStage.textContent = stats.attackType === "magic" ? "魔法タイプ" : "物理タイプ";
       els.monsterZoomStats.innerHTML = [
         ["HP", stats.hp], ["攻撃", stats.attack], ["防御", stats.defense],
         ["魔攻", stats.magic], ["魔防", stats.magicDefense], ["素早さ", stats.speed]
       ].map(([label, value]) => `<span class="monster-stat-row"><span>${label}</span><strong>${value}</strong></span>`).join("");
-      els.monsterZoomSpecial.textContent = `SPECIAL / ${stats.special}`;
+      els.monsterZoomSpecial.textContent = `必殺技 / ${stats.special}`;
       showOverlay(els.monsterZoomOverlay);
-      showMonsterSpeech(team, monster.playerKey, MONSTER_SYSTEM.dialogue(node.id, "idle"), 3000);
+      showMonsterSpeech(team, monster.playerKey, MONSTER_SYSTEM.dialogue(node.id, "idle"), 5000);
     }
 
     function closeMonsterZoom() {
@@ -10634,7 +10639,7 @@
     }
 
     function startMonsterBattle(options = {}) {
-      if (!state.monsterBattleMode || !state.winner) return false;
+      if (!state.monsterBattleMode || !state.winner || state.monsterBattle?.status) return false;
       const seed = Number(options.seed) || Math.floor(Math.random() * 0xFFFFFFFF);
       if (shouldUseOnlineAction(options)) {
         return runOnlineAction(
@@ -10643,6 +10648,7 @@
         );
       }
       state.monsterBattle = { seed, status: "running", startedAt: Date.now(), result: "" };
+      renderVictoryMonsterLineups();
       void runMonsterBattle(seed);
       return true;
     }
@@ -10676,7 +10682,7 @@
         return `<article class="battle-fighter" data-battle-fighter="${fighter.id}">
           <div class="battle-fighter-art">${monsterSpriteMarkup(node)}</div>
           <div class="battle-fighter-ui">
-            <b>${escapeHtml(fighter.name)}</b><small>${escapeHtml(fighter.playerName)} / ${fighter.stats.attackType === "magic" ? "MAGIC" : "PHYSICAL"}</small>
+            <b>${escapeHtml(fighter.name)}</b><small>${escapeHtml(fighter.playerName)} / ${fighter.stats.attackType === "magic" ? "魔法" : "物理"}</small>
             <div class="battle-hp-track"><div class="battle-hp-fill" style="--hp:100%"></div></div>
             <div class="battle-energy-track"><div class="battle-energy-fill" style="--energy:0%"></div></div>
           </div>
@@ -10719,8 +10725,8 @@
       const attackerElement = els.monsterBattleOverlay?.querySelector(`[data-battle-fighter="${attacker.id}"]`);
       const targetElement = els.monsterBattleOverlay?.querySelector(`[data-battle-fighter="${target.id}"]`);
       if (!attackerElement || !targetElement) return delay(520);
-      els.monsterBattleCall.textContent = special ? attacker.stats.special : line;
-      els.monsterBattleLog.textContent = `${attacker.playerName}の${attacker.name} → ${target.playerName}の${target.name} / ${damage} DAMAGE`;
+      els.monsterBattleCall.textContent = special ? `必殺技「${attacker.stats.special}」` : line;
+      els.monsterBattleLog.textContent = `${attacker.name}が${target.name}へ攻撃　${damage}ダメージ`;
       attackerElement.classList.add("attacking");
       if (special) attackerElement.classList.add("special");
       const start = attackerElement.querySelector(".battle-fighter-art").getBoundingClientRect();
@@ -10735,6 +10741,11 @@
       });
       await delay(360);
       projectile.remove();
+      playAudioUrl(
+        `audio/monster-battle/${special ? "special-hit" : (attacker.stats.attackType === "magic" ? "magic-hit" : "physical-hit")}.wav`,
+        "monsterBattleSe",
+        special ? 1.08 : .94
+      );
       targetElement.classList.add("hit");
       const damageNode = document.createElement("div");
       damageNode.className = `battle-damage${attacker.stats.attackType === "magic" ? " magic" : ""}`;
@@ -10742,7 +10753,6 @@
       damageNode.style.left = `${end.left + end.width * .5}px`;
       damageNode.style.top = `${end.top + end.height * .35}px`;
       document.body.appendChild(damageNode);
-      if (special) playAudioUrl("audio/random-events/spotlight.wav", "eventSe", .72);
       window.setTimeout(() => damageNode.remove(), 1050);
       await delay(260);
       attackerElement.classList.remove("attacking", "special");
@@ -10760,12 +10770,12 @@
       els.monsterBattleBlueLabel.textContent = state.blue.teamTitle;
       els.monsterBattleResult.hidden = true;
       els.monsterBattleCloseButton.hidden = true;
-      els.monsterBattleCall.textContent = "BATTLE START!";
+      els.monsterBattleCall.textContent = "モンスターバトル開始！";
       els.monsterBattleLog.textContent = "育てたモンスターが一斉にフィールドへ！";
       renderMonsterBattleParty("red", parties.red);
       renderMonsterBattleParty("blue", parties.blue);
       showOverlay(els.monsterBattleOverlay);
-      playAudio("shuffle");
+      playManagedAudioUrl("audio/monster-battle/battle-bgm.wav", "monsterBattleBgm", "monsterBattleBgm");
       const clockTimer = window.setInterval(() => {
         const remaining = Math.max(0, duration - (Date.now() - startedAt));
         els.monsterBattleClock.textContent = (remaining / 1000).toFixed(1);
@@ -10806,11 +10816,13 @@
         els.monsterBattleLog.textContent = MONSTER_SYSTEM.dialogue(fighter.nodeId, "win", random);
       });
       state.monsterBattle = { seed, status: "complete", startedAt, result: winner };
-      els.monsterBattleResult.textContent = `${state[winner].teamTitle} MONSTER WIN!`;
+      els.monsterBattleResult.textContent = `${state[winner].teamTitle}　モンスター勝利！`;
       els.monsterBattleResult.className = `monster-battle-result ${winner}`;
       els.monsterBattleResult.hidden = false;
       els.monsterBattleCloseButton.hidden = false;
       state.inputLocked = false;
+      if (activeBgmKey === "monsterBattleBgm" && activeBgmAudio) fadeOutTimedAudio(activeBgmAudio, "monsterBattleBgm", 1200);
+      renderVictoryMonsterLineups();
       if (!onlineCoordinator?.isOnline?.() || onlineCoordinator.isMaster?.()) scheduleOnlineStateSync("monster-battle-result", 40);
     }
 
@@ -10818,7 +10830,9 @@
       state.monsterBattleRunId += 1;
       state.inputLocked = false;
       hideOverlay(els.monsterBattleOverlay);
+      if (activeBgmKey === "monsterBattleBgm") stopManagedBgm();
       document.querySelectorAll(".battle-projectile,.battle-damage").forEach((node) => node.remove());
+      renderVictoryMonsterLineups();
     }
 
     function createVictoryPresentation(team, victoryKind, mvp) {
@@ -10881,8 +10895,19 @@
         `;
       }).join("");
       const masterOnly = Boolean(onlineCoordinator?.isOnline?.() && !onlineCoordinator.isMaster?.());
-      els.monsterBattleStartButton.disabled = masterOnly;
-      els.monsterBattleStartButton.title = masterOnly ? "ルームマスターが開始できます" : "育てたモンスターで対戦";
+      const battleStatus = state.monsterBattle?.status || "";
+      const battleWinner = state.monsterBattle?.result || "";
+      els.monsterBattleStartButton.classList.remove("red-result", "blue-result");
+      if (battleStatus === "complete" && battleWinner) {
+        els.monsterBattleStartButton.classList.add(`${battleWinner}-result`);
+        els.monsterBattleStartButton.textContent = `${state[battleWinner].teamTitle}　モンスター勝利`;
+      } else if (battleStatus === "running") {
+        els.monsterBattleStartButton.textContent = "モンスターバトル進行中";
+      } else {
+        els.monsterBattleStartButton.textContent = "モンスターバトル開始";
+      }
+      els.monsterBattleStartButton.disabled = masterOnly || Boolean(battleStatus);
+      els.monsterBattleStartButton.title = masterOnly ? "ルームマスターが開始できます" : (battleStatus ? "この試合のモンスターバトルは終了しました" : "育てたモンスターで対戦");
     }
 
     function renderVictoryResultPanel(winnerTeam, victoryKind = "normal", mvp = null) {
@@ -13625,6 +13650,8 @@
       if (key === "comebackOh") return Math.min(1, 1.35 * master);
       if (key === "feverRise") return .84 * master;
       if (key === "eventSe") return .82 * master;
+      if (key === "monsterBattleBgm") return .54 * master;
+      if (key === "monsterBattleSe") return .9 * master;
       if (key === "janSkillSparkle") return .74 * master;
       if (key === "janSkillBgm") return .5 * master;
       if (key === "edaSkillPrayer") return .72 * master;
@@ -14003,6 +14030,7 @@
       renderSetupPreview();
       renderAll();
       updateHypeUi();
+      if (state.winner) renderVictoryMonsterLineups();
       if (state.gameStarted) {
         showScreen("play");
         stopSetupTheme();

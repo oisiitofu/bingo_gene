@@ -1,11 +1,11 @@
 {
   "version": 1,
-  "generatedAt": "2026-07-18T13:51:56.966Z",
+  "generatedAt": "2026-07-19T01:30:54.282Z",
   "totals": {
-    "all": 365,
+    "all": 369,
     "images": 207,
-    "audio": 158,
-    "bytes": 176771810
+    "audio": 162,
+    "bytes": 183482386
   },
   "assets": [
     {
@@ -103,6 +103,30 @@
       "type": "audio",
       "category": "audio",
       "bytes": 2859899
+    },
+    {
+      "path": "audio/monster-battle/battle-bgm.wav",
+      "type": "audio",
+      "category": "audio/monster-battle",
+      "bytes": 5990444
+    },
+    {
+      "path": "audio/monster-battle/magic-hit.wav",
+      "type": "audio",
+      "category": "audio/monster-battle",
+      "bytes": 220844
+    },
+    {
+      "path": "audio/monster-battle/physical-hit.wav",
+      "type": "audio",
+      "category": "audio/monster-battle",
+      "bytes": 182444
+    },
+    {
+      "path": "audio/monster-battle/special-hit.wav",
+      "type": "audio",
+      "category": "audio/monster-battle",
+      "bytes": 316844
     },
     {
       "path": "audio/open-blue-one.mp3",

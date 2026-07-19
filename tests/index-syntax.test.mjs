@@ -98,6 +98,8 @@ test("monster evolution has a complete binary tree, artwork, and online sync", (
     });
     assert.match(stats.attackType, /^(physical|magic)$/);
     assert.ok(stats.special.length > 0, `${node.id} is missing a special move`);
+    assert.doesNotMatch(node.name, /[A-Za-z]/, `${node.id} must use a Japanese display name`);
+    assert.doesNotMatch(stats.special, /[A-Za-z]/, `${node.id} must use a Japanese special move`);
   });
 
   const party = result.syncPlayerMonsters([], ["PLAYER A", "PLAYER B"], "red");
@@ -106,6 +108,28 @@ test("monster evolution has a complete binary tree, artwork, and online sync", (
   assert.equal(firstEvolution.monster.stage, 1, "A personal OPEN must evolve that player's egg");
   assert.equal(duplicateOpen.monster.stage, 1, "The same player and cell must not evolve twice");
   assert.equal(party[1].stage, 0, "A teammate's monster must remain independent");
+
+  let balancedParty = result.syncPlayerMonsters([], ["A", "B", "C", "D"], "red");
+  balancedParty.forEach((monster, index) => {
+    balancedParty[index] = result.evolvePlayerMonster(
+      monster,
+      `red:${index}`,
+      result.distributedEvolutionRandom(monster, balancedParty, () => .12)
+    ).monster;
+  });
+  assert.deepEqual(
+    Object.values(Object.groupBy(balancedParty, (monster) => monster.nodeId)).map((group) => group.length).sort(),
+    [2, 2],
+    "The first branch should distribute four players evenly"
+  );
+  balancedParty.forEach((monster, index) => {
+    balancedParty[index] = result.evolvePlayerMonster(
+      monster,
+      `red:${index + 10}`,
+      result.distributedEvolutionRandom(monster, balancedParty, () => .12)
+    ).monster;
+  });
+  assert.equal(new Set(balancedParty.map((monster) => monster.nodeId)).size, 4, "Four players should reach distinct growth branches");
 
   const monsterAssets = [
     "egg.png", "childhood.png", "growth.png", "lineage-inferno.png", "lineage-thunder.png",
@@ -122,6 +146,20 @@ test("monster evolution has a complete binary tree, artwork, and online sync", (
   assert.match(html, /kind: "monster-speech"/);
   assert.ok(existsSync(new URL("../images/monster-battle/arena.png", import.meta.url)));
   assert.ok(existsSync(new URL("../monster-battle.css", import.meta.url)));
+  assert.match(html, /audio\/monster-battle\/battle-bgm\.wav/);
+  assert.match(html, /state\.monsterBattle\?\.status/);
+});
+
+test("monster battle audio is dedicated stereo material", () => {
+  const files = ["battle-bgm.wav", "physical-hit.wav", "magic-hit.wav", "special-hit.wav"];
+  files.forEach((file) => {
+    const wave = readFileSync(new URL(`../audio/monster-battle/${file}`, import.meta.url));
+    assert.equal(wave.toString("ascii", 0, 4), "RIFF");
+    assert.equal(wave.toString("ascii", 8, 12), "WAVE");
+    assert.equal(wave.readUInt16LE(22), 2, `${file} must be stereo`);
+    assert.equal(wave.readUInt32LE(24), 48000, `${file} must be 48 kHz`);
+    assert.ok(wave.length > (file === "battle-bgm.wav" ? 5_000_000 : 150_000), `${file} is unexpectedly small`);
+  });
 });
 
 test("season standings and automatic backup recovery are wired into stats", () => {

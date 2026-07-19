@@ -4,6 +4,7 @@
   "type": "module",
   "scripts": {
     "assets:random-event-audio": "node scripts/generate-random-event-audio.mjs",
+    "assets:monster-battle-audio": "node scripts/generate-monster-battle-audio.mjs",
     "assets:manifest": "node scripts/generate-asset-manifest.mjs",
     "test": "node --test tests/*.test.mjs",
     "test:firebase": "node tests/firebase-online-smoke.mjs"

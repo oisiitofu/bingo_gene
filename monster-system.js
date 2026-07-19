@@ -3,28 +3,28 @@
 
   const STAGES = ["たまご", "幼少期", "成長期", "成熟期", "完全体", "究極体"];
   const LINEAGES = [
-    { id: "inferno", sheet: "lineage-inferno.png", mature: "FLARE LEO", perfect: ["OBSIDIAN LEON", "MAGMA WYVERN"], ultimate: ["SOLAR LEONIS", "CERBERUS REX", "INFERNO DRACROWN", "COMET CHIMERA"] },
-    { id: "thunder", sheet: "lineage-thunder.png", mature: "STORM FANG", perfect: ["SABER VOLT", "CLOUD KIRIN"], ultimate: ["VOLT FENRIR", "LIGHTNING TIGRON", "RAIJIN KIRIN", "TEMPEST DRACOLF"] },
-    { id: "mecha", sheet: "lineage-mecha.png", mature: "GEAR FALCON", perfect: ["JET RAPTOR", "ARMOR OWL"], ultimate: ["ORBITAL PHOENIX", "STEALTH GRYPHON", "FORTRESS NOCTUA", "SOLAR LASERWING"] },
-    { id: "beetle", sheet: "lineage-beetle.png", mature: "CHRONO BEETLE", perfect: ["DRILL SCARAB", "GEAR STAG"], ultimate: ["SIEGE COLOSSUS", "STEAM TITAN", "TIME EMPEROR", "RAZOR MANTIS"] },
-    { id: "grove", sheet: "lineage-grove.png", mature: "MOSS GUARDIAN", perfect: ["VERDANT KNIGHT", "BLOSSOM SHAMAN"], ultimate: ["WORLDROOT GIANT", "GROVE PALADIN", "SAKURA DEITY", "SUNWOOD DRAGON"] },
-    { id: "spore", sheet: "lineage-spore.png", mature: "SPORE GOBLIN", perfect: ["POISON JESTER", "MYCELIUM WITCH"], ultimate: ["PLAGUE CARNIVAL", "TOXIC CLOWN", "NIGHTMARE QUEEN", "COSMIC ORACLE"] },
-    { id: "abyss", sheet: "lineage-abyss.png", mature: "ABYSS SHARK", perfect: ["ANCHOR ORCA", "SWORDFIN"], ultimate: ["LEVIATHAN ORCA", "KRAKEN SHARK", "SEA EMPEROR", "SUBMARINE DRAGON"] },
-    { id: "cosmic", sheet: "lineage-cosmic.png", mature: "STAR JELLY", perfect: ["NEBULA MAGE", "MOON MANTA"], ultimate: ["GALAXY DEITY", "CONSTELLATION RAY", "MOON JELLY QUEEN", "BLACKHOLE OCTO"] }
+    { id: "inferno", sheet: "lineage-inferno.png", mature: "フレアレオ", perfect: ["黒曜レオン", "マグマワイバーン"], ultimate: ["太陽獅子王", "ケルベロス・レクス", "炎冠竜", "彗星キマイラ"] },
+    { id: "thunder", sheet: "lineage-thunder.png", mature: "ストームファング", perfect: ["雷刃ボルト", "雲上キリン"], ultimate: ["電光フェンリル", "雷帝タイグロン", "雷神キリン", "嵐竜狼"] },
+    { id: "mecha", sheet: "lineage-mecha.png", mature: "ギアファルコン", perfect: ["ジェットラプター", "装甲フクロウ"], ultimate: ["軌道鳳凰", "隠密グリフォン", "要塞ノクチュア", "太陽砲翼"] },
+    { id: "beetle", sheet: "lineage-beetle.png", mature: "クロノビートル", perfect: ["ドリルスカラベ", "歯車クワガタ"], ultimate: ["攻城コロッサス", "蒸気巨神", "時皇帝", "斬撃マンティス"] },
+    { id: "grove", sheet: "lineage-grove.png", mature: "苔の守り手", perfect: ["深緑の騎士", "桜花シャーマン"], ultimate: ["世界樹巨神", "森羅パラディン", "桜花神", "太陽樹竜"] },
+    { id: "spore", sheet: "lineage-spore.png", mature: "キノコロリン", perfect: ["猛毒道化師", "菌糸の魔女"], ultimate: ["疫病カーニバル", "毒笑クラウン", "悪夢女王", "宇宙予言者"] },
+    { id: "abyss", sheet: "lineage-abyss.png", mature: "アビスシャーク", perfect: ["アンカーオルカ", "剣ヒレ"], ultimate: ["深海王オルカ", "クラーケンシャーク", "海皇", "潜水ドラゴン"] },
+    { id: "cosmic", sheet: "lineage-cosmic.png", mature: "ほしクラゲ", perfect: ["星雲魔導士", "月光マンタ"], ultimate: ["銀河神", "星座エイ", "月姫クラゲ", "黒穴タコ"] }
   ];
 
   const COMBAT_ARCHETYPES = {
-    egg:     { hp: 1.05, attack: .82, defense: 1.04, magic: .82, magicDefense: 1.08, speed: .78, type: "physical", special: "SHELL BURST" },
-    beast:   { hp: 1.02, attack: 1.10, defense: .96, magic: .82, magicDefense: .90, speed: 1.13, type: "physical", special: "WILD ROAR" },
-    odd:     { hp: 1.08, attack: .82, defense: 1.06, magic: 1.10, magicDefense: 1.12, speed: .86, type: "magic", special: "ODD MIRACLE" },
-    inferno: { hp: 1.02, attack: 1.24, defense: .94, magic: 1.04, magicDefense: .86, speed: 1.02, type: "physical", special: "SUNBURST ROAR" },
-    thunder: { hp: .90, attack: 1.15, defense: .84, magic: 1.06, magicDefense: .92, speed: 1.32, type: "physical", special: "THUNDER HOWL" },
-    mecha:   { hp: 1.12, attack: 1.08, defense: 1.26, magic: .82, magicDefense: 1.05, speed: .82, type: "physical", special: "ORBITAL CANNON" },
-    beetle:  { hp: 1.18, attack: 1.03, defense: 1.34, magic: .70, magicDefense: 1.02, speed: .72, type: "physical", special: "CHRONO CRUSH" },
-    grove:   { hp: 1.22, attack: .82, defense: 1.12, magic: 1.12, magicDefense: 1.28, speed: .72, type: "magic", special: "WORLDROOT BLOOM" },
-    spore:   { hp: .94, attack: .72, defense: .84, magic: 1.33, magicDefense: 1.12, speed: .95, type: "magic", special: "NIGHTMARE SPORES" },
-    abyss:   { hp: 1.12, attack: 1.18, defense: 1.02, magic: .88, magicDefense: .96, speed: 1.02, type: "physical", special: "LEVIATHAN TIDE" },
-    cosmic:  { hp: .92, attack: .72, defense: .82, magic: 1.38, magicDefense: 1.22, speed: 1.12, type: "magic", special: "GALAXY COLLAPSE" }
+    egg:     { hp: 1.05, attack: .82, defense: 1.04, magic: .82, magicDefense: 1.08, speed: .78, type: "physical", special: "たまご大爆発" },
+    beast:   { hp: 1.02, attack: 1.10, defense: .96, magic: .82, magicDefense: .90, speed: 1.13, type: "physical", special: "野生の咆哮" },
+    odd:     { hp: 1.08, attack: .82, defense: 1.06, magic: 1.10, magicDefense: 1.12, speed: .86, type: "magic", special: "ふしぎ大奇跡" },
+    inferno: { hp: 1.02, attack: 1.24, defense: .94, magic: 1.04, magicDefense: .86, speed: 1.02, type: "physical", special: "太陽獄炎" },
+    thunder: { hp: .90, attack: 1.15, defense: .84, magic: 1.06, magicDefense: .92, speed: 1.32, type: "physical", special: "雷鳴咆哮" },
+    mecha:   { hp: 1.12, attack: 1.08, defense: 1.26, magic: .82, magicDefense: 1.05, speed: .82, type: "physical", special: "軌道砲撃" },
+    beetle:  { hp: 1.18, attack: 1.03, defense: 1.34, magic: .70, magicDefense: 1.02, speed: .72, type: "physical", special: "時空粉砕" },
+    grove:   { hp: 1.22, attack: .82, defense: 1.12, magic: 1.12, magicDefense: 1.28, speed: .72, type: "magic", special: "世界樹開花" },
+    spore:   { hp: .94, attack: .72, defense: .84, magic: 1.33, magicDefense: 1.12, speed: .95, type: "magic", special: "悪夢胞子" },
+    abyss:   { hp: 1.12, attack: 1.18, defense: 1.02, magic: .88, magicDefense: .96, speed: 1.02, type: "physical", special: "深海大津波" },
+    cosmic:  { hp: .92, attack: .72, defense: .82, magic: 1.38, magicDefense: 1.22, speed: 1.12, type: "magic", special: "銀河崩壊" }
   };
 
   const DIALOGUE = {
@@ -89,14 +89,14 @@
     const nodes = {};
     const add = (node) => { nodes[node.id] = Object.freeze(node); };
     const sprite = (sheet, size, position, aspect = 1) => ({ sheet: `images/monsters/${sheet}`, size, position, aspect });
-    add({ id: "egg", name: "MYSTERY EGG", stage: 0, lineage: "egg", sprite: sprite("egg.png", "contain", "center", 1), next: ["child-ember", "child-odd"] });
-    add({ id: "child-ember", name: "EMBER CUB", stage: 1, lineage: "beast", sprite: sprite("childhood.png", "200% 100%", "0% 50%", .75), next: ["growth-flare", "growth-gear"] });
-    add({ id: "child-odd", name: "ODDLING", stage: 1, lineage: "odd", sprite: sprite("childhood.png", "200% 100%", "100% 50%", .75), next: ["growth-moss", "growth-bubble"] });
+    add({ id: "egg", name: "ふしぎタマゴ", stage: 0, lineage: "egg", sprite: sprite("egg.png", "contain", "center", 1), next: ["child-ember", "child-odd"] });
+    add({ id: "child-ember", name: "ヒノコロン", stage: 1, lineage: "beast", sprite: sprite("childhood.png", "200% 100%", "0% 50%", .75), next: ["growth-flare", "growth-gear"] });
+    add({ id: "child-odd", name: "ぷるるん", stage: 1, lineage: "odd", sprite: sprite("childhood.png", "200% 100%", "100% 50%", .75), next: ["growth-moss", "growth-bubble"] });
     [
-      ["growth-flare", "FLARE FANG", 0, "beast", ["inferno-mature", "thunder-mature"]],
-      ["growth-gear", "GEAR WING", 1, "mecha", ["mecha-mature", "beetle-mature"]],
-      ["growth-moss", "MOSS MUNCH", 2, "grove", ["grove-mature", "spore-mature"]],
-      ["growth-bubble", "BUBBLE IMP", 3, "odd", ["abyss-mature", "cosmic-mature"]]
+      ["growth-flare", "ほむらガオ", 0, "beast", ["inferno-mature", "thunder-mature"]],
+      ["growth-gear", "ギアピヨン", 1, "mecha", ["mecha-mature", "beetle-mature"]],
+      ["growth-moss", "モスモグ", 2, "grove", ["grove-mature", "spore-mature"]],
+      ["growth-bubble", "アワプク", 3, "odd", ["abyss-mature", "cosmic-mature"]]
     ].forEach(([id, name, x, lineage, next]) => add({ id, name, stage: 2, lineage, sprite: sprite("growth.png", "400% 100%", `${x * 33.333}% 50%`, .375), next }));
     LINEAGES.forEach((lineage) => {
       const matureId = `${lineage.id}-mature`;
@@ -146,6 +146,18 @@
     const source = Array.isArray(existing) ? existing : [];
     const byKey = new Map(source.map((monster) => [playerKey(monster?.playerName), monster]));
     return (members || []).map((member) => normalizePlayerMonster(byKey.get(playerKey(member)), member, team));
+  }
+
+  function distributedEvolutionRandom(value, peers = [], random = Math.random) {
+    const monster = normalizePlayerMonster(value, value?.playerName, value?.team);
+    const current = NODES[monster.nodeId] || NODES.egg;
+    if (!current.next.length) return random;
+    const occupied = (peers || []).map((peer) => NODES[peer?.nodeId] ? peer.nodeId : "");
+    const counts = current.next.map((nodeId) => occupied.filter((occupiedId) => occupiedId === nodeId).length);
+    const minimum = Math.min(...counts);
+    const candidates = counts.map((count, index) => count === minimum ? index : -1).filter((index) => index >= 0);
+    const selected = candidates[Math.min(candidates.length - 1, Math.floor(random() * candidates.length))] || 0;
+    return () => (selected + .25) / current.next.length;
   }
 
   function evolvePlayerMonster(value, cellToken = "", random = Math.random) {
@@ -213,6 +225,6 @@
 
   global.TeamBingoMonsterSystem = Object.freeze({
     STAGES, LINEAGES, NODES, createPlayerMonster, normalizePlayerMonster, syncPlayerMonsters,
-    evolvePlayerMonster, combatStats, dialogue, playerKey, seededRandom
+    distributedEvolutionRandom, evolvePlayerMonster, combatStats, dialogue, playerKey, seededRandom
   });
 })(window);
