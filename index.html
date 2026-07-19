@@ -457,6 +457,11 @@
       animation: randomEventStage 4.7s ease both;
     }
 
+    .presentation-skippable {
+      pointer-events: auto !important;
+      cursor: pointer;
+    }
+
     .random-event-backdrop {
       position: absolute;
       z-index: -3;
@@ -4899,10 +4904,20 @@
     }
 
     #closeVictoryButton {
-      min-height: 36px;
-      padding: 8px 18px;
-      font-size: 12px;
+      min-height: 38px !important;
+      padding: 8px 22px !important;
+      border: 1px solid rgba(255,255,255,.32) !important;
+      border-radius: 4px !important;
+      color: #f8fafc !important;
+      background: rgba(7,11,19,.88) !important;
+      background-image: none !important;
+      box-shadow: inset 0 1px 0 rgba(255,255,255,.08) !important;
+      font-size: 12px !important;
+      text-shadow: none !important;
     }
+
+    #closeVictoryButton::before,
+    #closeVictoryButton::after { content: none !important; display: none !important; }
 
     .modal {
       position: fixed;
@@ -5006,12 +5021,35 @@
       gap: 12px;
     }
 
-    .monster-dex-section {
-      margin: 4px 0 16px;
-      padding: 14px 0;
-      border-block: 1px solid rgba(255,255,255,.16);
-      background: linear-gradient(90deg, transparent, rgba(12,18,30,.7) 7% 93%, transparent);
+    .monster-dex-modal { z-index: 142; }
+    .monster-dex-modal-card { width: min(1500px, 97vw); height: min(92vh, 940px); display: flex; flex-direction: column; overflow: hidden; }
+    .monster-dex-page-head { flex: 0 0 auto; align-items: center; }
+    .monster-dex-page-actions { align-items: center; justify-content: flex-end; }
+    .monster-dex-page-actions select {
+      min-width: 190px;
+      padding: 10px 30px 10px 11px;
+      border: 1px solid rgba(255,255,255,.3);
+      border-radius: 4px;
+      color: #fff;
+      background: #0a111c;
+      font: 1000 12px/1 sans-serif;
     }
+    #statsDexButton,
+    #monsterDexCloseButton {
+      min-height: 40px;
+      padding: 9px 15px;
+      border: 1px solid rgba(148,163,184,.42);
+      border-radius: 4px;
+      color: #f8fafc;
+      background: #111925;
+      background-image: none;
+      box-shadow: inset 0 1px 0 rgba(255,255,255,.07);
+      font-size: 11px;
+      text-shadow: none;
+    }
+    #statsDexButton::before, #statsDexButton::after,
+    #monsterDexCloseButton::before, #monsterDexCloseButton::after { content: none; display: none; }
+    .monster-dex-view-switch { min-width: 184px; }
 
     .monster-dex-head {
       display: flex;
@@ -5041,13 +5079,86 @@
     }
 
     .monster-dex-grid {
+      flex: 1 1 auto;
       display: grid;
       grid-template-columns: repeat(8, minmax(0, 1fr));
       gap: 7px;
-      max-height: 520px;
+      max-height: none;
       padding: 2px 10px 8px;
       overflow: auto;
     }
+
+    .monster-dex-tree {
+      flex: 1 1 auto;
+      min-height: 0;
+      padding: 14px 18px 30px;
+      overflow: auto;
+      background: radial-gradient(circle at 50% 0, rgba(67,82,116,.22), transparent 55%), #070b12;
+    }
+
+    .monster-tree-origin { display: flex; justify-content: center; min-width: max-content; margin: 0 0 8px; }
+    .monster-tree-forest { display: inline-flex; align-items: flex-start; gap: 34px; min-width: max-content; }
+    .monster-tree-group { display: grid; gap: 14px; }
+    .monster-tree-group-title { position: sticky; left: 0; color: #fff8c2; font-size: 12px; font-weight: 1000; }
+    .monster-tree-branch,
+    .monster-tree-branch ul { position: relative; display: flex; justify-content: center; margin: 0; padding: 20px 0 0; }
+    .monster-tree-branch li { position: relative; min-width: 102px; padding: 20px 5px 0; list-style: none; text-align: center; }
+    .monster-tree-branch li::before,
+    .monster-tree-branch li::after { content: ""; position: absolute; top: 0; width: 50%; height: 20px; border-top: 1px solid rgba(121,160,214,.52); }
+    .monster-tree-branch li::before { right: 50%; }
+    .monster-tree-branch li::after { left: 50%; border-left: 1px solid rgba(121,160,214,.52); }
+    .monster-tree-branch li:only-child::before,
+    .monster-tree-branch li:only-child::after { display: none; }
+    .monster-tree-branch li:first-child::before,
+    .monster-tree-branch li:last-child::after { border: 0; }
+    .monster-tree-branch li:last-child::before { border-right: 1px solid rgba(121,160,214,.52); border-radius: 0 5px 0 0; }
+    .monster-tree-branch li:first-child::after { border-radius: 5px 0 0; }
+    .monster-tree-branch ul::before { content: ""; position: absolute; top: 0; left: 50%; width: 0; height: 20px; border-left: 1px solid rgba(121,160,214,.52); }
+    .monster-tree-node {
+      width: 92px;
+      min-height: 118px;
+      display: grid;
+      grid-template-rows: 76px auto auto;
+      gap: 2px;
+      padding: 5px;
+      border: 1px solid rgba(255,255,255,.2);
+      border-radius: 5px;
+      color: #fff;
+      background: linear-gradient(155deg,#182437,#080b12 75%);
+      cursor: zoom-in;
+    }
+    .monster-tree-node.locked { color: rgba(255,255,255,.34); background: #090c12; cursor: default; }
+    .monster-tree-node.legendary { border-color: #f8dc72; box-shadow: 0 0 18px rgba(137,99,255,.35); }
+    .monster-tree-node .monster-sprite { width: 100%; height: 76px; overflow: hidden; }
+    .monster-tree-node strong { overflow: hidden; font-size: 9px; text-overflow: ellipsis; white-space: nowrap; }
+    .monster-tree-node span:last-child { color: rgba(255,255,255,.58); font-size: 8px; }
+    .monster-tree-unknown { display: grid; height: 76px; place-items: center; color: rgba(255,255,255,.2); font: 1000 30px/1 Impact,sans-serif; }
+    .monster-tree-legends { display: flex; gap: 8px; padding: 12px; border-left: 2px solid #f8dc72; background: rgba(248,220,114,.06); }
+    .monster-dex-grid[hidden],
+    .monster-dex-tree[hidden] { display: none !important; }
+
+    .team-select-modal { z-index: 150; }
+    .team-select-card { width: min(880px, 94vw); max-height: 92vh; overflow: auto; padding: 20px; }
+    .team-select-head { display: flex; align-items: center; justify-content: space-between; gap: 16px; }
+    .team-select-kicker { color: #f7c64a; font-size: 10px; font-weight: 1000; }
+    .team-select-head h2 { margin: 3px 0 0; color: #fff; font-size: 32px; }
+    .team-select-head p { margin: 5px 0 0; font-size: 12px; }
+    .team-select-shuffle { min-width: 130px; background-image: none !important; }
+    .team-select-summary { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin: 16px 0 12px; }
+    .team-select-side { min-width: 0; padding: 10px 12px; border-left: 4px solid var(--red); background: rgba(255,48,77,.13); }
+    .team-select-side.blue { border-left-color: var(--blue); background: rgba(47,128,255,.13); }
+    .team-select-side b { display: block; color: #fff; font-size: 11px; }
+    .team-select-side span { display: block; margin-top: 4px; overflow-wrap: anywhere; color: rgba(255,255,255,.78); font-size: 12px; font-weight: 900; }
+    .team-select-list { display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); gap: 7px; }
+    .team-select-row { display: grid; grid-template-columns: minmax(0,1fr) 76px 76px; align-items: center; gap: 5px; min-height: 48px; padding: 6px 7px 6px 11px; border: 1px solid rgba(255,255,255,.14); background: rgba(255,255,255,.055); }
+    .team-select-name { min-width: 0; overflow: hidden; color: #fff; font-size: 13px; font-weight: 1000; text-overflow: ellipsis; white-space: nowrap; }
+    .team-choice { min-height: 32px; border: 1px solid rgba(255,255,255,.18); border-radius: 3px; color: rgba(255,255,255,.62); background: #101722; font-size: 10px; font-weight: 1000; cursor: pointer; }
+    .team-choice.red.active { border-color: #ff6a80; color: #fff; background: #7a1527; }
+    .team-choice.blue.active { border-color: #63a8ff; color: #fff; background: #103e7b; }
+    .team-select-error { min-height: 20px; padding-top: 7px; color: #ff9aae; font-size: 11px; font-weight: 900; text-align: center; }
+    .team-select-actions { display: flex; justify-content: flex-end; gap: 8px; }
+    .team-select-actions .btn { min-height: 42px; padding: 9px 18px; font-size: 12px; }
+    .team-select-actions .btn.primary { min-width: 190px; color: #161008; }
 
     .monster-dex-card {
       position: relative;
@@ -6854,6 +6965,13 @@
       .monster-dex-head { align-items: stretch; flex-direction: column; }
       .monster-dex-head select { width: 100%; }
       .monster-dex-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+      .monster-dex-page-head { align-items: stretch; flex-direction: column; }
+      .monster-dex-page-actions { align-items: stretch; flex-direction: column; }
+      .monster-dex-page-actions select, .monster-dex-view-switch, #monsterDexCloseButton { width: 100%; }
+      .team-select-head { align-items: stretch; flex-direction: column; }
+      .team-select-list { grid-template-columns: 1fr; }
+      .team-select-summary { grid-template-columns: 1fr; }
+      .team-select-actions { display: grid; grid-template-columns: 1fr 1.4fr; }
       .stats-grid { grid-template-columns: 1fr 1fr; }
       .stats-extra-grid,
       .match-result-grid {
@@ -6920,7 +7038,6 @@
                 <button type="button" id="mode5" class="active" data-size="5">5x5</button>
                 <button type="button" id="mode7" data-size="7">7x7</button>
               </div>
-              <button type="button" class="btn frame" id="setupShuffleButton">TEAM SHUFFLE</button>
               <button type="button" class="btn" id="deckModeButton">DECK MODE</button>
               <button type="button" class="btn" id="setupStatsButton">STATS</button>
               <button type="button" class="btn active" id="randomEventButton" aria-pressed="true">EVENT ON</button>
@@ -6962,7 +7079,7 @@
               </div>
             </div>
 
-            <div class="setup-preview">
+            <div class="setup-preview" hidden>
               <div class="team-preview red">
                 <p id="redSetupMembers">-</p>
               </div>
@@ -7007,7 +7124,6 @@
           </div>
           <div class="top-buttons">
             <button type="button" class="btn primary" id="playStartButton">GAME START</button>
-            <button type="button" class="btn frame" id="playShuffleButton">TEAM SHUFFLE</button>
             <button type="button" class="btn frame" id="playStatsButton">STATS</button>
           </div>
         </div>
@@ -7251,20 +7367,11 @@
           <p>プレイヤー別の戦績、開けたキャラ、スキル発動回数を記録します。</p>
         </div>
         <div class="inline-actions">
+          <button type="button" class="btn frame" id="statsDexButton">MONSTER BOOK</button>
           <button type="button" class="btn primary" id="statsCloseButton">CLOSE</button>
         </div>
       </div>
       <div class="stats-summary" id="statsSummary"></div>
-      <section class="monster-dex-section">
-        <div class="monster-dex-head">
-          <div>
-            <h3>MONSTER ENCYCLOPEDIA</h3>
-            <p id="statsMonsterDexSummary">獲得したモンスターをプレイヤー別に記録します。</p>
-          </div>
-          <select id="statsMonsterPlayerSelect" aria-label="図鑑を見るプレイヤー"></select>
-        </div>
-        <div class="monster-dex-grid" id="statsMonsterDexGrid"></div>
-      </section>
       <div class="stats-player-list" id="statsPlayerList"></div>
       <div class="stats-extra-grid">
         <section class="stats-section">
@@ -7295,6 +7402,50 @@
           <h3>MATCH HISTORY</h3>
           <div class="stats-match-list" id="statsMatchList"></div>
         </section>
+      </div>
+    </div>
+  </section>
+
+  <section class="modal monster-dex-modal" id="monsterDexModal" aria-hidden="true">
+    <div class="modal-card monster-dex-modal-card">
+      <div class="stats-head monster-dex-page-head">
+        <div>
+          <h2>MONSTER ENCYCLOPEDIA</h2>
+          <p id="statsMonsterDexSummary">獲得したモンスターをプレイヤー別に記録します。</p>
+        </div>
+        <div class="inline-actions monster-dex-page-actions">
+          <select id="statsMonsterPlayerSelect" aria-label="図鑑を見るプレイヤー"></select>
+          <div class="segmented monster-dex-view-switch" aria-label="図鑑表示">
+            <button type="button" class="active" id="dexNumberViewButton">No.順</button>
+            <button type="button" id="dexTreeViewButton">樹形図</button>
+          </div>
+          <button type="button" class="btn frame" id="monsterDexCloseButton">BACK TO STATS</button>
+        </div>
+      </div>
+      <div class="monster-dex-grid" id="statsMonsterDexGrid"></div>
+      <div class="monster-dex-tree" id="statsMonsterDexTree" hidden></div>
+    </div>
+  </section>
+
+  <section class="modal team-select-modal" id="teamSelectModal" aria-hidden="true">
+    <div class="modal-card team-select-card">
+      <div class="team-select-head">
+        <div>
+          <span class="team-select-kicker">MATCH ENTRY</span>
+          <h2>TEAM MEMBERS</h2>
+          <p>各プレイヤーの所属チームを決めてから試合を開始します。</p>
+        </div>
+        <button type="button" class="btn frame team-select-shuffle" id="teamSelectShuffleButton">SHUFFLE</button>
+      </div>
+      <div class="team-select-summary">
+        <div class="team-select-side red"><b>RED TEAM</b><span id="teamSelectRedMembers">-</span></div>
+        <div class="team-select-side blue"><b>BLUE TEAM</b><span id="teamSelectBlueMembers">-</span></div>
+      </div>
+      <div class="team-select-list" id="teamSelectList"></div>
+      <div class="team-select-error" id="teamSelectError" role="status"></div>
+      <div class="team-select-actions">
+        <button type="button" class="btn frame" id="teamSelectCancelButton">CANCEL</button>
+        <button type="button" class="btn primary" id="teamSelectConfirmButton">MATCH START</button>
       </div>
     </div>
   </section>
@@ -7965,6 +8116,8 @@
       activeReplayStep: 0,
       activeStatsSeasonId: "",
       activeStatsMonsterPlayerKey: "",
+      activeMonsterDexView: "number",
+      teamSelectionDraft: null,
       replayTimer: null,
       autoBackupTimer: null,
       openedByPopoverTimer: null,
@@ -7973,6 +8126,7 @@
     };
 
     const els = {};
+    const timedOverlaySkips = new Map();
 
     function createSkillEffects() {
       return {
@@ -8075,12 +8229,12 @@
     function cacheElements() {
       [
         "setupScreen", "playScreen", "mode5", "mode7", "fixedMemberList", "setupStartButton",
-        "setupShuffleButton", "soundButton", "playSoundButton", "volumeSliderSetup", "volumeSliderPlay",
+        "soundButton", "playSoundButton", "volumeSliderSetup", "volumeSliderPlay",
         "volumeValueSetup", "volumeValuePlay", "deckModeButton", "setupStatsButton", "playStatsButton", "deckHub", "deckGrid",
         "deckStatusMessage", "generatedDeckCode", "randomDeckButton", "clearDeckButton",
         "copyDeckButton", "redDeckLoadCode", "blueDeckLoadCode", "bothDefaultDeckButton",
         "setupRoomIdInput", "redSetupMembers", "blueSetupMembers", "backButton", "playStartButton",
-        "playShuffleButton", "roomIdInput", "hypeCenterButton", "hypeGaugeRed", "hypeGaugeBlue", "hypeFillRed", "hypeFillBlue", "redBoard", "blueBoard", "redTeamTitle",
+        "roomIdInput", "hypeCenterButton", "hypeGaugeRed", "hypeGaugeBlue", "hypeFillRed", "hypeFillBlue", "redBoard", "blueBoard", "redTeamTitle",
         "blueTeamTitle", "redBoardMembers", "blueBoardMembers", "redOpenerRow", "blueOpenerRow", "redScore", "blueScore",
         "redGrid", "blueGrid", "redStatus", "blueStatus", "commentary", "commentaryLabel", "commentaryText", "commentarySub", "commentaryMascot",
         "openRankingList", "voiceLogLaneLeft", "voiceLogLaneRight", "redMonsterPanel", "blueMonsterPanel",
@@ -8089,8 +8243,9 @@
         "skillOverlay", "skillTitleArt", "skillTeamLine", "skillMemberLine",
         "victoryOverlay", "victoryTeam", "victoryPraise", "victorySpecialBadge", "mvpImage", "mvpName", "mvpTitle", "winnerTitles", "victoryResultPanel",
         "closeVictoryButton",
-        "statsModal", "statsSummary", "statsPlayerList", "statsHighlightList", "statsRivalryList", "statsMatchList", "statsCloseButton",
-        "statsMonsterDexSummary", "statsMonsterPlayerSelect", "statsMonsterDexGrid",
+        "statsModal", "statsSummary", "statsPlayerList", "statsHighlightList", "statsRivalryList", "statsMatchList", "statsCloseButton", "statsDexButton",
+        "monsterDexModal", "monsterDexCloseButton", "statsMonsterDexSummary", "statsMonsterPlayerSelect", "statsMonsterDexGrid", "statsMonsterDexTree", "dexNumberViewButton", "dexTreeViewButton",
+        "teamSelectModal", "teamSelectList", "teamSelectRedMembers", "teamSelectBlueMembers", "teamSelectShuffleButton", "teamSelectConfirmButton", "teamSelectCancelButton", "teamSelectError",
         "statsSeasonSelect", "statsSeasonList", "statsTournamentList",
         "randomEventButton", "monsterBattleModeButton",
         "matchReplayModal", "replayMatchMeta", "replaySummary", "replayBoards", "replayTimeline", "replayCloseButton",
@@ -8113,8 +8268,6 @@
         startGame();
       });
       els.playStartButton.addEventListener("click", startGame);
-      els.setupShuffleButton.addEventListener("click", shuffleTeamsOnly);
-      els.playShuffleButton.addEventListener("click", shuffleTeamsOnly);
       els.hypeCenterButton.addEventListener("click", playHypeVoice);
       els.hypeCenterButton.addEventListener("keydown", (event) => {
         if (event.key !== "Enter" && event.key !== " ") return;
@@ -8171,6 +8324,14 @@
         button.addEventListener("click", () => loadDeckFromInput(button.dataset.loadDeck));
       });
       els.statsCloseButton.addEventListener("click", () => hideModal(els.statsModal));
+      els.statsDexButton?.addEventListener("click", showMonsterDexPage);
+      els.monsterDexCloseButton?.addEventListener("click", closeMonsterDexPage);
+      els.dexNumberViewButton?.addEventListener("click", () => setMonsterDexView("number"));
+      els.dexTreeViewButton?.addEventListener("click", () => setMonsterDexView("tree"));
+      els.teamSelectShuffleButton?.addEventListener("click", shuffleTeamSelectionDraft);
+      els.teamSelectConfirmButton?.addEventListener("click", confirmTeamSelection);
+      els.teamSelectCancelButton?.addEventListener("click", closeTeamSelection);
+      els.teamSelectList?.addEventListener("click", onTeamSelectionClick);
       els.statsMatchList?.addEventListener("click", (event) => {
         const button = event.target.closest("[data-replay-match]");
         if (button) openMatchReplay(button.dataset.replayMatch);
@@ -8187,6 +8348,14 @@
         const button = event.target.closest("[data-dex-monster]");
         if (!button || !els.statsMonsterDexGrid.contains(button)) return;
         showMonsterNodeZoom(button.dataset.dexMonster, button.dataset.dexPlayer || "MONSTER ENCYCLOPEDIA", "#f7c64a");
+      });
+      els.statsMonsterDexTree?.addEventListener("click", (event) => {
+        const button = event.target.closest("[data-dex-monster]");
+        if (!button || !els.statsMonsterDexTree.contains(button)) return;
+        showMonsterNodeZoom(button.dataset.dexMonster, button.dataset.dexPlayer || "MONSTER ENCYCLOPEDIA", "#f7c64a");
+      });
+      document.querySelectorAll(".overlay").forEach((overlay) => {
+        overlay.addEventListener("click", () => skipTimedOverlay(overlay));
       });
       els.replayCloseButton?.addEventListener("click", closeMatchReplay);
       els.replayPrevButton?.addEventListener("click", () => setReplayStep(state.activeReplayStep - 1));
@@ -8248,6 +8417,110 @@
       renderAll();
       showCommentary("TEAM SHUFFLE", "メンバーだけを入れ替えました。", 6000);
       scheduleOnlineSetupPublish(40);
+    }
+
+    function getTeamSelectionPlayers() {
+      const inputs = getPlayerInputs();
+      const players = inputs.length >= 2 ? inputs : ["Player 1", "Player 2", "Player 3", "Player 4"];
+      return [...new Map(players.map((name) => [playerStatsKey(name), normalizePlayerName(name)])).values()];
+    }
+
+    function normalizeSelectedTeams(value = {}) {
+      const players = getTeamSelectionPlayers();
+      const namesByKey = new Map(players.map((name) => [playerStatsKey(name), name]));
+      const used = new Set();
+      const take = (members) => (Array.isArray(members) ? members : []).map((name) => namesByKey.get(playerStatsKey(name))).filter((name) => {
+        if (!name) return false;
+        const key = playerStatsKey(name);
+        if (used.has(key)) return false;
+        used.add(key);
+        return true;
+      });
+      const red = take(value.red);
+      const blue = take(value.blue);
+      players.forEach((name, index) => {
+        const key = playerStatsKey(name);
+        if (used.has(key)) return;
+        (red.length <= blue.length ? red : blue).push(name);
+        used.add(key);
+      });
+      if (!red.length && blue.length > 1) red.push(blue.shift());
+      if (!blue.length && red.length > 1) blue.push(red.pop());
+      return { red, blue };
+    }
+
+    function openTeamSelection() {
+      if (onlineCoordinator?.isOnline?.() && !onlineCoordinator.canEditSetup?.()) {
+        showCommentary("MASTER ONLY", "チーム編成と試合開始はルームマスターが行います。", 5000);
+        return false;
+      }
+      divideTeams();
+      state.teamSelectionDraft = normalizeSelectedTeams({ red: state.red.members, blue: state.blue.members });
+      renderTeamSelection();
+      showModal(els.teamSelectModal);
+      return true;
+    }
+
+    function closeTeamSelection() {
+      state.teamSelectionDraft = null;
+      hideModal(els.teamSelectModal);
+    }
+
+    function renderTeamSelection() {
+      if (!els.teamSelectList || !state.teamSelectionDraft) return;
+      const draft = state.teamSelectionDraft;
+      const redKeys = new Set(draft.red.map(playerStatsKey));
+      els.teamSelectRedMembers.textContent = draft.red.join(" / ") || "-";
+      els.teamSelectBlueMembers.textContent = draft.blue.join(" / ") || "-";
+      els.teamSelectList.innerHTML = getTeamSelectionPlayers().map((name) => {
+        const key = playerStatsKey(name);
+        const team = redKeys.has(key) ? "red" : "blue";
+        return `<div class="team-select-row">
+          <span class="team-select-name">${escapeHtml(name)}</span>
+          <button type="button" class="team-choice red${team === "red" ? " active" : ""}" data-team-choice="red" data-player-key="${escapeHtml(key)}">RED</button>
+          <button type="button" class="team-choice blue${team === "blue" ? " active" : ""}" data-team-choice="blue" data-player-key="${escapeHtml(key)}">BLUE</button>
+        </div>`;
+      }).join("");
+      els.teamSelectError.textContent = "";
+    }
+
+    function onTeamSelectionClick(event) {
+      const button = event.target.closest("[data-team-choice]");
+      if (!button || !state.teamSelectionDraft) return;
+      const destination = button.dataset.teamChoice;
+      const playerKey = button.dataset.playerKey;
+      const players = getTeamSelectionPlayers();
+      const player = players.find((name) => playerStatsKey(name) === playerKey);
+      if (!player || !["red", "blue"].includes(destination)) return;
+      const source = destination === "red" ? "blue" : "red";
+      state.teamSelectionDraft[source] = state.teamSelectionDraft[source].filter((name) => playerStatsKey(name) !== playerKey);
+      if (!state.teamSelectionDraft[destination].some((name) => playerStatsKey(name) === playerKey)) {
+        state.teamSelectionDraft[destination].push(player);
+      }
+      renderTeamSelection();
+    }
+
+    function shuffleTeamSelectionDraft() {
+      if (!state.teamSelectionDraft) return;
+      const players = shuffleCopy(getTeamSelectionPlayers());
+      state.teamSelectionDraft = {
+        red: players.filter((_, index) => index % 2 === 0),
+        blue: players.filter((_, index) => index % 2 === 1)
+      };
+      playAudio("shuffle");
+      renderTeamSelection();
+    }
+
+    function confirmTeamSelection() {
+      if (!state.teamSelectionDraft) return;
+      const selected = normalizeSelectedTeams(state.teamSelectionDraft);
+      if (!selected.red.length || !selected.blue.length) {
+        els.teamSelectError.textContent = "RED TEAMとBLUE TEAMに1人以上必要です。";
+        return;
+      }
+      state.teamSelectionDraft = null;
+      hideModal(els.teamSelectModal);
+      startGame({ teamsConfirmed: true, teams: selected });
     }
 
     function playHypeVoice(options = {}) {
@@ -8629,7 +8902,7 @@
       updateGridButtons();
       clearDeckSelection();
       renderDeckGrid();
-      if (state.gameStarted) startGame({ onlineBypass: options.onlineBypass });
+      if (state.gameStarted) startGame({ onlineBypass: options.onlineBypass, teamsConfirmed: true, teams: { red: state.red.members, blue: state.blue.members } });
       scheduleOnlineSetupPublish();
     }
 
@@ -8674,18 +8947,22 @@
     }
 
     function startGame(options = {}) {
+      if (!options.teamsConfirmed) return openTeamSelection();
+      const selectedTeams = normalizeSelectedTeams(options.teams || { red: state.red.members, blue: state.blue.members });
       if (shouldUseOnlineAction(options)) {
         return runOnlineAction(
-          { type: "start-game", masterOnly: true, payload: {} },
-          () => startGame({ ...options, onlineBypass: true })
+          { type: "start-game", masterOnly: true, payload: { teams: cloneOnlineValue(selectedTeams) } },
+          () => startGame({ ...options, teamsConfirmed: true, teams: selectedTeams, onlineBypass: true })
         );
       }
+      state.red.members = [...selectedTeams.red];
+      state.blue.members = [...selectedTeams.blue];
+      syncTeamMemberIndexes();
       unlockAudio();
       if (!usesOnlineAssetLoading()) preloadCustomOpenSounds(true);
       stopSkillKaraoke();
       stopManagedBgm();
       stopSetupTheme();
-      divideTeams();
       clearMatchState();
       assignTeamTitles();
       dealCards();
@@ -8761,6 +9038,7 @@
     function resetMatchPresentation() {
       state.effectGeneration += 1;
       state.effectQueue = Promise.resolve();
+      skipAllTimedOverlays();
       window.clearTimeout(state.commentaryTimer);
       state.commentaryTimer = null;
       stopSkillKaraoke(false);
@@ -8974,7 +9252,7 @@
           </button>
           <div class="monster-player-info">
             <strong class="monster-player-name">${escapeHtml(monster.playerName)}</strong>
-            <span class="monster-player-monster">${escapeHtml(node.name)}</span>
+            <span class="monster-player-monster"><span>${escapeHtml(node.name)}</span><em>${monsterRankLabel(node)}</em></span>
           </div>
         </article>
       `;
@@ -8984,7 +9262,16 @@
       return false;
     }
 
-    function showMonsterEvolution(team, previousId, nextId, playerName = "", line = "") {
+    function monsterRank(node) {
+      if (node?.legendary) return 6;
+      return Math.max(0, Math.min(5, Number(node?.stage) || 0));
+    }
+
+    function monsterRankLabel(node) {
+      return `☆${monsterRank(node)}`;
+    }
+
+    function showMonsterEvolution(team, previousId, nextId, playerName = "") {
       const previous = MONSTER_NODES[previousId] || MONSTER_NODES.egg;
       const next = MONSTER_NODES[nextId] || previous;
       const overlay = els.monsterEvolutionOverlay;
@@ -8995,7 +9282,6 @@
       els.monsterEvolutionBefore.innerHTML = monsterSpriteMarkup(previous);
       els.monsterEvolutionAfter.innerHTML = monsterSpriteMarkup(next);
       els.monsterEvolutionName.textContent = next.name;
-      if (line) showMonsterSpeech(team, playerStatsKey(playerName), line, 6000, { capture: false });
       screenShake();
       return showTimedOverlay(overlay, 3300);
     }
@@ -9011,7 +9297,7 @@
       return MONSTER_SYSTEM.distributedEvolutionRandom(monster, [...state.red.monsters, ...state.blue.monsters]);
     }
 
-    function advancePlayerMonster(team, playerName, cellIndex, options = {}) {
+    function advancePlayerMonster(team, playerName, cellIndex) {
       if (!state.monsterBattleMode) return null;
       const side = state[team];
       side.monsters = MONSTER_SYSTEM.syncPlayerMonsters(side.monsters, side.members, team);
@@ -9028,14 +9314,34 @@
       renderMonsterPanel(team);
       const moment = result.evolved ? "evolve" : "open";
       const line = MONSTER_SYSTEM.dialogue(result.monster.nodeId, moment);
-      showMonsterSpeech(team, result.monster.playerKey, line, result.evolved ? 6000 : 5000);
+      const duration = result.evolved ? 6000 : 5000;
+      if (onlineEventCapture) {
+        onlineEventCapture.timeline.push({
+          kind: "monster-speech-deferred",
+          team,
+          playerKey: result.monster.playerKey,
+          line,
+          duration
+        });
+      }
       if (result.evolved) {
         const previous = MONSTER_NODES[result.previousId] || MONSTER_NODES.egg;
         const next = MONSTER_NODES[result.monster.nodeId] || previous;
         addMatchHighlight("monster", `${playerName} MONSTER EVOLUTION`, `${previous.name} → ${next.name}`, team);
-        if (options.showEffect !== false) enqueueEffect(() => showMonsterEvolution(team, previous.id, next.id, playerName, line));
       }
-      return { ...result, team, playerName, line };
+      return { ...result, team, playerName, line, duration };
+    }
+
+    function enqueueMonsterPresentation(moment, options = {}) {
+      if (!moment) return;
+      if (moment.evolved && options.showEvolution !== false) {
+        enqueueEffect(() => showMonsterEvolution(moment.team, moment.previousId, moment.monster.nodeId, moment.playerName));
+      }
+      if (moment.line && options.showSpeech !== false) {
+        enqueueEffect(() => {
+          showMonsterSpeech(moment.team, moment.monster.playerKey, moment.line, moment.duration, { capture: false });
+        });
+      }
     }
 
     function showMonsterSpeech(team, playerNameOrKey, line, duration = 5000, options = {}) {
@@ -9072,7 +9378,7 @@
       els.monsterZoomPlayer.textContent = playerLabel;
       els.monsterZoomArt.innerHTML = monsterSpriteMarkup(node);
       els.monsterZoomName.textContent = node.name;
-      els.monsterZoomStage.textContent = `${stats.attackType === "magic" ? "魔法" : "物理"}タイプ${node.legendary ? " / 伝説のモンスター" : ""}`;
+      els.monsterZoomStage.textContent = `${monsterRankLabel(node)} / ${stats.attackType === "magic" ? "魔法" : "物理"}タイプ${node.legendary ? " / 伝説のモンスター" : ""}`;
       els.monsterZoomStats.innerHTML = [
         ["HP", stats.hp], ["攻撃", stats.attack], ["防御", stats.defense],
         ["魔攻", stats.magic], ["魔防", stats.magicDefense], ["素早さ", stats.speed]
@@ -9662,8 +9968,9 @@
         side.openedBy.set(index, [playerStatsKey(openerName)]);
         if (!isSpecialCell) playOpenSound(team, side.bingoCount, cell.id);
         handleSkillOpenEffectsAfterOpen(team);
-        advancePlayerMonster(team, openerName, index, { showEffect: false });
+        const monsterMoment = advancePlayerMonster(team, openerName, index);
         renderAll();
+        enqueueMonsterPresentation(monsterMoment, { showEvolution: false });
         return;
       }
 
@@ -9719,7 +10026,7 @@
 
       clearReachTargets();
       if (!becameWinner) computeReachTargets();
-      advancePlayerMonster(team, openerName, index);
+      const monsterMoment = advancePlayerMonster(team, openerName, index);
       renderAll();
       const willShowReach = !becameWinner && shouldShowReach(team);
       const eventHypeMoments = [];
@@ -9764,6 +10071,7 @@
         };
         addMatchHighlight("victory", `${getTeamLabel(team)} VICTORY`, `${preparedMvp.name} がMVP`, team, preparedMvp.imageId);
         recordVictory(team, victoryKind, preparedMvp.name);
+        enqueueMonsterPresentation(monsterMoment, { showSpeech: false });
         enqueueEffect(() => finishGame(team, victoryKind, victoryMvpHint));
         return;
       }
@@ -9777,6 +10085,8 @@
       }
 
       if (randomEvent) enqueueEffect(() => showRandomEvent(randomEvent));
+
+      enqueueMonsterPresentation(monsterMoment);
 
       if (becameFirstBingo || willShowReach || flowMoment || hypeMoment || randomEvent) return;
 
@@ -9804,7 +10114,7 @@
         selected.push(key);
         if (!isSpecialCell) {
           recordPlayerOpen(member, cell.id, team);
-          advancePlayerMonster(team, member, index);
+          enqueueMonsterPresentation(advancePlayerMonster(team, member, index));
         }
         if (side.comebackMoveCells.has(index)) recordPlayerComebackMove(member, team);
       }
@@ -9943,12 +10253,12 @@
       playAudioUrl(asset.audio, "eventSe", 1, "hype");
       window.setTimeout(() => screenShake(), 120);
       window.setTimeout(() => screenShake(), 920);
-      window.setTimeout(() => {
-        stage.remove();
-        if (!document.querySelector(".random-event-stage")) document.body.classList.remove("random-event-active");
-      }, 4800);
       showCommentary("RANDOM EVENT", `${event.title} / ${event.sub || ""}`, 5600);
       screenShake();
+      return waitForTimedPresentation(stage, 4800, () => {
+        stage.remove();
+        if (!document.querySelector(".random-event-stage")) document.body.classList.remove("random-event-active");
+      });
     }
 
     function trackStreak(team) {
@@ -10596,7 +10906,6 @@
     }
 
     function showFirstBingo(team) {
-      speakTeamMonster(team, "open");
       addMatchHighlight("bingo", `${getTeamLabel(team)} 1 BINGO`, "最初の1ラインを獲得", team);
       showCommentary("あと1本で勝利！", `${getTeamLabel(team)}が1ビンゴ。`, 10000);
       playAudio("firstBingoSe");
@@ -10607,7 +10916,6 @@
     }
 
     function showReach(team, options = {}) {
-      speakTeamMonster(team, "open");
       state[team].reachAnnounced = true;
       const side = state[team];
       const victoryReach = side.winnerReachCells.size > 0;
@@ -10741,7 +11049,6 @@
         recordVictory(team, victoryKind, mvp.name);
       }
       renderAll();
-      speakTeamMonster(team, "win");
       const special = getVictorySpecial(victoryKind);
       showCommentary(special.commentTitle || "VICTORY！", special.commentSub || `${state[team].teamTitle} が2ライン達成。`, 12000);
       await showFinishFlashBridge(() => {
@@ -11022,7 +11329,7 @@
                 const node = MONSTER_NODES[monster.nodeId] || MONSTER_NODES.egg;
                 return `<article class="victory-monster-entry">
                   <div class="victory-monster-art">${monsterSpriteMarkup(node)}</div>
-                  <b>${escapeHtml(node.name)}</b><span>${escapeHtml(monster.playerName)}</span>
+                  <b>${escapeHtml(node.name)} <em>${monsterRankLabel(node)}</em></b><span>${escapeHtml(monster.playerName)}</span>
                 </article>`;
               }).join("")}
             </div>
@@ -11380,9 +11687,39 @@
 
     function showTimedOverlay(overlay, duration, hideAfter = true) {
       showOverlay(overlay);
-      return delay(duration).then(() => {
+      return waitForTimedPresentation(overlay, duration, () => {
         if (hideAfter) hideOverlay(overlay);
       });
+    }
+
+    function waitForTimedPresentation(node, duration, cleanup = null) {
+      timedOverlaySkips.get(node)?.();
+      node.classList.add("presentation-skippable");
+      return new Promise((resolve) => {
+        let finished = false;
+        let timer = null;
+        const finish = () => {
+          if (finished) return;
+          finished = true;
+          window.clearTimeout(timer);
+          node.removeEventListener("click", finish);
+          if (timedOverlaySkips.get(node) === finish) timedOverlaySkips.delete(node);
+          node.classList.remove("presentation-skippable");
+          cleanup?.();
+          resolve();
+        };
+        timer = window.setTimeout(finish, duration);
+        node.addEventListener("click", finish);
+        timedOverlaySkips.set(node, finish);
+      });
+    }
+
+    function skipTimedOverlay(overlay) {
+      timedOverlaySkips.get(overlay)?.();
+    }
+
+    function skipAllTimedOverlays() {
+      [...timedOverlaySkips.values()].forEach((finish) => finish());
     }
 
     function delay(duration) {
@@ -11804,7 +12141,6 @@
     }
 
     function showFeverTime(team, options = {}) {
-      speakTeamMonster(team, "open");
       state.feverTeam = team;
       addMatchHighlight("fever", `${getTeamLabel(team)} FEVER TIME`, "HYPE MAXで流れが爆発", team);
       setFeverAura(team);
@@ -11822,12 +12158,10 @@
       playAudio("feverRise");
       spawnArenaStripes(team, 14);
       screenShake();
-      window.setTimeout(() => banner.remove(), 3000);
-      return delay(3050);
+      return waitForTimedPresentation(banner, 3050, () => banner.remove());
     }
 
     function showComebackMoment(team, previousTeam) {
-      speakTeamMonster(team, "attack");
       clearFeverAura();
       clearFlowBanners();
       const previousLabel = previousTeam ? getTeamLabel(previousTeam) : "相手";
@@ -11844,8 +12178,7 @@
       playAudio("comebackOh");
       spawnArenaStripes(team, 12);
       screenShake();
-      window.setTimeout(() => banner.remove(), 3000);
-      return delay(3050);
+      return waitForTimedPresentation(banner, 3050, () => banner.remove());
     }
 
     function maybeShowRareCutin(team, characterId, line, options = {}) {
@@ -12693,7 +13026,6 @@
         `<div class="stats-summary-card"><span class="stats-label">${label}</span><span class="stats-value">${value}</span></div>`
       )).join("");
       renderStatsExtras();
-      renderMonsterDex(records);
       els.statsPlayerList.innerHTML = records.length
         ? records.map(renderStatsPlayerCard).join("")
         : `<div class="stats-empty">まだ戦績がありません。GAME START後のプレイから記録されます。</div>`;
@@ -12707,6 +13039,77 @@
       ));
     }
 
+    function showMonsterDexPage() {
+      hideModal(els.statsModal);
+      renderMonsterDex();
+      setMonsterDexView(state.activeMonsterDexView || "number");
+      showModal(els.monsterDexModal);
+    }
+
+    function closeMonsterDexPage() {
+      hideModal(els.monsterDexModal);
+      renderStatsPage();
+      showModal(els.statsModal);
+    }
+
+    function setMonsterDexView(view) {
+      state.activeMonsterDexView = view === "tree" ? "tree" : "number";
+      const treeActive = state.activeMonsterDexView === "tree";
+      els.dexNumberViewButton?.classList.toggle("active", !treeActive);
+      els.dexTreeViewButton?.classList.toggle("active", treeActive);
+      if (els.statsMonsterDexGrid) els.statsMonsterDexGrid.hidden = treeActive;
+      if (els.statsMonsterDexTree) els.statsMonsterDexTree.hidden = !treeActive;
+    }
+
+    function renderMonsterTreeNode(nodeId, unlocked, record, numberById, visited = new Set()) {
+      const node = MONSTER_NODES[nodeId];
+      if (!node || visited.has(nodeId)) return "";
+      const found = Boolean(unlocked[node.id]);
+      const nextVisited = new Set(visited).add(nodeId);
+      const children = (node.next || []).map((id) => renderMonsterTreeNode(id, unlocked, record, numberById, nextVisited)).filter(Boolean);
+      return `<li>
+        <button type="button" class="monster-tree-node${found ? " discovered" : " locked"}${node.legendary ? " legendary" : ""}"${found ? ` data-dex-monster="${escapeHtml(node.id)}" data-dex-player="${escapeHtml(record.name)}"` : " disabled"}>
+          ${found ? monsterSpriteMarkup(node) : `<span class="monster-tree-unknown">?</span>`}
+          <strong>${found ? escapeHtml(node.name) : "？？？"}</strong>
+          <span>${node.legendary ? "LEGEND" : `No.${String(numberById.get(node.id) || 0).padStart(3, "0")}`} / ${monsterRankLabel(node)}</span>
+        </button>
+        ${children.length ? `<ul>${children.join("")}</ul>` : ""}
+      </li>`;
+    }
+
+    function renderMonsterDexTree(record, nodes, unlocked) {
+      if (!els.statsMonsterDexTree) return;
+      const numberById = new Map(nodes.map((node, index) => [node.id, index + 1]));
+      const egg = MONSTER_NODES.egg;
+      const roots = (egg.next || []).map((id) => MONSTER_NODES[id]).filter(Boolean);
+      const legends = nodes.filter((node) => node.legendary);
+      const eggFound = Boolean(unlocked.egg);
+      els.statsMonsterDexTree.innerHTML = `
+        <div class="monster-tree-origin">
+          <button type="button" class="monster-tree-node${eggFound ? " discovered" : " locked"}"${eggFound ? ` data-dex-monster="egg" data-dex-player="${escapeHtml(record.name)}"` : " disabled"}>
+            ${eggFound ? monsterSpriteMarkup(egg) : `<span class="monster-tree-unknown">?</span>`}
+            <strong>${eggFound ? escapeHtml(egg.name) : "？？？"}</strong>
+            <span>No.${String(numberById.get("egg") || 1).padStart(3, "0")} / ${monsterRankLabel(egg)}</span>
+          </button>
+        </div>
+        <div class="monster-tree-forest">
+          ${roots.map((root, index) => `<section class="monster-tree-group">
+            <div class="monster-tree-group-title">BRANCH ${index + 1}</div>
+            <ul class="monster-tree-branch">${renderMonsterTreeNode(root.id, unlocked, record, numberById)}</ul>
+          </section>`).join("")}
+          <section class="monster-tree-group">
+            <div class="monster-tree-group-title">LEGEND</div>
+            <div class="monster-tree-legends">${legends.map((node) => {
+              const found = Boolean(unlocked[node.id]);
+              return `<button type="button" class="monster-tree-node legendary${found ? " discovered" : " locked"}"${found ? ` data-dex-monster="${escapeHtml(node.id)}" data-dex-player="${escapeHtml(record.name)}"` : " disabled"}>
+                ${found ? monsterSpriteMarkup(node) : `<span class="monster-tree-unknown">?</span>`}
+                <strong>${found ? escapeHtml(node.name) : "？？？"}</strong><span>LEGEND / ${monsterRankLabel(node)}</span>
+              </button>`;
+            }).join("")}</div>
+          </section>
+        </div>`;
+    }
+
     function renderMonsterDex(records = getPlayerStatsRecords()) {
       if (!els.statsMonsterPlayerSelect || !els.statsMonsterDexGrid || !els.statsMonsterDexSummary) return;
       if (!records.length) {
@@ -12715,6 +13118,7 @@
         els.statsMonsterPlayerSelect.disabled = true;
         els.statsMonsterDexSummary.textContent = "試合を開始するとプレイヤーごとの図鑑が作られます。";
         els.statsMonsterDexGrid.innerHTML = `<div class="stats-empty">まだモンスターを発見していません。</div>`;
+        els.statsMonsterDexTree.innerHTML = `<div class="stats-empty">まだモンスターを発見していません。</div>`;
         return;
       }
       els.statsMonsterPlayerSelect.disabled = false;
@@ -12737,6 +13141,8 @@
           <strong>${found ? escapeHtml(node.name) : "？？？？"}</strong>
         </button>`;
       }).join("");
+      renderMonsterDexTree(record, nodes, unlocked);
+      setMonsterDexView(state.activeMonsterDexView);
     }
 
     function renderStatsExtras() {
@@ -14384,6 +14790,7 @@
       const payload = event.payload || {};
       const effects = new Set(event.effects || []);
       const presentationTimeline = Array.isArray(event.presentation?.timeline) ? event.presentation.timeline : [];
+      const deferredMonsterSpeech = presentationTimeline.filter((item) => item?.kind === "monster-speech-deferred");
       if (effects.has("intro")) {
         resetMatchPresentation();
         enqueueEffect(async () => {
@@ -14427,14 +14834,6 @@
         const skill = getTeamSkill(payload.team, payload.skillId);
         if (skill) enqueueEffect(() => showSkillActivation(payload.team, skill));
       }
-      if (effects.has("monster-evolve")) {
-        const evolutions = Array.isArray(payload.monsterEvolutions) ? payload.monsterEvolutions : [];
-        if (evolutions.length) {
-          evolutions.forEach((evolution) => enqueueEffect(() => showMonsterEvolution(payload.team, evolution.previousId, evolution.nextId, evolution.playerName, MONSTER_SYSTEM.dialogue(evolution.nextId, "evolve"))));
-        } else {
-          enqueueEffect(() => showMonsterEvolution(payload.team, payload.previousMonsterId, payload.monsterId));
-        }
-      }
       if (effects.has("monster-battle-start")) startMonsterBattle({ seed: payload.seed, onlineBypass: true });
       if (effects.has("hype-voice")) playAudio("hype");
       if (effects.has("emergency-pause")) {
@@ -14447,6 +14846,19 @@
       if (effects.has("fever") && !effects.has("victory")) enqueueEffect(() => showFeverTime(payload.team, { syncState: false }));
       if (effects.has("comeback") && !effects.has("victory")) enqueueEffect(() => showComebackMoment(payload.team, payload.previousTeam));
       if (effects.has("random-event") && !effects.has("victory")) enqueueEffect(() => showRandomEvent(payload.randomEvent));
+      if (effects.has("monster-evolve") && !effects.has("victory")) {
+        const evolutions = Array.isArray(payload.monsterEvolutions) ? payload.monsterEvolutions : [];
+        if (evolutions.length) {
+          evolutions.forEach((evolution) => enqueueEffect(() => showMonsterEvolution(payload.team, evolution.previousId, evolution.nextId, evolution.playerName)));
+        } else {
+          enqueueEffect(() => showMonsterEvolution(payload.team, payload.previousMonsterId, payload.monsterId));
+        }
+      }
+      if (!effects.has("victory")) {
+        deferredMonsterSpeech.forEach((item) => enqueueEffect(() => {
+          showMonsterSpeech(item.team, item.playerKey, item.line, Number(item.duration) || 5000, { capture: false });
+        }));
+      }
       if (effects.has("shuffle")) {
         if (payload.team) playTeamDealAnimation(payload.team);
         else playDealAnimation();

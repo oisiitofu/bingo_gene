@@ -163,7 +163,17 @@ test("monster evolution has four childhood entries, complete branches, legends, 
   assert.match(html, /audio\/monster-battle\/battle-bgm\.wav/);
   assert.match(html, /state\.monsterBattle\?\.status/);
   assert.match(html, /id="statsMonsterDexGrid"/);
+  assert.match(html, /id="monsterDexModal"/);
+  assert.match(html, /id="statsMonsterDexTree"/);
+  assert.match(html, /function renderMonsterDexTree\(/);
+  assert.match(html, /\.monster-dex-grid\[hidden\][\s\S]*display: none !important/);
   assert.match(html, /function renderMonsterDex\(/);
+  assert.match(html, /monsterRankLabel\(node\)/);
+  assert.match(html, /function waitForTimedPresentation\(/);
+  assert.match(html, /kind: "monster-speech-deferred"/);
+  assert.match(html, /id="teamSelectModal"/);
+  assert.doesNotMatch(html, /id="setupShuffleButton"/);
+  assert.doesNotMatch(html, /id="playShuffleButton"/);
   assert.match(html, /specialChanceForHype\(attacker\.hype\)/);
 });
 

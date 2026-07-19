@@ -9,12 +9,42 @@ import {
   filterStatsDeltaAfterReset,
   mergeLegacyStats,
   normalizeCountBackup,
+  remapOnlineRoomTeams,
   selectInitialOnlineMatchPresentation,
   selectCurrentOnlineCommentary,
   selectCountExportRanking,
   shouldAnnounceOnlineMatchStart,
   shouldResetOnlineMatchPresentation
 } from "../online/online-room.js";
+
+test("starting a match remaps player and seat teams to the confirmed lineup", () => {
+  const room = {
+    participants: {
+      master: { memberName: "JAN", team: "red", role: "master" },
+      player: { memberName: "EDA", team: "blue", role: "player" },
+      bench: { memberName: "Kento", team: "blue", role: "player" },
+      viewer: { memberName: "観戦", team: "", role: "spectator" }
+    },
+    seats: {
+      jan: { name: "JAN", team: "red" },
+      eda: { name: "EDA", team: "blue" },
+      kento: { name: "Kento", team: "blue" }
+    }
+  };
+
+  remapOnlineRoomTeams(room, {
+    red: { members: ["EDA"] },
+    blue: { members: ["JAN"] }
+  });
+
+  assert.equal(room.participants.master.team, "blue");
+  assert.equal(room.participants.player.team, "red");
+  assert.equal(room.participants.bench.team, "");
+  assert.equal(room.participants.viewer.team, "");
+  assert.equal(room.seats.jan.team, "blue");
+  assert.equal(room.seats.eda.team, "red");
+  assert.equal(room.seats.kento.team, "");
+});
 
 const emptyStats = () => ({
   ranking: {},

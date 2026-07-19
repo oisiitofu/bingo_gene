@@ -120,13 +120,25 @@
 }
 
 .monster-player-monster {
-  display: block;
+  display: flex;
+  align-items: baseline;
+  justify-content: center;
+  gap: 6px;
   margin-top: 2px;
   overflow-wrap: anywhere;
   color: color-mix(in srgb, var(--monster-card-accent) 36%, white);
   font-size: 15px;
   font-weight: 1000;
   line-height: 1.08;
+}
+
+.monster-player-monster em,
+.victory-monster-entry b em {
+  flex: 0 0 auto;
+  color: #fff36c;
+  font-size: .8em;
+  font-style: normal;
+  text-shadow: 0 0 8px currentColor;
 }
 
 .monster-player-meta {

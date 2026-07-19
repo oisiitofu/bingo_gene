@@ -109,6 +109,26 @@ function playerKey(value) {
   return normalizeName(value).toLocaleLowerCase("ja-JP").replace(/[.#$\[\]/]/g, "_");
 }
 
+export function remapOnlineRoomTeams(room = {}, game = {}) {
+  const teamByPlayer = new Map();
+  ["red", "blue"].forEach((team) => {
+    (Array.isArray(game?.[team]?.members) ? game[team].members : []).forEach((name) => {
+      teamByPlayer.set(playerKey(name), team);
+    });
+  });
+  Object.values(room.participants || {}).forEach((participant) => {
+    if (!participant || participant.role === "spectator") return;
+    const team = teamByPlayer.get(playerKey(participant.memberName));
+    participant.team = team || "";
+  });
+  Object.values(room.seats || {}).forEach((seat) => {
+    if (!seat) return;
+    const team = teamByPlayer.get(playerKey(seat.name));
+    seat.team = team || "";
+  });
+  return room;
+}
+
 export function createOnlineSeatRecord({
   uid = "",
   deviceId = "",
@@ -2978,6 +2998,7 @@ export class OnlineCoordinator {
       if ((Number(room.meta?.revision) || 0) !== (Number(baseRevision) || 0)) return undefined;
       const sequence = (Number(room.meta.eventSeq) || 0) + 1;
       room.game = clone(game);
+      if (action?.type === "start-game") remapOnlineRoomTeams(room, game);
       room.meta.revision = (Number(room.meta.revision) || 0) + 1;
       room.meta.eventSeq = sequence;
       room.meta.phase = roomStatusFromGame(game);
