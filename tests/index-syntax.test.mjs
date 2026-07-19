@@ -164,7 +164,10 @@ test("monster evolution has four childhood entries, complete branches, legends, 
   assert.match(html, /kind: "monster-speech"/);
   assert.ok(existsSync(new URL("../images/monster-battle/arena.png", import.meta.url)));
   assert.ok(existsSync(new URL("../monster-battle.css", import.meta.url)));
-  assert.match(html, /audio\/monster-battle\/battle-bgm\.wav/);
+  assert.match(html, /audio\/monster-battle\/boss-bgm\/bgm\.wav/);
+  assert.match(html, /audio\/monster-battle\/boss-bgm\/bgm\.mp3/);
+  assert.match(html, /grid-auto-rows: 142px/);
+  assert.match(html, /contain: layout paint/);
   assert.match(html, /state\.monsterBattle\?\.status/);
   assert.match(html, /id="statsMonsterDexGrid"/);
   assert.match(html, /id="monsterDexModal"/);
@@ -185,14 +188,14 @@ test("monster evolution has four childhood entries, complete branches, legends, 
 });
 
 test("monster battle audio is dedicated stereo material", () => {
-  const files = ["battle-bgm.wav", "physical-hit.wav", "magic-hit.wav", "special-hit.wav"];
+  const files = ["boss-bgm/bgm.wav", "physical-hit.wav", "magic-hit.wav", "special-hit.wav"];
   files.forEach((file) => {
     const wave = readFileSync(new URL(`../audio/monster-battle/${file}`, import.meta.url));
     assert.equal(wave.toString("ascii", 0, 4), "RIFF");
     assert.equal(wave.toString("ascii", 8, 12), "WAVE");
     assert.equal(wave.readUInt16LE(22), 2, `${file} must be stereo`);
     assert.equal(wave.readUInt32LE(24), 48000, `${file} must be 48 kHz`);
-    assert.ok(wave.length > (file === "battle-bgm.wav" ? 5_000_000 : 150_000), `${file} is unexpectedly small`);
+    assert.ok(wave.length > (file === "boss-bgm/bgm.wav" ? 5_000_000 : 150_000), `${file} is unexpectedly small`);
   });
 });
 

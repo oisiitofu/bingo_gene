@@ -5081,7 +5081,9 @@
     .monster-dex-grid {
       flex: 1 1 auto;
       display: grid;
-      grid-template-columns: repeat(8, minmax(0, 1fr));
+      grid-template-columns: repeat(10, minmax(0, 1fr));
+      grid-auto-rows: 142px;
+      align-content: start;
       gap: 7px;
       max-height: none;
       padding: 2px 10px 8px;
@@ -5195,12 +5197,14 @@
     .monster-dex-card {
       position: relative;
       min-width: 0;
-      aspect-ratio: .82;
+      height: 142px;
       display: grid;
-      grid-template-rows: auto minmax(0, 1fr) auto;
+      grid-template-rows: 13px minmax(0, 1fr) 18px;
       gap: 3px;
-      padding: 6px;
+      align-self: start;
+      padding: 5px;
       overflow: hidden;
+      contain: layout paint;
       border: 1px solid rgba(255,255,255,.2);
       border-radius: 5px;
       color: #fff;
@@ -5238,10 +5242,20 @@
     }
 
     .monster-dex-card.legendary .monster-dex-number { color: #ffe97d; }
-    .monster-dex-art { min-height: 0; display: grid; place-items: center; padding: 7px; overflow: hidden; }
-    .monster-dex-art .monster-sprite { width: 78%; height: 78%; scale: 1; }
-    .monster-dex-unknown { color: rgba(255,255,255,.22); font: 1000 42px/1 Impact, sans-serif; }
-    .monster-dex-card strong { min-width: 0; overflow: hidden; font-size: 10px; line-height: 1.1; text-overflow: ellipsis; white-space: nowrap; }
+    .monster-dex-art { min-height: 0; display: grid; place-items: center; padding: 3px; overflow: hidden; }
+    .monster-dex-art .monster-sprite { width: 90%; height: 90%; scale: 1; }
+    .monster-dex-unknown { color: rgba(255,255,255,.22); font: 1000 34px/1 Impact, sans-serif; }
+    .monster-dex-card strong {
+      min-width: 0;
+      display: block;
+      overflow: hidden;
+      color: #f8fafc;
+      font-size: 9px;
+      line-height: 18px;
+      text-align: center;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
 
     .stats-player-card {
       padding: 12px;
@@ -6871,7 +6885,7 @@
         grid-template-columns: 1fr;
       }
 
-      .monster-dex-grid { grid-template-columns: repeat(5, minmax(0, 1fr)); }
+      .monster-dex-grid { grid-template-columns: repeat(7, minmax(0, 1fr)); }
 
       .stats-extra-grid,
       .match-result-grid {
@@ -6996,7 +7010,8 @@
       .stats-summary { grid-template-columns: 1fr 1fr; }
       .monster-dex-head { align-items: stretch; flex-direction: column; }
       .monster-dex-head select { width: 100%; }
-      .monster-dex-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+      .monster-dex-grid { grid-template-columns: repeat(4, minmax(0, 1fr)); grid-auto-rows: 132px; }
+      .monster-dex-card { height: 132px; }
       .monster-dex-page-head { align-items: stretch; flex-direction: column; }
       .monster-dex-page-actions { align-items: stretch; flex-direction: column; }
       .monster-dex-page-actions select, .monster-dex-view-switch, #monsterDexCloseButton { width: 100%; }
@@ -7885,6 +7900,10 @@
     });
 
     const MANAGED_BGM_KEYS = new Set(["introBgm", "firstBingoBgm", "reachRush", "victory", "janSkillBgm", "edaSkillBgm", "monsterBattleBgm"]);
+    const BOSS_BATTLE_BGM_CANDIDATES = [
+      "audio/monster-battle/boss-bgm/bgm.wav",
+      "audio/monster-battle/boss-bgm/bgm.mp3"
+    ];
 
     const OPEN_SOUND_EXTENSIONS = ["mp3", "wav", "ogg", "m4a"];
     const OPEN_SOUND_DIRECTORY = "audio/open-cells/";
@@ -11246,7 +11265,7 @@
       renderMonsterBattleParty("red", parties.red);
       renderMonsterBattleParty("blue", parties.blue);
       showOverlay(els.monsterBattleOverlay);
-      playManagedAudioUrl("audio/monster-battle/battle-bgm.wav", "monsterBattleBgm", "monsterBattleBgm");
+      playManagedAudioUrlCandidates(BOSS_BATTLE_BGM_CANDIDATES, "monsterBattleBgm", "monsterBattleBgm");
       const clockTimer = window.setInterval(() => {
         const remaining = Math.max(0, duration - (Date.now() - startedAt));
         els.monsterBattleClock.textContent = (remaining / 1000).toFixed(1);
@@ -13170,7 +13189,7 @@
         return `<button type="button" class="monster-dex-card${found ? " discovered" : " locked"}${node.legendary ? " legendary" : ""}"${found ? ` data-dex-monster="${escapeHtml(node.id)}" data-dex-player="${escapeHtml(record.name)}"` : " disabled"} aria-label="${found ? `${escapeHtml(node.name)}を拡大` : "未発見のモンスター"}">
           <span class="monster-dex-number">${node.legendary ? "LEGEND" : `No.${String(index + 1).padStart(3, "0")}`}</span>
           <span class="monster-dex-art">${found ? monsterSpriteMarkup(node) : `<span class="monster-dex-unknown">?</span>`}</span>
-          <strong>${found ? escapeHtml(node.name) : "？？？？"}</strong>
+          <strong title="${found ? escapeHtml(node.name) : "未発見"}">${found ? escapeHtml(node.name) : "？？？？"}</strong>
         </button>`;
       }).join("");
       renderMonsterDexTree(record, nodes, unlocked);

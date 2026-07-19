@@ -102,7 +102,9 @@ function writeWav(name, track) {
     buffer.writeInt16LE(Math.round(Math.max(-1, Math.min(1, track.left[index] * gain)) * 32767), 44 + index * 4);
     buffer.writeInt16LE(Math.round(Math.max(-1, Math.min(1, track.right[index] * gain)) * 32767), 46 + index * 4);
   }
-  writeFileSync(resolve(outputDir, name), buffer);
+  const outputPath = resolve(outputDir, name);
+  mkdirSync(dirname(outputPath), { recursive: true });
+  writeFileSync(outputPath, buffer);
 }
 
 function battleBgm() {
@@ -162,7 +164,7 @@ function specialHit() {
   return track;
 }
 
-writeWav("battle-bgm.wav", battleBgm());
+writeWav("boss-bgm/bgm.wav", battleBgm());
 writeWav("physical-hit.wav", physicalHit());
 writeWav("magic-hit.wav", magicHit());
 writeWav("special-hit.wav", specialHit());

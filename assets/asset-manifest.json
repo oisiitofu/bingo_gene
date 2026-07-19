@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "generatedAt": "2026-07-19T03:12:46.015Z",
+  "generatedAt": "2026-07-19T04:45:38.827Z",
   "totals": {
     "all": 380,
     "images": 218,
@@ -105,9 +105,9 @@
       "bytes": 2859899
     },
     {
-      "path": "audio/monster-battle/battle-bgm.wav",
+      "path": "audio/monster-battle/boss-bgm/bgm.wav",
       "type": "audio",
-      "category": "audio/monster-battle",
+      "category": "audio/monster-battle/boss-bgm",
       "bytes": 5990444
     },
     {
