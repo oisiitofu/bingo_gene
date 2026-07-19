@@ -171,13 +171,13 @@
       ["growth-gear", "ギアピヨン", 1, "mecha", ["mecha-mature", "beetle-mature"]],
       ["growth-moss", "モスモグ", 2, "grove", ["grove-mature", "spore-mature"]],
       ["growth-bubble", "アワプク", 3, "odd", ["abyss-mature", "cosmic-mature"]]
-    ].forEach(([id, name, x, lineage, next]) => add({ id, name, stage: 2, lineage, sprite: sprite("growth.png", "400% 100%", `${x * 33.333}% 50%`, .375, 1.18), next }));
+    ].forEach(([id, name, x, lineage, next]) => add({ id, name, stage: 2, lineage, sprite: sprite("growth.png", "400% 200%", `${x * 33.333}% 50%`, 1, 1.18), next }));
     [
       ["growth-frost", "コオリヒョウ", 0, "glacier", ["glacier-mature", "crystal-mature"]],
       ["growth-storm", "ソラバネ", 1, "sky", ["sky-mature", "tempest-mature"]],
       ["growth-shadow", "ヨルカゲ", 2, "shadow", ["shadow-mature", "spirit-mature"]],
       ["growth-toy", "オモチャバコ", 3, "junk", ["candy-mature", "junk-mature"]]
-    ].forEach(([id, name, x, lineage, next]) => add({ id, name, stage: 2, lineage, sprite: sprite("growth-extra.png", "400% 100%", `${x * 33.333}% 50%`, .375, 1.15), next }));
+    ].forEach(([id, name, x, lineage, next]) => add({ id, name, stage: 2, lineage, sprite: sprite("growth-extra.png", "400% 200%", `${x * 33.333}% 50%`, 1, 1.15), next }));
     LINEAGES.forEach((lineage) => {
       const matureId = `${lineage.id}-mature`;
       const perfectA = `${lineage.id}-perfect-a`;

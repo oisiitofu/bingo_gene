@@ -90,6 +90,10 @@ test("monster evolution has four childhood entries, complete branches, legends, 
     result.STAGES.map((_, stage) => Object.values(result.NODES).filter((node) => node.stage === stage).length),
     [1, 4, 8, 16, 32, 66]
   );
+  Object.values(result.NODES).filter((node) => node.stage === 2).forEach((node) => {
+    assert.equal(node.sprite.size, "400% 200%", `${node.id} must preserve the growth sheet aspect ratio`);
+    assert.equal(node.sprite.aspect, 1, `${node.id} must render in a square stage frame`);
+  });
   Object.values(result.NODES).forEach((node) => {
     const expectedBranches = node.stage === 0 ? 4 : (node.stage < 5 ? 2 : 0);
     assert.equal(node.next.length, expectedBranches, `${node.id} has an invalid branch count`);
@@ -172,6 +176,9 @@ test("monster evolution has four childhood entries, complete branches, legends, 
   assert.match(html, /function waitForTimedPresentation\(/);
   assert.match(html, /kind: "monster-speech-deferred"/);
   assert.match(html, /id="teamSelectModal"/);
+  assert.match(html, /class="btn simple-ui-btn team-select-shuffle" id="teamSelectShuffleButton"/);
+  assert.match(html, /class="btn simple-ui-btn" id="teamSelectCancelButton"/);
+  assert.match(html, /\.monster-tree-branch li[\s\S]*align-items: center/);
   assert.doesNotMatch(html, /id="setupShuffleButton"/);
   assert.doesNotMatch(html, /id="playShuffleButton"/);
   assert.match(html, /specialChanceForHype\(attacker\.hype\)/);

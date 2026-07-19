@@ -5102,7 +5102,17 @@
     .monster-tree-group-title { position: sticky; left: 0; color: #fff8c2; font-size: 12px; font-weight: 1000; }
     .monster-tree-branch,
     .monster-tree-branch ul { position: relative; display: flex; justify-content: center; margin: 0; padding: 20px 0 0; }
-    .monster-tree-branch li { position: relative; min-width: 102px; padding: 20px 5px 0; list-style: none; text-align: center; }
+    .monster-tree-branch li {
+      position: relative;
+      min-width: 104px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 20px 6px 0;
+      box-sizing: border-box;
+      list-style: none;
+      text-align: center;
+    }
     .monster-tree-branch li::before,
     .monster-tree-branch li::after { content: ""; position: absolute; top: 0; width: 50%; height: 20px; border-top: 1px solid rgba(121,160,214,.52); }
     .monster-tree-branch li::before { right: 50%; }
@@ -5117,15 +5127,19 @@
     .monster-tree-node {
       width: 92px;
       min-height: 118px;
+      flex: 0 0 auto;
       display: grid;
       grid-template-rows: 76px auto auto;
       gap: 2px;
       padding: 5px;
+      box-sizing: border-box;
       border: 1px solid rgba(255,255,255,.2);
       border-radius: 5px;
       color: #fff;
       background: linear-gradient(155deg,#182437,#080b12 75%);
       cursor: zoom-in;
+      line-height: 1.1;
+      vertical-align: top;
     }
     .monster-tree-node.locked { color: rgba(255,255,255,.34); background: #090c12; cursor: default; }
     .monster-tree-node.legendary { border-color: #f8dc72; box-shadow: 0 0 18px rgba(137,99,255,.35); }
@@ -5143,7 +5157,25 @@
     .team-select-kicker { color: #f7c64a; font-size: 10px; font-weight: 1000; }
     .team-select-head h2 { margin: 3px 0 0; color: #fff; font-size: 32px; }
     .team-select-head p { margin: 5px 0 0; font-size: 12px; }
-    .team-select-shuffle { min-width: 130px; background-image: none !important; }
+    .simple-ui-btn {
+      min-height: 38px;
+      padding: 8px 15px;
+      border: 1px solid rgba(148,163,184,.42) !important;
+      border-radius: 4px !important;
+      color: #e7edf6 !important;
+      background: #111925 !important;
+      background-image: none !important;
+      box-shadow: inset 0 1px 0 rgba(255,255,255,.06) !important;
+      font-size: 11px !important;
+      font-weight: 900;
+      letter-spacing: 0;
+      text-shadow: none !important;
+    }
+    .simple-ui-btn::before,
+    .simple-ui-btn::after { content: none !important; display: none !important; }
+    .simple-ui-btn:hover,
+    .simple-ui-btn:focus-visible { border-color: rgba(226,232,240,.72) !important; color: #fff !important; background: #192334 !important; outline: 0; }
+    .team-select-shuffle { min-width: 116px; }
     .team-select-summary { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin: 16px 0 12px; }
     .team-select-side { min-width: 0; padding: 10px 12px; border-left: 4px solid var(--red); background: rgba(255,48,77,.13); }
     .team-select-side.blue { border-left-color: var(--blue); background: rgba(47,128,255,.13); }
@@ -5206,8 +5238,8 @@
     }
 
     .monster-dex-card.legendary .monster-dex-number { color: #ffe97d; }
-    .monster-dex-art { min-height: 0; display: grid; place-items: center; overflow: hidden; }
-    .monster-dex-art .monster-sprite { width: 100%; height: 100%; }
+    .monster-dex-art { min-height: 0; display: grid; place-items: center; padding: 7px; overflow: hidden; }
+    .monster-dex-art .monster-sprite { width: 78%; height: 78%; scale: 1; }
     .monster-dex-unknown { color: rgba(255,255,255,.22); font: 1000 42px/1 Impact, sans-serif; }
     .monster-dex-card strong { min-width: 0; overflow: hidden; font-size: 10px; line-height: 1.1; text-overflow: ellipsis; white-space: nowrap; }
 
@@ -7435,7 +7467,7 @@
           <h2>TEAM MEMBERS</h2>
           <p>各プレイヤーの所属チームを決めてから試合を開始します。</p>
         </div>
-        <button type="button" class="btn frame team-select-shuffle" id="teamSelectShuffleButton">SHUFFLE</button>
+        <button type="button" class="btn simple-ui-btn team-select-shuffle" id="teamSelectShuffleButton">SHUFFLE</button>
       </div>
       <div class="team-select-summary">
         <div class="team-select-side red"><b>RED TEAM</b><span id="teamSelectRedMembers">-</span></div>
@@ -7444,7 +7476,7 @@
       <div class="team-select-list" id="teamSelectList"></div>
       <div class="team-select-error" id="teamSelectError" role="status"></div>
       <div class="team-select-actions">
-        <button type="button" class="btn frame" id="teamSelectCancelButton">CANCEL</button>
+        <button type="button" class="btn simple-ui-btn" id="teamSelectCancelButton">CANCEL</button>
         <button type="button" class="btn primary" id="teamSelectConfirmButton">MATCH START</button>
       </div>
     </div>
@@ -8027,7 +8059,7 @@
         ["growth-gear", "GEAR WING", 1, ["mecha-mature", "beetle-mature"]],
         ["growth-moss", "MOSS MUNCH", 2, ["grove-mature", "spore-mature"]],
         ["growth-bubble", "BUBBLE IMP", 3, ["abyss-mature", "cosmic-mature"]]
-      ].forEach(([id, name, x, next]) => add({ id, name, stage: 2, sprite: sprite("growth.png", "400% 100%", `${x * 33.333}% 50%`), next }));
+      ].forEach(([id, name, x, next]) => add({ id, name, stage: 2, sprite: sprite("growth.png", "400% 200%", `${x * 33.333}% 50%`), next }));
       MONSTER_LINEAGES.forEach((lineage) => {
         const matureId = `${lineage.id}-mature`;
         const perfectA = `${lineage.id}-perfect-a`;
