@@ -378,6 +378,11 @@ export function selectInitialOnlineMatchPresentation(room = {}, now = Date.now()
   return null;
 }
 
+export function shouldPresentOnlineMonsterBattle(battle = null, currentPresentationSeed = 0) {
+  const seed = Number(battle?.seed) || 0;
+  return battle?.status === "running" && seed > 0 && seed !== (Number(currentPresentationSeed) || 0);
+}
+
 export function shouldResetOnlineMatchPresentation(snapshot = {}, currentState = {}) {
   if (!snapshot?.gameStarted) return Boolean(currentState?.gameStarted);
   const incomingMatchId = String(snapshot.matchTracker?.id || "");

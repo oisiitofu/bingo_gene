@@ -319,6 +319,65 @@
   padding: 0;
   background: #02040a;
 }
+
+.monster-battle-entrance {
+  position: absolute;
+  z-index: 40;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  overflow: hidden;
+  background:
+    linear-gradient(90deg, rgba(84,7,22,.96), rgba(3,6,13,.92) 48%, rgba(4,38,91,.96)),
+    url("images/monster-battle/arena.png") center / cover;
+  transition: opacity .28s ease;
+}
+.monster-battle-entrance[hidden] { display: none !important; }
+.monster-battle-entry-card {
+  --entry-color: #ff385d;
+  width: min(1050px, 88vw);
+  min-height: min(72vh, 680px);
+  display: grid;
+  grid-template-columns: minmax(0, 1.15fr) minmax(280px, .85fr);
+  align-items: center;
+  gap: clamp(18px, 4vw, 60px);
+  padding: clamp(18px, 3vw, 44px);
+  border-block: 3px solid var(--entry-color);
+  color: #fff;
+  background: linear-gradient(105deg, color-mix(in srgb, var(--entry-color) 26%, #03060d), rgba(2,5,12,.96) 58%);
+  box-shadow: 0 0 70px color-mix(in srgb, var(--entry-color) 45%, transparent), inset 0 0 50px rgba(255,255,255,.05);
+}
+.monster-battle-entry-card.blue { --entry-color: #1687ff; }
+.monster-battle-entry-card.animate.red { animation: monsterEntryRed .78s cubic-bezier(.16,.8,.22,1) both; }
+.monster-battle-entry-card.animate.blue { animation: monsterEntryBlue .78s cubic-bezier(.16,.8,.22,1) both; }
+.monster-battle-entry-art {
+  height: min(60vh, 570px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  filter: drop-shadow(0 24px 14px rgba(0,0,0,.72)) drop-shadow(0 0 28px var(--entry-color));
+}
+.monster-battle-entry-art .monster-sprite { width: auto; max-width: 100%; height: 100%; aspect-ratio: var(--monster-aspect, 1); }
+.monster-battle-entry-copy { min-width: 0; border-left: 5px solid var(--entry-color); padding: 18px 0 18px 22px; text-align: left; }
+.monster-battle-entry-team { color: var(--entry-color); font: 1000 15px/1 sans-serif; }
+.monster-battle-entry-index { margin-top: 7px; color: rgba(255,255,255,.58); font-size: 12px; font-weight: 1000; }
+.monster-battle-entry-name { margin-top: 14px; overflow-wrap: anywhere; font: 1000 clamp(42px,6vw,86px)/.94 Impact,"Arial Black",sans-serif; text-shadow: 0 4px 0 #000; }
+.monster-battle-entry-player { margin-top: 13px; color: #fff; font-size: clamp(16px,2vw,25px); font-weight: 1000; }
+.monster-battle-entry-special { margin-top: 20px; color: #fff36c; font-size: clamp(14px,1.5vw,20px); font-weight: 1000; }
+.monster-battle-entry-start {
+  display: none;
+  color: #fff;
+  font: 1000 clamp(64px,13vw,180px)/.9 Impact,"Arial Black",sans-serif;
+  text-align: center;
+  text-shadow: 0 7px 0 #000, 0 0 28px #fff36c, 0 0 65px #ff304d;
+}
+.monster-battle-entrance.battle-start .monster-battle-entry-card { display: none; }
+.monster-battle-entrance.battle-start .monster-battle-entry-start { display: block; animation: monsterBattleStartCall 1.15s cubic-bezier(.16,.8,.22,1) both; }
+.monster-battle-overlay.entrance-phase .monster-battle-header,
+.monster-battle-overlay.entrance-phase .monster-battle-field { opacity: 0; }
+@keyframes monsterEntryRed { from { opacity: 0; transform: translateX(-38vw) skewX(-7deg) scale(.78); } 65% { transform: translateX(2vw) skewX(1deg) scale(1.03); } to { opacity: 1; transform: none; } }
+@keyframes monsterEntryBlue { from { opacity: 0; transform: translateX(38vw) skewX(7deg) scale(.78); } 65% { transform: translateX(-2vw) skewX(-1deg) scale(1.03); } to { opacity: 1; transform: none; } }
+@keyframes monsterBattleStartCall { 0% { opacity: 0; transform: scale(2.1); filter: brightness(3); } 48% { opacity: 1; transform: scale(.92); } 68% { transform: scale(1.08); } 100% { opacity: 1; transform: scale(1); } }
 .monster-battle-overlay.show { display: flex; }
 .monster-battle-stage {
   position: relative;
@@ -447,4 +506,10 @@
   .monster-battle-center { top:5%; left:5%; right:5%; }
   .monster-battle-call { font-size:20px; writing-mode:horizontal-tb; }
   .monster-battle-log { display:block; max-width:94vw; padding:6px 10px; font-size:10px; }
+  .monster-battle-entry-card { width: 92vw; min-height: 76vh; grid-template-columns: 1fr; grid-template-rows: minmax(0,1fr) auto; gap: 4px; padding: 14px; }
+  .monster-battle-entry-art { height: 48vh; }
+  .monster-battle-entry-copy { border-left-width: 3px; padding: 9px 0 9px 13px; }
+  .monster-battle-entry-name { margin-top: 7px; font-size: 40px; }
+  .monster-battle-entry-player { margin-top: 7px; font-size: 15px; }
+  .monster-battle-entry-special { margin-top: 8px; font-size: 13px; }
 }

@@ -1,8 +1,8 @@
 BOSS BATTLE BGM
 
-Replace bgm.wav with another WAV file to change the final monster battle music.
-You can instead remove bgm.wav and place bgm.mp3 in this folder.
+Replace bgm.mp3 with another MP3 file to change the final monster battle music.
+You can instead remove bgm.mp3 and place bgm.wav in this folder.
 
 Supported fixed names:
-- bgm.wav (preferred when both files exist)
-- bgm.mp3
+- bgm.mp3 (preferred when both files exist)
+- bgm.wav

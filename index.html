@@ -5243,7 +5243,7 @@
 
     .monster-dex-card.legendary .monster-dex-number { color: #ffe97d; }
     .monster-dex-art { min-height: 0; display: grid; place-items: center; padding: 3px; overflow: hidden; }
-    .monster-dex-art .monster-sprite { width: 90%; height: 90%; scale: 1; }
+    .monster-dex-art .monster-sprite { width: auto; max-width: 88%; height: 88%; aspect-ratio: 1; scale: 1; }
     .monster-dex-unknown { color: rgba(255,255,255,.22); font: 1000 34px/1 Impact, sans-serif; }
     .monster-dex-card strong {
       min-width: 0;
@@ -7388,6 +7388,19 @@
 
   <section class="overlay monster-battle-overlay" id="monsterBattleOverlay" aria-hidden="true">
     <div class="monster-battle-stage">
+      <div class="monster-battle-entrance" id="monsterBattleEntrance" hidden>
+        <article class="monster-battle-entry-card red" id="monsterBattleEntryCard">
+          <div class="monster-battle-entry-art" id="monsterBattleEntryArt"></div>
+          <div class="monster-battle-entry-copy">
+            <div class="monster-battle-entry-team" id="monsterBattleEntryTeam">RED TEAM</div>
+            <div class="monster-battle-entry-index" id="monsterBattleEntryIndex">ENTRY 1 / 4</div>
+            <div class="monster-battle-entry-name" id="monsterBattleEntryName"></div>
+            <div class="monster-battle-entry-player" id="monsterBattleEntryPlayer"></div>
+            <div class="monster-battle-entry-special" id="monsterBattleEntrySpecial"></div>
+          </div>
+        </article>
+        <div class="monster-battle-entry-start" id="monsterBattleEntryStart">BATTLE START!</div>
+      </div>
       <header class="monster-battle-header">
         <div class="monster-battle-team-label red" id="monsterBattleRedLabel">RED TEAM</div>
         <div class="monster-battle-clock"><span>MONSTER BATTLE</span><strong id="monsterBattleClock">30.0</strong></div>
@@ -7901,8 +7914,8 @@
 
     const MANAGED_BGM_KEYS = new Set(["introBgm", "firstBingoBgm", "reachRush", "victory", "janSkillBgm", "edaSkillBgm", "monsterBattleBgm"]);
     const BOSS_BATTLE_BGM_CANDIDATES = [
-      "audio/monster-battle/boss-bgm/bgm.wav",
-      "audio/monster-battle/boss-bgm/bgm.mp3"
+      "audio/monster-battle/boss-bgm/bgm.mp3",
+      "audio/monster-battle/boss-bgm/bgm.wav"
     ];
 
     const OPEN_SOUND_EXTENSIONS = ["mp3", "wav", "ogg", "m4a"];
@@ -8127,6 +8140,7 @@
       monsterBattleMode: true,
       monsterBattle: null,
       monsterBattleRunId: 0,
+      monsterBattlePresentationSeed: 0,
       winner: null,
       readyShown: false,
       ranking: {},
@@ -8305,7 +8319,7 @@
         "monsterEvolutionOverlay", "monsterEvolutionStage", "monsterEvolutionBefore", "monsterEvolutionAfter", "monsterEvolutionName",
         "victoryMonsterSection", "victoryMonsterLineups", "monsterBattleStartButton",
         "monsterZoomOverlay", "monsterZoomCloseButton", "monsterZoomPlayer", "monsterZoomArt", "monsterZoomName", "monsterZoomStage", "monsterZoomStats", "monsterZoomSpecial",
-        "monsterBattleOverlay", "monsterBattleRedLabel", "monsterBattleBlueLabel", "monsterBattleClock", "monsterBattleRedParty", "monsterBattleBlueParty", "monsterBattleCall", "monsterBattleLog", "monsterBattleResult", "monsterBattleCloseButton"
+        "monsterBattleOverlay", "monsterBattleEntrance", "monsterBattleEntryCard", "monsterBattleEntryArt", "monsterBattleEntryTeam", "monsterBattleEntryIndex", "monsterBattleEntryName", "monsterBattleEntryPlayer", "monsterBattleEntrySpecial", "monsterBattleEntryStart", "monsterBattleRedLabel", "monsterBattleBlueLabel", "monsterBattleClock", "monsterBattleRedParty", "monsterBattleBlueParty", "monsterBattleCall", "monsterBattleLog", "monsterBattleResult", "monsterBattleCloseButton"
       ].forEach((id) => { els[id] = document.getElementById(id); });
       els.players = Array.from(document.querySelectorAll("#playerInputs input"));
     }
@@ -9047,6 +9061,7 @@
       state.randomEventMilestones = [];
       state.monsterBattle = null;
       state.monsterBattleRunId += 1;
+      state.monsterBattlePresentationSeed = 0;
       state.skillCharges = { red: false, blue: false };
       state.skillChargeAnnounced = { red: false, blue: false };
       state.skillEffects = createSkillEffects();
@@ -11127,8 +11142,12 @@
     }
 
     function startMonsterBattle(options = {}) {
-      if (!state.monsterBattleMode || !state.winner || state.monsterBattle?.status) return false;
       const seed = Number(options.seed) || Math.floor(Math.random() * 0xFFFFFFFF);
+      const remotePresentation = options.remotePresentation === true;
+      if (!state.monsterBattleMode || !state.winner) return false;
+      if (!remotePresentation && state.monsterBattle?.status) return false;
+      if (remotePresentation && state.monsterBattle?.status === "complete") return false;
+      if (state.monsterBattlePresentationSeed === seed && els.monsterBattleOverlay?.classList.contains("show")) return false;
       if (shouldUseOnlineAction(options)) {
         return runOnlineAction(
           { type: "monster-battle-start", masterOnly: true, payload: { seed } },
@@ -11136,6 +11155,7 @@
         );
       }
       state.monsterBattle = { seed, status: "running", startedAt: Date.now(), result: "" };
+      state.monsterBattlePresentationSeed = seed;
       renderVictoryMonsterLineups();
       void runMonsterBattle(seed);
       return true;
@@ -11178,6 +11198,49 @@
           </div>
         </article>`;
       }).join("");
+    }
+
+    function monsterBattleEntranceOrder(parties) {
+      const order = [];
+      const count = Math.max(parties.red.length, parties.blue.length);
+      for (let index = 0; index < count; index += 1) {
+        if (parties.red[index]) order.push(parties.red[index]);
+        if (parties.blue[index]) order.push(parties.blue[index]);
+      }
+      return order;
+    }
+
+    async function showMonsterBattleEntrances(parties, runId) {
+      const entrance = els.monsterBattleEntrance;
+      const card = els.monsterBattleEntryCard;
+      if (!entrance || !card) return true;
+      const entrants = monsterBattleEntranceOrder(parties);
+      els.monsterBattleOverlay.classList.add("entrance-phase");
+      entrance.hidden = false;
+      entrance.classList.remove("battle-start");
+      for (let index = 0; index < entrants.length; index += 1) {
+        if (runId !== state.monsterBattleRunId) return false;
+        const fighter = entrants[index];
+        const node = MONSTER_NODES[fighter.nodeId] || MONSTER_NODES.egg;
+        card.className = `monster-battle-entry-card ${fighter.team}`;
+        els.monsterBattleEntryArt.innerHTML = monsterSpriteMarkup(node);
+        els.monsterBattleEntryTeam.textContent = `${state[fighter.team].teamTitle} / ${fighter.team.toUpperCase()} TEAM`;
+        els.monsterBattleEntryIndex.textContent = `ENTRY ${index + 1} / ${entrants.length}`;
+        els.monsterBattleEntryName.textContent = fighter.name;
+        els.monsterBattleEntryPlayer.textContent = `TRAINER　${fighter.playerName}`;
+        els.monsterBattleEntrySpecial.textContent = `必殺技　${fighter.stats.special}`;
+        card.getBoundingClientRect();
+        card.classList.add("animate");
+        await delay(900);
+      }
+      if (runId !== state.monsterBattleRunId) return false;
+      entrance.classList.add("battle-start");
+      await delay(1350);
+      if (runId !== state.monsterBattleRunId) return false;
+      entrance.hidden = true;
+      entrance.classList.remove("battle-start");
+      els.monsterBattleOverlay.classList.remove("entrance-phase");
+      return true;
     }
 
     function updateMonsterBattleFighter(fighter) {
@@ -11253,7 +11316,6 @@
       const runId = ++state.monsterBattleRunId;
       const random = MONSTER_SYSTEM.seededRandom(seed);
       const parties = { red: createMonsterBattleFighters("red"), blue: createMonsterBattleFighters("blue") };
-      const startedAt = Date.now();
       const duration = 30000;
       state.inputLocked = true;
       els.monsterBattleRedLabel.textContent = state.red.teamTitle;
@@ -11266,11 +11328,16 @@
       renderMonsterBattleParty("blue", parties.blue);
       showOverlay(els.monsterBattleOverlay);
       playManagedAudioUrlCandidates(BOSS_BATTLE_BGM_CANDIDATES, "monsterBattleBgm", "monsterBattleBgm");
+      const entranceComplete = await showMonsterBattleEntrances(parties, runId);
+      if (!entranceComplete || runId !== state.monsterBattleRunId) return;
+      const startedAt = Date.now();
+      els.monsterBattleCall.textContent = "バトル開始！";
+      els.monsterBattleLog.textContent = "全モンスター、戦闘態勢！";
       const clockTimer = window.setInterval(() => {
         const remaining = Math.max(0, duration - (Date.now() - startedAt));
         els.monsterBattleClock.textContent = (remaining / 1000).toFixed(1);
       }, 100);
-      await delay(1100);
+      await delay(520);
       for (let turn = 0; turn < 29 && runId === state.monsterBattleRunId; turn += 1) {
         const attackingTeam = turn % 2 === (seed % 2) ? "red" : "blue";
         const defendingTeam = attackingTeam === "red" ? "blue" : "red";
@@ -11322,7 +11389,13 @@
     function closeMonsterBattle() {
       state.monsterBattleRunId += 1;
       state.inputLocked = false;
+      state.monsterBattlePresentationSeed = 0;
       hideOverlay(els.monsterBattleOverlay);
+      els.monsterBattleOverlay?.classList.remove("entrance-phase");
+      if (els.monsterBattleEntrance) {
+        els.monsterBattleEntrance.hidden = true;
+        els.monsterBattleEntrance.classList.remove("battle-start");
+      }
       if (activeBgmKey === "monsterBattleBgm") stopManagedBgm();
       document.querySelectorAll(".battle-projectile,.battle-damage").forEach((node) => node.remove());
       renderVictoryMonsterLineups();
@@ -14376,6 +14449,7 @@
     let onlineCoordinator = null;
     let onlineMatchResetDetector = () => false;
     let onlineMatchStartDetector = () => false;
+    let onlineMonsterBattlePresentationDetector = () => false;
     let onlineSetupPublishTimer = 0;
     let onlineStateSyncTimer = 0;
     let onlineSession = { roomId: "", role: "", team: "", memberName: "", master: false };
@@ -14397,12 +14471,15 @@
         navigator.serviceWorker.register("./sw.js").then((registration) => registration.update()).catch((error) => console.warn("Service worker registration failed", error));
       }
       import("./online/online-room.js")
-        .then(({ initOnlineRoom, shouldAnnounceOnlineMatchStart, shouldResetOnlineMatchPresentation }) => {
+        .then(({ initOnlineRoom, shouldAnnounceOnlineMatchStart, shouldResetOnlineMatchPresentation, shouldPresentOnlineMonsterBattle }) => {
           if (typeof shouldResetOnlineMatchPresentation === "function") {
             onlineMatchResetDetector = shouldResetOnlineMatchPresentation;
           }
           if (typeof shouldAnnounceOnlineMatchStart === "function") {
             onlineMatchStartDetector = shouldAnnounceOnlineMatchStart;
+          }
+          if (typeof shouldPresentOnlineMonsterBattle === "function") {
+            onlineMonsterBattlePresentationDetector = shouldPresentOnlineMonsterBattle;
           }
           return initOnlineRoom(createOnlineBridge());
         })
@@ -14670,6 +14747,10 @@
       state.randomEventMilestones = Array.isArray(snapshot.randomEventMilestones) ? cloneOnlineValue(snapshot.randomEventMilestones) : [];
       state.monsterBattleMode = snapshot.monsterBattleMode !== false;
       state.monsterBattle = cloneOnlineValue(snapshot.monsterBattle || null);
+      const shouldPresentMonsterBattle = onlineMonsterBattlePresentationDetector(
+        state.monsterBattle,
+        state.monsterBattlePresentationSeed
+      );
       state.skillCharges = cloneOnlineValue(snapshot.skillCharges || { red: false, blue: false });
       state.skillChargeAnnounced = cloneOnlineValue(snapshot.skillChargeAnnounced || { red: false, blue: false });
       state.skillEffects = cloneOnlineValue(snapshot.skillEffects || createSkillEffects());
@@ -14689,6 +14770,13 @@
       renderAll();
       updateHypeUi();
       if (state.winner) renderVictoryMonsterLineups();
+      if (shouldPresentMonsterBattle) {
+        queueMicrotask(() => startMonsterBattle({
+          seed: state.monsterBattle?.seed,
+          onlineBypass: true,
+          remotePresentation: true
+        }));
+      }
       if (state.gameStarted) {
         showScreen("play");
         stopSetupTheme();
@@ -14885,7 +14973,7 @@
         const skill = getTeamSkill(payload.team, payload.skillId);
         if (skill) enqueueEffect(() => showSkillActivation(payload.team, skill));
       }
-      if (effects.has("monster-battle-start")) startMonsterBattle({ seed: payload.seed, onlineBypass: true });
+      if (effects.has("monster-battle-start")) startMonsterBattle({ seed: payload.seed, onlineBypass: true, remotePresentation: true });
       if (effects.has("hype-voice")) playAudio("hype");
       if (effects.has("emergency-pause")) {
         showCommentary(payload.paused ? "MATCH PAUSED" : "MATCH RESUME", payload.paused ? "マスターが試合を一時停止しました。" : "試合を再開します。", 5000);

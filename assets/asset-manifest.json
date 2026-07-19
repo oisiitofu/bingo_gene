@@ -1,11 +1,11 @@
 {
   "version": 1,
-  "generatedAt": "2026-07-19T04:45:38.827Z",
+  "generatedAt": "2026-07-19T05:01:48.963Z",
   "totals": {
     "all": 380,
     "images": 218,
     "audio": 162,
-    "bytes": 208377538
+    "bytes": 204686533
   },
   "assets": [
     {
@@ -105,10 +105,10 @@
       "bytes": 2859899
     },
     {
-      "path": "audio/monster-battle/boss-bgm/bgm.wav",
+      "path": "audio/monster-battle/boss-bgm/bgm.mp3",
       "type": "audio",
       "category": "audio/monster-battle/boss-bgm",
-      "bytes": 5990444
+      "bytes": 2299439
     },
     {
       "path": "audio/monster-battle/magic-hit.wav",

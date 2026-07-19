@@ -166,8 +166,13 @@ test("monster evolution has four childhood entries, complete branches, legends, 
   assert.ok(existsSync(new URL("../monster-battle.css", import.meta.url)));
   assert.match(html, /audio\/monster-battle\/boss-bgm\/bgm\.wav/);
   assert.match(html, /audio\/monster-battle\/boss-bgm\/bgm\.mp3/);
+  assert.match(html, /BOSS_BATTLE_BGM_CANDIDATES = \[\s*"audio\/monster-battle\/boss-bgm\/bgm\.mp3"/);
   assert.match(html, /grid-auto-rows: 142px/);
   assert.match(html, /contain: layout paint/);
+  assert.match(html, /\.monster-dex-art \.monster-sprite[\s\S]*aspect-ratio: 1/);
+  assert.match(html, /id="monsterBattleEntrance"/);
+  assert.match(html, /function showMonsterBattleEntrances\(/);
+  assert.match(html, /remotePresentation: true/);
   assert.match(html, /state\.monsterBattle\?\.status/);
   assert.match(html, /id="statsMonsterDexGrid"/);
   assert.match(html, /id="monsterDexModal"/);
@@ -188,14 +193,23 @@ test("monster evolution has four childhood entries, complete branches, legends, 
 });
 
 test("monster battle audio is dedicated stereo material", () => {
-  const files = ["boss-bgm/bgm.wav", "physical-hit.wav", "magic-hit.wav", "special-hit.wav"];
+  const bossCandidates = ["boss-bgm/bgm.mp3", "boss-bgm/bgm.wav"];
+  const bossFile = bossCandidates.find((file) => existsSync(new URL(`../audio/monster-battle/${file}`, import.meta.url)));
+  assert.ok(bossFile, "A replaceable boss battle BGM is required");
+  const bossAudio = readFileSync(new URL(`../audio/monster-battle/${bossFile}`, import.meta.url));
+  assert.ok(bossAudio.length > 500_000, "Boss battle BGM is unexpectedly small");
+  assert.ok(
+    bossAudio.toString("ascii", 0, 3) === "ID3" || bossAudio.toString("ascii", 0, 4) === "RIFF" || (bossAudio[0] === 0xff && (bossAudio[1] & 0xe0) === 0xe0),
+    "Boss battle BGM must be MP3 or WAV"
+  );
+  const files = ["physical-hit.wav", "magic-hit.wav", "special-hit.wav"];
   files.forEach((file) => {
     const wave = readFileSync(new URL(`../audio/monster-battle/${file}`, import.meta.url));
     assert.equal(wave.toString("ascii", 0, 4), "RIFF");
     assert.equal(wave.toString("ascii", 8, 12), "WAVE");
     assert.equal(wave.readUInt16LE(22), 2, `${file} must be stereo`);
     assert.equal(wave.readUInt32LE(24), 48000, `${file} must be 48 kHz`);
-    assert.ok(wave.length > (file === "boss-bgm/bgm.wav" ? 5_000_000 : 150_000), `${file} is unexpectedly small`);
+    assert.ok(wave.length > 150_000, `${file} is unexpectedly small`);
   });
 });
 

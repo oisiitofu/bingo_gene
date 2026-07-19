@@ -14,8 +14,16 @@ import {
   selectCurrentOnlineCommentary,
   selectCountExportRanking,
   shouldAnnounceOnlineMatchStart,
+  shouldPresentOnlineMonsterBattle,
   shouldResetOnlineMatchPresentation
 } from "../online/online-room.js";
+
+test("a running monster battle is presented once on every online client", () => {
+  const battle = { status: "running", seed: 9071 };
+  assert.equal(shouldPresentOnlineMonsterBattle(battle, 0), true);
+  assert.equal(shouldPresentOnlineMonsterBattle(battle, 9071), false);
+  assert.equal(shouldPresentOnlineMonsterBattle({ ...battle, status: "complete" }, 0), false);
+});
 
 test("starting a match remaps player and seat teams to the confirmed lineup", () => {
   const room = {
