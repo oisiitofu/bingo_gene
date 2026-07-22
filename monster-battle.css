@@ -356,7 +356,7 @@
   width: min(1050px, 88vw);
   min-height: min(72vh, 680px);
   display: grid;
-  grid-template-columns: minmax(0, 1.15fr) minmax(280px, .85fr);
+  grid-template-columns: minmax(0, 1fr) minmax(340px, 1fr);
   align-items: center;
   gap: clamp(18px, 4vw, 60px);
   padding: clamp(18px, 3vw, 44px);
@@ -377,11 +377,11 @@
 }
 .monster-battle-entry-art .monster-sprite { width: auto; max-width: 96%; height: 96%; aspect-ratio: var(--monster-aspect, 1); }
 .monster-battle-entry-copy { min-width: 0; border-left: 5px solid var(--entry-color); padding: 18px 0 18px 22px; text-align: left; }
-.monster-battle-entry-team { color: var(--entry-color); font: 1000 15px/1 sans-serif; }
+.monster-battle-entry-team { overflow: hidden; color: var(--entry-color); font: 1000 15px/1 sans-serif; text-overflow: ellipsis; white-space: nowrap; }
 .monster-battle-entry-index { margin-top: 7px; color: rgba(255,255,255,.58); font-size: 12px; font-weight: 1000; }
-.monster-battle-entry-name { margin-top: 14px; overflow-wrap: anywhere; font: 1000 clamp(42px,6vw,86px)/.94 Impact,"Arial Black",sans-serif; text-shadow: 0 4px 0 #000; }
-.monster-battle-entry-player { margin-top: 13px; color: #fff; font-size: clamp(16px,2vw,25px); font-weight: 1000; }
-.monster-battle-entry-special { margin-top: 20px; color: #fff36c; font-size: clamp(14px,1.5vw,20px); font-weight: 1000; }
+.monster-battle-entry-name { margin-top: 14px; overflow: hidden; font: 1000 clamp(30px,4vw,62px)/1 Impact,"Arial Black",sans-serif; text-overflow: ellipsis; white-space: nowrap; text-shadow: 0 4px 0 #000; }
+.monster-battle-entry-player { margin-top: 13px; overflow: hidden; color: #fff; font-size: clamp(16px,2vw,25px); font-weight: 1000; text-overflow: ellipsis; white-space: nowrap; }
+.monster-battle-entry-special { margin-top: 20px; overflow: hidden; color: #fff36c; font-size: clamp(11px,1.05vw,15px); font-weight: 1000; line-height: 1.35; text-overflow: ellipsis; white-space: nowrap; }
 .monster-battle-entry-start {
   display: none;
   color: #fff;
@@ -456,6 +456,7 @@
 .battle-fighter-ui { width: min(210px,100%); padding: 6px; background: rgba(2,4,10,.88); border-top: 3px solid var(--fighter-team); }
 .battle-fighter-ui b { display: block; overflow: hidden; color: #fff; font-size: 11px; text-overflow: ellipsis; white-space: nowrap; }
 .battle-fighter-ui small { color: #cbd5e1; font-size: 8px; }
+.battle-passive { display: block; margin-top: 3px; overflow: hidden; color: #fff36c; font-size: 8px; font-weight: 1000; text-overflow: ellipsis; white-space: nowrap; }
 .battle-hp-track,.battle-energy-track { height: 8px; margin-top: 4px; background: rgba(255,255,255,.12); overflow: hidden; }
 .battle-hp-fill { height: 100%; width: var(--hp,100%); background: linear-gradient(90deg,#16c784,#9dff6b); transition: width .45s ease; }
 .battle-energy-track { height: 4px; }
@@ -464,10 +465,12 @@
 .battle-fighter.attacking { animation: battleAttackRed .5s ease-in-out; }
 .monster-battle-party.blue .battle-fighter.attacking { animation-name: battleAttackBlue; }
 .battle-fighter.hit { animation: battleHit .42s steps(2,end); }
+.battle-fighter.evade { animation: battleEvade .42s ease; }
 .battle-fighter.special { filter: brightness(1.8) drop-shadow(0 0 25px #fff36c); }
 @keyframes battleAttackRed { 50% { transform: translateX(42px) scale(1.08); } }
 @keyframes battleAttackBlue { 50% { transform: translateX(-42px) scale(1.08); } }
 @keyframes battleHit { 30% { transform: translateX(-12px); filter: brightness(3); } 60% { transform: translateX(12px); } }
+@keyframes battleEvade { 45% { opacity:.2; transform:translateY(-14px) scale(.92); filter:blur(2px); } }
 .monster-battle-center { position: absolute; z-index: 6; top: 7%; left: 14%; right: 14%; display: grid; gap: 8px; place-items: center; pointer-events: none; }
 .monster-battle-call { width: 100%; overflow: hidden; color: #fff; font-family: Impact, "Arial Black", sans-serif; font-size: clamp(26px,3.2vw,54px); line-height: 1.05; text-align: center; text-overflow: ellipsis; white-space: nowrap; text-shadow: 0 4px 0 #000,0 0 24px #fff36c; }
 .monster-battle-log { min-height: 0; width: auto; max-width: 100%; padding: 8px 28px; overflow: hidden; color: #fff; background: rgba(2,4,10,.78); border: 1px solid rgba(255,255,255,.24); font-size: 14px; font-weight: 900; text-align: center; text-overflow: ellipsis; white-space: nowrap; }
@@ -476,7 +479,27 @@
 @keyframes battleDamage { to { opacity:0; transform:translateY(-70px) scale(1.35); } }
 .battle-projectile { position: fixed; z-index: 299; width: 50px; height: 14px; border-radius: 50%; background: linear-gradient(90deg,#fff,#ffca38,#ff304d); box-shadow:0 0 18px #fff36c; transform-origin:center; pointer-events:none; transition:transform .35s linear; }
 .battle-projectile.magic { width:34px; height:34px; background:radial-gradient(circle,#fff,#38bdf8 38%,#7c3aed 70%,transparent 72%); box-shadow:0 0 28px #38bdf8; }
-.monster-battle-result { position:absolute; z-index:20; inset:26% 0 auto; padding:28px; color:#fff; background:rgba(2,4,10,.88); border-block:4px solid #fff36c; font-family:Impact,"Arial Black",sans-serif; font-size:clamp(44px,8vw,120px); text-align:center; text-shadow:0 5px 0 #000,0 0 32px #fff36c; }
+.battle-impact-effect { position:fixed; z-index:302; width:clamp(190px,24vw,380px); aspect-ratio:1; translate:-50% -50%; background-image:url("images/monster-battle/effects/elemental.png"); background-size:400% 200%; background-repeat:no-repeat; pointer-events:none; animation:battleImpact .82s cubic-bezier(.1,.7,.2,1) both; }
+.battle-impact-effect.special { width:clamp(320px,42vw,680px); animation-duration:1.12s; filter:drop-shadow(0 0 28px #fff); }
+.effect-fire { background-position:0 0; } .effect-ice { background-position:33.333% 0; } .effect-lightning { background-position:66.667% 0; } .effect-wind { background-position:100% 0; }
+.effect-earth { background-position:0 100%; } .effect-water { background-position:33.333% 100%; } .effect-light { background-position:66.667% 100%; } .effect-dark { background-position:100% 100%; }
+.effect-claw,.effect-fang,.effect-slash,.effect-impact { background-image:url("images/monster-battle/effects/physical.png"); background-size:400% 100%; }
+.effect-claw { background-position:0 50%; } .effect-fang { background-position:33.333% 50%; } .effect-slash { background-position:66.667% 50%; } .effect-impact { background-position:100% 50%; }
+@keyframes battleImpact { 0% { opacity:0; scale:.18; rotate:-12deg; filter:brightness(3); } 32% { opacity:1; scale:1.14; rotate:2deg; } 72% { opacity:1; scale:1; } 100% { opacity:0; scale:1.32; filter:brightness(1.4) blur(2px); } }
+.monster-special-cutin { --cutin-team:#ff385d; position:fixed; z-index:340; inset:18vh 0 auto; height:64vh; display:grid; grid-template-columns:minmax(0,46%) minmax(0,54%); align-items:center; overflow:hidden; color:#fff; background:url("images/monster-battle/effects/special-cutin.png") center/cover no-repeat; border-block:3px solid var(--cutin-team); box-shadow:0 0 90px var(--cutin-team); pointer-events:none; animation:specialCutinIn 1.18s cubic-bezier(.15,.8,.2,1) both; }
+.monster-special-cutin.blue { --cutin-team:#1687ff; grid-template-columns:minmax(0,54%) minmax(0,46%); }
+.monster-special-cutin.blue .monster-special-cutin-art { grid-column:2; }
+.monster-special-cutin.blue .monster-special-cutin-copy { grid-column:1; grid-row:1; text-align:right; border-left:0; border-right:7px solid var(--cutin-team); padding:12px 28px 12px 4vw; }
+.monster-special-cutin-art { height:60vh; display:flex; align-items:center; justify-content:center; filter:drop-shadow(0 0 34px var(--cutin-team)); }
+.monster-special-cutin-art .monster-sprite { width:auto; max-width:94%; height:94%; aspect-ratio:var(--monster-aspect,1); }
+.monster-special-cutin-copy { min-width:0; padding:12px 4vw 12px 28px; border-left:7px solid var(--cutin-team); text-align:left; }
+.monster-special-cutin-copy span { display:block; color:#fff36c; font:1000 clamp(14px,1.6vw,23px)/1 sans-serif; letter-spacing:0; }
+.monster-special-cutin-copy strong { display:block; margin-top:10px; overflow:hidden; font:1000 clamp(36px,6vw,92px)/1 Impact,"Arial Black",sans-serif; text-overflow:ellipsis; white-space:nowrap; text-shadow:0 5px 0 #000,0 0 24px var(--cutin-team); }
+.monster-special-cutin-copy em { display:block; margin-top:9px; overflow:hidden; font-size:clamp(16px,2vw,28px); font-style:normal; font-weight:1000; text-overflow:ellipsis; white-space:nowrap; }
+@keyframes specialCutinIn { 0% { opacity:0; transform:translateX(-100%) skewX(-8deg); } 24% { opacity:1; transform:translateX(0) skewX(0); } 78% { opacity:1; transform:none; } 100% { opacity:0; transform:translateX(100%) skewX(6deg); } }
+.monster-battle-result { position:absolute; z-index:20; inset:26% 0 auto; padding:28px; overflow:hidden; color:#fff; background:rgba(2,4,10,.88); border-block:4px solid #fff36c; font-family:Impact,"Arial Black",sans-serif; font-size:clamp(38px,7vw,104px); text-align:center; text-overflow:ellipsis; white-space:nowrap; text-shadow:0 5px 0 #000,0 0 32px #fff36c; }
+.monster-zoom-passive { display:grid; gap:4px; padding:9px 12px; color:#fff; background:rgba(255,255,255,.07); border-left:3px solid #fff36c; text-align:left; }
+.monster-zoom-passive b { color:#fff36c; font-size:13px; } .monster-zoom-passive span { font-size:11px; line-height:1.45; }
 .monster-battle-close { position:absolute; z-index:21; left:50%; bottom:30px; transform:translateX(-50%); min-width:180px; padding:13px; border:1px solid #fff; color:#fff; background:rgba(2,4,10,.84); font-weight:1000; cursor:pointer; }
 
 .monster-battle-start.red-result,
@@ -533,7 +556,13 @@
   .monster-battle-entry-card { width: 92vw; min-height: 76vh; grid-template-columns: 1fr; grid-template-rows: minmax(0,1fr) auto; gap: 4px; padding: 14px; }
   .monster-battle-entry-art { height: 48vh; }
   .monster-battle-entry-copy { border-left-width: 3px; padding: 9px 0 9px 13px; }
-  .monster-battle-entry-name { margin-top: 7px; font-size: 40px; }
+  .monster-battle-entry-name { margin-top: 7px; font-size: clamp(28px,9vw,44px); }
   .monster-battle-entry-player { margin-top: 7px; font-size: 15px; }
-  .monster-battle-entry-special { margin-top: 8px; font-size: 13px; }
+  .monster-battle-entry-special { margin-top: 8px; font-size: 11px; }
+  .monster-special-cutin { inset:22vh 0 auto; height:56vh; grid-template-columns:44% 56%; }
+  .monster-special-cutin.blue { grid-template-columns:56% 44%; }
+  .monster-special-cutin-art { height:50vh; }
+  .monster-special-cutin-copy,.monster-special-cutin.blue .monster-special-cutin-copy { padding-inline:12px; }
+  .monster-special-cutin-copy strong { font-size:clamp(25px,8vw,48px); }
+  .monster-battle-result { font-size:clamp(30px,9vw,54px); }
 }

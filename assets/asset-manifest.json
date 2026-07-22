@@ -1,11 +1,11 @@
 {
   "version": 1,
-  "generatedAt": "2026-07-19T06:22:27.760Z",
+  "generatedAt": "2026-07-22T14:15:38.088Z",
   "totals": {
-    "all": 400,
-    "images": 238,
+    "all": 405,
+    "images": 243,
     "audio": 162,
-    "bytes": 242599639
+    "bytes": 254327976
   },
   "assets": [
     {
@@ -1509,6 +1509,24 @@
       "bytes": 2788002
     },
     {
+      "path": "images/monster-battle/effects/elemental.png",
+      "type": "image",
+      "category": "images/monster-battle/effects",
+      "bytes": 2096745
+    },
+    {
+      "path": "images/monster-battle/effects/physical.png",
+      "type": "image",
+      "category": "images/monster-battle/effects",
+      "bytes": 1476570
+    },
+    {
+      "path": "images/monster-battle/effects/special-cutin.png",
+      "type": "image",
+      "category": "images/monster-battle/effects",
+      "bytes": 2428247
+    },
+    {
       "path": "images/monsters/childhood-extra.png",
       "type": "image",
       "category": "images/monsters",
@@ -1759,6 +1777,18 @@
       "type": "image",
       "category": "images/monsters",
       "bytes": 1796172
+    },
+    {
+      "path": "images/monsters/rank6-a.png",
+      "type": "image",
+      "category": "images/monsters",
+      "bytes": 2665456
+    },
+    {
+      "path": "images/monsters/rank6-b.png",
+      "type": "image",
+      "category": "images/monsters",
+      "bytes": 3061319
     },
     {
       "path": "images/random-events/gold-rush.png",

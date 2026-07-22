@@ -1,6 +1,6 @@
 "use strict";
 
-const CACHE_VERSION = "team-bingo-v1-20260722-long-match-memory40";
+const CACHE_VERSION = "team-bingo-v1-20260722-monster-battle-rank6-41";
 const SHELL_CACHE = `${CACHE_VERSION}-shell`;
 const ASSET_CACHE = `${CACHE_VERSION}-assets`;
 const SHELL_FILES = [

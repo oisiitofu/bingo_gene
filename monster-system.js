@@ -1,7 +1,7 @@
 (function bootstrapMonsterSystem(global) {
   "use strict";
 
-  const STAGES = ["たまご", "幼少期", "成長期", "成熟期", "完全体", "究極体"];
+  const STAGES = ["たまご", "幼少期", "成長期", "成熟期", "完全体", "究極体", "超究極体"];
   const LINEAGES = [
     { id: "inferno", sheet: "lineage-inferno.png", mature: "フレアレオ", perfect: ["黒曜レオン", "マグマワイバーン"], ultimate: ["太陽獅子王", "ケルベロス・レクス", "炎冠竜", "彗星キマイラ"] },
     { id: "thunder", sheet: "lineage-thunder.png", mature: "ストームファング", perfect: ["雷刃ボルト", "雲上キリン"], ultimate: ["電光フェンリル", "雷帝タイグロン", "雷神キリン", "嵐竜狼"] },
@@ -39,6 +39,36 @@
 
   const LEGENDARY_IDS = ["legend-sun", "legend-night", "legend-world", "legend-time"];
   const LEGENDARY_CHANCE = .075;
+
+  const RANK6_NAMES = Object.freeze({
+    inferno: "獄炎神レグナヴァル", thunder: "天雷皇ライゼオン", mecha: "機神鳳凰ゼノギア", beetle: "甲帝王グランカブト",
+    grove: "世界樹王ユグラント", spore: "冥茸妃モルガネラ", abyss: "深淵海皇リヴァイア", cosmic: "星海神鯨コスモーン",
+    glacier: "氷獄狼帝フェンリオ", crystal: "晶翼神グリスタル", sky: "蒼天神鷲アルシオン", tempest: "嵐角龍王テンペスタ",
+    shadow: "宵闇豹帝ノクティガ", spirit: "白焔九尾アマツキ", candy: "夢菓龍王ドラジェル", junk: "廃鋼巨神ギガントン",
+    coral: "珊瑚海妃ネレイア", corsair: "海賊魔皇クラーケイン", dune: "砂界神竜スフィラード", fossil: "骸竜帝ボーンレクス",
+    samurai: "炎武神将ムラクモ", dojo: "天拳聖猿ゴクウガ", sonic: "奏天翼竜オルフェオン", festival: "万華祭狐カグラビ",
+    bloom: "花界神獣フローリア", dream: "夢月獏神ルナバク", slime: "虹耀粘王プリズマム", gourmet: "美食魔帝グルマンド",
+    ink: "墨界書龍ゲンブン", ninja: "月影忍皇ヤタガラス", rail: "超轟鉄龍シンカリュウ", ryu: "天宙龍神アマツリュウ"
+  });
+
+  const PASSIVE_SKILLS = Object.freeze([
+    { id: "opening-guard", name: "開幕要塞", description: "最初の4ターン、防御と魔防が45%上昇", kind: "guard", turns: 4, value: 1.45 },
+    { id: "iron-wall", name: "金剛障壁", description: "受けるダメージを常に12%軽減", kind: "damage-cut", value: .88 },
+    { id: "regeneration", name: "再生核", description: "3ターンごとに最大HPの7%を回復", kind: "regen", interval: 3, value: .07 },
+    { id: "quick-step", name: "幻影歩法", description: "16%の確率で攻撃を完全回避", kind: "dodge", value: .16 },
+    { id: "last-stand", name: "不屈の魂", description: "一度だけHP1で攻撃を耐える", kind: "endure", value: 1 },
+    { id: "battle-fury", name: "逆境猛進", description: "HP45%以下で攻撃性能が30%上昇", kind: "fury", threshold: .45, value: 1.30 },
+    { id: "life-drain", name: "生命吸収", description: "与えたダメージの14%を回復", kind: "drain", value: .14 },
+    { id: "counter-core", name: "反撃機構", description: "攻撃を受けるたび必殺ゲージが18上昇", kind: "revenge-energy", value: 18 },
+    { id: "first-charge", name: "先陣の鼓動", description: "必殺ゲージ35から戦闘開始", kind: "initial-energy", value: 35 },
+    { id: "specialist", name: "奥義研鑽", description: "必殺技の威力が25%上昇", kind: "special-power", value: 1.25 },
+    { id: "finisher", name: "弱点看破", description: "HP35%以下の敵への威力が30%上昇", kind: "finisher", threshold: .35, value: 1.30 },
+    { id: "hype-surge", name: "闘気共鳴", description: "必殺技の発動率が12%上昇", kind: "special-chance", value: .12 },
+    { id: "physical-shell", name: "獣王の皮膜", description: "物理ダメージを18%軽減", kind: "type-cut", attackType: "physical", value: .82 },
+    { id: "magic-shell", name: "魔導結界", description: "魔法ダメージを18%軽減", kind: "type-cut", attackType: "magic", value: .82 },
+    { id: "berserk", name: "狂戦士の血", description: "通常攻撃の威力が18%上昇", kind: "normal-power", value: 1.18 },
+    { id: "energy-rush", name: "加速充填", description: "通常攻撃後の必殺ゲージ上昇量が14増加", kind: "energy-gain", value: 14 }
+  ]);
 
   const COMBAT_ARCHETYPES = {
     egg:     { hp: 1.05, attack: .82, defense: 1.04, magic: .82, magicDefense: 1.08, speed: .78, type: "physical", special: "たまご大爆発" },
@@ -325,7 +355,23 @@
       add({ id: matureId, name: lineage.mature, stage: 3, lineage: lineage.id, sprite: sprite(lineage.sheet, "400% 200%", "0% 0%", aspect, 1.16, facingFor("mature")), next: [perfectA, perfectB] });
       add({ id: perfectA, name: lineage.perfect[0], stage: 4, lineage: lineage.id, sprite: sprite(lineage.sheet, "400% 200%", "33.333% 0%", aspect, 1.16, facingFor("perfect-a")), next: [`${lineage.id}-ultimate-0`, `${lineage.id}-ultimate-1`] });
       add({ id: perfectB, name: lineage.perfect[1], stage: 4, lineage: lineage.id, sprite: sprite(lineage.sheet, "400% 200%", "66.667% 0%", aspect, 1.16, facingFor("perfect-b")), next: [`${lineage.id}-ultimate-2`, `${lineage.id}-ultimate-3`] });
-      lineage.ultimate.forEach((name, index) => add({ id: `${lineage.id}-ultimate-${index}`, name, stage: 5, lineage: lineage.id, sprite: sprite(lineage.sheet, "400% 200%", `${index * 33.333}% 100%`, aspect, 1.14, facingFor(`ultimate-${index}`)), next: [] }));
+      lineage.ultimate.forEach((name, index) => add({ id: `${lineage.id}-ultimate-${index}`, name, stage: 5, lineage: lineage.id, sprite: sprite(lineage.sheet, "400% 200%", `${index * 33.333}% 100%`, aspect, 1.14, facingFor(`ultimate-${index}`)), next: [`${lineage.id}-rank6`] }));
+    });
+    LINEAGES.forEach((lineage, index) => {
+      const sheet = index < 16 ? "rank6-a.png" : "rank6-b.png";
+      const slot = index % 16;
+      const x = slot % 4;
+      const y = Math.floor(slot / 4);
+      add({
+        id: `${lineage.id}-rank6`,
+        name: RANK6_NAMES[lineage.id],
+        stage: 6,
+        lineage: lineage.id,
+        rank6: true,
+        requirements: lineage.ultimate.map((_, ultimateIndex) => `${lineage.id}-ultimate-${ultimateIndex}`),
+        sprite: sprite(sheet, "400% 400%", `${x * 33.333}% ${y * 33.333}%`, 1, 1.04),
+        next: []
+      });
     });
     add({ id: "legend-sun", name: "天照皇レイオーン", stage: 5, lineage: "legend-sun", legendary: true, sprite: sprite("legendary.png", "200% 100%", "0% 50%", .75, 1.04), next: [] });
     add({ id: "legend-night", name: "冥星王ゼロノクス", stage: 5, lineage: "legend-night", legendary: true, sprite: sprite("legendary.png", "200% 100%", "100% 50%", .75, 1.04), next: [] });
@@ -335,6 +381,19 @@
   }
 
   const NODES = buildNodes();
+
+  function rank6Requirements(nodeId) {
+    const node = NODES[nodeId];
+    if (!node) return [];
+    if (node.rank6) return [...(node.requirements || [])];
+    const target = (node.next || []).map((id) => NODES[id]).find((candidate) => candidate?.rank6);
+    return [...(target?.requirements || [])];
+  }
+
+  function canEvolveRank6(nodeId, monsterDex = {}) {
+    const requirements = rank6Requirements(nodeId);
+    return Boolean(requirements.length && requirements.every((id) => monsterDex?.[id]));
+  }
 
   function normalizeName(name) {
     return String(name || "").trim().replace(/\s+/g, " ") || "UNKNOWN PLAYER";
@@ -391,7 +450,7 @@
     };
   }
 
-  function evolvePlayerMonster(value, cellToken = "", random = Math.random) {
+  function evolvePlayerMonster(value, cellToken = "", random = Math.random, monsterDex = {}) {
     const monster = normalizePlayerMonster(value, value?.playerName, value?.team);
     const token = String(cellToken || "");
     if (token && monster.claimedCells.includes(token)) return { monster, evolved: false, previousId: monster.nodeId };
@@ -400,6 +459,10 @@
     const previousId = monster.nodeId;
     const current = NODES[previousId];
     if (!current?.next?.length) return { monster, evolved: false, previousId };
+    const rank6Target = current.next.map((id) => NODES[id]).find((node) => node?.rank6);
+    if (rank6Target && !canEvolveRank6(current.id, monsterDex)) {
+      return { monster, evolved: false, previousId, rank6Locked: true, requirements: rank6Requirements(current.id) };
+    }
     const nextIndex = Math.max(0, Math.min(current.next.length - 1, Math.floor(random() * current.next.length)));
     let next = NODES[current.next[nextIndex]];
     if (current.stage === 4 && random() < LEGENDARY_CHANCE) {
@@ -421,6 +484,32 @@
     return hash >>> 0;
   }
 
+  function passiveSkill(nodeId) {
+    const node = NODES[nodeId] || NODES.egg;
+    const offset = node.stage * 3 + (node.legendary ? 7 : 0) + (node.rank6 ? 11 : 0);
+    return PASSIVE_SKILLS[(hashText(node.id) + offset) % PASSIVE_SKILLS.length];
+  }
+
+  const ELEMENT_BY_LINEAGE = Object.freeze({
+    inferno: "fire", thunder: "lightning", mecha: "impact", beetle: "claw", grove: "earth", spore: "dark",
+    abyss: "water", cosmic: "dark", glacier: "ice", crystal: "light", sky: "wind", tempest: "lightning",
+    shadow: "dark", spirit: "light", candy: "light", junk: "impact", coral: "water", corsair: "slash",
+    dune: "earth", fossil: "fang", samurai: "slash", dojo: "impact", sonic: "wind", festival: "fire",
+    bloom: "light", dream: "dark", slime: "water", gourmet: "fang", ink: "dark", ninja: "claw", rail: "impact",
+    ryu: "lightning", beast: "claw", odd: "water", egg: "impact", "legend-sun": "light", "legend-night": "dark",
+    "legend-world": "earth", "legend-time": "fire"
+  });
+
+  function battleEffect(nodeId, special = false) {
+    const node = NODES[nodeId] || NODES.egg;
+    const effect = ELEMENT_BY_LINEAGE[node.lineage] || (combatStats(node.id).attackType === "magic" ? "light" : "impact");
+    if (!special && combatStats(node.id).attackType === "physical") {
+      const physical = ["claw", "fang", "slash", "impact"];
+      return physical[hashText(node.id) % physical.length];
+    }
+    return effect;
+  }
+
   function combatStats(nodeId) {
     const node = NODES[nodeId] || NODES.egg;
     const archetype = COMBAT_ARCHETYPES[node.lineage] || COMBAT_ARCHETYPES.odd;
@@ -430,7 +519,8 @@
       { hp: 310, attack: 48, defense: 43, magic: 48, magicDefense: 43, speed: 44 },
       { hp: 420, attack: 65, defense: 58, magic: 65, magicDefense: 58, speed: 60 },
       { hp: 550, attack: 84, defense: 76, magic: 84, magicDefense: 76, speed: 78 },
-      { hp: 700, attack: 108, defense: 98, magic: 108, magicDefense: 98, speed: 100 }
+      { hp: 700, attack: 108, defense: 98, magic: 108, magicDefense: 98, speed: 100 },
+      { hp: 920, attack: 142, defense: 128, magic: 142, magicDefense: 128, speed: 126 }
     ][node.stage];
     const variance = ((hashText(node.id) % 15) - 7) / 100;
     const scaled = (key) => Math.max(1, Math.round(base[key] * archetype[key] * (1 + variance)));
@@ -464,7 +554,8 @@
   }
 
   global.TeamBingoMonsterSystem = Object.freeze({
-    STAGES, LINEAGES, LEGENDARY_IDS, LEGENDARY_CHANCE, NODES, createPlayerMonster, normalizePlayerMonster, syncPlayerMonsters,
-    distributedEvolutionRandom, evolvePlayerMonster, combatStats, specialChanceForHype, dialogue, playerKey, seededRandom
+    STAGES, LINEAGES, LEGENDARY_IDS, LEGENDARY_CHANCE, RANK6_NAMES, PASSIVE_SKILLS, NODES,
+    createPlayerMonster, normalizePlayerMonster, syncPlayerMonsters, distributedEvolutionRandom, evolvePlayerMonster,
+    rank6Requirements, canEvolveRank6, passiveSkill, battleEffect, combatStats, specialChanceForHype, dialogue, playerKey, seededRandom
   });
 })(window);

@@ -75,27 +75,27 @@ test("every random event has dedicated artwork and valid stereo audio", () => {
   assert.match(html, /effects\.has\("random-event"\)[\s\S]*showRandomEvent\(payload\.randomEvent\)/);
 });
 
-test("monster evolution has eight childhood entries, doubled branches, legends, artwork, and online sync", () => {
+test("monster evolution has eight childhood entries, rank six fusions, passives, artwork, and online sync", () => {
   const html = readFileSync(new URL("../index.html", import.meta.url), "utf8");
   const monsterSource = readFileSync(new URL("../monster-system.js", import.meta.url), "utf8");
   const browserGlobal = {};
   new Function("window", monsterSource)(browserGlobal);
   const result = browserGlobal.TeamBingoMonsterSystem;
 
-  assert.equal(result.STAGES.length, 6, "Egg plus five evolution stages are required");
+  assert.equal(result.STAGES.length, 7, "Egg plus six evolution stages are required");
   assert.equal(result.LINEAGES.length, 32, "Expected thirty-two mature lineages");
   assert.equal(result.LEGENDARY_IDS.length, 4, "Expected four legendary monsters");
-  assert.equal(Object.keys(result.NODES).length, 253, "Expected eight childhood entries, thirty-two lineages, and four legends");
+  assert.equal(Object.keys(result.NODES).length, 285, "Expected thirty-two rank-six fusion monsters");
   assert.deepEqual(
     result.STAGES.map((_, stage) => Object.values(result.NODES).filter((node) => node.stage === stage).length),
-    [1, 8, 16, 32, 64, 132]
+    [1, 8, 16, 32, 64, 132, 32]
   );
   Object.values(result.NODES).filter((node) => node.stage === 2).forEach((node) => {
     assert.match(node.sprite.size, /^400% (?:100|200)%$/, `${node.id} must use a four-column growth sheet`);
     assert.ok(node.sprite.aspect > 0, `${node.id} must preserve its source cell aspect ratio`);
   });
   Object.values(result.NODES).forEach((node) => {
-    const expectedBranches = node.stage === 0 ? 8 : (node.stage < 5 ? 2 : 0);
+    const expectedBranches = node.stage === 0 ? 8 : (node.stage < 5 ? 2 : (node.stage === 5 && !node.legendary ? 1 : 0));
     assert.equal(node.next.length, expectedBranches, `${node.id} has an invalid branch count`);
     node.next.forEach((nextId) => assert.ok(result.NODES[nextId], `${node.id} points to missing ${nextId}`));
     const stats = result.combatStats(node.id);
@@ -104,6 +104,9 @@ test("monster evolution has eight childhood entries, doubled branches, legends, 
     });
     assert.match(stats.attackType, /^(physical|magic)$/);
     assert.ok(stats.special.length > 0, `${node.id} is missing a special move`);
+    const passive = result.passiveSkill(node.id);
+    assert.ok(passive.name.length > 0, `${node.id} is missing a passive skill`);
+    assert.ok(passive.description.length > 0, `${node.id} is missing a passive description`);
     assert.doesNotMatch(node.name, /[A-Za-z]/, `${node.id} must use a Japanese display name`);
     assert.doesNotMatch(stats.special, /[A-Za-z]/, `${node.id} must use a Japanese special move`);
   });
@@ -151,6 +154,18 @@ test("monster evolution has eight childhood entries, doubled branches, legends, 
   assert.equal(result.NODES["samurai-mature"].sprite.facing, "right");
   assert.equal(result.NODES["inferno-mature"].sprite.facing, "left");
 
+  const ultimate = result.createPlayerMonster("RANK6 TEST", "red");
+  ultimate.nodeId = "inferno-ultimate-0";
+  ultimate.stage = 5;
+  const lockedRank6 = result.evolvePlayerMonster(ultimate, "red:rank6-locked", () => 0, { "inferno-ultimate-0": 1 });
+  assert.equal(lockedRank6.evolved, false, "Rank six must remain locked until all four required monsters are registered");
+  assert.equal(lockedRank6.rank6Locked, true);
+  const rank6Dex = Object.fromEntries([0, 1, 2, 3].map((index) => [`inferno-ultimate-${index}`, 1]));
+  const unlockedRank6 = result.evolvePlayerMonster(ultimate, "red:rank6-open", () => 0, rank6Dex);
+  assert.equal(unlockedRank6.monster.nodeId, "inferno-rank6");
+  assert.equal(unlockedRank6.monster.stage, 6);
+  assert.equal(result.rank6Requirements("inferno-ultimate-0").length, 4);
+
   const monsterAssets = [
     "egg.png", "childhood.png", "growth.png", "lineage-inferno.png", "lineage-thunder.png",
     "lineage-mecha.png", "lineage-beetle.png", "lineage-grove.png", "lineage-spore.png",
@@ -162,7 +177,7 @@ test("monster evolution has eight childhood entries, doubled branches, legends, 
     "lineage-samurai.png", "lineage-dojo.png", "lineage-sonic.png", "lineage-festival.png",
     "lineage-bloom.png", "lineage-dream.png", "lineage-slime.png", "lineage-gourmet.png",
     "lineage-ink.png", "lineage-ninja.png", "lineage-rail.png", "lineage-ryu.png",
-    "legendary.png", "legendary-new.png"
+    "legendary.png", "legendary-new.png", "rank6-a.png", "rank6-b.png"
   ];
   monsterAssets.forEach((file) => {
     assert.ok(existsSync(new URL(`../images/monsters/${file}`, import.meta.url)), `Missing monster artwork: ${file}`);
@@ -220,6 +235,19 @@ test("monster evolution has eight childhood entries, doubled branches, legends, 
   assert.doesNotMatch(html, /id="setupShuffleButton"/);
   assert.doesNotMatch(html, /id="playShuffleButton"/);
   assert.match(html, /specialChanceForHype\(attacker\.hype\)/);
+  assert.match(html, /function showMonsterSpecialCutin\(/);
+  assert.match(html, /function createMonsterImpactEffect\(/);
+  assert.match(html, /固有スキル/);
+  assert.match(html, /getPlayerStat\(playerName\)\.monsterDex/);
+  assert.match(html, /node\.id\.endsWith\("-ultimate-0"\)/);
+  assert.match(html, /monster-dex-card[^`]+node\.rank6/);
+  const battleCss = readFileSync(new URL("../monster-battle.css", import.meta.url), "utf8");
+  assert.match(battleCss, /effects\/elemental\.png/);
+  assert.match(battleCss, /effects\/physical\.png/);
+  assert.match(battleCss, /effects\/special-cutin\.png/);
+  ["elemental.png", "physical.png", "special-cutin.png"].forEach((file) => {
+    assert.ok(existsSync(new URL(`../images/monster-battle/effects/${file}`, import.meta.url)), `Missing battle effect artwork: ${file}`);
+  });
 });
 
 test("monster battle audio is dedicated stereo material", () => {

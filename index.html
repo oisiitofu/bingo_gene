@@ -5191,6 +5191,7 @@
     }
     .monster-tree-node.locked { color: rgba(255,255,255,.34); background: #090c12; cursor: default; }
     .monster-tree-node.legendary { border-color: #f8dc72; box-shadow: 0 0 18px rgba(137,99,255,.35); }
+    .monster-tree-node.rank6 { border-color: #fff36c; background: linear-gradient(145deg,rgba(83,24,130,.96),rgba(15,8,33,.98)); box-shadow: 0 0 18px rgba(255,231,83,.4), inset 0 0 16px rgba(161,73,255,.24); }
     .monster-tree-node .monster-sprite { width: 100%; height: 76px; overflow: hidden; }
     .monster-tree-node strong { overflow: hidden; font-size: 9px; text-overflow: ellipsis; white-space: nowrap; }
     .monster-tree-node span:last-child { color: rgba(255,255,255,.58); font-size: 8px; }
@@ -5277,6 +5278,8 @@
       background: radial-gradient(circle at 50% 35%, rgba(122,85,255,.34), rgba(7,9,17,.96) 70%);
       box-shadow: inset 0 0 18px rgba(255,218,91,.22), 0 0 15px rgba(114,83,255,.25);
     }
+    .monster-dex-card.rank6.discovered { border-color:#fff36c; background:linear-gradient(145deg,#35105c,#0c0718 64%,#2d2105); box-shadow:0 0 20px rgba(255,227,73,.42),inset 0 0 22px rgba(144,61,255,.26); }
+    .monster-dex-card.rank6 .monster-dex-number { color:#fff36c; }
 
     .monster-dex-number {
       position: relative;
@@ -8178,7 +8181,7 @@
     let customOpenSoundScanPromise = null;
     let openSoundAudioContext = null;
 
-    const MONSTER_STAGES = ["たまご", "幼少期", "成長期", "成熟期", "完全体", "究極体"];
+    const MONSTER_STAGES = ["たまご", "幼少期", "成長期", "成熟期", "完全体", "究極体", "超究極体"];
     const MONSTER_LINEAGES = [
       {
         id: "inferno", sheet: "lineage-inferno.png", mature: "FLARE LEO",
@@ -9499,7 +9502,7 @@
 
     function monsterRank(node) {
       if (node?.legendary) return 6;
-      return Math.max(0, Math.min(5, Number(node?.stage) || 0));
+      return Math.max(0, Math.min(6, Number(node?.stage) || 0));
     }
 
     function monsterRankLabel(node) {
@@ -9539,10 +9542,12 @@
       const key = playerStatsKey(playerName);
       const monsterIndex = side.monsters.findIndex((monster) => monster.playerKey === key);
       if (monsterIndex < 0) return null;
+      const playerDex = getPlayerStat(playerName).monsterDex || {};
       const result = MONSTER_SYSTEM.evolvePlayerMonster(
         side.monsters[monsterIndex],
         `${team}:${cellIndex}`,
-        getDistributedEvolutionRandom(side.monsters[monsterIndex])
+        getDistributedEvolutionRandom(side.monsters[monsterIndex]),
+        playerDex
       );
       side.monsters[monsterIndex] = result.monster;
       if (result.evolved) unlockPlayerMonster(playerName, result.monster.nodeId, team);
@@ -9609,16 +9614,19 @@
       if (!els.monsterZoomOverlay) return;
       const node = MONSTER_NODES[nodeId] || MONSTER_NODES.egg;
       const stats = MONSTER_SYSTEM.combatStats(node.id);
+      const passive = MONSTER_SYSTEM.passiveSkill(node.id);
       els.monsterZoomOverlay.style.setProperty("--zoom-team", accent);
       els.monsterZoomPlayer.textContent = playerLabel;
       els.monsterZoomArt.innerHTML = monsterSpriteMarkup(node);
       els.monsterZoomName.textContent = node.name;
-      els.monsterZoomStage.textContent = `${monsterRankLabel(node)} / ${stats.attackType === "magic" ? "魔法" : "物理"}タイプ${node.legendary ? " / 伝説のモンスター" : ""}`;
+      els.monsterZoomStage.textContent = `${monsterRankLabel(node)} / ${stats.attackType === "magic" ? "魔法" : "物理"}タイプ${node.legendary ? " / 伝説のモンスター" : ""}${node.rank6 ? " / 4体融合モンスター" : ""}`;
       els.monsterZoomStats.innerHTML = [
         ["HP", stats.hp], ["攻撃", stats.attack], ["防御", stats.defense],
         ["魔攻", stats.magic], ["魔防", stats.magicDefense], ["素早さ", stats.speed]
       ].map(([label, value]) => `<span class="monster-stat-row"><span>${label}</span><strong>${value}</strong></span>`).join("");
+      els.monsterZoomSpecial.parentElement?.querySelector(".monster-zoom-passive")?.remove();
       els.monsterZoomSpecial.textContent = `必殺技 / ${stats.special}`;
+      els.monsterZoomSpecial.insertAdjacentHTML("afterend", `<div class="monster-zoom-passive"><b>固有スキル / ${escapeHtml(passive.name)}</b><span>${escapeHtml(passive.description)}</span></div>`);
       showOverlay(els.monsterZoomOverlay);
     }
 
@@ -11366,6 +11374,7 @@
       return side.monsters.map((monster, index) => {
         const node = MONSTER_NODES[monster.nodeId] || MONSTER_NODES.egg;
         const stats = MONSTER_SYSTEM.combatStats(node.id);
+        const passive = MONSTER_SYSTEM.passiveSkill(node.id);
         return {
           id: `${team}-${index}`,
           team,
@@ -11374,10 +11383,12 @@
           nodeId: node.id,
           name: node.name,
           stats,
+          passive,
           hp: stats.hp,
           hype,
-          energy: Math.round(hype * .55),
-          ko: false
+          energy: Math.min(100, Math.round(hype * .55) + (passive.kind === "initial-energy" ? passive.value : 0)),
+          ko: false,
+          endureUsed: false
         };
       });
     }
@@ -11391,6 +11402,7 @@
           <div class="battle-fighter-art">${monsterSpriteMarkup(node)}</div>
           <div class="battle-fighter-ui">
             <b>${escapeHtml(fighter.name)}</b><small>${escapeHtml(fighter.playerName)} / ${fighter.stats.attackType === "magic" ? "魔法" : "物理"} / HYPE ${fighter.hype}</small>
+            <span class="battle-passive" title="${escapeHtml(fighter.passive.description)}">固有　${escapeHtml(fighter.passive.name)}</span>
             <div class="battle-hp-track"><div class="battle-hp-fill" style="--hp:100%"></div></div>
             <div class="battle-energy-track"><div class="battle-energy-fill" style="--energy:${Math.min(100, fighter.energy)}%"></div></div>
           </div>
@@ -11426,7 +11438,7 @@
         els.monsterBattleEntryIndex.textContent = `ENTRY ${index + 1} / ${entrants.length}`;
         els.monsterBattleEntryName.textContent = fighter.name;
         els.monsterBattleEntryPlayer.textContent = `TRAINER　${fighter.playerName}`;
-        els.monsterBattleEntrySpecial.textContent = `必殺技　${fighter.stats.special}`;
+        els.monsterBattleEntrySpecial.textContent = `必殺技　${fighter.stats.special}　｜　固有スキル　${fighter.passive.name}`;
         card.getBoundingClientRect();
         card.classList.add("animate");
         await delay(900);
@@ -11465,19 +11477,48 @@
     function calculateMonsterDamage(attacker, target, special, random, turn) {
       const magical = attacker.stats.attackType === "magic";
       const offense = magical ? attacker.stats.magic : attacker.stats.attack;
-      const defense = magical ? target.stats.magicDefense : target.stats.defense;
+      const openingGuard = target.passive.kind === "guard" && turn < target.passive.turns ? target.passive.value : 1;
+      const defense = (magical ? target.stats.magicDefense : target.stats.defense) * openingGuard;
       const stagePressure = 1 + Math.max(0, turn - 18) * .045;
       const base = 24 + (offense * 1.28) - (defense * .58);
       const variance = .88 + random() * .25;
-      return Math.max(14, Math.round(base * variance * stagePressure * (special ? 1.72 : 1)));
+      let multiplier = special ? 1.72 : 1;
+      if (attacker.passive.kind === "fury" && attacker.hp / attacker.stats.hp <= attacker.passive.threshold) multiplier *= attacker.passive.value;
+      if (attacker.passive.kind === "special-power" && special) multiplier *= attacker.passive.value;
+      if (attacker.passive.kind === "normal-power" && !special) multiplier *= attacker.passive.value;
+      if (attacker.passive.kind === "finisher" && target.hp / target.stats.hp <= attacker.passive.threshold) multiplier *= attacker.passive.value;
+      if (target.passive.kind === "damage-cut") multiplier *= target.passive.value;
+      if (target.passive.kind === "type-cut" && target.passive.attackType === attacker.stats.attackType) multiplier *= target.passive.value;
+      return Math.max(14, Math.round(base * variance * stagePressure * multiplier));
+    }
+
+    function createMonsterImpactEffect(effect, bounds, special) {
+      const impact = document.createElement("div");
+      impact.className = `battle-impact-effect effect-${effect}${special ? " special" : ""}`;
+      impact.style.left = `${bounds.left + bounds.width / 2}px`;
+      impact.style.top = `${bounds.top + bounds.height / 2}px`;
+      document.body.appendChild(impact);
+      window.setTimeout(() => impact.remove(), special ? 1150 : 820);
+    }
+
+    async function showMonsterSpecialCutin(attacker) {
+      const node = MONSTER_NODES[attacker.nodeId] || MONSTER_NODES.egg;
+      const cutin = document.createElement("div");
+      cutin.className = `monster-special-cutin ${attacker.team}`;
+      cutin.innerHTML = `<div class="monster-special-cutin-art">${monsterSpriteMarkup(node)}</div><div class="monster-special-cutin-copy"><span>SPECIAL ATTACK</span><strong>${escapeHtml(attacker.stats.special)}</strong><em>${escapeHtml(attacker.name)}</em></div>`;
+      document.body.appendChild(cutin);
+      screenShake();
+      await delay(1180);
+      cutin.remove();
     }
 
     async function animateMonsterBattleAction(attacker, target, damage, special, line) {
       const attackerElement = els.monsterBattleOverlay?.querySelector(`[data-battle-fighter="${attacker.id}"]`);
       const targetElement = els.monsterBattleOverlay?.querySelector(`[data-battle-fighter="${target.id}"]`);
       if (!attackerElement || !targetElement) return delay(520);
+      if (special) await showMonsterSpecialCutin(attacker);
       els.monsterBattleCall.textContent = special ? `必殺技「${attacker.stats.special}」` : line;
-      els.monsterBattleLog.textContent = `${attacker.name}が${target.name}へ攻撃　${damage}ダメージ`;
+      els.monsterBattleLog.textContent = damage > 0 ? `${attacker.name} → ${target.name}　${damage} DAMAGE` : `${target.name}　攻撃回避！`;
       attackerElement.classList.add("attacking");
       if (special) attackerElement.classList.add("special");
       const start = attackerElement.querySelector(".battle-fighter-art").getBoundingClientRect();
@@ -11497,17 +11538,19 @@
         "monsterBattleSe",
         special ? 1.08 : .94
       );
-      targetElement.classList.add("hit");
+      const effect = MONSTER_SYSTEM.battleEffect(attacker.nodeId, special);
+      createMonsterImpactEffect(effect, end, special);
+      targetElement.classList.add(damage > 0 ? "hit" : "evade");
       const damageNode = document.createElement("div");
       damageNode.className = `battle-damage${attacker.stats.attackType === "magic" ? " magic" : ""}`;
-      damageNode.textContent = special ? `${damage}!!` : String(damage);
+      damageNode.textContent = damage > 0 ? (special ? `${damage}!!` : String(damage)) : "MISS";
       damageNode.style.left = `${end.left + end.width * .5}px`;
       damageNode.style.top = `${end.top + end.height * .35}px`;
       document.body.appendChild(damageNode);
       window.setTimeout(() => damageNode.remove(), 1050);
       await delay(260);
       attackerElement.classList.remove("attacking", "special");
-      targetElement.classList.remove("hit");
+      targetElement.classList.remove("hit", "evade");
     }
 
     async function runMonsterBattle(seed) {
@@ -11542,16 +11585,33 @@
         const attacker = weightedBattleFighter(parties[attackingTeam], random);
         const target = weightedBattleFighter(parties[defendingTeam], random);
         if (!attacker || !target) break;
-        const hypeChance = MONSTER_SYSTEM.specialChanceForHype(attacker.hype);
+        const passiveChance = attacker.passive.kind === "special-chance" ? attacker.passive.value : 0;
+        const hypeChance = Math.min(.92, MONSTER_SYSTEM.specialChanceForHype(attacker.hype) + passiveChance);
         const special = attacker.energy >= 100 ||
           (attacker.energy >= 45 && random() < hypeChance) ||
           (turn > 21 && attacker.energy >= 72);
-        const damage = calculateMonsterDamage(attacker, target, special, random, turn);
+        const evaded = target.passive.kind === "dodge" && random() < target.passive.value;
+        let damage = evaded ? 0 : calculateMonsterDamage(attacker, target, special, random, turn);
         const line = MONSTER_SYSTEM.dialogue(attacker.nodeId, special ? "special" : "attack", random);
-        attacker.energy = special ? 0 : Math.min(100, attacker.energy + 28 + Math.round(attacker.hype * .1));
-        target.energy = Math.min(100, target.energy + 14 + Math.round(target.hype * .05));
+        const energyBonus = attacker.passive.kind === "energy-gain" ? attacker.passive.value : 0;
+        attacker.energy = special ? 0 : Math.min(100, attacker.energy + 28 + energyBonus + Math.round(attacker.hype * .1));
+        const revengeEnergy = target.passive.kind === "revenge-energy" && damage > 0 ? target.passive.value : 0;
+        target.energy = Math.min(100, target.energy + 14 + revengeEnergy + Math.round(target.hype * .05));
         await animateMonsterBattleAction(attacker, target, damage, special, line);
+        if (damage >= target.hp && target.passive.kind === "endure" && !target.endureUsed) {
+          damage = Math.max(0, target.hp - 1);
+          target.endureUsed = true;
+          els.monsterBattleLog.textContent = `${target.name}　固有スキル「${target.passive.name}」で耐えた！`;
+        }
         target.hp = Math.max(0, target.hp - damage);
+        if (damage > 0 && attacker.passive.kind === "drain") {
+          attacker.hp = Math.min(attacker.stats.hp, attacker.hp + Math.round(damage * attacker.passive.value));
+        }
+        if ((turn + 1) % 3 === 0) {
+          [attacker, target].filter((fighter) => !fighter.ko && fighter.hp > 0 && fighter.passive.kind === "regen").forEach((fighter) => {
+            fighter.hp = Math.min(fighter.stats.hp, fighter.hp + Math.round(fighter.stats.hp * fighter.passive.value));
+          });
+        }
         if (target.hp <= 0) {
           target.ko = true;
           els.monsterBattleLog.textContent = `${target.name} K.O.! ${MONSTER_SYSTEM.dialogue(target.nodeId, "defeat", random)}`;
@@ -11595,7 +11655,7 @@
         els.monsterBattleEntrance.classList.remove("battle-start");
       }
       if (activeBgmKey === "monsterBattleBgm") stopManagedBgm();
-      document.querySelectorAll(".battle-projectile,.battle-damage").forEach((node) => node.remove());
+      document.querySelectorAll(".battle-projectile,.battle-damage,.battle-impact-effect,.monster-special-cutin").forEach((node) => node.remove());
       renderVictoryMonsterLineups();
     }
 
@@ -13421,13 +13481,15 @@
       const node = MONSTER_NODES[nodeId];
       if (!node || visited.has(nodeId)) return "";
       const found = Boolean(unlocked[node.id]);
+      const rank6Progress = node.rank6 ? (node.requirements || []).filter((id) => unlocked[id]).length : 0;
       const nextVisited = new Set(visited).add(nodeId);
-      const children = (node.next || []).map((id) => renderMonsterTreeNode(id, unlocked, record, numberById, nextVisited)).filter(Boolean);
+      const childIds = (node.next || []).filter((id) => !MONSTER_NODES[id]?.rank6 || node.id.endsWith("-ultimate-0"));
+      const children = childIds.map((id) => renderMonsterTreeNode(id, unlocked, record, numberById, nextVisited)).filter(Boolean);
       return `<li>
-        <button type="button" class="monster-tree-node${found ? " discovered" : " locked"}${node.legendary ? " legendary" : ""}"${found ? ` data-dex-monster="${escapeHtml(node.id)}" data-dex-player="${escapeHtml(record.name)}"` : " disabled"}>
+        <button type="button" class="monster-tree-node${found ? " discovered" : " locked"}${node.legendary ? " legendary" : ""}${node.rank6 ? " rank6" : ""}"${found ? ` data-dex-monster="${escapeHtml(node.id)}" data-dex-player="${escapeHtml(record.name)}"` : " disabled"}>
           ${found ? monsterSpriteMarkup(node) : `<span class="monster-tree-unknown">?</span>`}
-          <strong>${found ? escapeHtml(node.name) : "？？？"}</strong>
-          <span>${node.legendary ? "LEGEND" : `No.${String(numberById.get(node.id) || 0).padStart(3, "0")}`} / ${monsterRankLabel(node)}</span>
+          <strong>${found ? escapeHtml(node.name) : (node.rank6 ? `融合条件 ${rank6Progress}/4` : "？？？")}</strong>
+          <span>${node.legendary ? "LEGEND" : (node.rank6 ? `4体融合 ${rank6Progress}/4` : `No.${String(numberById.get(node.id) || 0).padStart(3, "0")}`)} / ${monsterRankLabel(node)}</span>
         </button>
         ${children.length ? `<ul>${children.join("")}</ul>` : ""}
       </li>`;
@@ -13492,10 +13554,11 @@
       els.statsMonsterDexSummary.textContent = `${record.name}　${acquired} / ${nodes.length} DISCOVERED`;
       els.statsMonsterDexGrid.innerHTML = nodes.map((node, index) => {
         const found = Boolean(unlocked[node.id]);
-        return `<button type="button" class="monster-dex-card${found ? " discovered" : " locked"}${node.legendary ? " legendary" : ""}"${found ? ` data-dex-monster="${escapeHtml(node.id)}" data-dex-player="${escapeHtml(record.name)}"` : " disabled"} aria-label="${found ? `${escapeHtml(node.name)}を拡大` : "未発見のモンスター"}">
-          <span class="monster-dex-number">${node.legendary ? "LEGEND" : `No.${String(index + 1).padStart(3, "0")}`}</span>
+        const rank6Progress = node.rank6 ? (node.requirements || []).filter((id) => unlocked[id]).length : 0;
+        return `<button type="button" class="monster-dex-card${found ? " discovered" : " locked"}${node.legendary ? " legendary" : ""}${node.rank6 ? " rank6" : ""}"${found ? ` data-dex-monster="${escapeHtml(node.id)}" data-dex-player="${escapeHtml(record.name)}"` : " disabled"} aria-label="${found ? `${escapeHtml(node.name)}を拡大` : "未発見のモンスター"}">
+          <span class="monster-dex-number">${node.legendary ? "LEGEND" : (node.rank6 ? "FUSION ☆6" : `No.${String(index + 1).padStart(3, "0")}`)}</span>
           <span class="monster-dex-art">${found ? monsterSpriteMarkup(node) : `<span class="monster-dex-unknown">?</span>`}</span>
-          <strong title="${found ? escapeHtml(node.name) : "未発見"}">${found ? escapeHtml(node.name) : "？？？？"}</strong>
+          <strong title="${found ? escapeHtml(node.name) : "未発見"}">${found ? escapeHtml(node.name) : (node.rank6 ? `融合条件 ${rank6Progress}/4` : "？？？？")}</strong>
         </button>`;
       }).join("");
       renderMonsterDexTree(record, nodes, unlocked);
