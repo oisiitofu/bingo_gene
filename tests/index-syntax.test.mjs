@@ -146,6 +146,10 @@ test("monster evolution has eight childhood entries, doubled branches, legends, 
   assert.equal(result.specialChanceForHype(0), .06);
   assert.equal(result.specialChanceForHype(100), .48);
   assert.ok(result.specialChanceForHype(80) > result.specialChanceForHype(20));
+  assert.equal(result.NODES["child-scroll"].sprite.facing, "right");
+  assert.equal(result.NODES["growth-gear"].sprite.facing, "right");
+  assert.equal(result.NODES["samurai-mature"].sprite.facing, "right");
+  assert.equal(result.NODES["inferno-mature"].sprite.facing, "left");
 
   const monsterAssets = [
     "egg.png", "childhood.png", "growth.png", "lineage-inferno.png", "lineage-thunder.png",
@@ -184,7 +188,15 @@ test("monster evolution has eight childhood entries, doubled branches, legends, 
   assert.match(html, /id="monsterDexModal"/);
   assert.match(html, /id="statsMonsterDexTree"/);
   assert.match(html, /function renderMonsterDexTree\(/);
+  assert.match(html, /id="dexOverviewButton"[\s\S]*>全体表示<\/button>/);
+  assert.match(html, /id="dexTreeViewButton">進化経路<\/button>/);
+  assert.match(html, /function fitMonsterDexTreeOverview\(/);
+  assert.match(html, /\.monster-dex-grid\.overview[\s\S]*repeat\(23/);
+  assert.match(html, /\.monster-dex-grid\.overview[\s\S]*grid-auto-rows: 43px/);
+  assert.match(html, /\.monster-dex-tree\.overview \.monster-tree-forest[\s\S]*repeat\(3, max-content\)/);
   assert.match(html, /\.monster-dex-grid\[hidden\][\s\S]*display: none !important/);
+  assert.match(html, /data-monster-facing=/);
+  assert.match(readFileSync(new URL("../monster-battle.css", import.meta.url), "utf8"), /data-monster-facing="right"/);
   assert.match(html, /function renderMonsterDex\(/);
   assert.match(html, /monsterRankLabel\(node\)/);
   assert.match(html, /function waitForTimedPresentation\(/);

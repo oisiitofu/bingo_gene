@@ -427,8 +427,14 @@
 }
 .monster-battle-party.blue .battle-fighter { --fighter-team: #1687ff; }
 .battle-fighter-art { position: relative; width: 100%; height: min(38vh,330px); display: flex; align-items: end; justify-content: center; filter: drop-shadow(0 16px 8px rgba(0,0,0,.65)); }
-.monster-battle-party.red .battle-fighter-art { transform: scaleX(-1); }
-.monster-battle-party.blue .battle-fighter-art { transform: none; }
+.monster-battle-party.red .battle-fighter-art .monster-sprite[data-monster-facing="left"],
+.monster-battle-party.blue .battle-fighter-art .monster-sprite[data-monster-facing="right"],
+.monster-battle-entry-card.red .monster-battle-entry-art .monster-sprite[data-monster-facing="left"],
+.monster-battle-entry-card.blue .monster-battle-entry-art .monster-sprite[data-monster-facing="right"] { transform: scaleX(-1); }
+.monster-battle-party.red .battle-fighter-art .monster-sprite[data-monster-facing="right"],
+.monster-battle-party.blue .battle-fighter-art .monster-sprite[data-monster-facing="left"],
+.monster-battle-entry-card.red .monster-battle-entry-art .monster-sprite[data-monster-facing="right"],
+.monster-battle-entry-card.blue .monster-battle-entry-art .monster-sprite[data-monster-facing="left"] { transform: scaleX(1); }
 .battle-fighter-ui { width: min(210px,100%); padding: 6px; background: rgba(2,4,10,.88); border-top: 3px solid var(--fighter-team); }
 .battle-fighter-ui b { display: block; overflow: hidden; color: #fff; font-size: 11px; text-overflow: ellipsis; white-space: nowrap; }
 .battle-fighter-ui small { color: #cbd5e1; font-size: 8px; }
