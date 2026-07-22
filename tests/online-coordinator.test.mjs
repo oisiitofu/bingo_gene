@@ -2266,10 +2266,10 @@ test("room history retains only the newest bounded event and action windows", as
   const eventKeys = Object.keys(room.events).map(Number).sort((a, b) => a - b);
   assert.equal(room.meta.eventSeq, 320);
   assert.equal(room.meta.revision, 320);
-  assert.equal(eventKeys.length, 200);
-  assert.equal(eventKeys[0], 121);
+  assert.equal(eventKeys.length, 48);
+  assert.equal(eventKeys[0], 273);
   assert.equal(eventKeys.at(-1), 320);
-  assert.equal(Object.keys(room.processedActions).length, 300);
+  assert.equal(Object.keys(room.processedActions).length, 120);
   assert.equal(room.processedActions["action-1"], undefined);
   assert.equal(typeof room.processedActions["action-320"], "number");
 });

@@ -21,6 +21,8 @@ const ROOT_KEY = "teamBingo.online.mock.v1";
 const MOCK_CHANNEL = "team-bingo-online-mock-v1";
 const ORPHAN_ROOM_CLEANUP_INTERVAL = 5 * 60 * 1000;
 const MAX_EVENT_REPLAY = 12;
+const ROOM_EVENT_HISTORY_LIMIT = 48;
+const ROOM_ACTION_HISTORY_LIMIT = 120;
 const START_BLACKOUT_MS = 1080;
 const START_INTRO_END_MS = 4330;
 const START_READY_END_MS = 5330;
@@ -3030,10 +3032,10 @@ export class OnlineCoordinator {
         actorName: this.memberName || "MASTER",
         createdAt: now
       };
-      room.events = trimObjectByNumericKey(room.events, 200);
+      room.events = trimObjectByNumericKey(room.events, ROOM_EVENT_HISTORY_LIMIT);
       room.processedActions ||= {};
       room.processedActions[actionId] = now;
-      const processedEntries = Object.entries(room.processedActions).sort(([, a], [, b]) => Number(b) - Number(a)).slice(0, 300);
+      const processedEntries = Object.entries(room.processedActions).sort(([, a], [, b]) => Number(b) - Number(a)).slice(0, ROOM_ACTION_HISTORY_LIMIT);
       room.processedActions = Object.fromEntries(processedEntries);
       if (game?.winner) room.lastVictory = clone(event?.victory || room.lastVictory || null);
       room.lock = null;

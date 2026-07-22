@@ -198,9 +198,16 @@ test("monster evolution has eight childhood entries, doubled branches, legends, 
   assert.match(html, /data-monster-facing=/);
   assert.match(readFileSync(new URL("../monster-battle.css", import.meta.url), "utf8"), /data-monster-facing="right"/);
   assert.match(html, /function spriteSheetSizeWithBleedGuard\(/);
-  assert.match(html, /value \* 1\.01/);
+  assert.match(html, /value \* 1\.001/);
   assert.match(html, /const renderMarkupCache =/);
   assert.match(html, /function onCellImageError\(/);
+  assert.match(html, /TOFU_CELL_THUMBNAIL_SIZE = 224/);
+  assert.match(html, /function prepareTofuCellThumbnail\(/);
+  assert.match(html, /CUSTOM_OPEN_SOUND_BUFFER_LIMIT = 24/);
+  assert.doesNotMatch(html, /function unlockAudio\(\) \{\s*Object\.keys\(AUDIO\)/);
+  assert.doesNotMatch(html, /function unlockOpenSoundAudio\(\) \{[\s\S]{0,260}primeCustomOpenSoundBuffers\(\)/);
+  assert.match(html, /customOpenSoundBufferCache\.size > CUSTOM_OPEN_SOUND_BUFFER_LIMIT/);
+  assert.match(html, /function releaseInactiveTofuCellThumbnails\(/);
   assert.doesNotMatch(html, /<img src="\$\{activeCellImage\}"[^>]+onerror=/);
   assert.match(html, /function renderMonsterDex\(/);
   assert.match(html, /monsterRankLabel\(node\)/);
