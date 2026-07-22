@@ -1,11 +1,11 @@
 {
   "version": 1,
-  "generatedAt": "2026-07-22T14:15:38.088Z",
+  "generatedAt": "2026-07-22T16:34:39.121Z",
   "totals": {
-    "all": 405,
-    "images": 243,
+    "all": 411,
+    "images": 249,
     "audio": 162,
-    "bytes": 254327976
+    "bytes": 265293356
   },
   "assets": [
     {
@@ -1509,10 +1509,22 @@
       "bytes": 2788002
     },
     {
+      "path": "images/monster-battle/effects/elemental-v2.png",
+      "type": "image",
+      "category": "images/monster-battle/effects",
+      "bytes": 2575988
+    },
+    {
       "path": "images/monster-battle/effects/elemental.png",
       "type": "image",
       "category": "images/monster-battle/effects",
       "bytes": 2096745
+    },
+    {
+      "path": "images/monster-battle/effects/physical-v2.png",
+      "type": "image",
+      "category": "images/monster-battle/effects",
+      "bytes": 1743182
     },
     {
       "path": "images/monster-battle/effects/physical.png",
@@ -1530,25 +1542,31 @@
       "path": "images/monsters/childhood-extra.png",
       "type": "image",
       "category": "images/monsters",
-      "bytes": 1334191
+      "bytes": 1262670
     },
     {
       "path": "images/monsters/childhood-new.png",
       "type": "image",
       "category": "images/monsters",
-      "bytes": 1203540
+      "bytes": 1121678
     },
     {
       "path": "images/monsters/childhood.png",
       "type": "image",
       "category": "images/monsters",
-      "bytes": 1143546
+      "bytes": 1077731
     },
     {
       "path": "images/monsters/egg.png",
       "type": "image",
       "category": "images/monsters",
       "bytes": 1225482
+    },
+    {
+      "path": "images/monsters/growth-extra-v2.png",
+      "type": "image",
+      "category": "images/monsters",
+      "bytes": 1314084
     },
     {
       "path": "images/monsters/growth-extra.png",
@@ -1560,13 +1578,19 @@
       "path": "images/monsters/growth-new-a.png",
       "type": "image",
       "category": "images/monsters",
-      "bytes": 1381130
+      "bytes": 1332756
     },
     {
       "path": "images/monsters/growth-new-b.png",
       "type": "image",
       "category": "images/monsters",
-      "bytes": 1567130
+      "bytes": 1475470
+    },
+    {
+      "path": "images/monsters/growth-v2.png",
+      "type": "image",
+      "category": "images/monsters",
+      "bytes": 1100537
     },
     {
       "path": "images/monsters/growth.png",
@@ -1578,211 +1602,223 @@
       "path": "images/monsters/legendary-new.png",
       "type": "image",
       "category": "images/monsters",
-      "bytes": 3205416
+      "bytes": 3107043
     },
     {
       "path": "images/monsters/legendary.png",
       "type": "image",
       "category": "images/monsters",
-      "bytes": 3207130
+      "bytes": 3092289
     },
     {
       "path": "images/monsters/lineage-abyss.png",
       "type": "image",
       "category": "images/monsters",
-      "bytes": 1875664
+      "bytes": 1846909
     },
     {
       "path": "images/monsters/lineage-beetle.png",
       "type": "image",
       "category": "images/monsters",
-      "bytes": 1600672
+      "bytes": 1547900
     },
     {
       "path": "images/monsters/lineage-bloom.png",
       "type": "image",
       "category": "images/monsters",
-      "bytes": 1946606
+      "bytes": 3159829
     },
     {
       "path": "images/monsters/lineage-candy.png",
       "type": "image",
       "category": "images/monsters",
-      "bytes": 2518503
+      "bytes": 2377160
     },
     {
       "path": "images/monsters/lineage-coral.png",
       "type": "image",
       "category": "images/monsters",
-      "bytes": 2230474
+      "bytes": 2196500
     },
     {
       "path": "images/monsters/lineage-corsair.png",
       "type": "image",
       "category": "images/monsters",
-      "bytes": 2007037
+      "bytes": 1939059
     },
     {
       "path": "images/monsters/lineage-cosmic.png",
       "type": "image",
       "category": "images/monsters",
-      "bytes": 1598353
+      "bytes": 1532875
     },
     {
       "path": "images/monsters/lineage-crystal.png",
       "type": "image",
       "category": "images/monsters",
-      "bytes": 2272090
+      "bytes": 2196762
     },
     {
       "path": "images/monsters/lineage-dojo.png",
       "type": "image",
       "category": "images/monsters",
-      "bytes": 1705986
+      "bytes": 1666602
     },
     {
       "path": "images/monsters/lineage-dream.png",
       "type": "image",
       "category": "images/monsters",
-      "bytes": 1580628
+      "bytes": 1538106
     },
     {
       "path": "images/monsters/lineage-dune.png",
       "type": "image",
       "category": "images/monsters",
-      "bytes": 1895398
+      "bytes": 1785211
     },
     {
       "path": "images/monsters/lineage-festival.png",
       "type": "image",
       "category": "images/monsters",
-      "bytes": 1972988
+      "bytes": 1892393
     },
     {
       "path": "images/monsters/lineage-fossil.png",
       "type": "image",
       "category": "images/monsters",
-      "bytes": 1792888
+      "bytes": 1667136
     },
     {
       "path": "images/monsters/lineage-glacier.png",
       "type": "image",
       "category": "images/monsters",
-      "bytes": 2762565
+      "bytes": 2599993
     },
     {
       "path": "images/monsters/lineage-gourmet.png",
       "type": "image",
       "category": "images/monsters",
-      "bytes": 1994362
+      "bytes": 1918649
     },
     {
       "path": "images/monsters/lineage-grove.png",
       "type": "image",
       "category": "images/monsters",
-      "bytes": 2158893
+      "bytes": 2129900
     },
     {
       "path": "images/monsters/lineage-inferno.png",
       "type": "image",
       "category": "images/monsters",
-      "bytes": 2301043
+      "bytes": 2157193
     },
     {
       "path": "images/monsters/lineage-ink.png",
       "type": "image",
       "category": "images/monsters",
-      "bytes": 2041947
+      "bytes": 2025204
     },
     {
       "path": "images/monsters/lineage-junk.png",
       "type": "image",
       "category": "images/monsters",
-      "bytes": 2313345
+      "bytes": 2263994
     },
     {
       "path": "images/monsters/lineage-mecha.png",
       "type": "image",
       "category": "images/monsters",
-      "bytes": 2053734
+      "bytes": 2020228
     },
     {
       "path": "images/monsters/lineage-ninja.png",
       "type": "image",
       "category": "images/monsters",
-      "bytes": 1526351
+      "bytes": 1466536
     },
     {
       "path": "images/monsters/lineage-rail.png",
       "type": "image",
       "category": "images/monsters",
-      "bytes": 1780088
+      "bytes": 1738153
     },
     {
       "path": "images/monsters/lineage-ryu.png",
       "type": "image",
       "category": "images/monsters",
-      "bytes": 2439926
+      "bytes": 2355786
     },
     {
       "path": "images/monsters/lineage-samurai.png",
       "type": "image",
       "category": "images/monsters",
-      "bytes": 1774208
+      "bytes": 1716798
     },
     {
       "path": "images/monsters/lineage-shadow.png",
       "type": "image",
       "category": "images/monsters",
-      "bytes": 1877946
+      "bytes": 1814445
     },
     {
       "path": "images/monsters/lineage-sky.png",
       "type": "image",
       "category": "images/monsters",
-      "bytes": 2425505
+      "bytes": 2346443
     },
     {
       "path": "images/monsters/lineage-slime.png",
       "type": "image",
       "category": "images/monsters",
-      "bytes": 1806268
+      "bytes": 1720563
     },
     {
       "path": "images/monsters/lineage-sonic.png",
       "type": "image",
       "category": "images/monsters",
-      "bytes": 2060735
+      "bytes": 1908530
     },
     {
       "path": "images/monsters/lineage-spirit.png",
       "type": "image",
       "category": "images/monsters",
-      "bytes": 2380159
+      "bytes": 2332563
     },
     {
       "path": "images/monsters/lineage-spore.png",
       "type": "image",
       "category": "images/monsters",
-      "bytes": 2246948
+      "bytes": 2176295
     },
     {
       "path": "images/monsters/lineage-tempest.png",
       "type": "image",
       "category": "images/monsters",
-      "bytes": 2458406
+      "bytes": 2414839
     },
     {
       "path": "images/monsters/lineage-thunder.png",
       "type": "image",
       "category": "images/monsters",
-      "bytes": 1796172
+      "bytes": 1742338
+    },
+    {
+      "path": "images/monsters/rank6-a-v2.png",
+      "type": "image",
+      "category": "images/monsters",
+      "bytes": 2694715
     },
     {
       "path": "images/monsters/rank6-a.png",
       "type": "image",
       "category": "images/monsters",
       "bytes": 2665456
+    },
+    {
+      "path": "images/monsters/rank6-b-v2.png",
+      "type": "image",
+      "category": "images/monsters",
+      "bytes": 3110316
     },
     {
       "path": "images/monsters/rank6-b.png",

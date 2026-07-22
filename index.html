@@ -1622,6 +1622,7 @@
       background-size: var(--monster-size, contain);
       background-position: var(--monster-position, center);
       background-repeat: no-repeat;
+      clip-path: inset(1px);
       filter: drop-shadow(0 8px 7px rgba(0,0,0,.56));
     }
 
@@ -5073,7 +5074,11 @@
     }
     #statsDexButton::before, #statsDexButton::after,
     #monsterDexCloseButton::before, #monsterDexCloseButton::after { content: none; display: none; }
-    .monster-dex-view-switch { min-width: 184px; }
+    .monster-dex-view-switch {
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      min-width: 236px;
+    }
+    .monster-dex-view-switch button { padding: 6px 4px; font-size: 11px; white-space: nowrap; }
     #dexOverviewButton { min-width: 92px; }
 
     .monster-dex-head {
@@ -5214,7 +5219,33 @@
     .monster-tree-unknown { display: grid; height: 76px; place-items: center; color: rgba(255,255,255,.2); font: 1000 30px/1 Impact,sans-serif; }
     .monster-tree-legends { display: flex; gap: 8px; padding: 12px; border-left: 2px solid #f8dc72; background: rgba(248,220,114,.06); }
     .monster-dex-grid[hidden],
-    .monster-dex-tree[hidden] { display: none !important; }
+    .monster-dex-tree[hidden],
+    .monster-mastery-page[hidden] { display: none !important; }
+
+    .monster-mastery-page {
+      flex: 1 1 auto;
+      min-height: 0;
+      display: grid;
+      grid-template-columns: repeat(3,minmax(0,1fr));
+      align-content: start;
+      gap: 9px;
+      padding: 10px;
+      overflow: auto;
+      background: radial-gradient(circle at 50% 0,rgba(247,198,74,.09),transparent 45%),#070b12;
+    }
+    .monster-mastery-card { min-width:0; display:grid; grid-template-columns:116px minmax(0,1fr); gap:10px; align-items:center; min-height:136px; padding:9px; border:1px solid rgba(247,198,74,.28); border-radius:5px; color:#fff; background:linear-gradient(145deg,#182231,#080b12 72%); text-align:left; cursor:zoom-in; }
+    .monster-mastery-card:hover,.monster-mastery-card:focus-visible { border-color:#ffe47d; outline:0; box-shadow:0 0 18px rgba(247,198,74,.22); }
+    .monster-mastery-card-art { height:116px; display:grid; place-items:center; overflow:hidden; }
+    .monster-mastery-card-art .monster-sprite { width:auto; max-width:98%; height:98%; aspect-ratio:var(--monster-aspect,1); }
+    .monster-mastery-card-copy,.monster-mastery-card-copy > span { min-width:0; display:block; }
+    .monster-mastery-card-title { display:flex !important; align-items:baseline; justify-content:space-between; gap:7px; }
+    .monster-mastery-card-title strong { overflow-wrap:anywhere; font-size:13px; line-height:1.15; }
+    .monster-mastery-card-title em { flex:0 0 auto; color:#ffe47d; font-size:9px; font-style:normal; font-weight:1000; }
+    .monster-mastery-card-rank { margin-top:4px; color:#f7c64a; font-size:10px; font-weight:1000; }
+    .monster-mastery-progress { height:6px; margin-top:7px; overflow:hidden; background:rgba(255,255,255,.1); }
+    .monster-mastery-progress i { display:block; width:var(--mastery-progress); height:100%; background:linear-gradient(90deg,#f7c64a,#fff5a8); box-shadow:0 0 8px #f7c64a; }
+    .monster-mastery-exp,.monster-mastery-combat,.monster-mastery-record { margin-top:5px; color:#b9c4d5; font-size:8px; font-weight:900; line-height:1.35; overflow-wrap:anywhere; }
+    .monster-mastery-combat { color:#f3f6fb; }
 
     .team-select-modal { z-index: 150; }
     .team-select-card { width: min(880px, 94vw); max-height: 92vh; overflow: auto; padding: 20px; }
@@ -7154,6 +7185,7 @@
               <button type="button" class="btn" id="setupStatsButton">STATS</button>
               <button type="button" class="btn active" id="randomEventButton" aria-pressed="true">EVENT ON</button>
               <button type="button" class="btn active" id="monsterBattleModeButton" aria-pressed="true">MONSTER BATTLE ON</button>
+              <button type="button" class="btn" id="doubleMonsterModeButton" aria-pressed="false">DOUBLE MONSTER OFF</button>
             </div>
 
             <div class="deck-hub" id="deckHub">
@@ -7546,6 +7578,7 @@
           <div class="segmented monster-dex-view-switch" aria-label="図鑑表示">
             <button type="button" class="active" id="dexNumberViewButton">No.順</button>
             <button type="button" id="dexTreeViewButton">進化経路</button>
+            <button type="button" id="dexMasteryViewButton">絆・熟練度</button>
           </div>
           <button type="button" class="btn simple-ui-btn" id="dexOverviewButton" aria-pressed="false">全体表示</button>
           <button type="button" class="btn frame" id="monsterDexCloseButton">BACK TO STATS</button>
@@ -7553,6 +7586,7 @@
       </div>
       <div class="monster-dex-grid" id="statsMonsterDexGrid"></div>
       <div class="monster-dex-tree" id="statsMonsterDexTree" hidden></div>
+      <div class="monster-mastery-page" id="statsMonsterMasteryPage" hidden></div>
     </div>
   </section>
 
@@ -7643,6 +7677,7 @@
       playerStats: "teamBingo.playerStats.v1",
       randomEvents: "teamBingo.randomEvents.v1",
       monsterBattleMode: "teamBingo.monsterBattleMode.v1",
+      doubleMonsterMode: "teamBingo.doubleMonsterMode.v1",
       autoBackups: "teamBingo.autoBackups.v1"
     };
 
@@ -8329,6 +8364,7 @@
       randomEventsEnabled: true,
       randomEventMilestones: [],
       monsterBattleMode: true,
+      doubleMonsterMode: false,
       monsterBattle: null,
       monsterBattleRunId: 0,
       monsterBattlePresentationSeed: 0,
@@ -8373,7 +8409,7 @@
       activeStatsSeasonId: "",
       activeStatsMonsterPlayerKey: "",
       activeMonsterDexView: "number",
-      activeMonsterDexOverview: { number: false, tree: false },
+      activeMonsterDexOverview: { number: false, tree: false, mastery: false },
       adminMonsterDexMode: false,
       adminMonsterBattleActive: false,
       teamSelectionDraft: null,
@@ -8508,11 +8544,11 @@
         "victoryOverlay", "victoryTeam", "victoryPraise", "victorySpecialBadge", "mvpImage", "mvpName", "mvpTitle", "winnerTitles", "victoryResultPanel",
         "closeVictoryButton",
         "statsModal", "statsSummary", "statsPlayerList", "statsHighlightList", "statsRivalryList", "statsMatchList", "statsCloseButton", "statsDexButton",
-        "monsterDexModal", "monsterDexCloseButton", "statsMonsterDexSummary", "statsMonsterPlayerSelect", "statsMonsterDexGrid", "statsMonsterDexTree", "dexNumberViewButton", "dexTreeViewButton", "dexOverviewButton",
+        "monsterDexModal", "monsterDexCloseButton", "statsMonsterDexSummary", "statsMonsterPlayerSelect", "statsMonsterDexGrid", "statsMonsterDexTree", "statsMonsterMasteryPage", "dexNumberViewButton", "dexTreeViewButton", "dexMasteryViewButton", "dexOverviewButton",
         "adminMonsterBattleModal", "adminMonsterRed1", "adminMonsterRed2", "adminMonsterBlue1", "adminMonsterBlue2", "adminMonsterBattleCancel", "adminMonsterBattleStart",
         "teamSelectModal", "teamSelectList", "teamSelectRedMembers", "teamSelectBlueMembers", "teamSelectShuffleButton", "teamSelectConfirmButton", "teamSelectCancelButton", "teamSelectError",
         "statsSeasonSelect", "statsSeasonList", "statsTournamentList",
-        "randomEventButton", "monsterBattleModeButton",
+        "randomEventButton", "monsterBattleModeButton", "doubleMonsterModeButton",
         "matchReplayModal", "replayMatchMeta", "replaySummary", "replayBoards", "replayTimeline", "replayCloseButton",
         "replayPrevButton", "replayPlayButton", "replayRange", "replayStepLabel",
         "feverAura", "fxLayer", "openedByPopover", "victoryParticles", "setupThemePlayer", "copyrightToggle",
@@ -8550,6 +8586,7 @@
       els.deckModeButton.addEventListener("click", () => els.deckHub.classList.toggle("show"));
       els.randomEventButton?.addEventListener("click", toggleRandomEvents);
       els.monsterBattleModeButton?.addEventListener("click", toggleMonsterBattleMode);
+      els.doubleMonsterModeButton?.addEventListener("click", toggleDoubleMonsterMode);
       els.setupStatsButton.addEventListener("click", showStatsPage);
       els.playStatsButton.addEventListener("click", showStatsPage);
       els.randomDeckButton.addEventListener("click", selectRandomDeck);
@@ -8598,6 +8635,7 @@
       els.adminMonsterBattleStart?.addEventListener("click", startAdminMonsterBattle);
       els.dexNumberViewButton?.addEventListener("click", () => setMonsterDexView("number"));
       els.dexTreeViewButton?.addEventListener("click", () => setMonsterDexView("tree"));
+      els.dexMasteryViewButton?.addEventListener("click", () => setMonsterDexView("mastery"));
       els.dexOverviewButton?.addEventListener("click", toggleMonsterDexOverview);
       els.teamSelectShuffleButton?.addEventListener("click", shuffleTeamSelectionDraft);
       els.teamSelectConfirmButton?.addEventListener("click", confirmTeamSelection);
@@ -8623,6 +8661,11 @@
       els.statsMonsterDexTree?.addEventListener("click", (event) => {
         const button = event.target.closest("[data-dex-monster]");
         if (!button || !els.statsMonsterDexTree.contains(button)) return;
+        showMonsterNodeZoom(button.dataset.dexMonster, button.dataset.dexPlayer || "MONSTER ENCYCLOPEDIA", "#f7c64a");
+      });
+      els.statsMonsterMasteryPage?.addEventListener("click", (event) => {
+        const button = event.target.closest("[data-dex-monster]");
+        if (!button || !els.statsMonsterMasteryPage.contains(button)) return;
         showMonsterNodeZoom(button.dataset.dexMonster, button.dataset.dexPlayer || "MONSTER ENCYCLOPEDIA", "#f7c64a");
       });
       document.querySelectorAll(".overlay").forEach((overlay) => {
@@ -8974,6 +9017,7 @@
       state.gridSize = Number(localStorage.getItem(STORAGE.gridSize)) || 5;
       state.randomEventsEnabled = localStorage.getItem(STORAGE.randomEvents) !== "off";
       state.monsterBattleMode = localStorage.getItem(STORAGE.monsterBattleMode) !== "off";
+      state.doubleMonsterMode = localStorage.getItem(STORAGE.doubleMonsterMode) === "on";
       state.teamDecks.red = loadJson(STORAGE.redDeck, null);
       state.teamDecks.blue = loadJson(STORAGE.blueDeck, null);
       els.setupRoomIdInput.value = state.roomId;
@@ -8982,6 +9026,7 @@
       if (state.teamDecks.blue) els.blueDeckLoadCode.value = encodeDeck(state.teamDecks.blue);
       updateRandomEventButton();
       updateMonsterBattleMode();
+      updateDoubleMonsterMode();
       scheduleAutoBackup("startup", 1500);
     }
 
@@ -9027,6 +9072,7 @@
           audioVolume: state.audioVolume,
           randomEventsEnabled: state.randomEventsEnabled,
           monsterBattleMode: state.monsterBattleMode,
+          doubleMonsterMode: state.doubleMonsterMode,
           teamDecks: cloneOnlineValue(state.teamDecks),
           players: els.players?.map((input) => input.value.trim()) || []
         }
@@ -9070,6 +9116,7 @@
       state.audioVolume = clampVolume(Number(settings.audioVolume ?? .7));
       state.randomEventsEnabled = settings.randomEventsEnabled !== false;
       state.monsterBattleMode = settings.monsterBattleMode !== false;
+      state.doubleMonsterMode = settings.doubleMonsterMode === true;
       state.teamDecks = cloneOnlineValue(settings.teamDecks || { red: null, blue: null });
       if (Array.isArray(settings.players)) {
         els.players.forEach((input, index) => { input.value = settings.players[index] || ""; });
@@ -9082,11 +9129,13 @@
       localStorage.setItem(STORAGE.volume, String(state.audioVolume));
       localStorage.setItem(STORAGE.randomEvents, state.randomEventsEnabled ? "on" : "off");
       localStorage.setItem(STORAGE.monsterBattleMode, state.monsterBattleMode ? "on" : "off");
+      localStorage.setItem(STORAGE.doubleMonsterMode, state.doubleMonsterMode ? "on" : "off");
       localStorage.setItem(STORAGE.redDeck, JSON.stringify(state.teamDecks.red));
       localStorage.setItem(STORAGE.blueDeck, JSON.stringify(state.teamDecks.blue));
       updateGridButtons();
       updateRandomEventButton();
       updateMonsterBattleMode();
+      updateDoubleMonsterMode();
       updateSoundButton();
       updateVolumeControls();
       updateCachedAudioVolume();
@@ -9141,7 +9190,7 @@
       if (!state.blue.members.length) state.blue.members.push("Player 2");
       if (!state.red.members.length) state.red.members.push("Player 1");
       ["red", "blue"].forEach((team) => {
-        state[team].monsters = MONSTER_SYSTEM.syncPlayerMonsters(state[team].monsters, state[team].members, team);
+        state[team].monsters = syncTeamMonsters(team);
       });
       syncTeamMemberIndexes();
     }
@@ -9215,6 +9264,33 @@
       els.monsterBattleModeButton.setAttribute("aria-pressed", String(state.monsterBattleMode));
       els.monsterBattleModeButton.textContent = state.monsterBattleMode ? "MONSTER BATTLE ON" : "MONSTER BATTLE OFF";
       els.monsterBattleModeButton.disabled = Boolean(onlineCoordinator?.isOnline?.() && !onlineCoordinator.canEditSetup?.());
+    }
+
+    function monstersPerPlayer() {
+      return state.doubleMonsterMode ? 2 : 1;
+    }
+
+    function syncTeamMonsters(team, existing = state[team].monsters, members = state[team].members) {
+      return MONSTER_SYSTEM.syncPlayerMonsters(existing, members, team, monstersPerPlayer());
+    }
+
+    function toggleDoubleMonsterMode() {
+      if (onlineCoordinator?.isOnline?.() && !onlineCoordinator.canEditSetup?.()) return;
+      state.doubleMonsterMode = !state.doubleMonsterMode;
+      localStorage.setItem(STORAGE.doubleMonsterMode, state.doubleMonsterMode ? "on" : "off");
+      ["red", "blue"].forEach((team) => { state[team].monsters = syncTeamMonsters(team); });
+      updateDoubleMonsterMode();
+      renderAll();
+      scheduleAutoBackup("double-monster-setting");
+      scheduleOnlineSetupPublish(40);
+    }
+
+    function updateDoubleMonsterMode() {
+      if (!els.doubleMonsterModeButton) return;
+      els.doubleMonsterModeButton.classList.toggle("active", state.doubleMonsterMode);
+      els.doubleMonsterModeButton.setAttribute("aria-pressed", String(state.doubleMonsterMode));
+      els.doubleMonsterModeButton.textContent = state.doubleMonsterMode ? "DOUBLE MONSTER ON" : "DOUBLE MONSTER OFF";
+      els.doubleMonsterModeButton.disabled = Boolean(onlineCoordinator?.isOnline?.() && !onlineCoordinator.canEditSetup?.());
     }
 
     function startGame(options = {}) {
@@ -9302,7 +9378,7 @@
           openedBy: new Map(),
           comebackMoveCells: new Set(),
           activeMemberIndex: 0,
-          monsters: MONSTER_SYSTEM.syncPlayerMonsters([], state[team].members, team)
+          monsters: MONSTER_SYSTEM.syncPlayerMonsters([], state[team].members, team, monstersPerPlayer())
         });
       });
     }
@@ -9516,8 +9592,9 @@
     function renderMonsterPanel(team) {
       const panel = els[`${team}MonsterPanel`];
       if (!panel) return;
+      panel.classList.toggle("double-monster", state.doubleMonsterMode);
       const side = state[team];
-      side.monsters = MONSTER_SYSTEM.syncPlayerMonsters(side.monsters, side.members, team);
+      side.monsters = syncTeamMonsters(team);
       const markup = `
         <div class="monster-panel-head"><b>MONSTERS</b><span>${team.toUpperCase()} PARTY</span></div>
         <div class="monster-player-list">
@@ -9531,13 +9608,15 @@
 
     function renderPlayerMonsterCard(team, monster) {
       const node = MONSTER_NODES[monster.nodeId] || MONSTER_NODES.egg;
+      const identity = MONSTER_SYSTEM.monsterKey(monster.playerName, monster.slot);
+      const slotLabel = state.doubleMonsterMode ? `<small>MONSTER ${monster.slot + 1}</small>` : "";
       return `
-        <article class="monster-player-card" data-monster-player="${escapeHtml(monster.playerKey)}">
-          <button type="button" class="monster-portrait-button" data-monster-team="${team}" data-monster-zoom="${escapeHtml(monster.playerKey)}" title="${escapeHtml(node.name)}を拡大">
+        <article class="monster-player-card" data-monster-player="${escapeHtml(identity)}">
+          <button type="button" class="monster-portrait-button" data-monster-team="${team}" data-monster-zoom="${escapeHtml(identity)}" title="${escapeHtml(node.name)}を拡大">
             ${monsterSpriteMarkup(node)}
           </button>
           <div class="monster-player-info">
-            <strong class="monster-player-name">${escapeHtml(monster.playerName)}</strong>
+            <strong class="monster-player-name">${escapeHtml(monster.playerName)}${slotLabel}</strong>
             <span class="monster-player-monster"><span>${escapeHtml(node.name)}</span><em>${monsterRankLabel(node)}</em></span>
           </div>
         </article>
@@ -9572,11 +9651,32 @@
       return showTimedOverlay(overlay, 3300);
     }
 
-    function getPlayerMonster(team, playerNameOrKey) {
-      const key = playerStatsKey(playerNameOrKey);
+    function showMonsterEvolutions(team, results, playerName = "") {
+      const evolutions = (results || []).filter((result) => result?.evolved);
+      if (evolutions.length <= 1) {
+        const result = evolutions[0];
+        return result ? showMonsterEvolution(team, result.previousId, result.monster.nodeId, playerName) : Promise.resolve();
+      }
+      const overlay = els.monsterEvolutionOverlay;
+      if (!overlay) return Promise.resolve();
+      overlay.classList.remove("red", "blue");
+      overlay.classList.add(team, "double-evolution");
+      els.monsterEvolutionStage.textContent = `${playerName}のダブル進化`;
+      els.monsterEvolutionBefore.innerHTML = evolutions.map((result) => `<span class="monster-evolution-unit">${monsterSpriteMarkup(MONSTER_NODES[result.previousId] || MONSTER_NODES.egg)}</span>`).join("");
+      els.monsterEvolutionAfter.innerHTML = evolutions.map((result) => `<span class="monster-evolution-unit">${monsterSpriteMarkup(MONSTER_NODES[result.monster.nodeId] || MONSTER_NODES.egg)}</span>`).join("");
+      els.monsterEvolutionName.textContent = evolutions.map((result) => MONSTER_NODES[result.monster.nodeId]?.name || "").join(" ＋ ");
+      screenShake();
+      return showTimedOverlay(overlay, 3900).finally(() => overlay.classList.remove("double-evolution"));
+    }
+
+    function getPlayerMonster(team, playerNameOrKey, slot = 0) {
+      const identity = String(playerNameOrKey || "");
+      const parts = identity.split("::");
+      const key = playerStatsKey(parts[0]);
+      const requestedSlot = parts.length > 1 ? Number(parts[1]) || 0 : slot;
       const side = state[team];
-      side.monsters = MONSTER_SYSTEM.syncPlayerMonsters(side.monsters, side.members, team);
-      return side.monsters.find((monster) => monster.playerKey === key) || null;
+      side.monsters = syncTeamMonsters(team);
+      return side.monsters.find((monster) => monster.playerKey === key && monster.slot === requestedSlot) || null;
     }
 
     function getDistributedEvolutionRandom(monster) {
@@ -9586,55 +9686,61 @@
     function advancePlayerMonster(team, playerName, cellIndex) {
       if (!state.monsterBattleMode) return null;
       const side = state[team];
-      side.monsters = MONSTER_SYSTEM.syncPlayerMonsters(side.monsters, side.members, team);
+      side.monsters = syncTeamMonsters(team);
       const key = playerStatsKey(playerName);
-      const monsterIndex = side.monsters.findIndex((monster) => monster.playerKey === key);
-      if (monsterIndex < 0) return null;
+      const monsterIndexes = side.monsters.map((monster, index) => monster.playerKey === key ? index : -1).filter((index) => index >= 0);
+      if (!monsterIndexes.length) return null;
       const playerDex = getPlayerStat(playerName).monsterDex || {};
-      const result = MONSTER_SYSTEM.evolvePlayerMonster(
-        side.monsters[monsterIndex],
-        `${team}:${cellIndex}`,
-        getDistributedEvolutionRandom(side.monsters[monsterIndex]),
-        playerDex
-      );
-      side.monsters[monsterIndex] = result.monster;
-      if (result.evolved) unlockPlayerMonster(playerName, result.monster.nodeId, team);
+      const results = monsterIndexes.map((monsterIndex) => {
+        const source = side.monsters[monsterIndex];
+        const result = MONSTER_SYSTEM.evolvePlayerMonster(
+          source,
+          `${team}:${cellIndex}:slot${source.slot}`,
+          getDistributedEvolutionRandom(source),
+          playerDex
+        );
+        side.monsters[monsterIndex] = result.monster;
+        if (result.evolved) unlockPlayerMonster(playerName, result.monster.nodeId, team);
+        return result;
+      });
       renderMonsterPanel(team);
-      const moment = result.evolved ? "evolve" : "open";
-      const line = MONSTER_SYSTEM.dialogue(result.monster.nodeId, moment);
-      const duration = result.evolved ? 6000 : 5000;
+      const primary = results.find((result) => result.evolved) || results[0];
+      const moment = primary.evolved ? "evolve" : "open";
+      const line = MONSTER_SYSTEM.dialogue(primary.monster.nodeId, moment);
+      const duration = primary.evolved ? 6000 : 5000;
       if (onlineEventCapture) {
         onlineEventCapture.timeline.push({
           kind: "monster-speech-deferred",
           team,
-          playerKey: result.monster.playerKey,
+          playerKey: MONSTER_SYSTEM.monsterKey(primary.monster.playerName, primary.monster.slot),
           line,
           duration
         });
       }
-      if (result.evolved) {
+      results.filter((result) => result.evolved).forEach((result) => {
         const previous = MONSTER_NODES[result.previousId] || MONSTER_NODES.egg;
         const next = MONSTER_NODES[result.monster.nodeId] || previous;
         addMatchHighlight("monster", `${playerName} MONSTER EVOLUTION`, `${previous.name} → ${next.name}`, team);
-      }
-      return { ...result, team, playerName, line, duration };
+      });
+      return { ...primary, results, team, playerName, line, duration };
     }
 
     function enqueueMonsterPresentation(moment, options = {}) {
       if (!moment) return;
       if (moment.evolved && options.showEvolution !== false) {
-        enqueueEffect(() => showMonsterEvolution(moment.team, moment.previousId, moment.monster.nodeId, moment.playerName));
+        enqueueEffect(() => showMonsterEvolutions(moment.team, moment.results || [moment], moment.playerName));
       }
       if (moment.line && options.showSpeech !== false) {
         enqueueEffect(() => {
-          showMonsterSpeech(moment.team, moment.monster.playerKey, moment.line, moment.duration, { capture: false });
+          showMonsterSpeech(moment.team, MONSTER_SYSTEM.monsterKey(moment.monster.playerName, moment.monster.slot), moment.line, moment.duration, { capture: false });
         });
       }
     }
 
     function showMonsterSpeech(team, playerNameOrKey, line, duration = 5000, options = {}) {
       if (!state.monsterBattleMode || !line) return;
-      const key = playerStatsKey(playerNameOrKey);
+      const identity = String(playerNameOrKey || "");
+      const key = identity.includes("::") ? identity : MONSTER_SYSTEM.monsterKey(identity, 0);
       const card = els[`${team}MonsterPanel`]?.querySelector(`[data-monster-player="${CSS.escape(key)}"]`);
       if (card) {
         card.querySelector(".monster-speech-burst")?.remove();
@@ -9652,21 +9758,22 @@
     function speakTeamMonster(team, moment = "idle") {
       if (!state.monsterBattleMode) return;
       const side = state[team];
-      side.monsters = MONSTER_SYSTEM.syncPlayerMonsters(side.monsters, side.members, team);
+      side.monsters = syncTeamMonsters(team);
       const monster = pick(side.monsters);
       if (!monster) return;
-      showMonsterSpeech(team, monster.playerKey, MONSTER_SYSTEM.dialogue(monster.nodeId, moment), 5000);
+      showMonsterSpeech(team, MONSTER_SYSTEM.monsterKey(monster.playerName, monster.slot), MONSTER_SYSTEM.dialogue(monster.nodeId, moment), 5000);
     }
 
     function showMonsterNodeZoom(nodeId, playerLabel = "MONSTER ENCYCLOPEDIA", accent = "#f7c64a") {
       if (!els.monsterZoomOverlay) return;
       const node = MONSTER_NODES[nodeId] || MONSTER_NODES.egg;
-      const stats = MONSTER_SYSTEM.combatStats(node.id);
       const passive = MONSTER_SYSTEM.passiveSkill(node.id);
       const role = MONSTER_SYSTEM.combatRole(node.id);
       const element = MONSTER_SYSTEM.combatElement(node.id);
-      const masteryRecord = state.playerStats.players[playerStatsKey(playerLabel)] || null;
+      const masteryPlayer = String(playerLabel).split(" / ")[0];
+      const masteryRecord = state.playerStats.players[playerStatsKey(masteryPlayer)] || null;
       const masteryXp = Number(masteryRecord?.monsterMastery?.[node.id]) || 0;
+      const stats = MONSTER_SYSTEM.applyMasteryStats(MONSTER_SYSTEM.combatStats(node.id), masteryXp);
       els.monsterZoomOverlay.style.setProperty("--zoom-team", accent);
       els.monsterZoomPlayer.textContent = playerLabel;
       els.monsterZoomArt.innerHTML = monsterSpriteMarkup(node);
@@ -9687,7 +9794,7 @@
       if (!monster || !els.monsterZoomOverlay) return;
       const node = MONSTER_NODES[monster.nodeId] || MONSTER_NODES.egg;
       showMonsterNodeZoom(node.id, `${monster.playerName} / ${team.toUpperCase()} TEAM`, getTeamColor(team));
-      showMonsterSpeech(team, monster.playerKey, MONSTER_SYSTEM.dialogue(node.id, "idle"), 5000);
+      showMonsterSpeech(team, MONSTER_SYSTEM.monsterKey(monster.playerName, monster.slot), MONSTER_SYSTEM.dialogue(node.id, "idle"), 5000);
     }
 
     function closeMonsterZoom() {
@@ -11422,19 +11529,21 @@
     function createMonsterBattleFighters(team) {
       const side = state[team];
       const hype = Math.max(0, Math.min(100, Number(side.hype) || 0));
-      side.monsters = MONSTER_SYSTEM.syncPlayerMonsters(side.monsters, side.members, team);
+      side.monsters = syncTeamMonsters(team);
       return side.monsters.map((monster, index) => {
         const node = MONSTER_NODES[monster.nodeId] || MONSTER_NODES.egg;
-        const stats = MONSTER_SYSTEM.combatStats(node.id);
+        const masteryXp = Number(getPlayerStat(monster.playerName).monsterMastery?.[node.id]) || 0;
+        const stats = MONSTER_SYSTEM.applyMasteryStats(MONSTER_SYSTEM.combatStats(node.id), masteryXp);
         const passive = MONSTER_SYSTEM.passiveSkill(node.id);
         const role = MONSTER_SYSTEM.combatRole(node.id);
         const element = MONSTER_SYSTEM.combatElement(node.id);
-        const masteryXp = Number(getPlayerStat(monster.playerName).monsterMastery?.[node.id]) || 0;
         return {
           id: `${team}-${index}`,
           team,
           playerKey: monster.playerKey,
           playerName: monster.playerName,
+          slot: Number(monster.slot) || 0,
+          history: [...(monster.history || [node.id])],
           nodeId: node.id,
           name: node.name,
           stats,
@@ -11457,7 +11566,7 @@
     function createAdminMonsterBattleFighters(team, nodeIds) {
       return (nodeIds || []).map((nodeId, index) => {
         const node = MONSTER_NODES[nodeId] || MONSTER_NODES.egg;
-        const stats = MONSTER_SYSTEM.combatStats(node.id);
+        const stats = MONSTER_SYSTEM.applyMasteryStats(MONSTER_SYSTEM.combatStats(node.id), 0);
         const passive = MONSTER_SYSTEM.passiveSkill(node.id);
         const role = MONSTER_SYSTEM.combatRole(node.id);
         const element = MONSTER_SYSTEM.combatElement(node.id);
@@ -11902,13 +12011,18 @@
 
     function recordMonsterBattleOutcome(parties, winner) {
       if (onlineCoordinator?.isOnline?.() && !onlineCoordinator.isMaster?.()) return false;
+      const countedPlayers = new Set();
       [...parties.red, ...parties.blue].forEach((fighter) => {
         if (!fighter.playerName || fighter.playerKey.startsWith("admin-")) return;
         const stat = getPlayerStat(fighter.playerName);
         const won = fighter.team === winner;
-        stat.monsterBattles += 1;
-        stat.monsterBattleWins += won ? 1 : 0;
-        stat.monsterBattleLosses += won ? 0 : 1;
+        const participantKey = `${fighter.team}:${fighter.playerKey}`;
+        if (!countedPlayers.has(participantKey)) {
+          countedPlayers.add(participantKey);
+          stat.monsterBattles += 1;
+          stat.monsterBattleWins += won ? 1 : 0;
+          stat.monsterBattleLosses += won ? 0 : 1;
+        }
         stat.monsterKos += fighter.battleStats.kos;
         stat.monsterRevives += fighter.battleStats.revives;
         stat.monsterSpecialMoves += fighter.battleStats.specials;
@@ -11917,10 +12031,12 @@
         stat.monsterBattleUsage[fighter.nodeId] = (stat.monsterBattleUsage[fighter.nodeId] || 0) + 1;
         if (won) stat.monsterWinsByMonster[fighter.nodeId] = (stat.monsterWinsByMonster[fighter.nodeId] || 0) + 1;
         if (fighter.battleStats.kos) stat.monsterKosByMonster[fighter.nodeId] = (stat.monsterKosByMonster[fighter.nodeId] || 0) + fighter.battleStats.kos;
-        const masteryGain = 20 + (won ? 12 : 0) + (!fighter.ko ? 4 : 0) +
+        const masteryGain = (won ? 34 : 14) + (!fighter.ko ? 4 : 0) +
           fighter.battleStats.kos * 6 + fighter.battleStats.specials * 3 + fighter.battleStats.links * 7 +
           fighter.battleStats.revives * 5 + Math.floor(fighter.battleStats.damage / 120);
-        stat.monsterMastery[fighter.nodeId] = (stat.monsterMastery[fighter.nodeId] || 0) + masteryGain;
+        MONSTER_SYSTEM.masteryExperienceDistribution(fighter.history, fighter.nodeId, masteryGain).forEach((reward) => {
+          stat.monsterMastery[reward.nodeId] = (stat.monsterMastery[reward.nodeId] || 0) + reward.experience;
+        });
         touchPlayerStat(stat, fighter.team);
       });
       savePlayerStats();
@@ -12152,7 +12268,7 @@
       if (!state.monsterBattleMode) return;
       els.victoryMonsterLineups.innerHTML = ["red", "blue"].map((team) => {
         const side = state[team];
-        side.monsters = MONSTER_SYSTEM.syncPlayerMonsters(side.monsters, side.members, team);
+        side.monsters = syncTeamMonsters(team);
         return `
           <section class="victory-monster-team ${team}">
             <div class="victory-monster-team-label">${escapeHtml(side.teamTitle)}</div>
@@ -13652,7 +13768,7 @@
       if (!state.monsterBattleMode) return;
       let changed = false;
       ["red", "blue"].forEach((team) => {
-        state[team].monsters = MONSTER_SYSTEM.syncPlayerMonsters(state[team].monsters, state[team].members, team);
+        state[team].monsters = syncTeamMonsters(team);
         state[team].monsters.forEach((monster) => {
           changed = unlockPlayerMonster(monster.playerName, monster.nodeId, team, false) || changed;
         });
@@ -13963,12 +14079,16 @@
     }
 
     function setMonsterDexView(view) {
-      state.activeMonsterDexView = view === "tree" ? "tree" : "number";
+      state.activeMonsterDexView = ["number", "tree", "mastery"].includes(view) ? view : "number";
       const treeActive = state.activeMonsterDexView === "tree";
-      els.dexNumberViewButton?.classList.toggle("active", !treeActive);
+      const masteryActive = state.activeMonsterDexView === "mastery";
+      els.dexNumberViewButton?.classList.toggle("active", state.activeMonsterDexView === "number");
       els.dexTreeViewButton?.classList.toggle("active", treeActive);
-      if (els.statsMonsterDexGrid) els.statsMonsterDexGrid.hidden = treeActive;
+      els.dexMasteryViewButton?.classList.toggle("active", masteryActive);
+      if (els.statsMonsterDexGrid) els.statsMonsterDexGrid.hidden = treeActive || masteryActive;
       if (els.statsMonsterDexTree) els.statsMonsterDexTree.hidden = !treeActive;
+      if (els.statsMonsterMasteryPage) els.statsMonsterMasteryPage.hidden = !masteryActive;
+      if (els.dexOverviewButton) els.dexOverviewButton.hidden = masteryActive;
       applyMonsterDexOverview();
     }
 
@@ -14055,6 +14175,38 @@
       </div>`;
     }
 
+    function masteryLevelProgress(experience) {
+      const xp = Math.max(0, Number(experience) || 0);
+      const level = MONSTER_SYSTEM.masteryLevel(xp);
+      if (level >= 50) return { level, current: xp, next: xp, percent: 100 };
+      const floor = 24 * Math.pow(level - 1, 2);
+      const next = 24 * Math.pow(level, 2);
+      return { level, current: xp, next, percent: Math.max(0, Math.min(100, ((xp - floor) / Math.max(1, next - floor)) * 100)) };
+    }
+
+    function renderMonsterMasteryPage(record, nodes, unlocked) {
+      if (!els.statsMonsterMasteryPage) return;
+      const entries = nodes
+        .filter((node) => unlocked[node.id] || Number(record.monsterMastery?.[node.id]) > 0)
+        .map((node) => ({ node, experience: Number(record.monsterMastery?.[node.id]) || 0 }))
+        .sort((a, b) => MONSTER_SYSTEM.masteryLevel(b.experience) - MONSTER_SYSTEM.masteryLevel(a.experience) || b.experience - a.experience || a.node.name.localeCompare(b.node.name, "ja-JP"));
+      els.statsMonsterMasteryPage.innerHTML = entries.length ? entries.map(({ node, experience }) => {
+        const progress = masteryLevelProgress(experience);
+        const stats = MONSTER_SYSTEM.applyMasteryStats(MONSTER_SYSTEM.combatStats(node.id), experience);
+        return `<button type="button" class="monster-mastery-card" data-dex-monster="${escapeHtml(node.id)}" data-dex-player="${escapeHtml(record.name)}">
+          <span class="monster-mastery-card-art">${monsterSpriteMarkup(node)}</span>
+          <span class="monster-mastery-card-copy">
+            <span class="monster-mastery-card-title"><strong>${escapeHtml(node.name)}</strong><em>${monsterRankLabel(node)} / 絆 Lv.${progress.level}</em></span>
+            <span class="monster-mastery-card-rank">${escapeHtml(MONSTER_SYSTEM.masteryTitle(experience))}</span>
+            <span class="monster-mastery-progress"><i style="--mastery-progress:${progress.percent}%"></i></span>
+            <span class="monster-mastery-exp">${experience} EXP${progress.level < 50 ? ` / NEXT ${progress.next}` : " / MAX"}</span>
+            <span class="monster-mastery-combat">HP ${stats.hp}　攻 ${stats.attack}　防 ${stats.defense}　魔 ${stats.magic}　魔防 ${stats.magicDefense}　速 ${stats.speed}</span>
+            <span class="monster-mastery-record">${Number(record.monsterBattleUsage?.[node.id]) || 0} BATTLE　${Number(record.monsterWinsByMonster?.[node.id]) || 0} WIN　${Number(record.monsterKosByMonster?.[node.id]) || 0} KO</span>
+          </span>
+        </button>`;
+      }).join("") : `<div class="stats-empty">モンスターバトル後に絆・熟練度が記録されます。</div>`;
+    }
+
     function renderMonsterDex(records = getPlayerStatsRecords()) {
       if (!els.statsMonsterPlayerSelect || !els.statsMonsterDexGrid || !els.statsMonsterDexSummary) return;
       if (!records.length) {
@@ -14064,6 +14216,7 @@
         els.statsMonsterDexSummary.textContent = "試合を開始するとプレイヤーごとの図鑑が作られます。";
         els.statsMonsterDexGrid.innerHTML = `<div class="stats-empty">まだモンスターを発見していません。</div>`;
         els.statsMonsterDexTree.innerHTML = `<div class="stats-empty">まだモンスターを発見していません。</div>`;
+        els.statsMonsterMasteryPage.innerHTML = `<div class="stats-empty">まだ絆・熟練度の記録がありません。</div>`;
         return;
       }
       els.statsMonsterPlayerSelect.disabled = false;
@@ -14089,6 +14242,7 @@
         </button>`;
       }).join("");
       renderMonsterDexTree(record, nodes, unlocked);
+      renderMonsterMasteryPage(record, nodes, unlocked);
       setMonsterDexView(state.activeMonsterDexView);
     }
 
@@ -14457,8 +14611,6 @@
             ${renderStatPill(record.monsterRevives, "REVIVE")}
             ${renderStatPill(record.monsterDamage, "DAMAGE")}
           </div>
-          <div class="stats-subtitle">MONSTER MASTERY</div>
-          <div class="monster-mastery-strip">${renderMonsterMasteryStrip(record)}</div>
           <div class="stats-subtitle">OPENED CHARACTERS</div>
           <div class="character-log">${characterHtml}</div>
           <div class="stats-subtitle">SPECIAL CELLS</div>
@@ -15448,7 +15600,7 @@
         openedBy: onlineMapToObject(side.openedBy),
         comebackMoveCells: [...side.comebackMoveCells],
         activeMemberIndex: side.activeMemberIndex,
-        monsters: cloneOnlineValue(MONSTER_SYSTEM.syncPlayerMonsters(side.monsters, side.members, side.id))
+        monsters: cloneOnlineValue(MONSTER_SYSTEM.syncPlayerMonsters(side.monsters, side.members, side.id, monstersPerPlayer()))
       };
     }
 
@@ -15462,7 +15614,8 @@
         teamDecks: cloneOnlineValue(state.teamDecks),
         selectedDeck: [...state.selectedDeck],
         randomEventsEnabled: state.randomEventsEnabled,
-        monsterBattleMode: state.monsterBattleMode
+        monsterBattleMode: state.monsterBattleMode,
+        doubleMonsterMode: state.doubleMonsterMode
       };
     }
 
@@ -15505,12 +15658,15 @@
       state.selectedDeck = new Set(snapshot.selectedDeck || []);
       state.randomEventsEnabled = snapshot.randomEventsEnabled !== false;
       state.monsterBattleMode = snapshot.monsterBattleMode !== false;
+      state.doubleMonsterMode = snapshot.doubleMonsterMode === true;
       localStorage.setItem(STORAGE.randomEvents, state.randomEventsEnabled ? "on" : "off");
       localStorage.setItem(STORAGE.monsterBattleMode, state.monsterBattleMode ? "on" : "off");
+      localStorage.setItem(STORAGE.doubleMonsterMode, state.doubleMonsterMode ? "on" : "off");
       syncTeamMemberIndexes();
       updateGridButtons();
       updateRandomEventButton();
       updateMonsterBattleMode();
+      updateDoubleMonsterMode();
       renderSetupPreview();
       updateDeckStatus();
       if (!options.silent) renderAll();
@@ -15534,6 +15690,7 @@
         randomEventsEnabled: state.randomEventsEnabled,
         randomEventMilestones: cloneOnlineValue(state.randomEventMilestones),
         monsterBattleMode: state.monsterBattleMode,
+        doubleMonsterMode: state.doubleMonsterMode,
         monsterBattle: cloneOnlineValue(state.monsterBattle),
         skillCharges: cloneOnlineValue(state.skillCharges),
         skillChargeAnnounced: cloneOnlineValue(state.skillChargeAnnounced),
@@ -15570,7 +15727,7 @@
         openedBy: onlineObjectToMap(snapshot.openedBy),
         comebackMoveCells: new Set(snapshot.comebackMoveCells || []),
         activeMemberIndex: Number(snapshot.activeMemberIndex) || 0,
-        monsters: MONSTER_SYSTEM.syncPlayerMonsters(snapshot.monsters, snapshot.members || side.members, team)
+        monsters: MONSTER_SYSTEM.syncPlayerMonsters(snapshot.monsters, snapshot.members || side.members, team, monstersPerPlayer())
       });
       side.reachPairMap = buildReachPairMap(side.reachPairs);
     }
@@ -15586,6 +15743,7 @@
       state.emergencyPaused = Boolean(snapshot.emergencyPaused);
       state.winner = snapshot.winner || null;
       state.readyShown = Boolean(snapshot.readyShown);
+      state.doubleMonsterMode = snapshot.doubleMonsterMode === true;
       hydrateOnlineTeam("red", snapshot.red);
       hydrateOnlineTeam("blue", snapshot.blue);
       state.teamDecks = cloneOnlineValue(snapshot.teamDecks || state.teamDecks);
@@ -15615,6 +15773,7 @@
       updateGridButtons();
       updateRandomEventButton();
       updateMonsterBattleMode();
+      updateDoubleMonsterMode();
       renderSetupPreview();
       renderAll();
       updateHypeUi();
@@ -15739,9 +15898,9 @@
         const beforeMonsters = Array.isArray(before?.[team]?.monsters) ? before[team].monsters : [];
         const afterMonsters = Array.isArray(after?.[team]?.monsters) ? after[team].monsters : [];
         event.payload.monsterEvolutions = afterMonsters.map((monster) => {
-          const previous = beforeMonsters.find((item) => item?.playerKey === monster?.playerKey);
+          const previous = beforeMonsters.find((item) => item?.playerKey === monster?.playerKey && (Number(item?.slot) || 0) === (Number(monster?.slot) || 0));
           if (!previous || previous.nodeId === monster.nodeId) return null;
-          return { playerKey: monster.playerKey, playerName: monster.playerName, previousId: previous.nodeId, nextId: monster.nodeId };
+          return { playerKey: monster.playerKey, playerName: monster.playerName, slot: Number(monster.slot) || 0, previousId: previous.nodeId, nextId: monster.nodeId };
         }).filter(Boolean);
         if (event.payload.monsterEvolutions.length) event.effects.push("monster-evolve");
       }
@@ -15837,7 +15996,16 @@
       if (effects.has("monster-evolve") && !effects.has("victory")) {
         const evolutions = Array.isArray(payload.monsterEvolutions) ? payload.monsterEvolutions : [];
         if (evolutions.length) {
-          evolutions.forEach((evolution) => enqueueEffect(() => showMonsterEvolution(payload.team, evolution.previousId, evolution.nextId, evolution.playerName)));
+          const groups = evolutions.reduce((result, evolution) => {
+            const key = evolution.playerKey || evolution.playerName || "player";
+            (result[key] ||= []).push(evolution);
+            return result;
+          }, {});
+          Object.values(groups).forEach((group) => enqueueEffect(() => showMonsterEvolutions(payload.team, group.map((evolution) => ({
+            evolved: true,
+            previousId: evolution.previousId,
+            monster: { nodeId: evolution.nextId }
+          })), group[0]?.playerName || "")));
         } else {
           enqueueEffect(() => showMonsterEvolution(payload.team, payload.previousMonsterId, payload.monsterId));
         }

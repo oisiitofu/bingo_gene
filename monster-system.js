@@ -23,8 +23,8 @@
     { id: "corsair", sheet: "lineage-corsair.png", aspect: 1, mature: "コルセアラッコ", perfect: ["鮫船長バルカ", "幽霊タコ航海士"], ultimate: ["海賊王クラーケン", "戦艦鯨アドミラ", "幽海竜ドレイク", "宝島蟹皇"] },
     { id: "dune", sheet: "lineage-dune.png", aspect: 1, mature: "サンドアルマ", perfect: ["琥珀サソリ", "砂宮ジャッカル"], ultimate: ["大砂竜ワーム", "黄金獅子ファラオ", "砂城亀バスティア", "玻璃嵐ジン"] },
     { id: "fossil", sheet: "lineage-fossil.png", aspect: 1, mature: "ホネラプター", perfect: ["化石トリケラ", "琥珀プテラ"], ultimate: ["骨王ティラノ", "琥珀鳳凰", "太古マンモス", "化石冥竜ヒュドラ"] },
-    { id: "samurai", sheet: "lineage-samurai.png", aspect: .937, rightFacing: ["mature", "ultimate-0", "ultimate-2"], mature: "ムシャカマキリ", perfect: ["青鬼クワガタ", "白鶴槍士"], ultimate: ["炎将軍竜", "双刃鬼大将", "天鎧キリン", "城塞武神"] },
-    { id: "dojo", sheet: "lineage-dojo.png", aspect: 1, rightFacing: ["ultimate-0", "ultimate-3"], mature: "トラケンポウ", perfect: ["翡翠ゴリラ僧", "白兎蹴闘士"], ultimate: ["金龍大師", "山嶽熊王", "百拳阿修羅", "天武麒麟"] },
+    { id: "samurai", sheet: "lineage-samurai.png", aspect: .937, rightFacing: ["perfect-b", "ultimate-2"], mature: "ムシャカマキリ", perfect: ["青鬼クワガタ", "白鶴槍士"], ultimate: ["炎将軍竜", "双刃鬼大将", "天鎧キリン", "城塞武神"] },
+    { id: "dojo", sheet: "lineage-dojo.png", aspect: 1, mature: "トラケンポウ", perfect: ["翡翠ゴリラ僧", "白兎蹴闘士"], ultimate: ["金龍大師", "山嶽熊王", "百拳阿修羅", "天武麒麟"] },
     { id: "sonic", sheet: "lineage-sonic.png", aspect: 1, rightFacing: ["perfect-a"], mature: "オトギツネ", perfect: ["雷弦ウルフ", "電奏フクロウ"], ultimate: ["爆音竜アンプリオン", "宇宙楽鳳凰", "重低音ゴリラ", "交響ユニコーン"] },
     { id: "festival", sheet: "lineage-festival.png", aspect: 1, mature: "ちょうちんタヌキ", perfect: ["太鼓イノシシ", "花火ツル"], ultimate: ["祭獅子大山車", "大花火竜", "千灯九尾", "踊神タコマツリ"] },
     { id: "bloom", sheet: "lineage-bloom.png", aspect: .75, mature: "ハナツノジカ", perfect: ["薔薇騎士鹿", "蓮華ツル"], ultimate: ["世界花竜", "春神キリン", "茨聖堂巨人", "虹庭鳳凰"] },
@@ -38,7 +38,7 @@
   ];
 
   const LEGENDARY_IDS = ["legend-sun", "legend-night", "legend-world", "legend-time"];
-  const LEGENDARY_CHANCE = .075;
+  const LEGENDARY_CHANCE = .01;
 
   const RANK6_NAMES = Object.freeze({
     inferno: "獄炎神レグナヴァル", thunder: "天雷皇ライゼオン", mecha: "機神鳳凰ゼノギア", beetle: "甲帝王グランカブト",
@@ -50,7 +50,7 @@
     bloom: "花界神獣フローリア", dream: "夢月獏神ルナバク", slime: "虹耀粘王プリズマム", gourmet: "美食魔帝グルマンド",
     ink: "墨界書龍ゲンブン", ninja: "月影忍皇ヤタガラス", rail: "超轟鉄龍シンカリュウ", ryu: "天宙龍神アマツリュウ"
   });
-  const RANK6_RIGHT_FACING = new Set(["abyss", "cosmic", "fossil", "sonic", "ink", "ryu"]);
+  const RANK6_RIGHT_FACING = new Set(["abyss", "cosmic"]);
 
   const PASSIVE_SKILLS = Object.freeze([
     { id: "opening-guard", name: "開幕要塞", description: "最初の4ターン、防御と魔防が45%上昇", kind: "guard", turns: 4, value: 1.45 },
@@ -384,23 +384,23 @@
     add({ id: "child-tide", name: "しずくポヨ", stage: 1, lineage: "coral", sprite: sprite("childhood-new.png", "400% 100%", "0% 50%", .75, 1.13), next: ["growth-coral", "growth-dune"] });
     add({ id: "child-rune", name: "ルーンコ", stage: 1, lineage: "sonic", sprite: sprite("childhood-new.png", "400% 100%", "33.333% 50%", .75, 1.13), next: ["growth-blade", "growth-sonic"] });
     add({ id: "child-bloom", name: "はなピィ", stage: 1, lineage: "bloom", sprite: sprite("childhood-new.png", "400% 100%", "66.667% 50%", .75, 1.13), next: ["growth-bloom", "growth-slime"] });
-    add({ id: "child-scroll", name: "まきものん", stage: 1, lineage: "ryu", sprite: sprite("childhood-new.png", "400% 100%", "100% 50%", .75, 1.13, "right"), next: ["growth-ink", "growth-rail"] });
+    add({ id: "child-scroll", name: "まきものん", stage: 1, lineage: "ryu", sprite: sprite("childhood-new.png", "400% 100%", "100% 50%", .75, 1.13), next: ["growth-ink", "growth-rail"] });
     [
       ["growth-flare", "ほむらガオ", 0, "beast", ["inferno-mature", "thunder-mature"]],
-      ["growth-gear", "ギアピヨン", 1, "mecha", ["mecha-mature", "beetle-mature"], "right"],
+      ["growth-gear", "ギアピヨン", 1, "mecha", ["mecha-mature", "beetle-mature"]],
       ["growth-moss", "モスモグ", 2, "grove", ["grove-mature", "spore-mature"]],
       ["growth-bubble", "アワプク", 3, "odd", ["abyss-mature", "cosmic-mature"]]
-    ].forEach(([id, name, x, lineage, next, facing]) => add({ id, name, stage: 2, lineage, sprite: sprite("growth.png", "400% 200%", `${x * 33.333}% 50%`, 1, 1.18, facing), next }));
+    ].forEach(([id, name, x, lineage, next, facing]) => add({ id, name, stage: 2, lineage, sprite: sprite("growth-v2.png", "400% 100%", `${x * 33.333}% 50%`, 1, 1.18, facing), next }));
     [
       ["growth-frost", "コオリヒョウ", 0, "glacier", ["glacier-mature", "crystal-mature"]],
       ["growth-storm", "ソラバネ", 1, "sky", ["sky-mature", "tempest-mature"]],
       ["growth-shadow", "ヨルカゲ", 2, "shadow", ["shadow-mature", "spirit-mature"]],
       ["growth-toy", "オモチャバコ", 3, "junk", ["candy-mature", "junk-mature"]]
-    ].forEach(([id, name, x, lineage, next]) => add({ id, name, stage: 2, lineage, sprite: sprite("growth-extra.png", "400% 200%", `${x * 33.333}% 50%`, 1, 1.15), next }));
+    ].forEach(([id, name, x, lineage, next]) => add({ id, name, stage: 2, lineage, sprite: sprite("growth-extra-v2.png", "400% 100%", `${x * 33.333}% 50%`, 1, 1.15), next }));
     [
       ["growth-coral", "サンゴッコ", 0, "coral", ["coral-mature", "corsair-mature"], "right"],
       ["growth-dune", "スナゴロ", 1, "dune", ["dune-mature", "fossil-mature"], "right"],
-      ["growth-blade", "カタナッコ", 2, "samurai", ["samurai-mature", "dojo-mature"], "right"],
+      ["growth-blade", "カタナッコ", 2, "samurai", ["samurai-mature", "dojo-mature"]],
       ["growth-sonic", "オトタマ", 3, "sonic", ["sonic-mature", "festival-mature"]]
     ].forEach(([id, name, x, lineage, next, facing]) => add({ id, name, stage: 2, lineage, sprite: sprite("growth-new-a.png", "400% 100%", `${x * 33.333}% 50%`, .625, 1.15, facing), next }));
     [
@@ -421,7 +421,7 @@
       lineage.ultimate.forEach((name, index) => add({ id: `${lineage.id}-ultimate-${index}`, name, stage: 5, lineage: lineage.id, sprite: sprite(lineage.sheet, "400% 200%", `${index * 33.333}% 100%`, aspect, 1.14, facingFor(`ultimate-${index}`)), next: [`${lineage.id}-rank6`] }));
     });
     LINEAGES.forEach((lineage, index) => {
-      const sheet = index < 16 ? "rank6-a.png" : "rank6-b.png";
+      const sheet = index < 16 ? "rank6-a-v2.png" : "rank6-b-v2.png";
       const slot = index % 16;
       const x = slot % 4;
       const y = Math.floor(slot / 4);
@@ -466,12 +466,23 @@
     return normalizeName(name).toLocaleLowerCase("ja-JP");
   }
 
-  function createPlayerMonster(name, team = "") {
-    const normalized = normalizeName(name);
-    return { playerKey: playerKey(normalized), playerName: normalized, team, nodeId: "egg", stage: 0, opens: 0, history: ["egg"], claimedCells: [] };
+  function monsterSlot(value) {
+    return Math.max(0, Math.min(1, Math.floor(Number(value) || 0)));
   }
 
-  function normalizePlayerMonster(value, name = "", team = "") {
+  function monsterKey(name, slot = 0) {
+    return `${playerKey(name)}::${monsterSlot(slot)}`;
+  }
+
+  function createPlayerMonster(name, team = "", slot = 0) {
+    const normalized = normalizeName(name);
+    return {
+      playerKey: playerKey(normalized), playerName: normalized, team, slot: monsterSlot(slot),
+      nodeId: "egg", stage: 0, opens: 0, history: ["egg"], claimedCells: []
+    };
+  }
+
+  function normalizePlayerMonster(value, name = "", team = "", slot = undefined) {
     const source = value && typeof value === "object" ? value : {};
     const normalized = normalizeName(name || source.playerName);
     const node = NODES[source.nodeId] || NODES.egg;
@@ -480,6 +491,7 @@
       playerKey: playerKey(normalized),
       playerName: normalized,
       team: team || source.team || "",
+      slot: monsterSlot(slot === undefined ? source.slot : slot),
       nodeId: node.id,
       stage: node.stage,
       opens: Math.max(0, Number(source.opens) || 0),
@@ -488,10 +500,13 @@
     };
   }
 
-  function syncPlayerMonsters(existing, members, team) {
+  function syncPlayerMonsters(existing, members, team, monstersPerPlayer = 1) {
     const source = Array.isArray(existing) ? existing : [];
-    const byKey = new Map(source.map((monster) => [playerKey(monster?.playerName), monster]));
-    return (members || []).map((member) => normalizePlayerMonster(byKey.get(playerKey(member)), member, team));
+    const count = monstersPerPlayer === 2 ? 2 : 1;
+    const byKey = new Map(source.map((monster) => [monsterKey(monster?.playerName, monster?.slot), monster]));
+    return (members || []).flatMap((member) => Array.from({ length: count }, (_, slot) => (
+      normalizePlayerMonster(byKey.get(monsterKey(member, slot)), member, team, slot)
+    )));
   }
 
   function distributedEvolutionRandom(value, peers = [], random = Math.random) {
@@ -608,6 +623,32 @@
     return Math.min(50, 1 + Math.floor(Math.sqrt(xp / 24)));
   }
 
+  function applyMasteryStats(stats, experience) {
+    const source = stats && typeof stats === "object" ? stats : {};
+    const level = masteryLevel(experience);
+    const boosted = { ...source, masteryLevel: level };
+    ["hp", "attack", "defense", "magic", "magicDefense", "speed"].forEach((key) => {
+      boosted[key] = Math.max(1, Math.round(Number(source[key]) || 0) + level);
+    });
+    return boosted;
+  }
+
+  function masteryInheritanceRate(currentStage, ancestorStage) {
+    const distance = Math.max(0, Math.floor(Number(currentStage) || 0) - Math.floor(Number(ancestorStage) || 0));
+    return [1, .32, .16, .08, .04, .02, .01][Math.min(6, distance)];
+  }
+
+  function masteryExperienceDistribution(history, currentNodeId, experience) {
+    const gain = Math.max(0, Math.round(Number(experience) || 0));
+    if (!gain || !NODES[currentNodeId]) return [];
+    const ids = Array.from(new Set([...(Array.isArray(history) ? history : []), currentNodeId])).filter((id) => NODES[id]);
+    const currentStage = NODES[currentNodeId].stage;
+    return ids.map((nodeId) => ({
+      nodeId,
+      experience: Math.max(1, Math.round(gain * masteryInheritanceRate(currentStage, NODES[nodeId].stage)))
+    }));
+  }
+
   function masteryTitle(experience) {
     const level = masteryLevel(experience);
     if (level >= 40) return "魂の盟友";
@@ -688,6 +729,7 @@
     STAGES, LINEAGES, LEGENDARY_IDS, LEGENDARY_CHANCE, RANK6_NAMES, PASSIVE_SKILLS, ELEMENTS, ROLES, STATUS_EFFECTS, NODES,
     createPlayerMonster, normalizePlayerMonster, syncPlayerMonsters, distributedEvolutionRandom, evolvePlayerMonster,
     rank6Requirements, canEvolveRank6, passiveSkill, combatElement, combatRole, elementMultiplier, statusForElement, linkTechnique,
-    masteryLevel, masteryTitle, battleEffect, combatStats, specialChanceForHype, dialogue, playerKey, seededRandom
+    masteryLevel, masteryTitle, applyMasteryStats, masteryInheritanceRate, masteryExperienceDistribution,
+    battleEffect, combatStats, specialChanceForHype, dialogue, playerKey, monsterKey, seededRandom
   });
 })(window);

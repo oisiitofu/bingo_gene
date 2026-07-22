@@ -85,6 +85,7 @@ test("monster evolution has eight childhood entries, rank six fusions, passives,
   assert.equal(result.STAGES.length, 7, "Egg plus six evolution stages are required");
   assert.equal(result.LINEAGES.length, 32, "Expected thirty-two mature lineages");
   assert.equal(result.LEGENDARY_IDS.length, 4, "Expected four legendary monsters");
+  assert.equal(result.LEGENDARY_CHANCE, .01, "Legendary evolution must remain a one-percent event");
   assert.equal(Object.keys(result.NODES).length, 285, "Expected thirty-two rank-six fusion monsters");
   assert.deepEqual(
     result.STAGES.map((_, stage) => Object.values(result.NODES).filter((node) => node.stage === stage).length),
@@ -119,6 +120,11 @@ test("monster evolution has eight childhood entries, rank six fusions, passives,
   assert.equal(firstEvolution.monster.stage, 1, "A personal OPEN must evolve that player's egg");
   assert.equal(duplicateOpen.monster.stage, 1, "The same player and cell must not evolve twice");
   assert.equal(party[1].stage, 0, "A teammate's monster must remain independent");
+
+  const doubleParty = result.syncPlayerMonsters([], ["PLAYER A", "PLAYER B"], "red", 2);
+  assert.equal(doubleParty.length, 4, "Double Monster Mode must create two eggs for every player");
+  assert.deepEqual(doubleParty.map((monster) => monster.slot), [0, 1, 0, 1]);
+  assert.equal(new Set(doubleParty.map((monster) => result.monsterKey(monster.playerName, monster.slot))).size, 4);
 
   let balancedParty = result.syncPlayerMonsters([], ["A", "B", "C", "D", "E", "F", "G", "H"], "red");
   balancedParty.forEach((monster, index) => {
@@ -160,12 +166,26 @@ test("monster evolution has eight childhood entries, rank six fusions, passives,
   assert.match(result.linkTechnique("inferno-mature", "sky-mature").name, /爆嵐/);
   assert.equal(result.masteryLevel(0), 1);
   assert.ok(result.masteryLevel(600) > result.masteryLevel(100));
-  assert.equal(result.NODES["child-scroll"].sprite.facing, "right");
-  assert.equal(result.NODES["growth-gear"].sprite.facing, "right");
-  assert.equal(result.NODES["samurai-mature"].sprite.facing, "right");
+  const masteryStats = result.applyMasteryStats({ hp: 100, attack: 20, defense: 18, magic: 22, magicDefense: 19, speed: 17 }, 0);
+  assert.equal(masteryStats.masteryLevel, 1);
+  assert.deepEqual(
+    [masteryStats.hp, masteryStats.attack, masteryStats.defense, masteryStats.magic, masteryStats.magicDefense, masteryStats.speed],
+    [101, 21, 19, 23, 20, 18],
+    "Every bond level must add one point to every combat stat"
+  );
+  const inheritedMastery = result.masteryExperienceDistribution(
+    ["egg", "child-brave", "growth-flare", "inferno-mature"],
+    "inferno-perfect-a",
+    100
+  );
+  assert.equal(inheritedMastery.at(-1).experience, 100);
+  assert.ok(inheritedMastery[0].experience > 0 && inheritedMastery[0].experience < inheritedMastery[1].experience);
+  assert.equal(result.NODES["child-scroll"].sprite.facing, "left");
+  assert.equal(result.NODES["growth-gear"].sprite.facing, "left");
+  assert.equal(result.NODES["samurai-mature"].sprite.facing, "left");
   assert.equal(result.NODES["inferno-mature"].sprite.facing, "left");
   assert.equal(result.NODES["abyss-rank6"].sprite.facing, "right");
-  assert.equal(result.NODES["fossil-rank6"].sprite.facing, "right");
+  assert.equal(result.NODES["fossil-rank6"].sprite.facing, "left");
   assert.equal(result.NODES["inferno-rank6"].sprite.facing, "left");
 
   const ultimate = result.createPlayerMonster("RANK6 TEST", "red");
@@ -186,18 +206,21 @@ test("monster evolution has eight childhood entries, rank six fusions, passives,
     "lineage-abyss.png", "lineage-cosmic.png", "childhood-extra.png", "growth-extra.png",
     "lineage-glacier.png", "lineage-crystal.png", "lineage-sky.png", "lineage-tempest.png",
     "lineage-shadow.png", "lineage-spirit.png", "lineage-candy.png", "lineage-junk.png",
-    "childhood-new.png", "growth-new-a.png", "growth-new-b.png",
+    "childhood-new.png", "growth-new-a.png", "growth-new-b.png", "growth-v2.png", "growth-extra-v2.png",
     "lineage-coral.png", "lineage-corsair.png", "lineage-dune.png", "lineage-fossil.png",
     "lineage-samurai.png", "lineage-dojo.png", "lineage-sonic.png", "lineage-festival.png",
     "lineage-bloom.png", "lineage-dream.png", "lineage-slime.png", "lineage-gourmet.png",
     "lineage-ink.png", "lineage-ninja.png", "lineage-rail.png", "lineage-ryu.png",
-    "legendary.png", "legendary-new.png", "rank6-a.png", "rank6-b.png"
+    "legendary.png", "legendary-new.png", "rank6-a.png", "rank6-b.png", "rank6-a-v2.png", "rank6-b-v2.png"
   ];
   monsterAssets.forEach((file) => {
     assert.ok(existsSync(new URL(`../images/monsters/${file}`, import.meta.url)), `Missing monster artwork: ${file}`);
   });
   assert.match(html, /monsters: cloneOnlineValue\(MONSTER_SYSTEM\.syncPlayerMonsters/);
   assert.match(html, /monsterBattleMode: state\.monsterBattleMode/);
+  assert.match(html, /doubleMonsterMode: state\.doubleMonsterMode/);
+  assert.match(html, /id="doubleMonsterModeButton"/);
+  assert.doesNotMatch(html, /Object\.groupBy\(/, "Online double evolutions must work in older Chromium builds");
   assert.match(html, /type === "monster-battle-start"/);
   assert.match(html, /effects\.has\("monster-battle-start"\)/);
   assert.match(html, /kind: "monster-speech"/);
@@ -216,6 +239,9 @@ test("monster evolution has eight childhood entries, rank six fusions, passives,
   assert.match(html, /id="statsMonsterDexGrid"/);
   assert.match(html, /id="monsterDexModal"/);
   assert.match(html, /id="statsMonsterDexTree"/);
+  assert.match(html, /id="statsMonsterMasteryPage"/);
+  assert.match(html, /id="dexMasteryViewButton"/);
+  assert.match(html, /function renderMonsterMasteryPage\(/);
   assert.match(html, /function renderMonsterDexTree\(/);
   assert.match(html, /id="dexOverviewButton"[\s\S]*>全体表示<\/button>/);
   assert.match(html, /id="dexTreeViewButton">進化経路<\/button>/);
@@ -264,8 +290,8 @@ test("monster evolution has eight childhood entries, rank six fusions, passives,
   assert.match(html, /node\.id\.endsWith\("-ultimate-0"\)/);
   assert.match(html, /monster-dex-card[^`]+node\.rank6/);
   const battleCss = readFileSync(new URL("../monster-battle.css", import.meta.url), "utf8");
-  assert.match(battleCss, /effects\/elemental\.png/);
-  assert.match(battleCss, /effects\/physical\.png/);
+  assert.match(battleCss, /effects\/elemental-v2\.png/);
+  assert.match(battleCss, /effects\/physical-v2\.png/);
   assert.match(battleCss, /effects\/special-cutin\.png/);
   assert.match(battleCss, /\.monster-link-cutin/);
   assert.match(battleCss, /\.monster-revive-burst/);
@@ -279,7 +305,7 @@ test("monster evolution has eight childhood entries, rank six fusions, passives,
   const onlineRoomSource = readFileSync(new URL("../online/online-room.js", import.meta.url), "utf8");
   assert.match(onlineRoomSource, /id="onlineAdminMonsterDex"/);
   assert.match(onlineRoomSource, /id="onlineAdminMonsterBattle"/);
-  ["elemental.png", "physical.png", "special-cutin.png"].forEach((file) => {
+  ["elemental.png", "physical.png", "elemental-v2.png", "physical-v2.png", "special-cutin.png"].forEach((file) => {
     assert.ok(existsSync(new URL(`../images/monster-battle/effects/${file}`, import.meta.url)), `Missing battle effect artwork: ${file}`);
   });
 });
