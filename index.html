@@ -8232,6 +8232,11 @@
 
     const els = {};
     const timedOverlaySkips = new Map();
+    const failedCellImagePaths = new Set();
+    const renderMarkupCache = {
+      grids: { red: "", blue: "" },
+      monsters: { red: "", blue: "" }
+    };
 
     function createSkillEffects() {
       return {
@@ -8400,6 +8405,8 @@
       els.roomIdInput.addEventListener("input", syncRoomFromPlay);
       els.redGrid.addEventListener("click", onGridClick);
       els.blueGrid.addEventListener("click", onGridClick);
+      els.redGrid.addEventListener("error", onCellImageError, true);
+      els.blueGrid.addEventListener("error", onCellImageError, true);
       els.redGrid.addEventListener("keydown", onGridKeydown);
       els.blueGrid.addEventListener("keydown", onGridKeydown);
       [els.redMonsterPanel, els.blueMonsterPanel].forEach((panel) => {
@@ -9331,9 +9338,18 @@
       renderRankingTicker();
     }
 
+    function spriteSheetSizeWithBleedGuard(size) {
+      return String(size || "contain").replace(/(\d+(?:\.\d+)?)%/g, (match, rawValue) => {
+        const value = Number(rawValue);
+        if (!Number.isFinite(value) || value <= 100) return match;
+        return `${Math.round((value * 1.01) * 1000) / 1000}%`;
+      });
+    }
+
     function monsterSpriteMarkup(node, extraClass = "") {
       if (!node?.sprite) return "";
-      const style = `--monster-image:url('${node.sprite.sheet}');--monster-size:${node.sprite.size};--monster-position:${node.sprite.position};--monster-aspect:${node.sprite.aspect || 1};--monster-zoom:${node.sprite.zoom || 1}`;
+      const guardedSize = spriteSheetSizeWithBleedGuard(node.sprite.size);
+      const style = `--monster-image:url('${node.sprite.sheet}');--monster-size:${guardedSize};--monster-position:${node.sprite.position};--monster-aspect:${node.sprite.aspect || 1};--monster-zoom:${node.sprite.zoom || 1}`;
       const facing = node.sprite.facing === "right" ? "right" : "left";
       return `<span class="monster-sprite${extraClass ? ` ${extraClass}` : ""}" data-monster-facing="${facing}" style="${style}" aria-hidden="true"></span>`;
     }
@@ -9343,12 +9359,15 @@
       if (!panel) return;
       const side = state[team];
       side.monsters = MONSTER_SYSTEM.syncPlayerMonsters(side.monsters, side.members, team);
-      panel.innerHTML = `
+      const markup = `
         <div class="monster-panel-head"><b>MONSTERS</b><span>${team.toUpperCase()} PARTY</span></div>
         <div class="monster-player-list">
           ${side.monsters.map((monster) => renderPlayerMonsterCard(team, monster)).join("")}
         </div>
       `;
+      if (renderMarkupCache.monsters[team] === markup) return;
+      renderMarkupCache.monsters[team] = markup;
+      panel.innerHTML = markup;
     }
 
     function renderPlayerMonsterCard(team, monster) {
@@ -9525,8 +9544,28 @@
       renderOpenerRow(team);
       grid.style.setProperty("--grid-size", state.gridSize);
       grid.dataset.size = String(state.gridSize);
-      grid.innerHTML = side.card.map((cell, index) => renderCell(team, cell, index)).join("");
+      const gridMarkup = side.card.map((cell, index) => renderCell(team, cell, index)).join("");
+      if (renderMarkupCache.grids[team] !== gridMarkup) {
+        renderMarkupCache.grids[team] = gridMarkup;
+        grid.innerHTML = gridMarkup;
+      }
       updateSkillButtons(team);
+    }
+
+    function onCellImageError(event) {
+      const image = event.target;
+      if (!(image instanceof HTMLImageElement) || !image.matches(".cell > img[data-cell-image]")) return;
+      const requestedSrc = image.dataset.requestedSrc || "";
+      const fallbackSrc = image.dataset.fallbackSrc || "";
+      if (requestedSrc) failedCellImagePaths.add(requestedSrc);
+      if (fallbackSrc) {
+        image.dataset.fallbackSrc = "";
+        image.src = fallbackSrc;
+        return;
+      }
+      image.style.display = "none";
+      const cell = image.closest(".cell");
+      if (cell) cell.dataset.fallback = image.dataset.cellId || "";
     }
 
     function renderOpenerRow(team) {
@@ -9886,15 +9925,16 @@
       if (side.winningCells.has(index)) classes.push("winning");
       const disabled = state.inputLocked || isOnlineInputBusy() || cell.free;
       const defaultCellImage = cell.free ? "" : imagePath(cell.id);
-      const activeCellImage = useTofuCellSkin ? tofuCellSkinPath(cell.id) : defaultCellImage;
-      const fallbackImageAttr = useTofuCellSkin ? ` data-fallback-src="${defaultCellImage}"` : "";
+      const tofuCellImage = useTofuCellSkin ? tofuCellSkinPath(cell.id) : "";
+      const activeCellImage = tofuCellImage && !failedCellImagePaths.has(tofuCellImage) ? tofuCellImage : defaultCellImage;
+      const fallbackImageAttr = activeCellImage !== defaultCellImage ? ` data-fallback-src="${defaultCellImage}"` : "";
       const content = cell.free
         ? (isLickeyCastleCell
           ? `<img class="lickey-castle-art" src="${skillAssetUrl("lickey", "castle")}" alt="" />`
           : (isLickeyRubbleCell
             ? `<img class="lickey-rubble-art" src="${skillAssetUrl("lickey", "rubble")}" alt="" />`
             : (isPoopCell ? `<img class="poop-cell-art" src="${skillAssetUrl("tofu", "poop")}" alt="" />` : `<span class="free-hole" aria-hidden="true"></span>`)))
-        : `<img src="${activeCellImage}"${fallbackImageAttr} alt="" onerror="if(this.dataset.fallbackSrc){this.src=this.dataset.fallbackSrc;this.dataset.fallbackSrc='';}else{this.style.display='none';this.parentElement.dataset.fallback='${cell.id}'}" />`;
+        : `<img src="${activeCellImage}" data-cell-image="1" data-cell-id="${cell.id}" data-requested-src="${activeCellImage}"${fallbackImageAttr} alt="" decoding="async" />`;
       const pairMarkers = pairEntries.map((pair) => (
         `<span class="pair-chip" style="background:${pair.color}">${pair.id}</span>`
       )).join("");

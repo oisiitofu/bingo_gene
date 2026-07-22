@@ -197,6 +197,11 @@ test("monster evolution has eight childhood entries, doubled branches, legends, 
   assert.match(html, /\.monster-dex-grid\[hidden\][\s\S]*display: none !important/);
   assert.match(html, /data-monster-facing=/);
   assert.match(readFileSync(new URL("../monster-battle.css", import.meta.url), "utf8"), /data-monster-facing="right"/);
+  assert.match(html, /function spriteSheetSizeWithBleedGuard\(/);
+  assert.match(html, /value \* 1\.01/);
+  assert.match(html, /const renderMarkupCache =/);
+  assert.match(html, /function onCellImageError\(/);
+  assert.doesNotMatch(html, /<img src="\$\{activeCellImage\}"[^>]+onerror=/);
   assert.match(html, /function renderMonsterDex\(/);
   assert.match(html, /monsterRankLabel\(node\)/);
   assert.match(html, /function waitForTimedPresentation\(/);

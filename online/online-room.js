@@ -762,6 +762,8 @@ export class OnlineCoordinator {
     this.busy = false;
     this.applyingRemote = false;
     this.pendingRoom = null;
+    this.lastAppliedSetupSignature = "";
+    this.lastAppliedGameSignature = "";
     this.globalStatsSnapshot = null;
     this.globalProcessedActions = new Set();
     this.lastMasterLobbySyncKey = "";
@@ -2316,8 +2318,18 @@ export class OnlineCoordinator {
     this.scheduleMasterHandover(room);
     this.applyingRemote = true;
     try {
-      this.bridge.applyOnlineSetupSnapshot?.(room.setup || {}, { initial: Boolean(options.initial), role: this.role });
-      if (room.game) this.bridge.applyOnlineGameSnapshot?.(room.game, { initial: Boolean(options.initial) });
+      const setupSignature = JSON.stringify(room.setup || {});
+      const gameSignature = room.game ? JSON.stringify(room.game) : "";
+      if (options.initial || setupSignature !== this.lastAppliedSetupSignature) {
+        this.bridge.applyOnlineSetupSnapshot?.(room.setup || {}, { initial: Boolean(options.initial), role: this.role });
+        this.lastAppliedSetupSignature = setupSignature;
+      }
+      if (room.game && (options.initial || gameSignature !== this.lastAppliedGameSignature)) {
+        this.bridge.applyOnlineGameSnapshot?.(room.game, { initial: Boolean(options.initial) });
+        this.lastAppliedGameSignature = gameSignature;
+      } else if (!room.game) {
+        this.lastAppliedGameSignature = "";
+      }
       if (options.initial && room.game && !room.game.winner) {
         this.bridge.restoreOnlineCommentary?.(selectCurrentOnlineCommentary(room, this.backend.serverNow()));
         this.bridge.restoreOnlineMatchPresentation?.(selectInitialOnlineMatchPresentation(room, this.backend.serverNow()));
@@ -2650,6 +2662,8 @@ export class OnlineCoordinator {
     if (!options.preserveReclaimToken) this.clearSeatReclaimToken(roomId, key);
     this.roomId = "";
     this.room = null;
+    this.lastAppliedSetupSignature = "";
+    this.lastAppliedGameSignature = "";
     this.role = "";
     this.team = "";
     this.memberName = "";
