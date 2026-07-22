@@ -50,6 +50,7 @@
     bloom: "花界神獣フローリア", dream: "夢月獏神ルナバク", slime: "虹耀粘王プリズマム", gourmet: "美食魔帝グルマンド",
     ink: "墨界書龍ゲンブン", ninja: "月影忍皇ヤタガラス", rail: "超轟鉄龍シンカリュウ", ryu: "天宙龍神アマツリュウ"
   });
+  const RANK6_RIGHT_FACING = new Set(["abyss", "cosmic", "fossil", "sonic", "ink", "ryu"]);
 
   const PASSIVE_SKILLS = Object.freeze([
     { id: "opening-guard", name: "開幕要塞", description: "最初の4ターン、防御と魔防が45%上昇", kind: "guard", turns: 4, value: 1.45 },
@@ -369,7 +370,7 @@
         lineage: lineage.id,
         rank6: true,
         requirements: lineage.ultimate.map((_, ultimateIndex) => `${lineage.id}-ultimate-${ultimateIndex}`),
-        sprite: sprite(sheet, "400% 400%", `${x * 33.333}% ${y * 33.333}%`, 1, 1.04),
+        sprite: sprite(sheet, "400% 400%", `${x * 33.333}% ${y * 33.333}%`, 1, 1.04, RANK6_RIGHT_FACING.has(lineage.id) ? "right" : "left"),
         next: []
       });
     });

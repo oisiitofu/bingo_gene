@@ -153,6 +153,9 @@ test("monster evolution has eight childhood entries, rank six fusions, passives,
   assert.equal(result.NODES["growth-gear"].sprite.facing, "right");
   assert.equal(result.NODES["samurai-mature"].sprite.facing, "right");
   assert.equal(result.NODES["inferno-mature"].sprite.facing, "left");
+  assert.equal(result.NODES["abyss-rank6"].sprite.facing, "right");
+  assert.equal(result.NODES["fossil-rank6"].sprite.facing, "right");
+  assert.equal(result.NODES["inferno-rank6"].sprite.facing, "left");
 
   const ultimate = result.createPlayerMonster("RANK6 TEST", "red");
   ultimate.nodeId = "inferno-ultimate-0";
@@ -245,6 +248,15 @@ test("monster evolution has eight childhood entries, rank six fusions, passives,
   assert.match(battleCss, /effects\/elemental\.png/);
   assert.match(battleCss, /effects\/physical\.png/);
   assert.match(battleCss, /effects\/special-cutin\.png/);
+  assert.match(html, /id="adminMonsterBattleModal"/);
+  assert.match(html, /function showAdminMonsterDex\(/);
+  assert.match(html, /function openAdminMonsterBattleLab\(/);
+  assert.match(html, /function createAdminMonsterBattleFighters\(/);
+  assert.match(html, /runMonsterBattle\(seed, \{ adminBattle: true/);
+  assert.match(html, /openAdminMonsterDex: showAdminMonsterDex/);
+  const onlineRoomSource = readFileSync(new URL("../online/online-room.js", import.meta.url), "utf8");
+  assert.match(onlineRoomSource, /id="onlineAdminMonsterDex"/);
+  assert.match(onlineRoomSource, /id="onlineAdminMonsterBattle"/);
   ["elemental.png", "physical.png", "special-cutin.png"].forEach((file) => {
     assert.ok(existsSync(new URL(`../images/monster-battle/effects/${file}`, import.meta.url)), `Missing battle effect artwork: ${file}`);
   });

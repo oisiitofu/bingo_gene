@@ -1104,6 +1104,20 @@ export class OnlineCoordinator {
             </div>
             <div class="online-admin-operation">
               <div>
+                <strong>FULL MONSTER DEX</strong>
+                <span>未獲得を含む全モンスターを開放状態で確認します。</span>
+              </div>
+              <button type="button" class="online-simple-button" id="onlineAdminMonsterDex">OPEN</button>
+            </div>
+            <div class="online-admin-operation">
+              <div>
+                <strong>MONSTER BATTLE LAB</strong>
+                <span>好きなモンスターを赤2体・青2体選んで対戦します。</span>
+              </div>
+              <button type="button" class="online-simple-button primary" id="onlineAdminMonsterBattle">SELECT</button>
+            </div>
+            <div class="online-admin-operation">
+              <div>
                 <strong>AUTO BACKUP</strong>
                 <span id="onlineAdminBackupSummary">バックアップ状態を確認しています。</span>
               </div>
@@ -1239,6 +1253,8 @@ export class OnlineCoordinator {
       adminDeleteGhosts: document.getElementById("onlineAdminDeleteGhosts"),
       adminGhostSummary: document.getElementById("onlineAdminGhostSummary"),
       adminAssets: document.getElementById("onlineAdminAssets"),
+      adminMonsterDex: document.getElementById("onlineAdminMonsterDex"),
+      adminMonsterBattle: document.getElementById("onlineAdminMonsterBattle"),
       adminBackupSummary: document.getElementById("onlineAdminBackupSummary"),
       adminBackupNow: document.getElementById("onlineAdminBackupNow"),
       adminBackupExport: document.getElementById("onlineAdminBackupExport"),
@@ -1341,6 +1357,12 @@ export class OnlineCoordinator {
       await this.deleteGhostRooms({ requireAdmin: true });
     });
     this.ui.adminAssets.addEventListener("click", () => this.openAssetManager());
+    this.ui.adminMonsterDex.addEventListener("click", () => {
+      if (this.isAdminMode()) this.bridge.openAdminMonsterDex?.();
+    });
+    this.ui.adminMonsterBattle.addEventListener("click", () => {
+      if (this.isAdminMode()) this.bridge.openAdminMonsterBattleLab?.();
+    });
     this.ui.assetClose.addEventListener("click", () => this.closeAssetManager());
     this.ui.assetSearch.addEventListener("input", () => this.renderAssetManager());
     this.ui.assetType.addEventListener("change", () => this.renderAssetManager());
