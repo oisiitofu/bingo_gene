@@ -127,11 +127,23 @@ test("player counters and character maps are included in stats deltas", () => {
     comebackWins: 0,
     comebackMoves: 0,
     bingoLines: 2,
+    monsterBattles: 1,
+    monsterBattleWins: 1,
+    monsterBattleLosses: 0,
+    monsterKos: 2,
+    monsterRevives: 1,
+    monsterSpecialMoves: 3,
+    monsterLinkMoves: 1,
+    monsterDamage: 824,
     openedCharacters: { 53: 2, 69: 1 },
     winCharacters: { 69: 1 },
     specialCharacters: { 53: 1 },
     skillUsage: { jan: 1 },
     monsterDex: { egg: 1, "child-ember": 1 },
+    monsterMastery: { "child-ember": 68 },
+    monsterBattleUsage: { "child-ember": 1 },
+    monsterWinsByMonster: { "child-ember": 1 },
+    monsterKosByMonster: { "child-ember": 2 },
     lastTeam: "RED",
     lastPlayedAt: "2026-07-17T00:00:00.000Z"
   };
@@ -139,8 +151,12 @@ test("player counters and character maps are included in stats deltas", () => {
   const result = applyStatsDelta(before, createStatsDelta(before, after));
   assert.equal(result.playerStats.players.jan.opens, 3);
   assert.equal(result.playerStats.players.jan.mvps, 1);
+  assert.equal(result.playerStats.players.jan.monsterBattleWins, 1);
+  assert.equal(result.playerStats.players.jan.monsterDamage, 824);
   assert.deepEqual(result.playerStats.players.jan.openedCharacters, { 53: 2, 69: 1 });
   assert.deepEqual(result.playerStats.players.jan.monsterDex, { egg: 1, "child-ember": 1 });
+  assert.deepEqual(result.playerStats.players.jan.monsterMastery, { "child-ember": 68 });
+  assert.deepEqual(result.playerStats.players.jan.monsterKosByMonster, { "child-ember": 2 });
 });
 
 test("legacy rankings merge into shared online stats", () => {

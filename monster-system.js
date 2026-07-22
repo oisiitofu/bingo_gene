@@ -68,8 +68,70 @@
     { id: "physical-shell", name: "獣王の皮膜", description: "物理ダメージを18%軽減", kind: "type-cut", attackType: "physical", value: .82 },
     { id: "magic-shell", name: "魔導結界", description: "魔法ダメージを18%軽減", kind: "type-cut", attackType: "magic", value: .82 },
     { id: "berserk", name: "狂戦士の血", description: "通常攻撃の威力が18%上昇", kind: "normal-power", value: 1.18 },
-    { id: "energy-rush", name: "加速充填", description: "通常攻撃後の必殺ゲージ上昇量が14増加", kind: "energy-gain", value: 14 }
+    { id: "energy-rush", name: "加速充填", description: "通常攻撃後の必殺ゲージ上昇量が14増加", kind: "energy-gain", value: 14 },
+    { id: "soul-reboot", name: "魂魄再起動", description: "一度だけ最大HPの32%で復活する", kind: "revive", value: .32 }
   ]);
+
+  const ELEMENTS = Object.freeze({
+    fire: { id: "fire", name: "炎", icon: "炎" },
+    water: { id: "water", name: "水", icon: "水" },
+    lightning: { id: "lightning", name: "雷", icon: "雷" },
+    ice: { id: "ice", name: "氷", icon: "氷" },
+    earth: { id: "earth", name: "地", icon: "地" },
+    wind: { id: "wind", name: "風", icon: "風" },
+    light: { id: "light", name: "光", icon: "光" },
+    dark: { id: "dark", name: "闇", icon: "闇" }
+  });
+
+  const ELEMENT_ADVANTAGE = Object.freeze({
+    fire: "ice",
+    ice: "wind",
+    wind: "earth",
+    earth: "lightning",
+    lightning: "water",
+    water: "fire",
+    light: "dark",
+    dark: "light"
+  });
+
+  const COMBAT_ELEMENT_BY_LINEAGE = Object.freeze({
+    egg: "earth", beast: "wind", odd: "water",
+    inferno: "fire", thunder: "lightning", mecha: "earth", beetle: "earth", grove: "earth", spore: "dark",
+    abyss: "water", cosmic: "dark", glacier: "ice", crystal: "light", sky: "wind", tempest: "wind",
+    shadow: "dark", spirit: "light", candy: "light", junk: "earth", coral: "water", corsair: "water",
+    dune: "earth", fossil: "earth", samurai: "fire", dojo: "wind", sonic: "lightning", festival: "fire",
+    bloom: "light", dream: "dark", slime: "water", gourmet: "fire", ink: "dark", ninja: "wind", rail: "lightning",
+    ryu: "lightning", "legend-sun": "light", "legend-night": "dark", "legend-world": "earth", "legend-time": "fire"
+  });
+
+  const ROLES = Object.freeze({
+    guardian: { id: "guardian", name: "ガーディアン", short: "GUARD", description: "敵を引きつけ、被ダメージを4%軽減", targetWeight: 1.35, damageTaken: .96 },
+    striker: { id: "striker", name: "ストライカー", short: "STRIKE", description: "攻撃ダメージが5%上昇", damage: 1.05 },
+    mystic: { id: "mystic", name: "ミスティック", short: "MYSTIC", description: "状態異常の付与率が10%上昇", statusChance: .10 },
+    speedster: { id: "speedster", name: "スピードスター", short: "SPEED", description: "行動速度が8%、回避率が3%上昇", speed: 1.08, dodge: .03 },
+    support: { id: "support", name: "サポーター", short: "SUPPORT", description: "連携必殺技の発動率が12%上昇", linkChance: .12 }
+  });
+
+  const ROLE_BY_LINEAGE = Object.freeze({
+    egg: "guardian", beast: "striker", odd: "support",
+    inferno: "striker", thunder: "speedster", mecha: "guardian", beetle: "guardian", grove: "support", spore: "mystic",
+    abyss: "striker", cosmic: "mystic", glacier: "guardian", crystal: "support", sky: "speedster", tempest: "striker",
+    shadow: "speedster", spirit: "support", candy: "support", junk: "guardian", coral: "support", corsair: "striker",
+    dune: "guardian", fossil: "striker", samurai: "striker", dojo: "striker", sonic: "speedster", festival: "mystic",
+    bloom: "support", dream: "mystic", slime: "guardian", gourmet: "striker", ink: "mystic", ninja: "speedster", rail: "guardian",
+    ryu: "mystic", "legend-sun": "mystic", "legend-night": "striker", "legend-world": "guardian", "legend-time": "speedster"
+  });
+
+  const STATUS_EFFECTS = Object.freeze({
+    burn: { id: "burn", name: "火傷", short: "BURN", turns: 3, element: "fire", damageRate: .045 },
+    freeze: { id: "freeze", name: "凍結", short: "FREEZE", turns: 1, element: "ice", skip: true },
+    shock: { id: "shock", name: "感電", short: "SHOCK", turns: 3, element: "lightning", speedRate: .72, energyLoss: 10 },
+    poison: { id: "poison", name: "猛毒", short: "POISON", turns: 4, element: "dark", damageRate: .035 },
+    blind: { id: "blind", name: "暗闇", short: "BLIND", turns: 2, element: "wind", missChance: .24 },
+    break: { id: "break", name: "防御崩壊", short: "BREAK", turns: 3, element: "earth", defenseRate: .84 },
+    soak: { id: "soak", name: "水縛", short: "SOAK", turns: 3, element: "water", speedRate: .82 },
+    seal: { id: "seal", name: "光封", short: "SEAL", turns: 2, element: "light", energyLoss: 16 }
+  });
 
   const COMBAT_ARCHETYPES = {
     egg:     { hp: 1.05, attack: .82, defense: 1.04, magic: .82, magicDefense: 1.08, speed: .78, type: "physical", special: "たまご大爆発" },
@@ -491,6 +553,71 @@
     return PASSIVE_SKILLS[(hashText(node.id) + offset) % PASSIVE_SKILLS.length];
   }
 
+  function combatElement(nodeId) {
+    const node = NODES[nodeId] || NODES.egg;
+    return ELEMENTS[COMBAT_ELEMENT_BY_LINEAGE[node.lineage]] || ELEMENTS.earth;
+  }
+
+  function combatRole(nodeId) {
+    const node = NODES[nodeId] || NODES.egg;
+    return ROLES[ROLE_BY_LINEAGE[node.lineage]] || ROLES.striker;
+  }
+
+  function elementMultiplier(attackerElement, targetElement) {
+    const attack = typeof attackerElement === "string" ? attackerElement : attackerElement?.id;
+    const target = typeof targetElement === "string" ? targetElement : targetElement?.id;
+    if (!ELEMENTS[attack] || !ELEMENTS[target] || attack === target) return 1;
+    if (ELEMENT_ADVANTAGE[attack] === target) return 1.1;
+    if (ELEMENT_ADVANTAGE[target] === attack) return 1 / 1.1;
+    return 1;
+  }
+
+  function statusForElement(element) {
+    const id = typeof element === "string" ? element : element?.id;
+    return Object.values(STATUS_EFFECTS).find((status) => status.element === id) || null;
+  }
+
+  function linkTechnique(firstNodeId, secondNodeId) {
+    const first = combatElement(firstNodeId);
+    const second = combatElement(secondNodeId);
+    if (first.id === second.id) {
+      return { id: `${first.id}-resonance`, name: `${first.name}双星陣`, multiplier: 1.30, chanceBonus: .16, elements: [first.id] };
+    }
+    const pair = [first.id, second.id].sort().join("+");
+    const named = {
+      "fire+wind": "爆嵐クロスブレイカー",
+      "lightning+water": "蒼雷タイダルボルト",
+      "ice+light": "極光ダイヤモンドレイ",
+      "dark+earth": "冥界グランドフォール",
+      "dark+light": "終極エクリプスノヴァ",
+      "earth+fire": "火山皇メテオバースト",
+      "ice+water": "絶海フローズンゼロ",
+      "lightning+wind": "天翔サンダーテンペスト"
+    }[pair];
+    return {
+      id: pair.replace("+", "-"),
+      name: named || `${first.name}${second.name}クロスインパクト`,
+      multiplier: named ? 1.34 : 1.24,
+      chanceBonus: named ? .12 : .04,
+      elements: [first.id, second.id]
+    };
+  }
+
+  function masteryLevel(experience) {
+    const xp = Math.max(0, Number(experience) || 0);
+    return Math.min(50, 1 + Math.floor(Math.sqrt(xp / 24)));
+  }
+
+  function masteryTitle(experience) {
+    const level = masteryLevel(experience);
+    if (level >= 40) return "魂の盟友";
+    if (level >= 25) return "歴戦の相棒";
+    if (level >= 15) return "共鳴する絆";
+    if (level >= 7) return "頼れる仲間";
+    if (level >= 3) return "育成中";
+    return "はじめまして";
+  }
+
   const ELEMENT_BY_LINEAGE = Object.freeze({
     inferno: "fire", thunder: "lightning", mecha: "impact", beetle: "claw", grove: "earth", spore: "dark",
     abyss: "water", cosmic: "dark", glacier: "ice", crystal: "light", sky: "wind", tempest: "lightning",
@@ -514,6 +641,8 @@
   function combatStats(nodeId) {
     const node = NODES[nodeId] || NODES.egg;
     const archetype = COMBAT_ARCHETYPES[node.lineage] || COMBAT_ARCHETYPES.odd;
+    const element = combatElement(node.id);
+    const role = combatRole(node.id);
     const base = [
       { hp: 150, attack: 24, defense: 22, magic: 24, magicDefense: 22, speed: 20 },
       { hp: 220, attack: 34, defense: 31, magic: 34, magicDefense: 31, speed: 31 },
@@ -527,7 +656,8 @@
     const scaled = (key) => Math.max(1, Math.round(base[key] * archetype[key] * (1 + variance)));
     return {
       hp: scaled("hp"), attack: scaled("attack"), defense: scaled("defense"), magic: scaled("magic"),
-      magicDefense: scaled("magicDefense"), speed: scaled("speed"), attackType: archetype.type, special: archetype.special
+      magicDefense: scaled("magicDefense"), speed: scaled("speed"), attackType: archetype.type, special: archetype.special,
+      element: element.id, elementName: element.name, role: role.id, roleName: role.name
     };
   }
 
@@ -555,8 +685,9 @@
   }
 
   global.TeamBingoMonsterSystem = Object.freeze({
-    STAGES, LINEAGES, LEGENDARY_IDS, LEGENDARY_CHANCE, RANK6_NAMES, PASSIVE_SKILLS, NODES,
+    STAGES, LINEAGES, LEGENDARY_IDS, LEGENDARY_CHANCE, RANK6_NAMES, PASSIVE_SKILLS, ELEMENTS, ROLES, STATUS_EFFECTS, NODES,
     createPlayerMonster, normalizePlayerMonster, syncPlayerMonsters, distributedEvolutionRandom, evolvePlayerMonster,
-    rank6Requirements, canEvolveRank6, passiveSkill, battleEffect, combatStats, specialChanceForHype, dialogue, playerKey, seededRandom
+    rank6Requirements, canEvolveRank6, passiveSkill, combatElement, combatRole, elementMultiplier, statusForElement, linkTechnique,
+    masteryLevel, masteryTitle, battleEffect, combatStats, specialChanceForHype, dialogue, playerKey, seededRandom
   });
 })(window);

@@ -217,12 +217,14 @@ function mergePlayerRecord(target = {}, incoming = {}) {
   const result = { ...target };
   const numberFields = [
     "games", "wins", "losses", "opens", "closes", "skills", "specials", "mvps",
-    "straightWins", "comebackWins", "comebackMoves", "bingoLines"
+    "straightWins", "comebackWins", "comebackMoves", "bingoLines",
+    "monsterBattles", "monsterBattleWins", "monsterBattleLosses", "monsterKos", "monsterRevives",
+    "monsterSpecialMoves", "monsterLinkMoves", "monsterDamage"
   ];
   numberFields.forEach((field) => {
     result[field] = Math.max(0, Number(target[field]) || 0) + Math.max(0, Number(incoming[field]) || 0);
   });
-  ["openedCharacters", "winCharacters", "specialCharacters", "skillUsage", "monsterDex"].forEach((field) => {
+  ["openedCharacters", "winCharacters", "specialCharacters", "skillUsage", "monsterDex", "monsterMastery", "monsterBattleUsage", "monsterWinsByMonster", "monsterKosByMonster"].forEach((field) => {
     result[field] = mergeNumberMap(target[field], incoming[field]);
   });
   result.name = normalizeName(incoming.name || target.name);
@@ -454,13 +456,15 @@ export function createStatsDelta(before = {}, after = {}) {
     const numeric = {};
     [
       "games", "wins", "losses", "opens", "closes", "skills", "specials", "mvps",
-      "straightWins", "comebackWins", "comebackMoves", "bingoLines"
+      "straightWins", "comebackWins", "comebackMoves", "bingoLines",
+      "monsterBattles", "monsterBattleWins", "monsterBattleLosses", "monsterKos", "monsterRevives",
+      "monsterSpecialMoves", "monsterLinkMoves", "monsterDamage"
     ].forEach((field) => {
       const amount = (Number(record[field]) || 0) - (Number(previous[field]) || 0);
       if (amount) numeric[field] = amount;
     });
     const maps = {};
-    ["openedCharacters", "winCharacters", "specialCharacters", "skillUsage", "monsterDex"].forEach((field) => {
+    ["openedCharacters", "winCharacters", "specialCharacters", "skillUsage", "monsterDex", "monsterMastery", "monsterBattleUsage", "monsterWinsByMonster", "monsterKosByMonster"].forEach((field) => {
       const value = diffNumberMap(previous[field], record[field]);
       if (Object.keys(value).length) maps[field] = value;
     });
