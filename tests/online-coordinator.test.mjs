@@ -609,6 +609,7 @@ test("automatic ghost cleanup removes only inactive room summaries", async () =>
   store.value.teamBingoV1.rooms.FRESH = createRoom();
   store.value.teamBingoV1.rooms.GHOST = createRoom();
   store.value.teamBingoV1.rooms.CLOSED = createRoom();
+  store.value.teamBingoV1.reactions = { GHOST: { old: { type: "nice" } } };
   store.value.teamBingoV1.lobby = clone(master.rooms);
   master.renderRooms = () => {};
   master.syncAdminGhostControls = () => {};
@@ -620,6 +621,7 @@ test("automatic ghost cleanup removes only inactive room summaries", async () =>
   assert.ok(store.value.teamBingoV1.lobby.FRESH);
   assert.equal(store.value.teamBingoV1.rooms.GHOST, undefined);
   assert.equal(store.value.teamBingoV1.lobby.GHOST, undefined);
+  assert.ok(store.value.teamBingoV1.reactions.GHOST, "non-admin cleanup must not request a forbidden reaction delete");
   assert.ok(store.value.teamBingoV1.rooms.CLOSED);
   assert.ok(store.value.teamBingoV1.lobby.CLOSED);
   assert.deepEqual(Object.keys(master.rooms).sort(), ["CLOSED", "FRESH"]);
@@ -642,6 +644,7 @@ test("automatic cleanup removes a stale room that no longer has a lobby summary"
   closed.meta.updatedAt = now - 11 * 60 * 1000;
   store.value.teamBingoV1.rooms.ORPHAN = orphan;
   store.value.teamBingoV1.rooms.CLOSED_ORPHAN = closed;
+  store.value.teamBingoV1.reactions = { ORPHAN: { old: { type: "nice" } } };
   store.value.teamBingoV1.lobby = clone(master.rooms);
 
   const removed = await master.deleteOrphanedGhostRooms();
@@ -649,6 +652,7 @@ test("automatic cleanup removes a stale room that no longer has a lobby summary"
   assert.equal(removed, 1);
   assert.equal(store.value.teamBingoV1.rooms.ORPHAN, undefined);
   assert.equal(store.value.teamBingoV1.lobby.ORPHAN, undefined);
+  assert.ok(store.value.teamBingoV1.reactions.ORPHAN, "orphan cleanup must leave reaction removal to admin");
   assert.ok(store.value.teamBingoV1.rooms.CLOSED_ORPHAN);
   assert.ok(store.value.teamBingoV1.lobby.FRESH);
 });

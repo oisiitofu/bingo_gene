@@ -3517,7 +3517,7 @@ export class OnlineCoordinator {
     ghosts.forEach(([id]) => {
       updates[this.lobbyPath(id)] = null;
       updates[this.roomPath(id)] = null;
-      updates[this.reactionPath(id)] = null;
+      if (options.requireAdmin) updates[this.reactionPath(id)] = null;
     });
     this.cleanupInFlight = true;
     try {
@@ -3567,7 +3567,6 @@ export class OnlineCoordinator {
     orphanIds.forEach((id) => {
       updates[this.roomPath(id)] = null;
       updates[this.lobbyPath(id)] = null;
-      updates[this.reactionPath(id)] = null;
     });
     this.cleanupInFlight = true;
     try {
