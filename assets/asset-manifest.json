@@ -1,11 +1,11 @@
 {
   "version": 1,
-  "generatedAt": "2026-07-23T10:36:50.337Z",
+  "generatedAt": "2026-07-23T11:18:47.143Z",
   "totals": {
-    "all": 423,
-    "images": 261,
+    "all": 425,
+    "images": 263,
     "audio": 162,
-    "bytes": 271475524
+    "bytes": 284559989
   },
   "assets": [
     {
@@ -1881,6 +1881,12 @@
       "bytes": 2694715
     },
     {
+      "path": "images/monsters/rank6-a-v3.png",
+      "type": "image",
+      "category": "images/monsters",
+      "bytes": 6382249
+    },
+    {
       "path": "images/monsters/rank6-a.png",
       "type": "image",
       "category": "images/monsters",
@@ -1891,6 +1897,12 @@
       "type": "image",
       "category": "images/monsters",
       "bytes": 3110316
+    },
+    {
+      "path": "images/monsters/rank6-b-v3.png",
+      "type": "image",
+      "category": "images/monsters",
+      "bytes": 6702216
     },
     {
       "path": "images/monsters/rank6-b.png",

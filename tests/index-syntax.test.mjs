@@ -211,7 +211,8 @@ test("monster evolution has eight childhood entries, rank six fusions, passives,
     "lineage-samurai.png", "lineage-dojo.png", "lineage-sonic.png", "lineage-festival.png",
     "lineage-bloom.png", "lineage-dream.png", "lineage-slime.png", "lineage-gourmet.png",
     "lineage-ink.png", "lineage-ninja.png", "lineage-rail.png", "lineage-ryu.png",
-    "legendary.png", "legendary-new.png", "rank6-a.png", "rank6-b.png", "rank6-a-v2.png", "rank6-b-v2.png"
+    "legendary.png", "legendary-new.png", "rank6-a.png", "rank6-b.png", "rank6-a-v2.png", "rank6-b-v2.png",
+    "rank6-a-v3.png", "rank6-b-v3.png"
   ];
   monsterAssets.forEach((file) => {
     assert.ok(existsSync(new URL(`../images/monsters/${file}`, import.meta.url)), `Missing monster artwork: ${file}`);

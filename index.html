@@ -11654,6 +11654,8 @@
         els.monsterBattleEntryArt.innerHTML = monsterSpriteMarkup(node);
         els.monsterBattleEntryTeam.textContent = `${fighter.teamTitle || state[fighter.team].teamTitle} / ${fighter.team.toUpperCase()} TEAM`;
         els.monsterBattleEntryIndex.textContent = `ENTRY ${index + 1} / ${entrants.length}`;
+        const entryNameLength = Array.from(String(fighter.name || "")).length;
+        els.monsterBattleEntryName.className = `monster-battle-entry-name${entryNameLength >= 14 ? " compact" : (entryNameLength >= 10 ? " long" : "")}`;
         els.monsterBattleEntryName.textContent = fighter.name;
         els.monsterBattleEntryPlayer.textContent = `TRAINER　${fighter.playerName}`;
         els.monsterBattleEntrySpecial.textContent = `${fighter.element.name}属性 / ${fighter.role.name}　｜　必殺技 ${fighter.stats.special}　｜　固有 ${fighter.passive.name}`;

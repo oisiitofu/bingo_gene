@@ -421,7 +421,7 @@
       lineage.ultimate.forEach((name, index) => add({ id: `${lineage.id}-ultimate-${index}`, name, stage: 5, lineage: lineage.id, sprite: sprite(lineage.sheet, "400% 200%", `${index * 33.333}% 100%`, aspect, 1.14, facingFor(`ultimate-${index}`)), next: [`${lineage.id}-rank6`] }));
     });
     LINEAGES.forEach((lineage, index) => {
-      const sheet = index < 16 ? "rank6-a-v2.png" : "rank6-b-v2.png";
+      const sheet = index < 16 ? "rank6-a-v3.png" : "rank6-b-v3.png";
       const slot = index % 16;
       const x = slot % 4;
       const y = Math.floor(slot / 4);
@@ -432,7 +432,7 @@
         lineage: lineage.id,
         rank6: true,
         requirements: lineage.ultimate.map((_, ultimateIndex) => `${lineage.id}-ultimate-${ultimateIndex}`),
-        sprite: sprite(sheet, "400% 400%", `${x * 33.333}% ${y * 33.333}%`, 1, 1.20, RANK6_RIGHT_FACING.has(lineage.id) ? "right" : "left"),
+        sprite: sprite(sheet, "400% 400%", `${x * 33.333}% ${y * 33.333}%`, 1, 1.08, RANK6_RIGHT_FACING.has(lineage.id) ? "right" : "left"),
         next: []
       });
     });
