@@ -47,7 +47,7 @@
       "frontier": {
         "current": {
           ".write": "auth != null && root.child('teamBingoV1').child('adminSessions').child(auth.uid).child('expiresAt').isNumber() && root.child('teamBingoV1').child('adminSessions').child(auth.uid).child('expiresAt').val() > now",
-          ".validate": "!newData.exists() || (newData.child('version').val() === 1 && newData.hasChildren(['version', 'revision', 'season', 'tiles', 'players', 'battles', 'logs', 'updatedAt']) && newData.child('season').hasChildren(['id', 'startsAt', 'endsAt', 'status', 'tick', 'lastTickAt', 'nextTickAt']))"
+          ".validate": "!newData.exists() || (newData.child('version').val() === 1 && newData.hasChildren(['version', 'revision', 'season', 'tiles', 'players', 'updatedAt']) && newData.child('season').hasChildren(['id', 'startsAt', 'endsAt', 'status', 'tick', 'lastTickAt', 'nextTickAt']))"
         },
         "archive": {
           ".write": "auth != null && root.child('teamBingoV1').child('adminSessions').child(auth.uid).child('expiresAt').isNumber() && root.child('teamBingoV1').child('adminSessions').child(auth.uid).child('expiresAt').val() > now"

@@ -76,17 +76,21 @@ async function accessToken(env) {
   return tokenCache.value;
 }
 
-function databaseUrl(env, path) {
+function databaseUrl(env, path, token = "") {
   const base = String(env.FIREBASE_DATABASE_URL || "").replace(/\/+$/g, "");
   if (!base) throw new Error("FIREBASE_DATABASE_URL is missing");
   const encodedPath = String(path || "").split("/").filter(Boolean).map(encodeURIComponent).join("/");
-  return `${base}/${encodedPath}.json`;
+  const authQuery = String(env.FIREBASE_USE_AUTH_QUERY || "") === "true" && token
+    ? `?auth=${encodeURIComponent(token)}`
+    : "";
+  return `${base}/${encodedPath}.json${authQuery}`;
 }
 
 async function readDatabase(env, path, token, withEtag = false) {
-  const response = await fetch(databaseUrl(env, path), {
+  const useAuthQuery = String(env.FIREBASE_USE_AUTH_QUERY || "") === "true";
+  const response = await fetch(databaseUrl(env, path, token), {
     headers: {
-      authorization: `Bearer ${token}`,
+      ...(!useAuthQuery ? { authorization: `Bearer ${token}` } : {}),
       ...(withEtag ? { "x-firebase-etag": "true" } : {})
     }
   });
@@ -98,10 +102,11 @@ async function readDatabase(env, path, token, withEtag = false) {
 }
 
 async function writeDatabase(env, path, value, token, etag = "") {
-  const response = await fetch(databaseUrl(env, path), {
+  const useAuthQuery = String(env.FIREBASE_USE_AUTH_QUERY || "") === "true";
+  const response = await fetch(databaseUrl(env, path, token), {
     method: "PUT",
     headers: {
-      authorization: `Bearer ${token}`,
+      ...(!useAuthQuery ? { authorization: `Bearer ${token}` } : {}),
       "content-type": "application/json",
       ...(etag ? { "if-match": etag } : {})
     },
@@ -185,8 +190,7 @@ async function rolloverIfNeeded(env, current, playerStats, token, now) {
   return Territory.createInitialState(playerStats, now);
 }
 
-export async function advanceFrontier(env, now = Date.now()) {
-  const token = await accessToken(env);
+export async function advanceFrontierWithToken(env, token, now = Date.now()) {
   const statsPath = rootPath(env, "globalStats");
   const currentPath = rootPath(env, "frontier/current");
   for (let attempt = 0; attempt < 6; attempt += 1) {
@@ -199,7 +203,14 @@ export async function advanceFrontier(env, now = Date.now()) {
     const advanced = Territory.advanceState(rolled, playerStats, now, { maxTicks: 144 });
     const requiresWrite = !currentResult.value || rolled !== currentResult.value || advanced.processed > 0;
     if (!requiresWrite) {
-      return { ok: true, changed: false, processed: 0, state: advanced.state };
+      return {
+        ok: true,
+        changed: false,
+        processed: 0,
+        revision: advanced.state.revision,
+        seasonId: advanced.state.season.id,
+        nextTickAt: advanced.state.season.nextTickAt
+      };
     }
     const written = await writeDatabase(env, currentPath, advanced.state, token, currentResult.etag);
     if (written.committed) {
@@ -215,6 +226,10 @@ export async function advanceFrontier(env, now = Date.now()) {
     }
   }
   throw new Error("Frontier state update conflicted repeatedly");
+}
+
+export async function advanceFrontier(env, now = Date.now()) {
+  return advanceFrontierWithToken(env, await accessToken(env), now);
 }
 
 function json(value, status = 200) {

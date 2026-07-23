@@ -19,3 +19,5 @@ npx wrangler deploy
 ```
 
 手動進行は、デプロイ先の `/tick` へ `Authorization: Bearer <FRONTIER_ADMIN_TOKEN>` を付けたPOSTで実行できます。`/health` は認証なしの稼働確認用です。
+
+Cloudflare認証が未設定の期間も、`.github/workflows/six-kings-territory.yml` が同じETag付き処理を10分ごとに実行します。両方が動いても同じターンは二重処理されません。
