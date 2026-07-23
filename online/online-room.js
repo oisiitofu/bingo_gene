@@ -760,6 +760,7 @@ export class OnlineCoordinator {
     this.roomUnsubscribe = null;
     this.lobbyUnsubscribe = null;
     this.statsUnsubscribe = null;
+    this.territoryUnsubscribe = null;
     this.reactionUnsubscribe = null;
     this.seenReactionIds = new Set();
     this.lastReactionSentAt = 0;
@@ -771,6 +772,7 @@ export class OnlineCoordinator {
     this.lastAppliedSetupSignature = "";
     this.lastAppliedGameSignature = "";
     this.globalStatsSnapshot = null;
+    this.territoryState = null;
     this.globalProcessedActions = new Set();
     this.lastMasterLobbySyncKey = "";
     this.masterHandoverTimer = 0;
@@ -1007,6 +1009,7 @@ export class OnlineCoordinator {
       this.setStatus("online", this.mock ? "MOCK ONLINE" : "ONLINE");
       this.subscribeLobby();
       this.subscribeGlobalStats();
+      this.subscribeTerritory();
       this.startGhostCleanupTimer();
       const restored = await this.restoreSession();
       if (!restored) this.showLobby();
@@ -1041,6 +1044,7 @@ export class OnlineCoordinator {
             <div class="online-lobby-mode-actions">
               <button type="button" class="online-simple-button primary" id="onlineCreateRoom">部屋を作る</button>
               <button type="button" class="online-simple-button" id="onlineLocalMode">LOCAL MODE</button>
+              <button type="button" class="online-simple-button" id="onlineTerritoryMode">六王領土戦</button>
             </div>
             <div class="online-lobby-audio">
               <button type="button" class="online-simple-button" id="onlineLobbySound">SOUND ON</button>
@@ -1122,6 +1126,16 @@ export class OnlineCoordinator {
                 <span>好きなモンスターを赤2体・青2体選んで対戦します。</span>
               </div>
               <button type="button" class="online-simple-button primary" id="onlineAdminMonsterBattle">SELECT</button>
+            </div>
+            <div class="online-admin-operation">
+              <div>
+                <strong>六王領土戦</strong>
+                <span>現在の領土戦を確認、または今シーズンを初期状態へ戻します。</span>
+              </div>
+              <div class="online-admin-operation-actions">
+                <button type="button" class="online-simple-button" id="onlineAdminTerritoryOpen">OPEN</button>
+                <button type="button" class="online-simple-button danger" id="onlineAdminTerritoryReset">RESET</button>
+              </div>
             </div>
             <div class="online-admin-operation">
               <div>
@@ -1228,6 +1242,7 @@ export class OnlineCoordinator {
           <button type="button" class="online-simple-button" id="onlineOpenStatus">STATUS</button>
           <button type="button" class="online-simple-button" id="onlineOpenControl" hidden>CONTROL</button>
           <button type="button" class="online-simple-button" id="onlineOpenLobby">ROOMS</button>
+          <button type="button" class="online-simple-button" id="onlineOpenTerritory">六王領土戦</button>
           <button type="button" class="online-simple-button danger" id="onlineCloseRoom" hidden>ROOM CLOSE</button>
           <button type="button" class="online-simple-button danger" id="onlineLeaveRoom">LEAVE</button>
         </div>
@@ -1248,6 +1263,7 @@ export class OnlineCoordinator {
       roomList: document.getElementById("onlineRoomList"),
       createRoom: document.getElementById("onlineCreateRoom"),
       localMode: document.getElementById("onlineLocalMode"),
+      territoryMode: document.getElementById("onlineTerritoryMode"),
       adminMode: document.getElementById("onlineAdminMode"),
       errorBanner: document.getElementById("onlineErrorBanner"),
       adminPage: document.getElementById("onlineAdminPage"),
@@ -1262,6 +1278,8 @@ export class OnlineCoordinator {
       adminAssets: document.getElementById("onlineAdminAssets"),
       adminMonsterDex: document.getElementById("onlineAdminMonsterDex"),
       adminMonsterBattle: document.getElementById("onlineAdminMonsterBattle"),
+      adminTerritoryOpen: document.getElementById("onlineAdminTerritoryOpen"),
+      adminTerritoryReset: document.getElementById("onlineAdminTerritoryReset"),
       adminBackupSummary: document.getElementById("onlineAdminBackupSummary"),
       adminBackupNow: document.getElementById("onlineAdminBackupNow"),
       adminBackupExport: document.getElementById("onlineAdminBackupExport"),
@@ -1311,6 +1329,7 @@ export class OnlineCoordinator {
       reactionMenu: document.getElementById("onlineReactionMenu"),
       openControl: document.getElementById("onlineOpenControl"),
       openLobby: document.getElementById("onlineOpenLobby"),
+      openTerritory: document.getElementById("onlineOpenTerritory"),
       closeRoom: document.getElementById("onlineCloseRoom"),
       leaveRoom: document.getElementById("onlineLeaveRoom")
     };
@@ -1326,6 +1345,7 @@ export class OnlineCoordinator {
       this.syncLobbyVolume();
     });
     this.ui.localMode.addEventListener("click", () => this.enterLocalMode());
+    this.ui.territoryMode.addEventListener("click", () => this.bridge.openTerritoryMode?.(this.territoryState));
     this.ui.adminMode.addEventListener("click", () => {
       this.ui.adminPassword.value = "";
       this.ui.adminError.textContent = "";
@@ -1370,6 +1390,14 @@ export class OnlineCoordinator {
     this.ui.adminMonsterBattle.addEventListener("click", () => {
       if (this.isAdminMode()) this.bridge.openAdminMonsterBattleLab?.();
     });
+    this.ui.adminTerritoryOpen.addEventListener("click", () => {
+      if (this.isAdminMode()) this.bridge.openTerritoryMode?.(this.territoryState);
+    });
+    this.ui.adminTerritoryReset.addEventListener("click", async () => {
+      if (!this.isAdminMode()) return;
+      if (!window.confirm("六王領土戦の今シーズンを初期状態へ戻しますか？")) return;
+      await this.resetTerritorySeason();
+    });
     this.ui.assetClose.addEventListener("click", () => this.closeAssetManager());
     this.ui.assetSearch.addEventListener("input", () => this.renderAssetManager());
     this.ui.assetType.addEventListener("change", () => this.renderAssetManager());
@@ -1405,6 +1433,10 @@ export class OnlineCoordinator {
       this.setSessionMenuOpen(false);
       this.renderConnectionPanel();
       if (!this.ui.statusDialog.open) this.ui.statusDialog.showModal();
+    });
+    this.ui.openTerritory.addEventListener("click", () => {
+      this.setSessionMenuOpen(false);
+      this.bridge.openTerritoryMode?.(this.territoryState);
     });
     this.ui.statusClose.addEventListener("click", () => this.ui.statusDialog.close());
     this.ui.openReactions.addEventListener("click", () => {
@@ -2888,6 +2920,7 @@ export class OnlineCoordinator {
   }
 
   isOnline() { return Boolean(this.enabled && this.backend && this.roomId); }
+  getTerritoryState() { return clone(this.territoryState); }
   isApplyingRemote() { return this.applyingRemote; }
   isBusy() { return Boolean(this.busy); }
   isMaster() { return Boolean(this.roomId && this.room?.meta?.masterUid === this.backend?.uid); }
@@ -3139,6 +3172,14 @@ export class OnlineCoordinator {
       };
       this.standaloneStatsBaseline = clone(this.globalStatsSnapshot);
       this.bridge.applyOnlineStatsSnapshot?.(this.globalStatsSnapshot);
+    });
+  }
+
+  subscribeTerritory() {
+    if (this.territoryUnsubscribe) return;
+    this.territoryUnsubscribe = this.backend.subscribe(this.path("frontier/current"), (snapshot) => {
+      this.territoryState = snapshot ? clone(snapshot) : null;
+      if (snapshot) this.bridge.applyTerritorySnapshot?.(snapshot);
     });
   }
 
@@ -3436,6 +3477,26 @@ export class OnlineCoordinator {
     }
     this.bridge.showOnlineMessage?.("GLOBAL STATS RESET", kind === "ranking" ? "共通ランキングをリセットしました。" : "共通プレイヤー戦績をリセットしました。");
     return true;
+  }
+
+  async resetTerritorySeason() {
+    if (!this.enabled || !this.isAdminMode()) return false;
+    if (!await this.verifyAdminSession()) return false;
+    const initial = this.bridge.createTerritoryInitialState?.();
+    if (!initial) {
+      if (this.ui.adminResult) this.ui.adminResult.textContent = "六王領土戦の初期化に失敗しました。";
+      return false;
+    }
+    try {
+      await this.backend.set(this.path("frontier/current"), initial);
+      this.territoryState = clone(initial);
+      this.bridge.applyTerritorySnapshot?.(initial);
+      if (this.ui.adminResult) this.ui.adminResult.textContent = "六王領土戦の今シーズンを初期化しました。";
+      return true;
+    } catch (error) {
+      if (this.ui.adminResult) this.ui.adminResult.textContent = `六王領土戦 RESET ERROR: ${String(error?.message || error)}`;
+      return false;
+    }
   }
 
   async deleteGhostRooms(options = {}) {

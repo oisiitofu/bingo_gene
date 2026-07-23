@@ -179,6 +179,59 @@ function createCoordinator(store, uid, role, team) {
   return coordinator;
 }
 
+test("六王領土戦の共有状態を購読して観戦ブリッジへ渡す", () => {
+  const store = {
+    value: {
+      teamBingoV1: {
+        rooms: { ROOM: createRoom() },
+        frontier: { current: { version: 1, revision: 7, season: { id: "2026-07-20" } } }
+      }
+    }
+  };
+  const viewer = createCoordinator(store, "guest", "player", "blue");
+  viewer.territoryUnsubscribe = null;
+  let received = null;
+  viewer.bridge.applyTerritorySnapshot = (snapshot) => { received = clone(snapshot); };
+
+  viewer.subscribeTerritory();
+
+  assert.equal(viewer.territoryState.revision, 7);
+  assert.equal(received.season.id, "2026-07-20");
+  assert.equal(typeof viewer.territoryUnsubscribe, "function");
+});
+
+test("六王領土戦の初期化は有効な管理者セッションだけが実行できる", async () => {
+  const expiresAt = Date.now() + 300000;
+  const store = {
+    value: {
+      teamBingoV1: {
+        rooms: { ROOM: createRoom() },
+        adminSessions: {
+          master: {
+            pinHash: "6440e6a91202aeddb45b070a80533f65a689c37d0cf1842ab2bd962e33377880",
+            expiresAt
+          }
+        }
+      }
+    }
+  };
+  const admin = createCoordinator(store, "master", "master", "red");
+  admin.adminMode = true;
+  admin.adminExpiresAt = expiresAt;
+  admin.territoryState = null;
+  admin.ui = { adminResult: { textContent: "" } };
+  admin.bridge.createTerritoryInitialState = () => ({
+    version: 1,
+    revision: 0,
+    season: { id: "2026-07-20" }
+  });
+  admin.bridge.applyTerritorySnapshot = () => {};
+
+  assert.equal(await admin.resetTerritorySeason(), true);
+  assert.equal(store.value.teamBingoV1.frontier.current.version, 1);
+  assert.match(admin.ui.adminResult.textContent, /初期化/);
+});
+
 function createStore() {
   return {
     value: {

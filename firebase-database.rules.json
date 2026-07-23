@@ -44,6 +44,15 @@
       "globalStats": {
         ".write": "auth != null && newData.exists() && ((root.child('teamBingoV1').child('adminSessions').child(auth.uid).child('expiresAt').isNumber() && root.child('teamBingoV1').child('adminSessions').child(auth.uid).child('expiresAt').val() > now) || root.child('teamBingoV1').child('statsWriters').child(auth.uid).child('mode').val() === 'standalone' || (root.child('teamBingoV1').child('statsWriters').child(auth.uid).child('roomId').isString() && root.child('teamBingoV1').child('rooms').child(root.child('teamBingoV1').child('statsWriters').child(auth.uid).child('roomId').val()).child('meta').child('active').val() !== false && root.child('teamBingoV1').child('rooms').child(root.child('teamBingoV1').child('statsWriters').child(auth.uid).child('roomId').val()).child('participants').child(auth.uid).exists()))"
       },
+      "frontier": {
+        "current": {
+          ".write": "auth != null && root.child('teamBingoV1').child('adminSessions').child(auth.uid).child('expiresAt').isNumber() && root.child('teamBingoV1').child('adminSessions').child(auth.uid).child('expiresAt').val() > now",
+          ".validate": "!newData.exists() || (newData.child('version').val() === 1 && newData.hasChildren(['version', 'revision', 'season', 'tiles', 'players', 'battles', 'logs', 'updatedAt']) && newData.child('season').hasChildren(['id', 'startsAt', 'endsAt', 'status', 'tick', 'lastTickAt', 'nextTickAt']))"
+        },
+        "archive": {
+          ".write": "auth != null && root.child('teamBingoV1').child('adminSessions').child(auth.uid).child('expiresAt').isNumber() && root.child('teamBingoV1').child('adminSessions').child(auth.uid).child('expiresAt').val() > now"
+        }
+      },
       "legacyImports": {
         "$deviceId": {
           ".write": "auth != null && (!data.exists() || data.child('uid').val() === auth.uid)",

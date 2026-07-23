@@ -1,0 +1,13 @@
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "team-bingo-six-kings",
+  "main": "worker/territory-worker.mjs",
+  "compatibility_date": "2026-07-23",
+  "triggers": {
+    "crons": ["*/10 * * * *"]
+  },
+  "vars": {
+    "FIREBASE_DATABASE_URL": "https://team-bingo-3b04c-default-rtdb.asia-southeast1.firebasedatabase.app",
+    "FIREBASE_DATABASE_ROOT": "teamBingoV1"
+  }
+}

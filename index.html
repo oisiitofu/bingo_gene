@@ -5,6 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>TEAM BINGO CHAMPIONSHIP</title>
   <link rel="stylesheet" href="online/online-room.css" />
+  <link rel="stylesheet" href="territory-mode.css" />
   <script src="online/firebase-config.js"></script>
   <script>
     if (window.TEAM_BINGO_ONLINE_CONFIG?.enabled || new URLSearchParams(location.search).get("onlineMock") === "1") {
@@ -5623,6 +5624,9 @@
     .stats-standing-name { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
     .stats-standing-score { color: #fff; text-align: right; }
     .stats-standing-score small { display: block; color: rgba(255,255,255,.58); font-size: 8px; }
+    .stats-territory-section { grid-column: 1 / -1; }
+    .stats-territory-list { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    .stats-territory-list .stats-standing { border-left-color: var(--territory-color, rgba(255,255,255,.3)); }
 
     .stats-highlight-list,
     .stats-rivalry-list {
@@ -7186,6 +7190,7 @@
               <button type="button" class="btn active" id="randomEventButton" aria-pressed="true">EVENT ON</button>
               <button type="button" class="btn active" id="monsterBattleModeButton" aria-pressed="true">MONSTER BATTLE ON</button>
               <button type="button" class="btn" id="doubleMonsterModeButton" aria-pressed="false">DOUBLE MONSTER OFF</button>
+              <button type="button" class="btn" id="territoryModeButton">六王領土戦</button>
             </div>
 
             <div class="deck-hub" id="deckHub">
@@ -7562,6 +7567,10 @@
           <h3>MATCH HISTORY</h3>
           <div class="stats-match-list" id="statsMatchList"></div>
         </section>
+        <section class="stats-section stats-territory-section">
+          <h3>六王領土戦</h3>
+          <div class="stats-standing-list stats-territory-list" id="statsTerritoryList"></div>
+        </section>
       </div>
     </div>
   </section>
@@ -7661,6 +7670,8 @@
   </section>
 
   <script src="monster-system.js"></script>
+  <script src="territory-system.js"></script>
+  <script src="territory-mode.js"></script>
   <script>
     "use strict";
 
@@ -8547,8 +8558,8 @@
         "monsterDexModal", "monsterDexCloseButton", "statsMonsterDexSummary", "statsMonsterPlayerSelect", "statsMonsterDexGrid", "statsMonsterDexTree", "statsMonsterMasteryPage", "dexNumberViewButton", "dexTreeViewButton", "dexMasteryViewButton", "dexOverviewButton",
         "adminMonsterBattleModal", "adminMonsterRed1", "adminMonsterRed2", "adminMonsterBlue1", "adminMonsterBlue2", "adminMonsterBattleCancel", "adminMonsterBattleStart",
         "teamSelectModal", "teamSelectList", "teamSelectRedMembers", "teamSelectBlueMembers", "teamSelectShuffleButton", "teamSelectConfirmButton", "teamSelectCancelButton", "teamSelectError",
-        "statsSeasonSelect", "statsSeasonList", "statsTournamentList",
-        "randomEventButton", "monsterBattleModeButton", "doubleMonsterModeButton",
+        "statsSeasonSelect", "statsSeasonList", "statsTournamentList", "statsTerritoryList",
+        "randomEventButton", "monsterBattleModeButton", "doubleMonsterModeButton", "territoryModeButton",
         "matchReplayModal", "replayMatchMeta", "replaySummary", "replayBoards", "replayTimeline", "replayCloseButton",
         "replayPrevButton", "replayPlayButton", "replayRange", "replayStepLabel",
         "feverAura", "fxLayer", "openedByPopover", "victoryParticles", "setupThemePlayer", "copyrightToggle",
@@ -8587,6 +8598,7 @@
       els.randomEventButton?.addEventListener("click", toggleRandomEvents);
       els.monsterBattleModeButton?.addEventListener("click", toggleMonsterBattleMode);
       els.doubleMonsterModeButton?.addEventListener("click", toggleDoubleMonsterMode);
+      els.territoryModeButton?.addEventListener("click", openTerritoryMode);
       els.setupStatsButton.addEventListener("click", showStatsPage);
       els.playStatsButton.addEventListener("click", showStatsPage);
       els.randomDeckButton.addEventListener("click", selectRandomDeck);
@@ -12190,7 +12202,10 @@
       const scoreTeam = (team) => parties[team].reduce((sum, fighter) => sum + (fighter.hp / fighter.stats.hp), 0);
       const redAlive = parties.red.some((fighter) => !fighter.ko);
       const blueAlive = parties.blue.some((fighter) => !fighter.ko);
-      const winner = redAlive && !blueAlive ? "red" : (!redAlive && blueAlive ? "blue" : (scoreTeam("red") >= scoreTeam("blue") ? "red" : "blue"));
+      const calculatedWinner = redAlive && !blueAlive ? "red" : (!redAlive && blueAlive ? "blue" : (scoreTeam("red") >= scoreTeam("blue") ? "red" : "blue"));
+      const winner = options.forcedWinner === "red" || options.forcedWinner === "blue"
+        ? options.forcedWinner
+        : calculatedWinner;
       parties[winner].filter((fighter) => !fighter.ko).forEach((fighter) => {
         els.monsterBattleLog.textContent = MONSTER_SYSTEM.dialogue(fighter.nodeId, "win", random);
       });
@@ -14017,6 +14032,7 @@
         `<div class="stats-summary-card"><span class="stats-label">${label}</span><span class="stats-value">${value}</span></div>`
       )).join("");
       renderStatsExtras();
+      renderTerritoryStats();
       els.statsPlayerList.innerHTML = records.length
         ? records.map(renderStatsPlayerCard).join("")
         : `<div class="stats-empty">まだ戦績がありません。GAME START後のプレイから記録されます。</div>`;
@@ -14270,6 +14286,28 @@
       }
       renderSeasonStandings();
       if (els.statsMatchList) renderMatchHistory();
+    }
+
+    function renderTerritoryStats() {
+      if (!els.statsTerritoryList || !window.TeamBingoTerritorySystem) return;
+      const territory = window.TeamBingoTerritorySystem;
+      const liveState = onlineCoordinator?.getTerritoryState?.() || null;
+      const liveById = new Map((liveState ? territory.standings(liveState) : []).map((record, index) => [
+        record.id,
+        { ...record, rank: index + 1 }
+      ]));
+      els.statsTerritoryList.innerHTML = territory.PLAYERS.map((player) => {
+        const record = state.playerStats.players?.[territory.playerKey(player.name)] || {};
+        const total = record.territory || {};
+        const live = liveById.get(player.id);
+        return `
+          <div class="stats-standing" style="--territory-color:${player.color}">
+            <span class="stats-standing-rank">${live ? live.rank : "-"}</span>
+            <span class="stats-standing-name">${escapeHtml(player.name)}</span>
+            <span class="stats-standing-score">${live ? `${live.score} PT` : "WAITING"}<small>${live ? `${live.territoryCount}領地 / ${live.wins}勝` : "同期待ち"} / 通算優勝 ${Number(total.championships) || 0}</small></span>
+          </div>
+        `;
+      }).join("");
     }
 
     function getTodayHighlights(limit = 12) {
@@ -15515,6 +15553,9 @@
         restoreOnlineMatchPresentation,
         getOnlineStatsSnapshot,
         applyOnlineStatsSnapshot,
+        applyTerritorySnapshot,
+        openTerritoryMode,
+        createTerritoryInitialState: () => window.TeamBingoTerritorySystem?.createInitialState(state.playerStats, Date.now()) || null,
         createOnlineEvent,
         playOnlineEvent,
         showOnlineVictorySnapshot,
@@ -15854,11 +15895,46 @@
       if (!snapshot) return;
       state.ranking = cloneOnlineValue(snapshot.ranking || {});
       state.playerStats = normalizePlayerStats(snapshot.playerStats || { players: {} });
+      window.TeamBingoTerritoryMode?.setPlayerStats(state.playerStats);
       localStorage.setItem(STORAGE.ranking, JSON.stringify(state.ranking));
       localStorage.setItem(STORAGE.playerStats, JSON.stringify(state.playerStats));
       scheduleAutoBackup("online-stats");
       renderRankingTicker();
       if (els.statsModal?.classList.contains("show")) renderStatsPage();
+    }
+
+    function applyTerritorySnapshot(snapshot) {
+      if (!snapshot) return;
+      window.TeamBingoTerritoryMode?.applySnapshot(snapshot, state.playerStats);
+      if (els.statsModal?.classList.contains("show")) renderTerritoryStats();
+    }
+
+    function openTerritoryMode(snapshot = null) {
+      const liveState = snapshot || onlineCoordinator?.getTerritoryState?.() || null;
+      window.TeamBingoTerritoryMode?.open({
+        state: liveState,
+        preview: !liveState,
+        playerStats: state.playerStats,
+        spriteMarkup: (nodeId) => monsterSpriteMarkup(MONSTER_NODES[nodeId] || MONSTER_NODES.egg),
+        replayBattle: openTerritoryBattleReplay
+      });
+    }
+
+    function openTerritoryBattleReplay(battle) {
+      const red = Array.isArray(battle?.replay?.red?.lineup) ? battle.replay.red.lineup : [];
+      const blue = Array.isArray(battle?.replay?.blue?.lineup) ? battle.replay.blue.lineup : [];
+      if (!red.length || !blue.length) return;
+      window.TeamBingoTerritoryMode?.close();
+      state.adminMonsterBattleActive = true;
+      void runMonsterBattle(Number(battle.seed) || Date.now(), {
+        adminBattle: true,
+        lineup: { red, blue },
+        teamLabels: {
+          red: battle.replay.red.name || "RED",
+          blue: battle.replay.blue.name || "BLUE"
+        },
+        forcedWinner: battle.replay.winner === "blue" ? "blue" : "red"
+      });
     }
 
     function onlineCellChange(before, after, team, index) {

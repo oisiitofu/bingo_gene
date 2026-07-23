@@ -13,6 +13,25 @@ test("all inline index scripts compile", () => {
   });
 });
 
+test("六王領土戦のクライアント、Worker、Firebaseルールが公開構成へ接続されている", () => {
+  const html = readFileSync(new URL("../index.html", import.meta.url), "utf8");
+  const serviceWorker = readFileSync(new URL("../sw.js", import.meta.url), "utf8");
+  const rules = JSON.parse(readFileSync(new URL("../firebase-database.rules.json", import.meta.url), "utf8"));
+  const worker = readFileSync(new URL("../worker/territory-worker.mjs", import.meta.url), "utf8");
+
+  assert.match(html, /id="territoryModeButton">六王領土戦</);
+  assert.match(html, /src="territory-system\.js"/);
+  assert.match(html, /src="territory-mode\.js"/);
+  assert.match(html, /href="territory-mode\.css"/);
+  assert.match(serviceWorker, /\.\/territory-system\.js/);
+  assert.match(serviceWorker, /\.\/territory-mode\.js/);
+  assert.equal(
+    rules.rules.teamBingoV1.frontier.current[".write"].includes("adminSessions"),
+    true
+  );
+  assert.match(worker, /crons|advanceFrontier|If-Match|if-match/i);
+});
+
 test("every declared custom OPEN sound asset exists", () => {
   const html = readFileSync(new URL("../index.html", import.meta.url), "utf8");
   const assetPaths = Array.from(html.matchAll(/["'](audio\/open-cells\/[^"']+)["']/g))

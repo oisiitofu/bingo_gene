@@ -732,4 +732,4 @@
     masteryLevel, masteryTitle, applyMasteryStats, masteryInheritanceRate, masteryExperienceDistribution,
     battleEffect, combatStats, specialChanceForHype, dialogue, playerKey, monsterKey, seededRandom
   });
-})(window);
+})(typeof window !== "undefined" ? window : globalThis);

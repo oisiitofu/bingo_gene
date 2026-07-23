@@ -1,0 +1,543 @@
+.territory-mode {
+  position: fixed;
+  inset: 0;
+  z-index: 6100;
+  display: grid;
+  grid-template-rows: auto minmax(0, 1fr);
+  color: #f5f7fb;
+  background:
+    linear-gradient(90deg, rgba(160, 24, 49, .2), transparent 34%, transparent 66%, rgba(30, 105, 189, .2)),
+    radial-gradient(circle at 50% 48%, rgba(255, 211, 94, .08), transparent 40%),
+    #070a11;
+  font-family: "Segoe UI", "Yu Gothic UI", sans-serif;
+}
+
+.territory-mode[hidden] {
+  display: none;
+}
+
+.territory-mode button {
+  font: inherit;
+}
+
+.territory-mode-head {
+  min-height: 68px;
+  display: grid;
+  grid-template-columns: 1fr auto 1fr;
+  align-items: center;
+  gap: 18px;
+  padding: 10px 18px;
+  border-bottom: 1px solid rgba(255, 255, 255, .16);
+  background: rgba(5, 8, 14, .92);
+}
+
+.territory-mode-title {
+  margin: 0;
+  font-size: clamp(24px, 3vw, 42px);
+  line-height: 1;
+  letter-spacing: 0;
+  color: #fff;
+  text-shadow: 0 0 18px rgba(255, 206, 79, .42);
+}
+
+.territory-mode-season {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  min-width: 0;
+  color: #cbd3df;
+  font-size: 12px;
+  white-space: nowrap;
+}
+
+.territory-live-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  min-height: 28px;
+  padding: 0 10px;
+  border: 1px solid rgba(78, 245, 163, .5);
+  color: #6ff3b1;
+  background: rgba(24, 103, 68, .16);
+  font-size: 11px;
+  font-weight: 800;
+}
+
+.territory-live-badge::before {
+  width: 7px;
+  height: 7px;
+  content: "";
+  border-radius: 50%;
+  background: currentColor;
+  box-shadow: 0 0 12px currentColor;
+}
+
+.territory-live-badge.preview {
+  border-color: rgba(255, 205, 77, .5);
+  color: #ffd45d;
+}
+
+.territory-mode-close {
+  justify-self: end;
+  min-width: 92px;
+  min-height: 34px;
+  border: 1px solid rgba(255, 255, 255, .3);
+  color: #fff;
+  background: #151b25;
+  font-weight: 800;
+  cursor: pointer;
+}
+
+.territory-mode-close:hover {
+  border-color: #fff;
+  background: #232c3a;
+}
+
+.territory-mode-layout {
+  min-height: 0;
+  display: grid;
+  grid-template-columns: minmax(190px, 250px) minmax(460px, 1fr) minmax(230px, 310px);
+  grid-template-rows: minmax(0, 1fr) minmax(150px, 25vh);
+  gap: 1px;
+  background: rgba(255, 255, 255, .12);
+}
+
+.territory-panel {
+  min-width: 0;
+  min-height: 0;
+  overflow: auto;
+  background: rgba(8, 12, 20, .96);
+}
+
+.territory-panel-title {
+  position: sticky;
+  top: 0;
+  z-index: 2;
+  margin: 0;
+  padding: 12px 14px 9px;
+  color: #9eabba;
+  background: rgba(8, 12, 20, .96);
+  border-bottom: 1px solid rgba(255, 255, 255, .1);
+  font-size: 11px;
+  font-weight: 800;
+}
+
+.territory-ranking {
+  grid-column: 1;
+  grid-row: 1 / 3;
+}
+
+.territory-ranking-list {
+  display: grid;
+}
+
+.territory-rank-row {
+  --king-color: #657083;
+  position: relative;
+  display: grid;
+  grid-template-columns: 30px minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 8px;
+  min-height: 68px;
+  padding: 10px 12px 10px 14px;
+  border: 0;
+  border-bottom: 1px solid rgba(255, 255, 255, .08);
+  color: #eef3fb;
+  background: linear-gradient(90deg, color-mix(in srgb, var(--king-color) 22%, transparent), transparent 75%);
+  text-align: left;
+  cursor: pointer;
+}
+
+.territory-rank-row::before {
+  position: absolute;
+  inset: 0 auto 0 0;
+  width: 4px;
+  content: "";
+  background: var(--king-color);
+  box-shadow: 0 0 12px var(--king-color);
+}
+
+.territory-rank-row:hover,
+.territory-rank-row.active {
+  background: linear-gradient(90deg, color-mix(in srgb, var(--king-color) 34%, transparent), rgba(255, 255, 255, .04));
+}
+
+.territory-rank-position {
+  font-size: 22px;
+  font-weight: 900;
+  color: var(--king-color);
+}
+
+.territory-rank-copy {
+  min-width: 0;
+}
+
+.territory-rank-copy strong,
+.territory-rank-copy span {
+  display: block;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.territory-rank-copy strong {
+  font-size: 14px;
+}
+
+.territory-rank-copy span {
+  margin-top: 4px;
+  color: #8e9aaa;
+  font-size: 10px;
+}
+
+.territory-rank-score {
+  text-align: right;
+}
+
+.territory-rank-score strong,
+.territory-rank-score span {
+  display: block;
+}
+
+.territory-rank-score strong {
+  font-size: 20px;
+}
+
+.territory-rank-score span {
+  color: #8e9aaa;
+  font-size: 9px;
+}
+
+.territory-map-panel {
+  grid-column: 2;
+  grid-row: 1;
+  position: relative;
+  overflow: hidden;
+  background:
+    linear-gradient(rgba(255, 255, 255, .025) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255, 255, 255, .025) 1px, transparent 1px),
+    #090e18;
+  background-size: 32px 32px;
+}
+
+.territory-map {
+  width: 100%;
+  height: 100%;
+  min-height: 470px;
+  display: block;
+}
+
+.territory-hex {
+  cursor: pointer;
+  transition: filter .18s ease, opacity .18s ease;
+}
+
+.territory-hex:hover,
+.territory-hex.selected {
+  filter: brightness(1.35) drop-shadow(0 0 8px rgba(255, 255, 255, .5));
+}
+
+.territory-hex polygon {
+  fill: var(--tile-color, #313b48);
+  fill-opacity: .72;
+  stroke: color-mix(in srgb, var(--tile-color, #657083) 80%, white);
+  stroke-width: 2;
+}
+
+.territory-hex.neutral polygon {
+  fill: #1d2631;
+  fill-opacity: .88;
+  stroke: #46515f;
+}
+
+.territory-hex.base polygon {
+  stroke-width: 4;
+}
+
+.territory-hex.throne polygon,
+.territory-hex.outpost polygon {
+  stroke: #ffd45d;
+}
+
+.territory-hex text {
+  pointer-events: none;
+  text-anchor: middle;
+  dominant-baseline: central;
+  fill: #fff;
+  font-size: 12px;
+  font-weight: 900;
+  paint-order: stroke;
+  stroke: rgba(0, 0, 0, .8);
+  stroke-width: 3px;
+}
+
+.territory-map-legend {
+  position: absolute;
+  right: 12px;
+  bottom: 10px;
+  display: flex;
+  gap: 9px;
+  padding: 7px 9px;
+  color: #aab4c2;
+  background: rgba(4, 7, 12, .8);
+  border: 1px solid rgba(255, 255, 255, .12);
+  font-size: 9px;
+  pointer-events: none;
+}
+
+.territory-detail {
+  grid-column: 3;
+  grid-row: 1 / 3;
+}
+
+.territory-detail-body {
+  padding: 14px;
+}
+
+.territory-tile-heading {
+  padding-bottom: 14px;
+  border-bottom: 1px solid rgba(255, 255, 255, .1);
+}
+
+.territory-tile-heading span,
+.territory-tile-heading strong {
+  display: block;
+}
+
+.territory-tile-heading span {
+  color: #97a3b3;
+  font-size: 10px;
+}
+
+.territory-tile-heading strong {
+  margin-top: 4px;
+  font-size: 23px;
+}
+
+.territory-owner {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  margin-top: 12px;
+  font-size: 14px;
+  font-weight: 800;
+}
+
+.territory-owner::before {
+  width: 10px;
+  height: 28px;
+  content: "";
+  background: var(--owner-color, #657083);
+  box-shadow: 0 0 12px var(--owner-color, #657083);
+}
+
+.territory-squad {
+  margin-top: 14px;
+  border: 1px solid rgba(255, 255, 255, .12);
+  background: rgba(255, 255, 255, .025);
+}
+
+.territory-squad-head {
+  display: flex;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 7px 9px;
+  color: #aab5c4;
+  border-bottom: 1px solid rgba(255, 255, 255, .09);
+  font-size: 9px;
+  font-weight: 800;
+}
+
+.territory-squad-lineup {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 4px;
+  padding: 6px;
+}
+
+.territory-monster {
+  min-width: 0;
+  text-align: center;
+}
+
+.territory-monster-art {
+  display: block;
+  height: 74px;
+  overflow: hidden;
+}
+
+.territory-monster-art .monster-sprite,
+.territory-monster-art img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
+
+.territory-monster strong {
+  display: block;
+  overflow: hidden;
+  margin-top: 3px;
+  color: #dce3ed;
+  font-size: 9px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.territory-feed {
+  grid-column: 2;
+  grid-row: 2;
+  display: grid;
+  grid-template-rows: auto minmax(0, 1fr);
+}
+
+.territory-feed-list {
+  min-height: 0;
+  overflow: auto;
+  display: grid;
+  align-content: start;
+}
+
+.territory-feed-row {
+  display: grid;
+  grid-template-columns: 58px minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 9px;
+  min-height: 42px;
+  padding: 7px 12px;
+  border-bottom: 1px solid rgba(255, 255, 255, .07);
+  font-size: 11px;
+}
+
+.territory-feed-row time {
+  color: #758195;
+  font-size: 9px;
+}
+
+.territory-feed-row span {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.territory-replay-button {
+  min-height: 27px;
+  padding: 0 9px;
+  border: 1px solid rgba(255, 255, 255, .24);
+  color: #fff;
+  background: #171e29;
+  font-size: 9px;
+  font-weight: 800;
+  cursor: pointer;
+}
+
+.territory-replay-button:hover {
+  border-color: #ffd45d;
+  color: #ffd45d;
+}
+
+.territory-empty {
+  padding: 24px 14px;
+  color: #7e8998;
+  text-align: center;
+  font-size: 11px;
+}
+
+@media (max-width: 980px) {
+  .territory-mode-head {
+    grid-template-columns: 1fr auto;
+  }
+
+  .territory-mode-season {
+    grid-column: 1 / 3;
+    grid-row: 2;
+  }
+
+  .territory-mode-layout {
+    grid-template-columns: 180px minmax(430px, 1fr);
+    grid-template-rows: minmax(470px, 1fr) 220px;
+    overflow: auto;
+  }
+
+  .territory-ranking {
+    grid-column: 1;
+    grid-row: 1 / 3;
+  }
+
+  .territory-detail {
+    grid-column: 2;
+    grid-row: 2;
+    display: none;
+  }
+}
+
+@media (max-width: 700px) {
+  .territory-mode-head {
+    min-height: 58px;
+    padding: 8px 10px;
+  }
+
+  .territory-mode-title {
+    font-size: 25px;
+  }
+
+  .territory-mode-season {
+    justify-content: flex-start;
+    overflow: hidden;
+    font-size: 9px;
+  }
+
+  .territory-mode-layout {
+    display: block;
+    overflow: auto;
+  }
+
+  .territory-ranking {
+    min-height: 0;
+    overflow: visible;
+  }
+
+  .territory-ranking-list {
+    grid-template-columns: repeat(3, 1fr);
+  }
+
+  .territory-rank-row {
+    min-height: 58px;
+    grid-template-columns: 22px minmax(0, 1fr);
+    padding: 7px;
+  }
+
+  .territory-rank-score {
+    display: none;
+  }
+
+  .territory-rank-position {
+    font-size: 16px;
+  }
+
+  .territory-rank-copy strong {
+    font-size: 10px;
+  }
+
+  .territory-map-panel {
+    height: 58vh;
+    min-height: 430px;
+  }
+
+  .territory-map {
+    min-height: 430px;
+  }
+
+  .territory-feed {
+    grid-column: 2;
+    grid-row: 2;
+    min-height: 220px;
+  }
+
+  .territory-detail {
+    grid-column: auto;
+    grid-row: auto;
+    display: block;
+    min-height: 340px;
+  }
+}

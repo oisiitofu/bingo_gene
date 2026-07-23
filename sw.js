@@ -1,12 +1,15 @@
 "use strict";
 
-const CACHE_VERSION = "team-bingo-v1-20260723-monster-combat-depth-43";
+const CACHE_VERSION = "team-bingo-v1-20260723-six-kings-44";
 const SHELL_CACHE = `${CACHE_VERSION}-shell`;
 const ASSET_CACHE = `${CACHE_VERSION}-assets`;
 const SHELL_FILES = [
   "./",
   "./index.html",
   "./monster-system.js",
+  "./territory-system.js",
+  "./territory-mode.js",
+  "./territory-mode.css",
   "./monster-battle.css",
   "./online/online-room.css",
   "./online/online-room.js",
@@ -62,7 +65,7 @@ self.addEventListener("fetch", (event) => {
     event.respondWith(networkFirst(request));
     return;
   }
-  if (url.pathname === "/" || url.pathname.endsWith("firebase-config.js") || url.pathname.endsWith("index.html") || url.pathname.endsWith("monster-system.js") || url.pathname.endsWith("monster-battle.css") || url.pathname.endsWith("online-room.js") || url.pathname.endsWith("online-room.css")) {
+  if (url.pathname === "/" || url.pathname.endsWith("firebase-config.js") || url.pathname.endsWith("index.html") || url.pathname.endsWith("monster-system.js") || url.pathname.endsWith("territory-system.js") || url.pathname.endsWith("territory-mode.js") || url.pathname.endsWith("territory-mode.css") || url.pathname.endsWith("monster-battle.css") || url.pathname.endsWith("online-room.js") || url.pathname.endsWith("online-room.css")) {
     event.respondWith(networkFirst(request));
     return;
   }
