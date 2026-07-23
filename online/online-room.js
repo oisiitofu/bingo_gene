@@ -780,6 +780,7 @@ export class OnlineCoordinator {
     this.statsFlushPromise = null;
     this.statsFlushTimer = 0;
     this.statsRecoveryPromise = null;
+    this.standaloneStatsSyncPromise = null;
     this.membershipLossTimer = 0;
     this.leavingRoom = false;
     this.localMode = false;
@@ -795,6 +796,7 @@ export class OnlineCoordinator {
     this.ghostCleanupTimer = 0;
     this.nextOrphanRoomCleanupAt = 0;
     this.legacyStats = clone(bridge.getLegacyStats?.() || {});
+    this.standaloneStatsBaseline = clone(this.legacyStats);
     const requestedMockDevice = this.mock
       ? new URLSearchParams(location.search).get("onlineMockDevice")?.replace(/[^a-zA-Z0-9_-]/g, "").slice(0, 40)
       : "";
@@ -893,7 +895,7 @@ export class OnlineCoordinator {
   }
 
   scheduleStatsFlush(delay = 2000) {
-    if (!this.roomId || this.statsFlushTimer) return;
+    if (this.statsFlushTimer || !this.readPendingStats().length) return;
     this.statsFlushTimer = window.setTimeout(() => {
       this.statsFlushTimer = 0;
       this.flushPendingStats().catch((error) => console.warn("Pending stats flush failed", error));
@@ -904,7 +906,7 @@ export class OnlineCoordinator {
     if (!hasStatsDelta(delta)) return null;
     let committedStats = null;
     try {
-      committedStats = await this.commitStatsDelta(actionId, delta, occurredAt);
+      committedStats = await this.commitStatsDelta(actionId, delta, occurredAt, roomId);
     } catch (error) {
       console.warn("Stats sync delayed", error);
     }
@@ -920,16 +922,16 @@ export class OnlineCoordinator {
 
   async flushPendingStats(options = {}) {
     if (this.statsFlushPromise) return this.statsFlushPromise;
-    const roomId = options.roomId || this.roomId;
+    const roomId = options.roomId || this.roomId || "__standalone__";
     if (!roomId || !this.backend?.uid) return false;
     this.statsFlushPromise = (async () => {
       const pending = this.readPendingStats().filter((item) => item.roomId === roomId);
       let allCommitted = true;
       for (const item of pending) {
-        if (this.roomId !== roomId) return false;
+        if (roomId !== "__standalone__" && this.roomId !== roomId) return false;
         let committedStats = null;
         try {
-          committedStats = await this.commitStatsDelta(item.actionId, item.delta, item.occurredAt || item.queuedAt);
+          committedStats = await this.commitStatsDelta(item.actionId, item.delta, item.occurredAt || item.queuedAt, roomId);
         } catch (error) {
           console.warn("Pending stats retry failed", error);
         }
@@ -1004,6 +1006,7 @@ export class OnlineCoordinator {
       await this.backend.init();
       this.setStatus("online", this.mock ? "MOCK ONLINE" : "ONLINE");
       this.subscribeLobby();
+      this.subscribeGlobalStats();
       this.startGhostCleanupTimer();
       const restored = await this.restoreSession();
       if (!restored) this.showLobby();
@@ -2240,9 +2243,6 @@ export class OnlineCoordinator {
     this.startHeartbeat();
     this.startConnectionMonitor();
     this.scheduleStatsFlush(0);
-    window.setTimeout(() => {
-      if (this.isMaster()) this.importLegacyStats().catch((error) => console.error(error));
-    }, 240);
   }
 
   saveSession() {
@@ -3137,8 +3137,22 @@ export class OnlineCoordinator {
         rankingResetAt: Number(normalized.rankingResetAt) || 0,
         playerStatsResetAt: Number(normalized.playerStatsResetAt) || 0
       };
+      this.standaloneStatsBaseline = clone(this.globalStatsSnapshot);
       this.bridge.applyOnlineStatsSnapshot?.(this.globalStatsSnapshot);
     });
+  }
+
+  syncStandaloneStats(snapshot) {
+    if (!this.enabled || !this.backend || this.isOnline() || this.applyingRemote || !snapshot) return false;
+    const before = clone(this.standaloneStatsBaseline || this.globalStatsSnapshot || this.legacyStats || {});
+    const after = clone(snapshot);
+    const delta = createStatsDelta(before, after);
+    this.standaloneStatsBaseline = after;
+    if (!hasStatsDelta(delta)) return false;
+    const actionId = randomId("standalone-stats");
+    this.standaloneStatsSyncPromise = this.commitOrQueueStatsDelta(actionId, delta, "__standalone__", this.backend.serverNow())
+      .catch((error) => console.warn("Standalone stats sync failed", error));
+    return this.standaloneStatsSyncPromise;
   }
 
   async recoverRoomStats(room = this.room) {
@@ -3178,9 +3192,9 @@ export class OnlineCoordinator {
     }
   }
 
-  async commitStatsDelta(actionId, delta, occurredAt = this.backend?.serverNow?.() || Date.now()) {
+  async commitStatsDelta(actionId, delta, occurredAt = this.backend?.serverNow?.() || Date.now(), writerRoomId = this.roomId) {
     if (!actionId || !delta) return null;
-    if (!await this.ensureStatsWriter()) return null;
+    if (!await this.ensureStatsWriter(writerRoomId)) return null;
     const result = await this.backend.transaction(this.path("globalStats"), (stats) => {
       stats ||= { ranking: {}, playerStats: { players: {}, rivalries: {}, recentMatches: [] }, processedActions: {} };
       stats.processedActions ||= {};
@@ -3205,11 +3219,13 @@ export class OnlineCoordinator {
   async ensureStatsWriter(roomId = this.roomId) {
     if (!roomId || !this.backend?.uid) return false;
     try {
-      await this.backend.set(this.path(`statsWriters/${this.backend.uid}`), {
+      const writer = {
         uid: this.backend.uid,
-        roomId,
         updatedAt: this.backend.serverNow()
-      });
+      };
+      if (roomId === "__standalone__") writer.mode = "standalone";
+      else writer.roomId = roomId;
+      await this.backend.set(this.path(`statsWriters/${this.backend.uid}`), writer);
       return true;
     } catch {
       return false;

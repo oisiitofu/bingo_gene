@@ -1,11 +1,11 @@
 {
   "version": 1,
-  "generatedAt": "2026-07-22T16:34:39.121Z",
+  "generatedAt": "2026-07-23T10:36:50.337Z",
   "totals": {
-    "all": 411,
-    "images": 249,
+    "all": 423,
+    "images": 261,
     "audio": 162,
-    "bytes": 265293356
+    "bytes": 271475524
   },
   "assets": [
     {
@@ -1537,6 +1537,78 @@
       "type": "image",
       "category": "images/monster-battle/effects",
       "bytes": 2428247
+    },
+    {
+      "path": "images/monster-battle/effects/v3/claw.png",
+      "type": "image",
+      "category": "images/monster-battle/effects/v3",
+      "bytes": 368071
+    },
+    {
+      "path": "images/monster-battle/effects/v3/dark.png",
+      "type": "image",
+      "category": "images/monster-battle/effects/v3",
+      "bytes": 510393
+    },
+    {
+      "path": "images/monster-battle/effects/v3/earth.png",
+      "type": "image",
+      "category": "images/monster-battle/effects/v3",
+      "bytes": 557872
+    },
+    {
+      "path": "images/monster-battle/effects/v3/fang.png",
+      "type": "image",
+      "category": "images/monster-battle/effects/v3",
+      "bytes": 519598
+    },
+    {
+      "path": "images/monster-battle/effects/v3/fire.png",
+      "type": "image",
+      "category": "images/monster-battle/effects/v3",
+      "bytes": 512695
+    },
+    {
+      "path": "images/monster-battle/effects/v3/ice.png",
+      "type": "image",
+      "category": "images/monster-battle/effects/v3",
+      "bytes": 532241
+    },
+    {
+      "path": "images/monster-battle/effects/v3/impact.png",
+      "type": "image",
+      "category": "images/monster-battle/effects/v3",
+      "bytes": 544708
+    },
+    {
+      "path": "images/monster-battle/effects/v3/light.png",
+      "type": "image",
+      "category": "images/monster-battle/effects/v3",
+      "bytes": 559803
+    },
+    {
+      "path": "images/monster-battle/effects/v3/lightning.png",
+      "type": "image",
+      "category": "images/monster-battle/effects/v3",
+      "bytes": 501730
+    },
+    {
+      "path": "images/monster-battle/effects/v3/slash.png",
+      "type": "image",
+      "category": "images/monster-battle/effects/v3",
+      "bytes": 389115
+    },
+    {
+      "path": "images/monster-battle/effects/v3/water.png",
+      "type": "image",
+      "category": "images/monster-battle/effects/v3",
+      "bytes": 499302
+    },
+    {
+      "path": "images/monster-battle/effects/v3/wind.png",
+      "type": "image",
+      "category": "images/monster-battle/effects/v3",
+      "bytes": 686640
     },
     {
       "path": "images/monsters/childhood-extra.png",

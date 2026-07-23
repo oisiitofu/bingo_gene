@@ -290,8 +290,10 @@ test("monster evolution has eight childhood entries, rank six fusions, passives,
   assert.match(html, /node\.id\.endsWith\("-ultimate-0"\)/);
   assert.match(html, /monster-dex-card[^`]+node\.rank6/);
   const battleCss = readFileSync(new URL("../monster-battle.css", import.meta.url), "utf8");
-  assert.match(battleCss, /effects\/elemental-v2\.png/);
-  assert.match(battleCss, /effects\/physical-v2\.png/);
+  ["fire", "ice", "lightning", "wind", "earth", "water", "light", "dark", "claw", "fang", "slash", "impact"].forEach((effect) => {
+    assert.match(battleCss, new RegExp(`effects\\/v3\\/${effect}\\.png`));
+    assert.ok(existsSync(new URL(`../images/monster-battle/effects/v3/${effect}.png`, import.meta.url)), `Missing high-resolution effect: ${effect}`);
+  });
   assert.match(battleCss, /effects\/special-cutin\.png/);
   assert.match(battleCss, /\.monster-link-cutin/);
   assert.match(battleCss, /\.monster-revive-burst/);

@@ -6,12 +6,13 @@ const root = resolve(dirname(fileURLToPath(import.meta.url)), "..");
 const roots = ["images", "audio"];
 const imageExtensions = new Set([".png", ".jpg", ".jpeg", ".webp", ".gif", ".svg"]);
 const audioExtensions = new Set([".mp3", ".wav", ".ogg", ".m4a", ".aac"]);
+const ignoredDirectories = new Set(["v3-source"]);
 
 async function walk(directory) {
   const entries = await readdir(directory, { withFileTypes: true });
   const files = await Promise.all(entries.map(async (entry) => {
     const path = resolve(directory, entry.name);
-    if (entry.isDirectory()) return walk(path);
+    if (entry.isDirectory()) return ignoredDirectories.has(entry.name) ? [] : walk(path);
     return [path];
   }));
   return files.flat();

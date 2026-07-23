@@ -432,14 +432,14 @@
         lineage: lineage.id,
         rank6: true,
         requirements: lineage.ultimate.map((_, ultimateIndex) => `${lineage.id}-ultimate-${ultimateIndex}`),
-        sprite: sprite(sheet, "400% 400%", `${x * 33.333}% ${y * 33.333}%`, 1, 1.04, RANK6_RIGHT_FACING.has(lineage.id) ? "right" : "left"),
+        sprite: sprite(sheet, "400% 400%", `${x * 33.333}% ${y * 33.333}%`, 1, 1.20, RANK6_RIGHT_FACING.has(lineage.id) ? "right" : "left"),
         next: []
       });
     });
-    add({ id: "legend-sun", name: "天照皇レイオーン", stage: 5, lineage: "legend-sun", legendary: true, sprite: sprite("legendary.png", "200% 100%", "0% 50%", .75, 1.04), next: [] });
-    add({ id: "legend-night", name: "冥星王ゼロノクス", stage: 5, lineage: "legend-night", legendary: true, sprite: sprite("legendary.png", "200% 100%", "100% 50%", .75, 1.04), next: [] });
-    add({ id: "legend-world", name: "翠環神ユグドラグーン", stage: 5, lineage: "legend-world", legendary: true, sprite: sprite("legendary-new.png", "200% 100%", "0% 50%", .875, 1.02), next: [] });
-    add({ id: "legend-time", name: "時焔皇クロノフェニクス", stage: 5, lineage: "legend-time", legendary: true, sprite: sprite("legendary-new.png", "200% 100%", "100% 50%", .875, 1.02), next: [] });
+    add({ id: "legend-sun", name: "天照皇レイオーン", stage: 5, lineage: "legend-sun", legendary: true, sprite: sprite("legendary.png", "200% 100%", "0% 50%", .75, 1.16), next: [] });
+    add({ id: "legend-night", name: "冥星王ゼロノクス", stage: 5, lineage: "legend-night", legendary: true, sprite: sprite("legendary.png", "200% 100%", "100% 50%", .75, 1.16), next: [] });
+    add({ id: "legend-world", name: "翠環神ユグドラグーン", stage: 5, lineage: "legend-world", legendary: true, sprite: sprite("legendary-new.png", "200% 100%", "0% 50%", .875, 1.16), next: [] });
+    add({ id: "legend-time", name: "時焔皇クロノフェニクス", stage: 5, lineage: "legend-time", legendary: true, sprite: sprite("legendary-new.png", "200% 100%", "100% 50%", .875, 1.16), next: [] });
     return Object.freeze(nodes);
   }
 

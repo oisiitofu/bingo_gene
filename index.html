@@ -13319,6 +13319,7 @@
       const key = String(characterId);
       state.ranking[key] = (state.ranking[key] || 0) + 1;
       saveJson(STORAGE.ranking, state.ranking);
+      syncStandaloneStats();
       renderRankingTicker();
     }
 
@@ -13332,6 +13333,7 @@
         delete state.ranking[key];
       }
       saveJson(STORAGE.ranking, state.ranking);
+      syncStandaloneStats();
       renderRankingTicker();
     }
 
@@ -13750,7 +13752,12 @@
 
     function savePlayerStats() {
       saveJson(STORAGE.playerStats, state.playerStats);
+      syncStandaloneStats();
       if (els.statsModal && els.statsModal.classList.contains("show")) renderStatsPage();
+    }
+
+    function syncStandaloneStats() {
+      onlineCoordinator?.syncStandaloneStats?.(getOnlineStatsSnapshot());
     }
 
     function unlockPlayerMonster(playerName, nodeId, team = "", saveNow = true) {
@@ -15845,6 +15852,8 @@
       if (!snapshot) return;
       state.ranking = cloneOnlineValue(snapshot.ranking || {});
       state.playerStats = normalizePlayerStats(snapshot.playerStats || { players: {} });
+      localStorage.setItem(STORAGE.ranking, JSON.stringify(state.ranking));
+      localStorage.setItem(STORAGE.playerStats, JSON.stringify(state.playerStats));
       scheduleAutoBackup("online-stats");
       renderRankingTicker();
       if (els.statsModal?.classList.contains("show")) renderStatsPage();

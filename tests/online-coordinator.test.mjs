@@ -649,6 +649,52 @@ test("ranking mutations persist an authoritative timestamp even when the map bec
   assert.equal(Number(store.value.teamBingoV1.globalStats.rankingUpdatedAt) >= Number(firstUpdatedAt), true);
 });
 
+test("standalone browsers merge local-match stats into one server-authoritative snapshot", async () => {
+  const store = createStore();
+  const first = createCoordinator(store, "first-browser", "", "");
+  const second = createCoordinator(store, "second-browser", "", "");
+  [first, second].forEach((coordinator) => {
+    coordinator.roomId = "";
+    coordinator.room = null;
+    coordinator.standaloneStatsBaseline = emptyStats();
+  });
+
+  await Promise.all([
+    first.syncStandaloneStats({
+      ranking: { 53: 1 },
+      playerStats: {
+        players: { jan: { name: "JAN", opens: 1, openedCharacters: { 53: 1 } } },
+        rivalries: {},
+        recentMatches: []
+      }
+    }),
+    second.syncStandaloneStats({
+      ranking: { 69: 1 },
+      playerStats: {
+        players: { eda: { name: "EDA", opens: 1, openedCharacters: { 69: 1 } } },
+        rivalries: {},
+        recentMatches: []
+      }
+    })
+  ]);
+
+  const shared = store.value.teamBingoV1.globalStats;
+  assert.deepEqual(shared.ranking, { 53: 1, 69: 1 });
+  assert.equal(shared.playerStats.players.jan.opens, 1);
+  assert.equal(shared.playerStats.players.eda.opens, 1);
+  assert.equal(store.value.teamBingoV1.statsWriters["first-browser"].mode, "standalone");
+  assert.equal(store.value.teamBingoV1.statsWriters["second-browser"].mode, "standalone");
+
+  const viewer = createCoordinator(store, "viewer-browser", "", "");
+  viewer.roomId = "";
+  viewer.room = null;
+  viewer.statsUnsubscribe = null;
+  viewer.subscribeGlobalStats();
+  assert.deepEqual(viewer.testState.stats.ranking, { 53: 1, 69: 1 });
+  assert.equal(viewer.testState.stats.playerStats.players.jan.opens, 1);
+  assert.equal(viewer.testState.stats.playerStats.players.eda.opens, 1);
+});
+
 test("consecutive room actions survive transient stats failures and retry exactly once after reload", async () => {
   localStorage.clear();
   const store = createStore();

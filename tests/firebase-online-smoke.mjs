@@ -143,6 +143,17 @@ try {
   });
   assert.equal(outsiderWriterRegistration.ok, false, "A non-participant unexpectedly registered as a stats writer");
   assert.equal(outsiderWriterRegistration.status, 401, "A non-participant stats writer registration should receive permission_denied");
+  const standaloneWriterRegistration = await databaseRequest("PUT", `statsWriters/${outsider.localId}`, outsider.idToken, {
+    uid: outsider.localId,
+    mode: "standalone",
+    updatedAt: Date.now()
+  });
+  assert.equal(standaloneWriterRegistration.ok, true, `A local-mode client could not register its shared stats writer: ${JSON.stringify(standaloneWriterRegistration)}`);
+  const standaloneStatsWrite = await databaseRequest("PUT", `globalStats/permissionProbes/${roomId}-standalone`, outsider.idToken, true);
+  assert.equal(standaloneStatsWrite.ok, true, `A local-mode client could not update shared stats: ${JSON.stringify(standaloneStatsWrite)}`);
+  const standaloneStatsCleanup = await databaseRequest("DELETE", `globalStats/permissionProbes/${roomId}-standalone`, outsider.idToken);
+  assert.equal(standaloneStatsCleanup.ok, true, `A local-mode client could not clean its stats probe: ${JSON.stringify(standaloneStatsCleanup)}`);
+  await databaseRequest("DELETE", `statsWriters/${outsider.localId}`, outsider.idToken);
   const memberWriterRegistration = await databaseRequest("PUT", `statsWriters/${member.localId}`, member.idToken, {
     uid: member.localId,
     roomId,
