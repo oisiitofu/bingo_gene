@@ -8,6 +8,8 @@
   },
   "vars": {
     "FIREBASE_DATABASE_URL": "https://team-bingo-3b04c-default-rtdb.asia-southeast1.firebasedatabase.app",
-    "FIREBASE_DATABASE_ROOT": "teamBingoV1"
+    "FIREBASE_DATABASE_ROOT": "teamBingoV1",
+    "FIREBASE_API_KEY": "AIzaSyBwZ8eVnnhBIT2gdQqHborHLDPHzDjrp3Y",
+    "TEAM_BINGO_ADMIN_PIN_HASH": "6440e6a91202aeddb45b070a80533f65a689c37d0cf1842ab2bd962e33377880"
   }
 }

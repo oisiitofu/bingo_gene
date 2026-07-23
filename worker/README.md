@@ -10,7 +10,7 @@ npx wrangler secret put FIREBASE_PRIVATE_KEY
 npx wrangler secret put FRONTIER_ADMIN_TOKEN
 ```
 
-`FIREBASE_CLIENT_EMAIL` と `FIREBASE_PRIVATE_KEY` は、Firebaseプロジェクト `team-bingo-3b04c` のサービスアカウントから取得します。秘密鍵ファイル自体はリポジトリへ追加しません。
+`FIREBASE_CLIENT_EMAIL` と `FIREBASE_PRIVATE_KEY` は、Firebaseプロジェクト `team-bingo-3b04c` のサービスアカウントから取得します。秘密鍵ファイル自体はリポジトリへ追加しません。未設定時は、公開Firebase APIキーと短時間の匿名管理セッションを使うフォールバックで定期処理できます。
 
 ## Deploy
 

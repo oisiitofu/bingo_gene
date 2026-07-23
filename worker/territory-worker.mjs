@@ -76,6 +76,19 @@ async function accessToken(env) {
   return tokenCache.value;
 }
 
+async function firebaseIdentity(env, method, body) {
+  const apiKey = String(env.FIREBASE_API_KEY || "");
+  if (!apiKey) throw new Error("FIREBASE_API_KEY is missing");
+  const response = await fetch(`https://identitytoolkit.googleapis.com/v1/${method}?key=${encodeURIComponent(apiKey)}`, {
+    method: "POST",
+    headers: { "content-type": "application/json" },
+    body: JSON.stringify(body)
+  });
+  const value = await response.json();
+  if (!response.ok) throw new Error(`Firebase ${method} failed: ${JSON.stringify(value)}`);
+  return value;
+}
+
 function databaseUrl(env, path, token = "") {
   const base = String(env.FIREBASE_DATABASE_URL || "").replace(/\/+$/g, "");
   if (!base) throw new Error("FIREBASE_DATABASE_URL is missing");
@@ -229,7 +242,23 @@ export async function advanceFrontierWithToken(env, token, now = Date.now()) {
 }
 
 export async function advanceFrontier(env, now = Date.now()) {
-  return advanceFrontierWithToken(env, await accessToken(env), now);
+  if (env.FIREBASE_CLIENT_EMAIL && env.FIREBASE_PRIVATE_KEY) {
+    return advanceFrontierWithToken(env, await accessToken(env), now);
+  }
+  const account = await firebaseIdentity(env, "accounts:signUp", { returnSecureToken: true });
+  const anonymousEnv = { ...env, FIREBASE_USE_AUTH_QUERY: "true" };
+  const sessionPath = rootPath(env, `adminSessions/${account.localId}`);
+  try {
+    await writeDatabase(anonymousEnv, sessionPath, {
+      pinHash: env.TEAM_BINGO_ADMIN_PIN_HASH ||
+        "6440e6a91202aeddb45b070a80533f65a689c37d0cf1842ab2bd962e33377880",
+      expiresAt: Date.now() + 15 * 60 * 1000
+    }, account.idToken);
+    return await advanceFrontierWithToken(anonymousEnv, account.idToken, now);
+  } finally {
+    await writeDatabase(anonymousEnv, sessionPath, null, account.idToken).catch(() => {});
+    await firebaseIdentity(env, "accounts:delete", { idToken: account.idToken }).catch(() => {});
+  }
 }
 
 function json(value, status = 200) {
