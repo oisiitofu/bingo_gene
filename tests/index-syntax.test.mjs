@@ -17,18 +17,24 @@ test("六王領土戦のクライアント、Worker、Firebaseルールが公開
   const html = readFileSync(new URL("../index.html", import.meta.url), "utf8");
   const serviceWorker = readFileSync(new URL("../sw.js", import.meta.url), "utf8");
   const territorySystem = readFileSync(new URL("../territory-system.js", import.meta.url), "utf8");
+  const territoryEquipment = readFileSync(new URL("../territory-equipment.js", import.meta.url), "utf8");
   const territoryMap3D = readFileSync(new URL("../territory-map-3d.js", import.meta.url), "utf8");
   const territoryMode = readFileSync(new URL("../territory-mode.js", import.meta.url), "utf8");
   const rules = JSON.parse(readFileSync(new URL("../firebase-database.rules.json", import.meta.url), "utf8"));
   const worker = readFileSync(new URL("../worker/territory-worker.mjs", import.meta.url), "utf8");
 
   assert.match(html, /id="territoryModeButton">六王領土戦</);
+  assert.match(html, /id="setupMonsterButton">MONSTER</);
   assert.match(html, /src="territory-system\.js"/);
+  assert.match(html, /src="territory-equipment\.js"/);
   assert.match(html, /src="vendor\/three\/three\.min\.js"/);
   assert.match(html, /src="territory-map-3d\.js"/);
   assert.match(html, /src="territory-mode\.js"/);
   assert.match(html, /href="territory-mode\.css"/);
+  assert.match(html, /href="monster-page\.css"/);
   assert.match(serviceWorker, /\.\/territory-system\.js/);
+  assert.match(serviceWorker, /\.\/territory-equipment\.js/);
+  assert.match(serviceWorker, /\.\/monster-page\.css/);
   assert.match(serviceWorker, /\.\/territory-map-3d\.js/);
   assert.match(serviceWorker, /\.\/vendor\/three\/three\.min\.js/);
   assert.match(serviceWorker, /\.\/territory-mode\.js/);
@@ -36,11 +42,18 @@ test("六王領土戦のクライアント、Worker、Firebaseルールが公開
     rules.rules.teamBingoV1.frontier.current[".write"].includes("adminSessions"),
     true
   );
-  assert.match(rules.rules.teamBingoV1.frontier.current[".validate"], /version'\)\.val\(\) === 3/);
+  assert.match(rules.rules.teamBingoV1.frontier.current[".validate"], /version'\)\.val\(\) === 4/);
   assert.match(territorySystem, /const DEFAULT_HYPE = 20/);
   assert.match(territorySystem, /const PARTY_SIZE = 3/);
   assert.match(territorySystem, /TILE_EVENTS/);
+  assert.match(territorySystem, /equipmentAssignments/);
   assert.match(territoryMode, /TERRITORY PARTY/);
+  assert.match(territoryMode, /MONSTER \/ ITEMS/);
+  assert.match(territoryMode, /SEASON \$\{formatDate\(season\.startsAt\)\}/);
+  assert.doesNotMatch(territoryMode, /SEASON \$\{season\.id\} \//);
+  assert.match(territoryEquipment, /const RARITIES/);
+  assert.match(territoryEquipment, /chance: \.01/);
+  assert.match(territoryEquipment, /function autoAssign/);
   assert.match(territoryMode, /TeamBingoTerritoryMap3D/);
   assert.match(territoryMap3D, /new THREE\.WebGLRenderer/);
   assert.match(territoryMap3D, /addFortress/);

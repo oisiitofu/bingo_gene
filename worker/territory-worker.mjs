@@ -1,7 +1,9 @@
 import "../monster-system.js";
+import "../territory-equipment.js";
 import "../territory-system.js";
 
 const Territory = globalThis.TeamBingoTerritorySystem;
+const Equipment = globalThis.TeamBingoTerritoryEquipment;
 const TOKEN_URL = "https://oauth2.googleapis.com/token";
 const FIREBASE_SCOPES = [
   "https://www.googleapis.com/auth/firebase.database",
@@ -186,6 +188,10 @@ async function mergeSeasonStats(env, archive, token) {
         skillUses: (Number(totals.skillUses) || 0) + (Number(result.skillUses) || 0),
         bestRank: Math.min(Number(totals.bestRank) || 99, index + 1)
       };
+      Equipment.ensureStarterRecord(record);
+      const rewardCount = Equipment.rewardCountForSeason(result, index + 1);
+      const rewards = Equipment.generateRewards(`territory-season:${seasonId}:${result.id}:${index + 1}`, rewardCount);
+      Equipment.applyRewards(record, rewards);
       next.playerStats.players[key] = record;
     });
     next.territorySeasonsProcessed[seasonId] = Number(archive.archivedAt) || Date.now();

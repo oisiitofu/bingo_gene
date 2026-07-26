@@ -1,7 +1,7 @@
 (function bootstrapTerritorySystem(global) {
   "use strict";
 
-  const VERSION = 3;
+  const VERSION = 4;
   const MAP_RADIUS = 4;
   const TICK_MINUTES = 10;
   const TICK_MS = TICK_MINUTES * 60 * 1000;
@@ -159,6 +159,10 @@
     return global.TeamBingoMonsterSystem || null;
   }
 
+  function equipmentSystem() {
+    return global.TeamBingoTerritoryEquipment || null;
+  }
+
   function clone(value) {
     return value === undefined ? undefined : JSON.parse(JSON.stringify(value));
   }
@@ -293,6 +297,8 @@
       skillUses: 0,
       lastSkillTick: -1,
       lastRosterDay: "",
+      lastEquipmentDay: "",
+      equipmentAssignments: {},
       squads: [],
       partySerial: 0,
       championCount: 0
@@ -311,10 +317,13 @@
     return Math.max(1, Math.min(6, Number(node?.stage) || 1));
   }
 
-  function combatPower(nodeId, masteryXp = 0) {
+  function combatPower(nodeId, masteryXp = 0, equipment = {}) {
     const system = monsterSystem();
     if (!system?.NODES?.[nodeId]) return 1;
-    const stats = system.applyMasteryStats(system.combatStats(nodeId), masteryXp);
+    const masteryStats = system.applyMasteryStats(system.combatStats(nodeId), masteryXp);
+    const stats = equipmentSystem()?.applyEquipmentStats
+      ? equipmentSystem().applyEquipmentStats(masteryStats, equipment, nodeId)
+      : masteryStats;
     return Math.round(
       stats.hp * .18 +
       stats.attack * .82 +
@@ -329,7 +338,7 @@
     const system = monsterSystem();
     if (!system?.NODES) return [];
     const unlocked = Object.keys(record?.monsterDex || {}).filter((id) => Number(record.monsterDex[id]) > 0 && system.NODES[id] && id !== "egg");
-    return unlocked.map((nodeId) => {
+    const candidates = unlocked.map((nodeId) => {
       const node = system.NODES[nodeId];
       const masteryXp = Number(record?.monsterMastery?.[nodeId]) || 0;
       const role = system.combatRole(nodeId);
@@ -349,6 +358,17 @@
         cost: nodeCost(node),
         score: basePower + masteryXp * .06 + jitter * Math.max(5, basePower * .025)
       };
+    });
+    const assignments = equipmentSystem()?.autoAssign?.(candidates, record) || {};
+    return candidates.map((candidate) => {
+      const equipment = equipmentSystem()?.normalizeLoadout?.(assignments[candidate.nodeId]) || {};
+      const power = combatPower(candidate.nodeId, candidate.masteryXp, equipment);
+      return {
+        ...candidate,
+        equipment,
+        power,
+        score: power + candidate.masteryXp * .06 + (candidate.score - candidate.power)
+      };
     }).sort((a, b) => b.score - a.score || a.nodeId.localeCompare(b.nodeId));
   }
 
@@ -367,6 +387,7 @@
       role: role?.id || "support",
       element: element?.id || "neutral",
       power: combatPower("egg", 0),
+      equipment: {},
       cost: 0,
       score: 0
     };
@@ -523,10 +544,19 @@
     current.fatigue = Math.max(0, Number(current.fatigue) || 0);
     current.wins = Math.max(0, Number(current.wins) || 0);
     current.losses = Math.max(0, Number(current.losses) || 0);
+    const assignments = state.players[tile.ownerId]?.equipmentAssignments || {};
     current.lineup = current.lineup
       .filter((member) => member?.nodeId && monsterSystem()?.NODES?.[member.nodeId])
       .slice(0, PARTY_SIZE)
-      .map((member) => clone(member));
+      .map((member) => {
+        const next = clone(member);
+        const assigned = Object.prototype.hasOwnProperty.call(assignments, next.nodeId)
+          ? assignments[next.nodeId]
+          : next.equipment;
+        next.equipment = equipmentSystem()?.normalizeLoadout?.(assigned) || {};
+        next.power = combatPower(next.nodeId, next.masteryXp, next.equipment);
+        return next;
+      });
     while (current.lineup.length < PARTY_SIZE) current.lineup.push(eggMonster());
     return current;
   }
@@ -535,6 +565,54 @@
     Object.values(state.tiles || {})
       .sort((a, b) => a.id.localeCompare(b.id))
       .forEach((tile) => normalizeGarrison(state, playerStats, tile, now));
+    return state;
+  }
+
+  function refreshPlayerEquipment(state, playerStats, player, now = Date.now(), force = false) {
+    const playerState = state.players[player.id] || emptyPlayerState(player);
+    const day = rosterDay(now);
+    if (!force && playerState.lastEquipmentDay === day) return playerState;
+    const record = resolvePlayerRecord(playerStats, player);
+    const allCandidates = candidateMonsters(record, player, `${state.season.id}:${day}:equipment`);
+    const candidateById = new Map(allCandidates.map((candidate) => [candidate.nodeId, candidate]));
+    const activeIds = [];
+    Object.values(state.tiles || {})
+      .filter((tile) => tile.ownerId === player.id && tile.garrison?.ownerId === player.id)
+      .forEach((tile) => {
+        (tile.garrison.lineup || []).forEach((member) => {
+          if (member?.nodeId && member.nodeId !== "egg" && !activeIds.includes(member.nodeId)) activeIds.push(member.nodeId);
+        });
+      });
+    if (!activeIds.length) {
+      (playerState.squads || []).forEach((squad) => {
+        (squad.lineup || []).forEach((member) => {
+          if (member?.nodeId && member.nodeId !== "egg" && !activeIds.includes(member.nodeId)) activeIds.push(member.nodeId);
+        });
+      });
+    }
+    const activeCandidates = activeIds.map((nodeId) => candidateById.get(nodeId)).filter(Boolean);
+    const assignments = equipmentSystem()?.autoAssign?.(activeCandidates, record) || {};
+    playerState.equipmentAssignments = Object.fromEntries(activeIds.map((nodeId) => [
+      nodeId,
+      clone(assignments[nodeId] || {})
+    ]));
+    playerState.lastEquipmentDay = day;
+    state.players[player.id] = playerState;
+    Object.values(state.tiles || {})
+      .filter((tile) => tile.ownerId === player.id && tile.garrison?.ownerId === player.id)
+      .forEach((tile) => {
+        tile.garrison.lineup = (tile.garrison.lineup || []).map((member) => {
+          const next = clone(member);
+          next.equipment = equipmentSystem()?.normalizeLoadout?.(playerState.equipmentAssignments[next.nodeId]) || {};
+          next.power = combatPower(next.nodeId, next.masteryXp, next.equipment);
+          return next;
+        });
+      });
+    return playerState;
+  }
+
+  function refreshAllEquipment(state, playerStats, now = Date.now(), force = false) {
+    PLAYERS.forEach((player) => refreshPlayerEquipment(state, playerStats, player, now, force));
     return state;
   }
 
@@ -567,13 +645,14 @@
     refreshAllSquads(state, playerStats, now, true);
     assignTileEvents(state, 0, true);
     ensureTileGarrisons(state, playerStats, now);
+    refreshAllEquipment(state, playerStats, now, true);
     return state;
   }
 
   function normalizeState(raw, playerStats = {}, now = Date.now()) {
     const expectedSeason = seasonWindow(now);
     const sourceVersion = Number(raw?.version);
-    if (!raw || ![1, 2, VERSION].includes(sourceVersion) || raw.season?.id !== expectedSeason.id) {
+    if (!raw || ![1, 2, 3, VERSION].includes(sourceVersion) || raw.season?.id !== expectedSeason.id) {
       return createInitialState(playerStats, now);
     }
     const state = clone(raw);
@@ -587,7 +666,7 @@
       state.players[player.id] = { ...emptyPlayerState(player), ...(state.players[player.id] || {}) };
       state.players[player.id].squads = Array.isArray(state.players[player.id].squads) ? state.players[player.id].squads : [];
     });
-    if (sourceVersion !== VERSION) {
+    if (sourceVersion < 3) {
       Object.values(state.tiles).forEach((tile) => {
         tile.garrison = null;
       });
@@ -601,6 +680,7 @@
     refreshAllSquads(state, playerStats, now, sourceVersion !== VERSION);
     assignTileEvents(state, eventCycleForTick(state.season.tick));
     ensureTileGarrisons(state, playerStats, now);
+    refreshAllEquipment(state, playerStats, now, sourceVersion !== VERSION);
     return state;
   }
 
@@ -619,7 +699,9 @@
   function partyTerrainPower(party, terrainId, player, event = null, mode = "attack", counts = {}) {
     const lineup = party?.lineup || [];
     if (!lineup.length) return 1;
-    const base = lineup.reduce((sum, monster) => sum + (Number(monster.power) || 1), 0);
+    const base = lineup.reduce((sum, monster) => (
+      sum + (Number(monster.power) || 1) * (equipmentSystem()?.equipmentMultiplier?.(monster) || 1)
+    ), 0);
     const matches = lineup.filter((monster) => monster.element === terrainId).length;
     const roleBonus = new Set(lineup.map((monster) => monster.role)).size >= 3 ? 1.06 : 1;
     const terrainBonus = matches ? 1.1 + Math.max(0, matches - 1) * .025 : 1;
@@ -1008,6 +1090,7 @@
       });
     }
     ensureTileGarrisons(state, playerStats, at);
+    refreshAllEquipment(state, playerStats, at);
     recoverFatigue(state);
     const actions = createActions(state, random);
     const byTarget = actions.reduce((map, action) => {
@@ -1019,6 +1102,7 @@
       resolveTarget(state, targetId, byTarget[targetId], playerStats, at, random);
     });
     ensureTileGarrisons(state, playerStats, at);
+    refreshAllEquipment(state, playerStats, at, true);
     awardTerritoryPoints(state);
     state.season.lastTickAt = at;
     state.season.nextTickAt = at + TICK_MS;
@@ -1094,7 +1178,7 @@
     VERSION, MAP_RADIUS, TICK_MINUTES, TICK_MS, SEASON_DAYS, PARTY_SIZE, DEFAULT_HYPE, EVENT_REROLL_TICKS,
     PLAYERS, PLAYER_BY_ID, TERRAINS, TERRAIN_BY_ID, TILE_EVENTS, TILE_EVENT_BY_ID,
     tileId, parseTileId, neighbors, axialDistance, seasonWindow, createMap, createInitialState, normalizeState,
-    refreshAllSquads, ensureTileGarrisons, advanceState, standings, territoryCounts, tileSummary,
+    refreshAllSquads, refreshAllEquipment, ensureTileGarrisons, advanceState, standings, territoryCounts, tileSummary,
     combatPower, playerKey, hashText
   });
 })(typeof window !== "undefined" ? window : globalThis);

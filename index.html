@@ -6,6 +6,7 @@
   <title>TEAM BINGO CHAMPIONSHIP</title>
   <link rel="stylesheet" href="online/online-room.css" />
   <link rel="stylesheet" href="territory-mode.css" />
+  <link rel="stylesheet" href="monster-page.css" />
   <script src="online/firebase-config.js"></script>
   <script>
     if (window.TEAM_BINGO_ONLINE_CONFIG?.enabled || new URLSearchParams(location.search).get("onlineMock") === "1") {
@@ -929,7 +930,9 @@
     #setupShuffleButton,
     #deckModeButton,
     #setupStatsButton,
+    #setupMonsterButton,
     #playStatsButton,
+    #playMonsterButton,
     #statsCloseButton,
     #randomDeckButton,
     #clearDeckButton,
@@ -954,7 +957,8 @@
     }
 
     #deckModeButton,
-    #setupStatsButton {
+    #setupStatsButton,
+    #setupMonsterButton {
       min-height: 40px;
       padding-inline: 16px;
     }
@@ -975,7 +979,9 @@
     #setupShuffleButton::before,
     #deckModeButton::before,
     #setupStatsButton::before,
+    #setupMonsterButton::before,
     #playStatsButton::before,
+    #playMonsterButton::before,
     #statsCloseButton::before,
     #randomDeckButton::before,
     #clearDeckButton::before,
@@ -991,7 +997,9 @@
     #setupShuffleButton::after,
     #deckModeButton::after,
     #setupStatsButton::after,
+    #setupMonsterButton::after,
     #playStatsButton::after,
+    #playMonsterButton::after,
     #statsCloseButton::after,
     #randomDeckButton::after,
     #clearDeckButton::after,
@@ -7187,6 +7195,7 @@
               </div>
               <button type="button" class="btn" id="deckModeButton">DECK MODE</button>
               <button type="button" class="btn" id="setupStatsButton">STATS</button>
+              <button type="button" class="btn" id="setupMonsterButton">MONSTER</button>
               <button type="button" class="btn active" id="randomEventButton" aria-pressed="true">EVENT ON</button>
               <button type="button" class="btn active" id="monsterBattleModeButton" aria-pressed="true">MONSTER BATTLE ON</button>
               <button type="button" class="btn" id="doubleMonsterModeButton" aria-pressed="false">DOUBLE MONSTER OFF</button>
@@ -7274,6 +7283,7 @@
           <div class="top-buttons">
             <button type="button" class="btn primary" id="playStartButton">GAME START</button>
             <button type="button" class="btn frame" id="playStatsButton">STATS</button>
+            <button type="button" class="btn frame" id="playMonsterButton">MONSTER</button>
           </div>
         </div>
         <div class="top-right">
@@ -7532,7 +7542,6 @@
           <p>プレイヤー別の戦績、開けたキャラ、スキル発動回数を記録します。</p>
         </div>
         <div class="inline-actions">
-          <button type="button" class="btn frame" id="statsDexButton">MONSTER BOOK</button>
           <button type="button" class="btn primary" id="statsCloseButton">CLOSE</button>
         </div>
       </div>
@@ -7579,8 +7588,8 @@
     <div class="modal-card monster-dex-modal-card">
       <div class="stats-head monster-dex-page-head">
         <div>
-          <h2>MONSTER ENCYCLOPEDIA</h2>
-          <p id="statsMonsterDexSummary">獲得したモンスターをプレイヤー別に記録します。</p>
+          <h2>MONSTER LAB</h2>
+          <p id="statsMonsterDexSummary">モンスター・熟練度・領土戦装備をまとめて管理します。</p>
         </div>
         <div class="inline-actions monster-dex-page-actions">
           <select id="statsMonsterPlayerSelect" aria-label="図鑑を見るプレイヤー"></select>
@@ -7588,14 +7597,18 @@
             <button type="button" class="active" id="dexNumberViewButton">No.順</button>
             <button type="button" id="dexTreeViewButton">進化経路</button>
             <button type="button" id="dexMasteryViewButton">絆・熟練度</button>
+            <button type="button" id="monsterEquipmentViewButton">自動装備</button>
+            <button type="button" id="itemDexViewButton">アイテム図鑑</button>
           </div>
           <button type="button" class="btn simple-ui-btn" id="dexOverviewButton" aria-pressed="false">全体表示</button>
-          <button type="button" class="btn frame" id="monsterDexCloseButton">BACK TO STATS</button>
+          <button type="button" class="btn frame" id="monsterDexCloseButton">BACK</button>
         </div>
       </div>
       <div class="monster-dex-grid" id="statsMonsterDexGrid"></div>
       <div class="monster-dex-tree" id="statsMonsterDexTree" hidden></div>
       <div class="monster-mastery-page" id="statsMonsterMasteryPage" hidden></div>
+      <div class="monster-equipment-page" id="monsterEquipmentPage" hidden></div>
+      <div class="item-dex-page" id="itemDexPage" hidden></div>
     </div>
   </section>
 
@@ -7670,6 +7683,7 @@
   </section>
 
   <script src="monster-system.js"></script>
+  <script src="territory-equipment.js"></script>
   <script src="territory-system.js"></script>
   <script src="vendor/three/three.min.js"></script>
   <script src="territory-map-3d.js"></script>
@@ -8317,6 +8331,7 @@
     ];
     const MONSTER_SYSTEM = window.TeamBingoMonsterSystem;
     const MONSTER_NODES = MONSTER_SYSTEM.NODES;
+    const TERRITORY_EQUIPMENT = window.TeamBingoTerritoryEquipment;
 
     function buildMonsterNodes() {
       const nodes = {};
@@ -8422,7 +8437,7 @@
       activeStatsSeasonId: "",
       activeStatsMonsterPlayerKey: "",
       activeMonsterDexView: "number",
-      activeMonsterDexOverview: { number: false, tree: false, mastery: false },
+      activeMonsterDexOverview: { number: false, tree: false, mastery: false, equipment: false, items: false },
       adminMonsterDexMode: false,
       adminMonsterBattleActive: false,
       teamSelectionDraft: null,
@@ -8487,6 +8502,7 @@
         endedAt: "",
         highlights: [],
         replay: null,
+        equipmentRewards: {},
         players: { red: {}, blue: {} }
       };
     }
@@ -8543,7 +8559,7 @@
       [
         "setupScreen", "playScreen", "mode5", "mode7", "fixedMemberList", "setupStartButton",
         "soundButton", "playSoundButton", "volumeSliderSetup", "volumeSliderPlay",
-        "volumeValueSetup", "volumeValuePlay", "deckModeButton", "setupStatsButton", "playStatsButton", "deckHub", "deckGrid",
+        "volumeValueSetup", "volumeValuePlay", "deckModeButton", "setupStatsButton", "playStatsButton", "setupMonsterButton", "playMonsterButton", "deckHub", "deckGrid",
         "deckStatusMessage", "generatedDeckCode", "randomDeckButton", "clearDeckButton",
         "copyDeckButton", "redDeckLoadCode", "blueDeckLoadCode", "bothDefaultDeckButton",
         "setupRoomIdInput", "redSetupMembers", "blueSetupMembers", "backButton", "playStartButton",
@@ -8556,8 +8572,8 @@
         "skillOverlay", "skillTitleArt", "skillTeamLine", "skillMemberLine",
         "victoryOverlay", "victoryTeam", "victoryPraise", "victorySpecialBadge", "mvpImage", "mvpName", "mvpTitle", "winnerTitles", "victoryResultPanel",
         "closeVictoryButton",
-        "statsModal", "statsSummary", "statsPlayerList", "statsHighlightList", "statsRivalryList", "statsMatchList", "statsCloseButton", "statsDexButton",
-        "monsterDexModal", "monsterDexCloseButton", "statsMonsterDexSummary", "statsMonsterPlayerSelect", "statsMonsterDexGrid", "statsMonsterDexTree", "statsMonsterMasteryPage", "dexNumberViewButton", "dexTreeViewButton", "dexMasteryViewButton", "dexOverviewButton",
+        "statsModal", "statsSummary", "statsPlayerList", "statsHighlightList", "statsRivalryList", "statsMatchList", "statsCloseButton",
+        "monsterDexModal", "monsterDexCloseButton", "statsMonsterDexSummary", "statsMonsterPlayerSelect", "statsMonsterDexGrid", "statsMonsterDexTree", "statsMonsterMasteryPage", "monsterEquipmentPage", "itemDexPage", "dexNumberViewButton", "dexTreeViewButton", "dexMasteryViewButton", "monsterEquipmentViewButton", "itemDexViewButton", "dexOverviewButton",
         "adminMonsterBattleModal", "adminMonsterRed1", "adminMonsterRed2", "adminMonsterBlue1", "adminMonsterBlue2", "adminMonsterBattleCancel", "adminMonsterBattleStart",
         "teamSelectModal", "teamSelectList", "teamSelectRedMembers", "teamSelectBlueMembers", "teamSelectShuffleButton", "teamSelectConfirmButton", "teamSelectCancelButton", "teamSelectError",
         "statsSeasonSelect", "statsSeasonList", "statsTournamentList", "statsTerritoryList",
@@ -8603,6 +8619,8 @@
       els.territoryModeButton?.addEventListener("click", openTerritoryMode);
       els.setupStatsButton.addEventListener("click", showStatsPage);
       els.playStatsButton.addEventListener("click", showStatsPage);
+      els.setupMonsterButton?.addEventListener("click", showMonsterDexPage);
+      els.playMonsterButton?.addEventListener("click", showMonsterDexPage);
       els.randomDeckButton.addEventListener("click", selectRandomDeck);
       els.clearDeckButton.addEventListener("click", clearDeckSelection);
       els.copyDeckButton.addEventListener("click", copyDeckCode);
@@ -8643,13 +8661,14 @@
         button.addEventListener("click", () => loadDeckFromInput(button.dataset.loadDeck));
       });
       els.statsCloseButton.addEventListener("click", () => hideModal(els.statsModal));
-      els.statsDexButton?.addEventListener("click", showMonsterDexPage);
       els.monsterDexCloseButton?.addEventListener("click", closeMonsterDexPage);
       els.adminMonsterBattleCancel?.addEventListener("click", closeAdminMonsterBattleLab);
       els.adminMonsterBattleStart?.addEventListener("click", startAdminMonsterBattle);
       els.dexNumberViewButton?.addEventListener("click", () => setMonsterDexView("number"));
       els.dexTreeViewButton?.addEventListener("click", () => setMonsterDexView("tree"));
       els.dexMasteryViewButton?.addEventListener("click", () => setMonsterDexView("mastery"));
+      els.monsterEquipmentViewButton?.addEventListener("click", () => setMonsterDexView("equipment"));
+      els.itemDexViewButton?.addEventListener("click", () => setMonsterDexView("items"));
       els.dexOverviewButton?.addEventListener("click", toggleMonsterDexOverview);
       els.teamSelectShuffleButton?.addEventListener("click", shuffleTeamSelectionDraft);
       els.teamSelectConfirmButton?.addEventListener("click", confirmTeamSelection);
@@ -9156,6 +9175,7 @@
       renderSetupPreview();
       renderRankingTicker();
       if (els.statsModal?.classList.contains("show")) renderStatsPage();
+      if (els.monsterDexModal?.classList.contains("show") && !state.adminMonsterDexMode) renderMonsterDex();
       return cloneOnlineValue(backup);
     }
 
@@ -12351,6 +12371,7 @@
 
     function renderVictoryPlayerResult(entry, isMvp = false) {
       const characters = renderMiniCharacterChips(entry.characters, 4);
+      const equipmentReward = state.matchTracker?.equipmentRewards?.[entry.key];
       return `
         <article class="result-player${isMvp ? " mvp" : ""}">
           <div class="result-player-main">
@@ -12361,6 +12382,7 @@
             <span class="result-chip">OPEN ${entry.opens}</span>
             <span class="result-chip">SKILL ${entry.skills}</span>
             <span class="result-chip">逆転 ${entry.comebackMoves}</span>
+            ${equipmentReward ? `<span class="result-chip territory-loot-chip">装備 +${Number(equipmentReward.count) || 0}</span>` : ""}
           </div>
           <div class="result-character-row">${characters || `<span class="result-chip">NO OPEN</span>`}</div>
         </article>
@@ -13390,6 +13412,7 @@
         stat.monsterSpecialMoves = toStatNumber(value.monsterSpecialMoves);
         stat.monsterLinkMoves = toStatNumber(value.monsterLinkMoves);
         stat.monsterDamage = toStatNumber(value.monsterDamage);
+        stat.territoryEquipmentDrops = toStatNumber(value.territoryEquipmentDrops);
         stat.lastPlayedAt = typeof value.lastPlayedAt === "string" ? value.lastPlayedAt : "";
         stat.lastTeam = typeof value.lastTeam === "string" ? value.lastTeam : "";
         stat.openedCharacters = normalizeCountMap(value.openedCharacters);
@@ -13401,6 +13424,9 @@
         stat.monsterBattleUsage = normalizeCountMap(value.monsterBattleUsage);
         stat.monsterWinsByMonster = normalizeCountMap(value.monsterWinsByMonster);
         stat.monsterKosByMonster = normalizeCountMap(value.monsterKosByMonster);
+        stat.territoryEquipment = normalizeCountMap(value.territoryEquipment);
+        stat.territoryItemDex = normalizeCountMap(value.territoryItemDex);
+        stat.territoryRewardRarity = normalizeCountMap(value.territoryRewardRarity);
         players[playerStatsKey(name)] = stat;
       });
       return {
@@ -13433,6 +13459,7 @@
         monsterSpecialMoves: 0,
         monsterLinkMoves: 0,
         monsterDamage: 0,
+        territoryEquipmentDrops: 0,
         openedCharacters: {},
         specialCharacters: {},
         winCharacters: {},
@@ -13442,6 +13469,9 @@
         monsterBattleUsage: {},
         monsterWinsByMonster: {},
         monsterKosByMonster: {},
+        territoryEquipment: {},
+        territoryItemDex: {},
+        territoryRewardRarity: {},
         lastTeam: "",
         lastPlayedAt: ""
       };
@@ -13495,6 +13525,9 @@
           victoryKind: typeof match.victoryKind === "string" ? match.victoryKind : "normal",
           seasonId: typeof match.seasonId === "string" ? match.seasonId : getSeasonId(match.endedAt || match.startedAt),
           mvpName: typeof match.mvpName === "string" ? match.mvpName : "",
+          equipmentRewards: match.equipmentRewards && typeof match.equipmentRewards === "object"
+            ? cloneOnlineValue(match.equipmentRewards)
+            : {},
           highlights: Array.isArray(match.highlights) ? match.highlights.slice(0, 40) : [],
           replay: normalizeMatchReplay(match.replay)
         }))
@@ -13866,11 +13899,42 @@
           touchPlayerStat(stat, team);
         });
       });
+      awardTerritoryEquipmentForMatch(winnerTeam, mvpName);
       if (mvpName) recordPlayerMvp(mvpName, winnerTeam, false);
       recordWinnerCharacterStats(winnerTeam);
       recordRivalries(winnerTeam);
       recordRecentMatch(winnerTeam, victoryKind, mvpName);
       savePlayerStats();
+    }
+
+    function awardTerritoryEquipmentForMatch(winnerTeam, mvpName = "") {
+      if (!TERRITORY_EQUIPMENT || !state.matchTracker) return;
+      state.matchTracker.equipmentRewards = {};
+      ["red", "blue"].forEach((team) => {
+        const won = team === winnerTeam;
+        getUniqueTeamMembers(team).forEach((member) => {
+          const stat = getPlayerStat(member);
+          TERRITORY_EQUIPMENT.ensureStarterRecord(stat);
+          const playerKey = playerStatsKey(member);
+          const matchEntry = findMatchPlayerByKey(playerKey);
+          const count = TERRITORY_EQUIPMENT.rewardCountForMatch({
+            won,
+            mvp: playerStatsKey(mvpName) === playerKey,
+            bingoLines: state[team].bingoCount,
+            totalMonsterCount: Object.keys(stat.monsterDex || {}).length,
+            opens: Number(matchEntry?.opens) || 0
+          });
+          const rewards = TERRITORY_EQUIPMENT.generateRewards(
+            `bingo:${state.matchTracker.id}:${playerKey}:${team}`,
+            count
+          );
+          TERRITORY_EQUIPMENT.applyRewards(stat, rewards);
+          state.matchTracker.equipmentRewards[playerKey] = {
+            count,
+            items: rewards
+          };
+        });
+      });
     }
 
     function recordWinnerCharacterStats(winnerTeam) {
@@ -13926,6 +13990,7 @@
         seasonId: getSeasonId(state.matchTracker.endedAt),
         victoryKind,
         mvpName,
+        equipmentRewards: cloneOnlineValue(state.matchTracker.equipmentRewards || {}),
         highlights: state.matchTracker.highlights.slice(-24),
         replay: cloneOnlineValue(state.matchTracker.replay)
       };
@@ -14021,16 +14086,14 @@
         acc.skills += record.skills;
         acc.specials += record.specials;
         acc.mvps += record.mvps;
-        acc.monsterBattles += record.monsterBattles;
         return acc;
-      }, { games: 0, wins: 0, opens: 0, skills: 0, specials: 0, mvps: 0, monsterBattles: 0 });
+      }, { games: 0, wins: 0, opens: 0, skills: 0, specials: 0, mvps: 0 });
       els.statsSummary.innerHTML = [
         ["PLAYERS", records.length],
         ["PLAYER PLAYS", totals.games],
         ["TOTAL OPENS", totals.opens],
         ["SPECIAL", totals.specials],
-        ["MVP", totals.mvps],
-        ["MONSTER BATTLE", totals.monsterBattles]
+        ["MVP", totals.mvps]
       ].map(([label, value]) => (
         `<div class="stats-summary-card"><span class="stats-label">${label}</span><span class="stats-value">${value}</span></div>`
       )).join("");
@@ -14051,7 +14114,8 @@
 
     function showMonsterDexPage() {
       state.adminMonsterDexMode = false;
-      hideModal(els.statsModal);
+      if (els.statsModal?.classList.contains("show")) hideModal(els.statsModal);
+      els.monsterDexCloseButton.textContent = "BACK";
       renderMonsterDex();
       setMonsterDexView(state.activeMonsterDexView || "number");
       showModal(els.monsterDexModal);
@@ -14061,11 +14125,8 @@
       hideModal(els.monsterDexModal);
       if (state.adminMonsterDexMode) {
         state.adminMonsterDexMode = false;
-        els.monsterDexCloseButton.textContent = "BACK TO STATS";
         return;
       }
-      renderStatsPage();
-      showModal(els.statsModal);
     }
 
     function showAdminMonsterDex() {
@@ -14107,16 +14168,22 @@
     }
 
     function setMonsterDexView(view) {
-      state.activeMonsterDexView = ["number", "tree", "mastery"].includes(view) ? view : "number";
+      state.activeMonsterDexView = ["number", "tree", "mastery", "equipment", "items"].includes(view) ? view : "number";
       const treeActive = state.activeMonsterDexView === "tree";
       const masteryActive = state.activeMonsterDexView === "mastery";
+      const equipmentActive = state.activeMonsterDexView === "equipment";
+      const itemsActive = state.activeMonsterDexView === "items";
       els.dexNumberViewButton?.classList.toggle("active", state.activeMonsterDexView === "number");
       els.dexTreeViewButton?.classList.toggle("active", treeActive);
       els.dexMasteryViewButton?.classList.toggle("active", masteryActive);
-      if (els.statsMonsterDexGrid) els.statsMonsterDexGrid.hidden = treeActive || masteryActive;
+      els.monsterEquipmentViewButton?.classList.toggle("active", equipmentActive);
+      els.itemDexViewButton?.classList.toggle("active", itemsActive);
+      if (els.statsMonsterDexGrid) els.statsMonsterDexGrid.hidden = treeActive || masteryActive || equipmentActive || itemsActive;
       if (els.statsMonsterDexTree) els.statsMonsterDexTree.hidden = !treeActive;
       if (els.statsMonsterMasteryPage) els.statsMonsterMasteryPage.hidden = !masteryActive;
-      if (els.dexOverviewButton) els.dexOverviewButton.hidden = masteryActive;
+      if (els.monsterEquipmentPage) els.monsterEquipmentPage.hidden = !equipmentActive;
+      if (els.itemDexPage) els.itemDexPage.hidden = !itemsActive;
+      if (els.dexOverviewButton) els.dexOverviewButton.hidden = masteryActive || equipmentActive || itemsActive;
       applyMonsterDexOverview();
     }
 
@@ -14235,6 +14302,113 @@
       }).join("") : `<div class="stats-empty">モンスターバトル後に絆・熟練度が記録されます。</div>`;
     }
 
+    function equipmentItemMarkup(item, count = null, compact = false) {
+      if (!item) return `<span class="equipment-slot-empty">EMPTY</span>`;
+      const rarity = TERRITORY_EQUIPMENT.RARITY_BY_ID[item.rarity];
+      const slot = TERRITORY_EQUIPMENT.SLOT_BY_ID[item.slot];
+      return `<article class="equipment-item rarity-${escapeHtml(item.rarity)}${compact ? " compact" : ""}" style="--rarity-color:${rarity.color}">
+        <span class="equipment-item-icon">${escapeHtml(slot.mark)}</span>
+        <span class="equipment-item-copy">
+          <em>${escapeHtml(rarity.name)} / ${escapeHtml(slot.name)}${count === null ? "" : ` / ×${count}`}</em>
+          <strong>${escapeHtml(item.name)}</strong>
+          ${compact ? "" : `<small>${escapeHtml(item.description)}</small>`}
+        </span>
+      </article>`;
+    }
+
+    function renderMonsterEquipmentPage(record, nodes, unlocked) {
+      if (!els.monsterEquipmentPage || !TERRITORY_EQUIPMENT) return;
+      const virtualRecord = cloneOnlineValue(record);
+      TERRITORY_EQUIPMENT.ensureStarterRecord(virtualRecord);
+      const liveTerritory = onlineCoordinator?.getTerritoryState?.() || null;
+      const territoryPlayer = window.TeamBingoTerritorySystem?.PLAYERS?.find((player) => (
+        playerStatsKey(player.name) === playerStatsKey(record.name)
+      ));
+      const liveMembers = territoryPlayer
+        ? Object.values(liveTerritory?.tiles || {})
+          .filter((tile) => tile.ownerId === territoryPlayer.id)
+          .flatMap((tile) => tile.garrison?.lineup || [])
+          .filter((member) => member?.nodeId && member.nodeId !== "egg")
+        : [];
+      const liveLoadouts = new Map(liveMembers.map((member) => [member.nodeId, member.equipment || {}]));
+      const hasLiveEquipment = [...liveLoadouts.values()].some((loadout) => Object.keys(loadout || {}).length > 0);
+      let monsters = nodes
+        .filter((node) => unlocked[node.id] && node.id !== "egg")
+        .map((node) => {
+          const masteryXp = Number(record.monsterMastery?.[node.id]) || 0;
+          return {
+            nodeId: node.id,
+            node,
+            role: MONSTER_SYSTEM.combatRole(node.id).id,
+            element: MONSTER_SYSTEM.combatElement(node.id).id,
+            masteryXp,
+            score: node.stage * 100 + MONSTER_SYSTEM.masteryLevel(masteryXp) * 4
+          };
+        })
+        .sort((a, b) => b.score - a.score || a.node.name.localeCompare(b.node.name, "ja-JP"));
+      if (hasLiveEquipment) monsters = monsters.filter((monster) => liveLoadouts.has(monster.nodeId));
+      else monsters = monsters.slice(0, 24);
+      const assignments = hasLiveEquipment
+        ? Object.fromEntries(liveLoadouts)
+        : TERRITORY_EQUIPMENT.autoAssign(monsters, virtualRecord);
+      const inventory = TERRITORY_EQUIPMENT.effectiveInventory(virtualRecord);
+      const owned = Object.values(inventory).reduce((sum, count) => sum + Number(count || 0), 0);
+      els.monsterEquipmentPage.innerHTML = `
+        <div class="monster-equipment-summary">
+          <div><span>DAILY AUTO EQUIP</span><strong>${escapeHtml(record.name)}</strong></div>
+          <p>毎日0時以降の領土戦更新で、所持品から属性・役割・攻撃タイプに合う装備へ自動更新されます。装備効果は領土戦のみ有効です。</p>
+          <b>${owned} ITEMS / ${monsters.length} MONSTERS</b>
+        </div>
+        <div class="monster-equipment-grid">
+          ${monsters.length ? monsters.map(({ node, masteryXp }) => {
+            const loadout = assignments[node.id] || {};
+            const items = TERRITORY_EQUIPMENT.loadoutItems(loadout);
+            const baseStats = MONSTER_SYSTEM.applyMasteryStats(MONSTER_SYSTEM.combatStats(node.id), masteryXp);
+            const stats = TERRITORY_EQUIPMENT.applyEquipmentStats(baseStats, loadout, node.id);
+            return `<section class="monster-loadout-card">
+              <div class="monster-loadout-head">
+                <span class="monster-loadout-art">${monsterSpriteMarkup(node)}</span>
+                <span><strong>${escapeHtml(node.name)}</strong><small>${escapeHtml(MONSTER_SYSTEM.combatElement(node.id).name)} / ${escapeHtml(MONSTER_SYSTEM.combatRole(node.id).name)}</small></span>
+              </div>
+              <div class="monster-loadout-items">${TERRITORY_EQUIPMENT.SLOTS.map((slot) => (
+                equipmentItemMarkup(TERRITORY_EQUIPMENT.ITEM_BY_ID[loadout[slot.id]], null, true)
+              )).join("")}</div>
+              <div class="monster-loadout-stats">HP ${stats.hp}　攻 ${stats.attack}　防 ${stats.defense}　魔 ${stats.magic}　魔防 ${stats.magicDefense}　速 ${stats.speed}</div>
+              <div class="monster-loadout-note">${items.length === 3 ? "AUTO EQUIPPED" : `装備枠 ${items.length} / 3`}</div>
+            </section>`;
+          }).join("") : `<div class="stats-empty">図鑑へモンスターを登録すると自動装備の編成が表示されます。</div>`}
+        </div>
+      `;
+    }
+
+    function renderTerritoryItemDex(record) {
+      if (!els.itemDexPage || !TERRITORY_EQUIPMENT) return;
+      const virtualRecord = cloneOnlineValue(record);
+      TERRITORY_EQUIPMENT.ensureStarterRecord(virtualRecord);
+      const inventory = TERRITORY_EQUIPMENT.effectiveInventory(virtualRecord);
+      const discovered = virtualRecord.territoryItemDex || {};
+      const foundCount = TERRITORY_EQUIPMENT.ITEMS.filter((item) => discovered[item.id]).length;
+      els.itemDexPage.innerHTML = `
+        <div class="item-dex-summary">
+          <div><span>ITEM ENCYCLOPEDIA</span><strong>${escapeHtml(record.name)}</strong></div>
+          <b>${foundCount} / ${TERRITORY_EQUIPMENT.ITEMS.length} DISCOVERED</b>
+          <p>試合終了と領土戦シーズン終了時に獲得。報酬数は勝敗・ビンゴ数・戦績で変わりますが、レアリティ抽選率は全員共通です。レジェンダリーは1%です。</p>
+        </div>
+        <div class="item-dex-rarity-legend">${TERRITORY_EQUIPMENT.RARITIES.map((rarity) => (
+          `<span style="--rarity-color:${rarity.color}"><i></i>${escapeHtml(rarity.name)} ${Math.round(rarity.chance * 100)}%</span>`
+        )).join("")}</div>
+        <div class="item-dex-grid">${TERRITORY_EQUIPMENT.ITEMS
+          .slice()
+          .sort((a, b) => b.sort - a.sort)
+          .map((item) => {
+            const found = Boolean(discovered[item.id]);
+            return found
+              ? equipmentItemMarkup(item, Number(inventory[item.id]) || 0)
+              : `<article class="equipment-item locked"><span class="equipment-item-icon">?</span><span class="equipment-item-copy"><em>UNKNOWN</em><strong>未発見アイテム</strong><small>${escapeHtml(TERRITORY_EQUIPMENT.SLOT_BY_ID[item.slot].name)}</small></span></article>`;
+          }).join("")}</div>
+      `;
+    }
+
     function renderMonsterDex(records = getPlayerStatsRecords()) {
       if (!els.statsMonsterPlayerSelect || !els.statsMonsterDexGrid || !els.statsMonsterDexSummary) return;
       if (!records.length) {
@@ -14245,6 +14419,8 @@
         els.statsMonsterDexGrid.innerHTML = `<div class="stats-empty">まだモンスターを発見していません。</div>`;
         els.statsMonsterDexTree.innerHTML = `<div class="stats-empty">まだモンスターを発見していません。</div>`;
         els.statsMonsterMasteryPage.innerHTML = `<div class="stats-empty">まだ絆・熟練度の記録がありません。</div>`;
+        els.monsterEquipmentPage.innerHTML = `<div class="stats-empty">まだ自動装備の対象モンスターがいません。</div>`;
+        els.itemDexPage.innerHTML = `<div class="stats-empty">プレイヤーを登録するとスターター装備が表示されます。</div>`;
         return;
       }
       els.statsMonsterPlayerSelect.disabled = false;
@@ -14258,7 +14434,7 @@
       const nodes = getMonsterDexNodes();
       const unlocked = record.monsterDex || {};
       const acquired = nodes.filter((node) => unlocked[node.id]).length;
-      els.statsMonsterDexSummary.textContent = `${record.name}　${acquired} / ${nodes.length} DISCOVERED`;
+      els.statsMonsterDexSummary.textContent = `${record.name}　${acquired} / ${nodes.length} DISCOVERED　｜　${record.monsterBattles || 0} BATTLE　${record.monsterBattleWins || 0} WIN　${record.monsterKos || 0} KO　装備 ${record.territoryEquipmentDrops || 0} DROP`;
       els.statsMonsterDexGrid.innerHTML = nodes.map((node, index) => {
         const found = Boolean(unlocked[node.id]);
         const rank6Progress = node.rank6 ? (node.requirements || []).filter((id) => unlocked[id]).length : 0;
@@ -14271,6 +14447,8 @@
       }).join("");
       renderMonsterDexTree(record, nodes, unlocked);
       renderMonsterMasteryPage(record, nodes, unlocked);
+      renderMonsterEquipmentPage(record, nodes, unlocked);
+      renderTerritoryItemDex(record);
       setMonsterDexView(state.activeMonsterDexView);
     }
 
@@ -14653,13 +14831,6 @@
             ${renderStatPill(record.straightWins, "STRAIGHT")}
             ${renderStatPill(record.comebackWins, "逆転WIN")}
             ${renderStatPill(record.comebackMoves, "逆転一手")}
-            ${renderStatPill(record.monsterBattles, "M-BATTLE")}
-            ${renderStatPill(record.monsterBattleWins, "M-WIN")}
-            ${renderStatPill(record.monsterKos, "M-KO")}
-            ${renderStatPill(record.monsterSpecialMoves, "M-SPECIAL")}
-            ${renderStatPill(record.monsterLinkMoves, "LINK")}
-            ${renderStatPill(record.monsterRevives, "REVIVE")}
-            ${renderStatPill(record.monsterDamage, "DAMAGE")}
           </div>
           <div class="stats-subtitle">OPENED CHARACTERS</div>
           <div class="character-log">${characterHtml}</div>
@@ -15920,7 +16091,8 @@
         playerStats: state.playerStats,
         spriteMarkup: (nodeId) => monsterSpriteMarkup(MONSTER_NODES[nodeId] || MONSTER_NODES.egg),
         replayBattle: openTerritoryBattleReplay,
-        showMonsterDetail: showMonsterNodeZoom
+        showMonsterDetail: showMonsterNodeZoom,
+        openMonsterPage: showMonsterDexPage
       });
     }
 

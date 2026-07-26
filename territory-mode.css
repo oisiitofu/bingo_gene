@@ -89,6 +89,16 @@
   cursor: pointer;
 }
 
+.territory-mode-actions {
+  justify-self: end;
+  display: flex;
+  gap: 7px;
+}
+
+.territory-mode-actions .territory-mode-close:first-child {
+  min-width: 138px;
+}
+
 .territory-mode-close:hover {
   border-color: #fff;
   background: #232c3a;
@@ -594,6 +604,31 @@
   white-space: nowrap;
 }
 
+.territory-monster-equipment {
+  min-height: 17px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 2px;
+  margin-top: 3px;
+  color: #657184;
+  font-size: 6px;
+  font-weight: 900;
+}
+
+.territory-monster-equipment i {
+  --item-color: #aeb8c5;
+  width: 16px;
+  height: 16px;
+  display: grid;
+  place-items: center;
+  border: 1px solid color-mix(in srgb, var(--item-color) 70%, transparent);
+  color: var(--item-color);
+  background: rgba(0, 0, 0, .34);
+  font-size: 7px;
+  font-style: normal;
+}
+
 .territory-monster-detail-label {
   display: block;
   margin-top: 4px;
@@ -701,6 +736,18 @@ body.territory-mode-open .monster-zoom-overlay {
 
   .territory-mode-title {
     font-size: 25px;
+  }
+
+  .territory-mode-actions {
+    gap: 4px;
+  }
+
+  .territory-mode-actions .territory-mode-close,
+  .territory-mode-actions .territory-mode-close:first-child {
+    min-width: 0;
+    min-height: 31px;
+    padding: 0 7px;
+    font-size: 8px;
   }
 
   .territory-mode-season {

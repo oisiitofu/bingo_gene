@@ -2,10 +2,12 @@ import assert from "node:assert/strict";
 import test from "node:test";
 
 await import("../monster-system.js");
+await import("../territory-equipment.js");
 await import("../territory-system.js");
 
 const Territory = globalThis.TeamBingoTerritorySystem;
 const Monster = globalThis.TeamBingoMonsterSystem;
+const Equipment = globalThis.TeamBingoTerritoryEquipment;
 const MONDAY_JST = Date.UTC(2026, 6, 19, 15);
 
 function createStats() {
@@ -79,6 +81,36 @@ test("六王領土戦は固定6人と61領地で初期化される", () => {
     tile.garrison?.lineup?.length === Territory.PARTY_SIZE &&
     tile.garrison?.hype === Territory.DEFAULT_HYPE
   )));
+});
+
+test("領土戦モンスターはスターター装備から日次自動装備される", () => {
+  const state = Territory.createInitialState(createStats(), MONDAY_JST);
+  for (const player of Territory.PLAYERS) {
+    const playerState = state.players[player.id];
+    assert.equal(playerState.lastEquipmentDay, "2026-07-20");
+    assert.ok(Object.keys(playerState.equipmentAssignments).length > 0);
+    territoryLineupForPlayer(state, player.id)
+      .filter((member) => member.nodeId !== "egg")
+      .forEach((member) => {
+        assert.ok(Object.keys(member.equipment || {}).length > 0);
+        assert.ok(Equipment.loadoutItems(member.equipment).every((item) => Equipment.ITEM_BY_ID[item.id]));
+      });
+  }
+});
+
+test("装備報酬は4レアリティでレジェンダリー率1%を維持する", () => {
+  assert.deepEqual(Equipment.RARITIES.map((rarity) => rarity.id), ["common", "rare", "epic", "legendary"]);
+  assert.equal(Equipment.RARITY_BY_ID.legendary.chance, .01);
+  assert.equal(Equipment.ITEMS.length, 72);
+  const record = { name: "ジャン" };
+  Equipment.ensureStarterRecord(record);
+  assert.ok(Object.keys(record.territoryEquipment).length >= 9);
+  const rewards = Equipment.generateRewards("deterministic-reward", 12);
+  Equipment.applyRewards(record, rewards);
+  assert.equal(
+    Object.values(record.territoryRewardRarity).reduce((sum, count) => sum + count, 0),
+    12
+  );
 });
 
 test("図鑑登録が3体未満なら領地PTの不足枠をたまごで補う", () => {
@@ -204,7 +236,7 @@ test("領地イベントがPTのHYPEを初期20から増減させる", () => {
   assert.ok(Object.values(state.tiles).filter((tile) => tile.garrison).some((tile) => tile.garrison.hype !== 20));
 });
 
-test("バージョン2の重複PTを所有権を保ったまま再編成する", () => {
+test("バージョン2の重複PTを所有権を保ったままバージョン4へ再編成する", () => {
   const stats = createStats();
   const original = Territory.createInitialState(stats, MONDAY_JST);
   const legacy = structuredClone(original);
@@ -215,7 +247,7 @@ test("バージョン2の重複PTを所有権を保ったまま再編成する",
   });
   const beforeOwners = Object.fromEntries(Object.entries(legacy.tiles).map(([id, tile]) => [id, tile.ownerId]));
   const migrated = Territory.normalizeState(legacy, stats, MONDAY_JST + Territory.TICK_MS);
-  assert.equal(migrated.version, 3);
+  assert.equal(migrated.version, 4);
   assert.deepEqual(
     Object.fromEntries(Object.entries(migrated.tiles).map(([id, tile]) => [id, tile.ownerId])),
     beforeOwners

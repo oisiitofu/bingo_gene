@@ -12,6 +12,7 @@
   let spriteMarkup = () => "";
   let replayBattle = () => {};
   let showMonsterDetail = () => {};
+  let openMonsterPage = () => {};
   let map3D = null;
   let countdownTimer = 0;
 
@@ -55,7 +56,10 @@
           <span data-territory-season></span>
           <span>次の自動進行 <strong data-territory-countdown>--:--</strong></span>
         </div>
-        <button type="button" class="territory-mode-close" data-territory-close>CLOSE</button>
+        <div class="territory-mode-actions">
+          <button type="button" class="territory-mode-close" data-territory-items>MONSTER / ITEMS</button>
+          <button type="button" class="territory-mode-close" data-territory-close>CLOSE</button>
+        </div>
       </header>
       <div class="territory-mode-layout">
         <aside class="territory-panel territory-ranking">
@@ -109,6 +113,10 @@
   function onClick(event) {
     if (event.target.closest("[data-territory-close]")) {
       close();
+      return;
+    }
+    if (event.target.closest("[data-territory-items]")) {
+      openMonsterPage();
       return;
     }
     const monster = event.target.closest("[data-territory-monster]");
@@ -204,11 +212,16 @@
 
   function renderMonster(member) {
     const node = global.TeamBingoMonsterSystem?.NODES?.[member.nodeId];
+    const equipment = global.TeamBingoTerritoryEquipment;
     const name = node?.name || member.name || member.nodeId;
+    const equipped = equipment?.loadoutItems?.(member.equipment) || [];
     return `
       <button type="button" class="territory-monster" data-territory-monster="${escapeHtml(member.nodeId)}" aria-label="${escapeHtml(name)}の詳細を表示">
         <span class="territory-monster-art">${spriteMarkup(member.nodeId)}</span>
         <strong title="${escapeHtml(name)}">${escapeHtml(name)}</strong>
+        <span class="territory-monster-equipment">${equipped.length ? equipped.map((item) => (
+          `<i style="--item-color:${equipment.RARITY_BY_ID[item.rarity].color}" title="${escapeHtml(item.name)}">${escapeHtml(equipment.SLOT_BY_ID[item.slot].mark)}</i>`
+        )).join("") : "NO GEAR"}</span>
         <span class="territory-monster-detail-label">DETAIL</span>
       </button>
     `;
@@ -270,7 +283,7 @@
     live.classList.toggle("preview", preview);
     const season = state?.season;
     root.querySelector("[data-territory-season]").textContent = season
-      ? `SEASON ${season.id} / ${formatDate(season.startsAt)} - ${formatDate(season.endsAt)}`
+      ? `SEASON ${formatDate(season.startsAt)} - ${formatDate(season.endsAt)}`
       : "";
     updateCountdown();
   }
@@ -311,6 +324,7 @@
     spriteMarkup = typeof options.spriteMarkup === "function" ? options.spriteMarkup : spriteMarkup;
     replayBattle = typeof options.replayBattle === "function" ? options.replayBattle : replayBattle;
     showMonsterDetail = typeof options.showMonsterDetail === "function" ? options.showMonsterDetail : showMonsterDetail;
+    openMonsterPage = typeof options.openMonsterPage === "function" ? options.openMonsterPage : openMonsterPage;
     if (options.state) {
       state = Territory.normalizeState(options.state, playerStats, Date.now());
       preview = options.preview === true;

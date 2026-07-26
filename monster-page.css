@@ -1,0 +1,320 @@
+.monster-dex-modal-card {
+  background:
+    linear-gradient(135deg, rgba(32, 45, 63, .96), rgba(7, 10, 16, .98) 52%),
+    #080b12;
+}
+
+body.territory-mode-open .monster-dex-modal {
+  z-index: 6300;
+}
+
+.monster-dex-view-switch {
+  grid-template-columns: repeat(5, minmax(86px, 1fr));
+}
+
+.monster-equipment-page,
+.item-dex-page {
+  min-height: 0;
+  flex: 1 1 auto;
+  overflow: auto;
+  padding: 14px;
+}
+
+.monster-equipment-page[hidden],
+.item-dex-page[hidden] {
+  display: none !important;
+}
+
+.monster-equipment-summary,
+.item-dex-summary {
+  display: grid;
+  grid-template-columns: minmax(190px, .7fr) minmax(360px, 1.7fr) auto;
+  align-items: center;
+  gap: 18px;
+  margin-bottom: 12px;
+  padding: 12px 14px;
+  border: 1px solid rgba(255, 255, 255, .14);
+  background: rgba(255, 255, 255, .035);
+}
+
+.monster-equipment-summary div span,
+.monster-equipment-summary div strong,
+.item-dex-summary div span,
+.item-dex-summary div strong {
+  display: block;
+}
+
+.monster-equipment-summary span,
+.item-dex-summary span {
+  color: #8f9caf;
+  font-size: 9px;
+  font-weight: 900;
+}
+
+.monster-equipment-summary strong,
+.item-dex-summary strong {
+  margin-top: 3px;
+  color: #fff;
+  font-size: 18px;
+}
+
+.monster-equipment-summary p,
+.item-dex-summary p {
+  margin: 0;
+  color: #b6c0cf;
+  font-size: 10px;
+  line-height: 1.55;
+}
+
+.monster-equipment-summary b,
+.item-dex-summary b {
+  color: #ffd45d;
+  font-size: 12px;
+  white-space: nowrap;
+}
+
+.monster-equipment-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 9px;
+}
+
+.monster-loadout-card {
+  min-width: 0;
+  padding: 9px;
+  border: 1px solid rgba(255, 255, 255, .12);
+  border-left: 3px solid #d9b850;
+  background: linear-gradient(145deg, rgba(27, 36, 50, .95), rgba(8, 11, 18, .98));
+}
+
+.monster-loadout-head {
+  display: grid;
+  grid-template-columns: 74px minmax(0, 1fr);
+  align-items: center;
+  gap: 9px;
+}
+
+.monster-loadout-art {
+  width: 74px;
+  height: 66px;
+  display: grid;
+  place-items: center;
+  overflow: hidden;
+}
+
+.monster-loadout-art .monster-sprite {
+  width: auto;
+  max-width: 100%;
+  height: 100%;
+}
+
+.monster-loadout-head strong,
+.monster-loadout-head small {
+  display: block;
+  min-width: 0;
+}
+
+.monster-loadout-head strong {
+  overflow: hidden;
+  color: #fff;
+  font-size: 12px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.monster-loadout-head small {
+  margin-top: 4px;
+  color: #9ca9ba;
+  font-size: 8px;
+}
+
+.monster-loadout-items {
+  display: grid;
+  gap: 4px;
+  margin-top: 7px;
+}
+
+.equipment-item {
+  --rarity-color: #aeb8c5;
+  min-width: 0;
+  display: grid;
+  grid-template-columns: 38px minmax(0, 1fr);
+  align-items: center;
+  gap: 8px;
+  min-height: 72px;
+  padding: 7px;
+  border: 1px solid color-mix(in srgb, var(--rarity-color) 66%, transparent);
+  border-left: 4px solid var(--rarity-color);
+  color: #eef3fb;
+  background:
+    linear-gradient(105deg, color-mix(in srgb, var(--rarity-color) 13%, transparent), transparent 45%),
+    #0b1018;
+}
+
+.equipment-item.compact {
+  grid-template-columns: 27px minmax(0, 1fr);
+  min-height: 40px;
+  padding: 4px 6px;
+  border-left-width: 3px;
+}
+
+.equipment-item-icon {
+  width: 34px;
+  height: 34px;
+  display: grid;
+  place-items: center;
+  border: 1px solid color-mix(in srgb, var(--rarity-color) 65%, #fff);
+  color: var(--rarity-color);
+  background: rgba(0, 0, 0, .34);
+  font-size: 15px;
+  font-style: normal;
+  font-weight: 1000;
+}
+
+.equipment-item.compact .equipment-item-icon {
+  width: 25px;
+  height: 25px;
+  font-size: 11px;
+}
+
+.equipment-item-copy,
+.equipment-item-copy em,
+.equipment-item-copy strong,
+.equipment-item-copy small {
+  min-width: 0;
+  display: block;
+}
+
+.equipment-item-copy em {
+  color: var(--rarity-color);
+  font-size: 7px;
+  font-style: normal;
+  font-weight: 1000;
+}
+
+.equipment-item-copy strong {
+  overflow: hidden;
+  margin-top: 2px;
+  color: #fff;
+  font-size: 10px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.equipment-item-copy small {
+  margin-top: 4px;
+  color: #9eabbc;
+  font-size: 8px;
+  line-height: 1.35;
+}
+
+.equipment-item.locked {
+  --rarity-color: #354050;
+  opacity: .58;
+  filter: grayscale(1);
+}
+
+.equipment-slot-empty {
+  min-height: 38px;
+  display: grid;
+  place-items: center;
+  border: 1px dashed rgba(255, 255, 255, .14);
+  color: #647184;
+  font-size: 8px;
+}
+
+.monster-loadout-stats {
+  overflow: hidden;
+  margin-top: 7px;
+  padding: 6px 7px;
+  color: #d6deea;
+  background: rgba(0, 0, 0, .3);
+  font-size: 8px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.monster-loadout-note {
+  margin-top: 5px;
+  color: #d8bb5b;
+  font-size: 7px;
+  font-weight: 900;
+  text-align: right;
+}
+
+.item-dex-rarity-legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 7px;
+  margin-bottom: 10px;
+}
+
+.item-dex-rarity-legend span {
+  --rarity-color: #aeb8c5;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 5px 8px;
+  border: 1px solid color-mix(in srgb, var(--rarity-color) 55%, transparent);
+  color: #dbe3ed;
+  background: rgba(0, 0, 0, .24);
+  font-size: 8px;
+  font-weight: 900;
+}
+
+.item-dex-rarity-legend i {
+  width: 7px;
+  height: 7px;
+  background: var(--rarity-color);
+  box-shadow: 0 0 7px var(--rarity-color);
+}
+
+.item-dex-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 7px;
+}
+
+.territory-loot-chip {
+  border-color: rgba(255, 202, 67, .7) !important;
+  color: #ffe28a !important;
+}
+
+@media (max-width: 1050px) {
+  .monster-dex-view-switch {
+    grid-template-columns: repeat(3, minmax(82px, 1fr));
+  }
+
+  .monster-equipment-grid,
+  .item-dex-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .monster-equipment-summary,
+  .item-dex-summary {
+    grid-template-columns: 1fr auto;
+  }
+
+  .monster-equipment-summary p,
+  .item-dex-summary p {
+    grid-column: 1 / -1;
+  }
+}
+
+@media (max-width: 620px) {
+  .monster-equipment-page,
+  .item-dex-page {
+    padding: 8px;
+  }
+
+  .monster-equipment-grid,
+  .item-dex-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .monster-equipment-summary,
+  .item-dex-summary {
+    grid-template-columns: 1fr;
+    gap: 8px;
+  }
+}

@@ -144,6 +144,10 @@ test("player counters and character maps are included in stats deltas", () => {
     monsterBattleUsage: { "child-ember": 1 },
     monsterWinsByMonster: { "child-ember": 1 },
     monsterKosByMonster: { "child-ember": 2 },
+    territoryEquipmentDrops: 4,
+    territoryEquipment: { "common-weapon-blade": 2, "rare-armor-plate": 1 },
+    territoryItemDex: { "common-weapon-blade": 1, "rare-armor-plate": 1 },
+    territoryRewardRarity: { common: 3, rare: 1 },
     lastTeam: "RED",
     lastPlayedAt: "2026-07-17T00:00:00.000Z"
   };
@@ -157,6 +161,9 @@ test("player counters and character maps are included in stats deltas", () => {
   assert.deepEqual(result.playerStats.players.jan.monsterDex, { egg: 1, "child-ember": 1 });
   assert.deepEqual(result.playerStats.players.jan.monsterMastery, { "child-ember": 68 });
   assert.deepEqual(result.playerStats.players.jan.monsterKosByMonster, { "child-ember": 2 });
+  assert.equal(result.playerStats.players.jan.territoryEquipmentDrops, 4);
+  assert.deepEqual(result.playerStats.players.jan.territoryEquipment, { "common-weapon-blade": 2, "rare-armor-plate": 1 });
+  assert.deepEqual(result.playerStats.players.jan.territoryRewardRarity, { common: 3, rare: 1 });
 });
 
 test("legacy rankings merge into shared online stats", () => {

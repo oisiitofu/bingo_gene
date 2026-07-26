@@ -56,7 +56,7 @@ test("六王領土戦WorkerはOAuth認証後にETag付きで初期状態を保�
 
     assert.equal(result.ok, true);
     assert.equal(result.changed, true);
-    assert.equal(savedState.version, 3);
+    assert.equal(savedState.version, 4);
     assert.equal(Object.keys(savedState.players).length, 6);
     assert.ok(Object.values(savedState.tiles).filter((tile) => tile.ownerId).every((tile) => (
       tile.garrison?.lineup?.length === 3 && tile.garrison?.hype === 20
@@ -122,7 +122,7 @@ test("秘密鍵がないWorkerはFirebase匿名管理セッションで定期処
   }
 });
 
-test("定刻前でもバージョン2の領土状態をバージョン3へ保存移行する", async () => {
+test("定刻前でもバージョン2の領土状態をバージョン4へ保存移行する", async () => {
   const originalFetch = globalThis.fetch;
   const now = Date.UTC(2026, 6, 23, 0, 1);
   const Territory = globalThis.TeamBingoTerritorySystem;
@@ -170,7 +170,7 @@ test("定刻前でもバージョン2の領土状態をバージョン3へ保存
 
     assert.equal(result.changed, true);
     assert.equal(result.processed, 0);
-    assert.equal(savedState.version, 3);
+    assert.equal(savedState.version, 4);
     assert.ok(Object.values(savedState.tiles).filter((tile) => tile.ownerId).every((tile) => (
       tile.garrison?.lineup?.length === 3 && tile.garrison?.hype === 20
     )));
