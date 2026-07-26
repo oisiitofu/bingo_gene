@@ -67,7 +67,7 @@
     renderer.setPixelRatio(Math.min(global.devicePixelRatio || 1, 1.65));
     renderer.outputColorSpace = THREE.SRGBColorSpace;
     renderer.toneMapping = THREE.ACESFilmicToneMapping;
-    renderer.toneMappingExposure = 1.32;
+    renderer.toneMappingExposure = 1.62;
     renderer.shadowMap.enabled = true;
     renderer.shadowMap.type = THREE.PCFSoftShadowMap;
     renderer.domElement.className = "territory-map-canvas";
@@ -76,7 +76,7 @@
     container.prepend(renderer.domElement);
 
     const scene = new THREE.Scene();
-    scene.fog = new THREE.FogExp2(0x111824, .034);
+    scene.fog = new THREE.FogExp2(0x172131, .025);
     const camera = new THREE.PerspectiveCamera(36, 1, .1, 100);
     const raycaster = new THREE.Raycaster();
     const pointer = new THREE.Vector2();
@@ -104,12 +104,14 @@
     `;
     container.append(controls);
 
-    const hemiLight = new THREE.HemisphereLight(0xcce3ff, 0x35412e, 2.6);
+    const hemiLight = new THREE.HemisphereLight(0xe4f2ff, 0x4e5545, 3.5);
     scene.add(hemiLight);
-    const sunLight = new THREE.DirectionalLight(0xffdfaa, 3.4);
+    const ambientLight = new THREE.AmbientLight(0xfff8ea, .52);
+    scene.add(ambientLight);
+    const sunLight = new THREE.DirectionalLight(0xffe4ba, 4.8);
     sunLight.position.set(-9, 16, 11);
     sunLight.castShadow = true;
-    sunLight.shadow.mapSize.set(1024, 1024);
+    sunLight.shadow.mapSize.set(2048, 2048);
     sunLight.shadow.camera.left = -13;
     sunLight.shadow.camera.right = 13;
     sunLight.shadow.camera.top = 13;
@@ -118,7 +120,10 @@
     sunLight.shadow.camera.far = 45;
     sunLight.shadow.bias = -.0007;
     scene.add(sunLight);
-    const warmLight = new THREE.PointLight(0xff7b4c, 16, 26, 2);
+    const fillLight = new THREE.DirectionalLight(0xa8d2ff, 2.1);
+    fillLight.position.set(10, 8, -9);
+    scene.add(fillLight);
+    const warmLight = new THREE.PointLight(0xff9165, 18, 28, 2);
     warmLight.position.set(-8, 6, -7);
     scene.add(warmLight);
 
@@ -126,6 +131,27 @@
     createAtmosphere();
     const resizeObserver = new ResizeObserver(resize);
     resizeObserver.observe(container);
+
+    function createBeveledBox(width, height, depth, bevel = .025) {
+      const shape = new THREE.Shape();
+      shape.moveTo(-width / 2, -height / 2);
+      shape.lineTo(width / 2, -height / 2);
+      shape.lineTo(width / 2, height / 2);
+      shape.lineTo(-width / 2, height / 2);
+      shape.closePath();
+      const geometry = new THREE.ExtrudeGeometry(shape, {
+        depth,
+        steps: 1,
+        curveSegments: 4,
+        bevelEnabled: true,
+        bevelSegments: 3,
+        bevelSize: bevel,
+        bevelThickness: bevel
+      });
+      geometry.translate(0, 0, -depth / 2);
+      geometry.computeVertexNormals();
+      return geometry;
+    }
 
     function createSharedAssets() {
       const textureLoader = new THREE.TextureLoader();
@@ -149,31 +175,33 @@
         ancientStone: loadBuildingTexture(BUILDING_TEXTURE_ASSETS.ancientStone, 1.8, 1.8)
       };
       const geometries = {
-        treeTrunk: new THREE.CylinderGeometry(.055, .075, .38, 7),
-        treeCrown: new THREE.ConeGeometry(.24, .62, 8),
-        rock: new THREE.DodecahedronGeometry(.24, 0),
-        mountain: new THREE.ConeGeometry(.42, 1.05, 7),
-        volcano: new THREE.CylinderGeometry(.16, .62, .72, 18, 3),
-        crater: new THREE.TorusGeometry(.18, .075, 8, 24),
-        lavaPool: new THREE.CylinderGeometry(.15, .18, .028, 18),
-        lavaStream: new THREE.CylinderGeometry(.018, .04, .5, 8),
-        tower: new THREE.CylinderGeometry(.17, .2, .72, 12),
-        roof: new THREE.ConeGeometry(.24, .32, 12),
-        squareRoof: new THREE.ConeGeometry(.4, .3, 4),
-        wall: new THREE.BoxGeometry(.72, .34, .18),
-        keep: new THREE.BoxGeometry(.46, .62, .46),
-        house: new THREE.BoxGeometry(.34, .32, .3),
-        foundation: new THREE.CylinderGeometry(.78, .84, .13, 12),
-        battlement: new THREE.BoxGeometry(.09, .1, .09),
-        column: new THREE.CylinderGeometry(.055, .07, .48, 10),
-        slab: new THREE.BoxGeometry(.5, .09, .2),
-        window: new THREE.BoxGeometry(.055, .12, .012),
-        gate: new THREE.BoxGeometry(.22, .28, .025),
+        treeTrunk: new THREE.CylinderGeometry(.055, .075, .38, 14, 3),
+        treeCrown: new THREE.ConeGeometry(.24, .62, 18, 4),
+        rock: new THREE.DodecahedronGeometry(.24, 1),
+        mountain: new THREE.ConeGeometry(.42, 1.05, 20, 7),
+        volcano: new THREE.CylinderGeometry(.16, .62, .72, 36, 8),
+        crater: new THREE.TorusGeometry(.18, .075, 16, 48),
+        lavaPool: new THREE.CylinderGeometry(.15, .18, .028, 36, 2),
+        lavaStream: new THREE.CylinderGeometry(.018, .04, .5, 16, 4),
+        tower: new THREE.CylinderGeometry(.17, .2, .72, 24, 4),
+        roof: new THREE.ConeGeometry(.24, .32, 24, 4),
+        squareRoof: new THREE.ConeGeometry(.4, .3, 4, 4),
+        wall: createBeveledBox(.72, .34, .18, .018),
+        keep: createBeveledBox(.46, .62, .46, .026),
+        house: createBeveledBox(.34, .32, .3, .022),
+        foundation: new THREE.CylinderGeometry(.78, .84, .13, 24, 3),
+        battlement: createBeveledBox(.09, .1, .09, .008),
+        column: new THREE.CylinderGeometry(.055, .07, .48, 20, 4),
+        slab: createBeveledBox(.5, .09, .2, .012),
+        window: createBeveledBox(.055, .12, .012, .005),
+        gate: createBeveledBox(.22, .28, .025, .012),
         crystal: new THREE.OctahedronGeometry(.22, 0),
         banner: new THREE.PlaneGeometry(.28, .2),
-        pole: new THREE.CylinderGeometry(.018, .018, .7, 6),
-        ripple: new THREE.TorusGeometry(.38, .022, 6, 24),
-        crown: new THREE.TorusKnotGeometry(.15, .045, 48, 8)
+        pole: new THREE.CylinderGeometry(.018, .018, .7, 12, 2),
+        ripple: new THREE.TorusGeometry(.38, .022, 12, 48),
+        crown: new THREE.TorusKnotGeometry(.15, .045, 96, 16),
+        selectionAura: new THREE.CylinderGeometry(.78, 1.03, 2.55, 6, 5, true),
+        selectionRing: new THREE.TorusGeometry(.84, .035, 12, 72)
       };
       const materials = {
         trunk: new THREE.MeshStandardMaterial({
@@ -390,6 +418,7 @@
       tileRoot.add(mesh);
 
       if (tile.ownerId) createTerritoryBoundary(tile, position, height, ownerColor, mesh);
+      createSelectionAura(tile, position, height, ownerColor, mesh);
 
       const detail = new THREE.Group();
       detail.position.set(position.x, height, position.z);
@@ -486,6 +515,77 @@
       animatedObjects.push({ object: aura, type: "territoryAura", material: auraMaterial });
       tileMesh.userData.boundaryLine = lineMaterial;
       tileMesh.userData.boundaryAura = auraMaterial;
+    }
+
+    function createSelectionAura(tile, position, height, ownerColor, tileMesh) {
+      const auraColor = tile.ownerId
+        ? colorValue(ownerColor).lerp(new THREE.Color(0xffffff), .32)
+        : new THREE.Color(0x72d9ff);
+      const auraMaterial = new THREE.ShaderMaterial({
+        uniforms: {
+          auraColor: { value: auraColor },
+          time: { value: seededValue(tile.id, "selection-aura") * 8 },
+          strength: { value: 0 }
+        },
+        vertexShader: `
+          varying float vHeight;
+          varying float vEdge;
+          void main() {
+            vHeight = uv.y;
+            vEdge = uv.x;
+            gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
+          }
+        `,
+        fragmentShader: `
+          uniform vec3 auraColor;
+          uniform float time;
+          uniform float strength;
+          varying float vHeight;
+          varying float vEdge;
+          void main() {
+            float baseGlow = pow(max(0.0, 1.0 - vHeight), 0.64);
+            float verticalBand = 0.58 + 0.42 * sin(vHeight * 25.0 - time * 4.4);
+            float edgeBand = 0.68 + 0.32 * sin(vEdge * 37.699 + time * 1.8);
+            float alpha = strength * baseGlow * (0.46 + verticalBand * 0.54) * edgeBand;
+            gl_FragColor = vec4(auraColor, alpha);
+          }
+        `,
+        transparent: true,
+        side: THREE.DoubleSide,
+        blending: THREE.AdditiveBlending,
+        depthWrite: false
+      });
+      const ringMaterial = new THREE.MeshBasicMaterial({
+        color: auraColor,
+        transparent: true,
+        opacity: 0,
+        blending: THREE.AdditiveBlending,
+        depthWrite: false
+      });
+      dynamicMaterials.push(auraMaterial, ringMaterial);
+
+      const aura = new THREE.Mesh(shared.geometries.selectionAura, auraMaterial);
+      aura.position.set(position.x, height + 1.275, position.z);
+      aura.rotation.y = Math.PI / 6;
+      aura.visible = false;
+      aura.renderOrder = 7;
+      tileRoot.add(aura);
+
+      const ring = new THREE.Mesh(shared.geometries.selectionRing, ringMaterial);
+      ring.position.set(position.x, height + .08, position.z);
+      ring.rotation.x = Math.PI / 2;
+      ring.visible = false;
+      ring.renderOrder = 8;
+      tileRoot.add(ring);
+
+      tileMesh.userData.selectionAura = aura;
+      tileMesh.userData.selectionAuraMaterial = auraMaterial;
+      tileMesh.userData.selectionRing = ring;
+      tileMesh.userData.selectionRingMaterial = ringMaterial;
+      animatedObjects.push(
+        { object: aura, type: "selectionAura", material: auraMaterial },
+        { object: ring, type: "selectionRing", material: ringMaterial, phase: seededValue(tile.id, "selection-ring") * 6 }
+      );
     }
 
     function addTerrainObjects(group, tile) {
@@ -854,6 +954,14 @@
         if (mesh.userData.boundaryAura) {
           mesh.userData.boundaryAura.uniforms.strength.value = selected ? .34 : .24;
         }
+        if (mesh.userData.selectionAura) {
+          mesh.userData.selectionAura.visible = selected;
+          mesh.userData.selectionAuraMaterial.uniforms.strength.value = selected ? .72 : 0;
+        }
+        if (mesh.userData.selectionRing) {
+          mesh.userData.selectionRing.visible = selected;
+          mesh.userData.selectionRingMaterial.opacity = selected ? .92 : 0;
+        }
       });
     }
 
@@ -906,6 +1014,12 @@
           entry.object.rotation.z = Math.sin(seconds * 2.1 + entry.phase) * .07;
         } else if (entry.type === "territoryAura") {
           entry.material.uniforms.time.value = seconds;
+        } else if (entry.type === "selectionAura") {
+          entry.material.uniforms.time.value = seconds;
+        } else if (entry.type === "selectionRing") {
+          const pulse = 1 + Math.sin(seconds * 2.7 + entry.phase) * .09;
+          entry.object.scale.setScalar(pulse);
+          entry.material.opacity = .76 + Math.sin(seconds * 3.2 + entry.phase) * .16;
         }
       });
       cameraPosition();

@@ -34,6 +34,7 @@
     { id: "dark", name: "闇域", mark: "闇" }
   ]);
   const TERRAIN_BY_ID = Object.freeze(Object.fromEntries(TERRAINS.map((terrain) => [terrain.id, terrain])));
+  const FEATURE_TERRAINS = Object.freeze(TERRAINS.filter((terrain) => terrain.id !== "earth"));
   const TILE_EVENTS = Object.freeze([
     {
       id: "tailwind",
@@ -235,8 +236,9 @@
   }
 
   function terrainFor(q, r) {
-    const index = hashText(`${q}:${r}:six-crown`) % TERRAINS.length;
-    return TERRAINS[index];
+    const terrainSeed = `${q}:${r}:six-crown-v2`;
+    if (hashText(terrainSeed) % 100 < 48) return TERRAIN_BY_ID.earth;
+    return FEATURE_TERRAINS[hashText(`${terrainSeed}:feature`) % FEATURE_TERRAINS.length];
   }
 
   function specialTileKind(q, r) {
@@ -577,6 +579,9 @@
     const state = clone(raw);
     state.version = VERSION;
     state.tiles ||= createMap();
+    Object.values(state.tiles).forEach((tile) => {
+      tile.terrain = terrainFor(tile.q, tile.r).id;
+    });
     state.players ||= {};
     PLAYERS.forEach((player) => {
       state.players[player.id] = { ...emptyPlayerState(player), ...(state.players[player.id] || {}) };

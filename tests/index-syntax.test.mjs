@@ -46,6 +46,10 @@ test("六王領土戦のクライアント、Worker、Firebaseルールが公開
   assert.match(territoryMap3D, /addFortress/);
   assert.match(territoryMap3D, /addTerrainObjects/);
   assert.match(territoryMap3D, /createTerritoryBoundary/);
+  assert.match(territoryMap3D, /createSelectionAura/);
+  assert.match(territoryMap3D, /selectionAura/);
+  assert.match(territoryMap3D, /toneMappingExposure = 1\.62/);
+  assert.match(territoryMap3D, /shadow\.mapSize\.set\(2048, 2048\)/);
   assert.match(territoryMap3D, /addVillage3D/);
   assert.match(territoryMap3D, /addForest3D/);
   assert.match(territoryMap3D, /addMountainRange3D/);

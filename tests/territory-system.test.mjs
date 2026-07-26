@@ -67,6 +67,12 @@ test("六王領土戦は固定6人と61領地で初期化される", () => {
   assert.equal(Object.keys(state.players).length, 6);
   assert.equal(Object.values(state.tiles).filter((tile) => tile.baseFor).length, 6);
   assert.equal(Object.values(state.tiles).filter((tile) => tile.ownerId).length, 12);
+  const terrainCounts = Object.values(state.tiles).reduce((counts, tile) => {
+    counts[tile.terrain] = (counts[tile.terrain] || 0) + 1;
+    return counts;
+  }, {});
+  assert.ok(terrainCounts.earth >= 28, "岩地がマップの中心的な地形になっている");
+  assert.ok(Territory.TERRAINS.filter((terrain) => terrain.id !== "earth").every((terrain) => terrainCounts[terrain.id] >= 3));
   assert.ok(Object.values(state.tiles).every((tile) => Territory.TILE_EVENT_BY_ID[tile.eventId]));
   assert.ok(Object.values(state.tiles).filter((tile) => tile.ownerId).every((tile) => (
     tile.garrison?.ownerId === tile.ownerId &&
@@ -216,4 +222,16 @@ test("バージョン2の重複PTを所有権を保ったまま再編成する",
   );
   assert.ok(Object.values(migrated.tiles).filter((tile) => tile.ownerId).every((tile) => tile.garrison?.lineup?.length === 3));
   assertUniqueTerritoryMonsters(migrated);
+});
+
+test("saved territory uses the current terrain distribution after normalization", () => {
+  const stats = createStats();
+  const saved = Territory.createInitialState(stats, MONDAY_JST);
+  Object.values(saved.tiles).forEach((tile) => {
+    tile.terrain = "fire";
+  });
+  const normalized = Territory.normalizeState(saved, stats, MONDAY_JST + Territory.TICK_MS);
+  const earthCount = Object.values(normalized.tiles).filter((tile) => tile.terrain === "earth").length;
+  assert.ok(earthCount >= 28);
+  assert.ok(Object.values(normalized.tiles).some((tile) => tile.terrain !== "fire"));
 });
