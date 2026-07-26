@@ -45,6 +45,9 @@ test("六王領土戦のクライアント、Worker、Firebaseルールが公開
   assert.match(territoryMap3D, /new THREE\.WebGLRenderer/);
   assert.match(territoryMap3D, /addFortress/);
   assert.match(territoryMap3D, /addTerrainObjects/);
+  assert.match(territoryMap3D, /addPlainLandDetails/);
+  assert.match(territoryMap3D, /addFortressOutskirts/);
+  assert.match(territoryMap3D, /new THREE\.InstancedMesh/);
   assert.match(territoryMap3D, /createTerritoryBoundary/);
   assert.match(territoryMap3D, /createSelectionAura/);
   assert.match(territoryMap3D, /selectionAura/);
@@ -58,7 +61,7 @@ test("六王領土戦のクライアント、Worker、Firebaseルールが公開
   assert.match(territoryMap3D, /addLightSanctuary3D/);
   assert.match(territoryMap3D, /NEUTRAL_SURFACE_COLOR = 0x080a0e/);
   assert.doesNotMatch(territoryMap3D, /"landmark-presence"/);
-  assert.match(territoryMap3D, /tile\.terrain === "earth"\) \{\s*return;/);
+  assert.match(territoryMap3D, /tile\.terrain === "earth"\) \{\s*addPlainLandDetails/);
   assert.doesNotMatch(territoryMap3D, /LANDMARK_ASSETS|THREE\.Sprite/);
   assert.doesNotMatch(territoryMap3D, /addEventBeacon/);
   assert.ok(existsSync(new URL("../vendor/three/three.min.js", import.meta.url)));

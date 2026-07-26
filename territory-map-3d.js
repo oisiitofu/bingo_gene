@@ -177,6 +177,7 @@
       const geometries = {
         treeTrunk: new THREE.CylinderGeometry(.055, .075, .38, 14, 3),
         treeCrown: new THREE.ConeGeometry(.24, .62, 18, 4),
+        grassTuft: new THREE.ConeGeometry(.052, .11, 7, 3),
         rock: new THREE.DodecahedronGeometry(.24, 1),
         mountain: new THREE.ConeGeometry(.42, 1.05, 20, 7),
         volcano: new THREE.CylinderGeometry(.16, .62, .72, 36, 8),
@@ -225,6 +226,13 @@
           bumpScale: .035,
           roughness: .88
         }),
+        grass: new THREE.MeshStandardMaterial({
+          color: 0x78a64d,
+          map: buildingTextures.foliage,
+          emissive: 0x16310e,
+          emissiveIntensity: .24,
+          roughness: .94
+        }),
         rock: new THREE.MeshStandardMaterial({
           color: 0xaaa69c,
           map: buildingTextures.ancientStone,
@@ -270,6 +278,20 @@
           bumpScale: .035,
           roughness: .74,
           metalness: .16
+        }),
+        cottageWall: new THREE.MeshStandardMaterial({
+          color: 0xc9b091,
+          map: buildingTextures.stone,
+          bumpMap: buildingTextures.stone,
+          bumpScale: .035,
+          roughness: .92
+        }),
+        cottageRoof: new THREE.MeshStandardMaterial({
+          color: 0x9b5542,
+          map: buildingTextures.roof,
+          bumpMap: buildingTextures.roof,
+          bumpScale: .03,
+          roughness: .82
         }),
         wood: new THREE.MeshStandardMaterial({
           color: 0x9a745a,
@@ -593,7 +615,7 @@
       if (tile.terrain === "wind") {
         addForest3D(group, seed);
       } else if (tile.terrain === "earth") {
-        return;
+        addPlainLandDetails(group, seed);
       } else if (tile.terrain === "fire") {
         addVolcano3D(group, seed);
       } else if (tile.terrain === "water") {
@@ -626,6 +648,54 @@
       addRock(forest, seed, 31, .55);
       addRock(forest, seed, 32, .42);
       group.add(forest);
+    }
+
+    function addPlainLandDetails(group, seed) {
+      const details = new THREE.Group();
+      details.rotation.y = seededValue(seed, "plain-detail-rotation") * Math.PI * 2;
+      const tuftCount = 3 + Math.floor(seededValue(seed, "plain-grass-count") * 3);
+      const grass = new THREE.InstancedMesh(shared.geometries.grassTuft, shared.materials.grass, tuftCount);
+      const transform = new THREE.Object3D();
+      for (let index = 0; index < tuftCount; index += 1) {
+        const angle = seededValue(seed, `plain-grass-angle-${index}`) * Math.PI * 2;
+        const distance = .2 + seededValue(seed, `plain-grass-distance-${index}`) * .52;
+        const scale = .58 + seededValue(seed, `plain-grass-scale-${index}`) * .58;
+        transform.position.set(Math.cos(angle) * distance, .052 * scale, Math.sin(angle) * distance);
+        transform.rotation.set(
+          (seededValue(seed, `plain-grass-lean-x-${index}`) - .5) * .24,
+          seededValue(seed, `plain-grass-yaw-${index}`) * Math.PI,
+          (seededValue(seed, `plain-grass-lean-z-${index}`) - .5) * .24
+        );
+        transform.scale.set(scale, scale, scale);
+        transform.updateMatrix();
+        grass.setMatrixAt(index, transform.matrix);
+      }
+      grass.instanceMatrix.needsUpdate = true;
+      grass.receiveShadow = true;
+      details.add(grass);
+
+      const rockCount = 1 + Math.floor(seededValue(seed, "plain-rock-count") * 2);
+      for (let index = 0; index < rockCount; index += 1) {
+        addGroundRock(details, seed, index);
+      }
+      group.add(details);
+    }
+
+    function addGroundRock(group, seed, index) {
+      const angle = seededValue(seed, `ground-rock-angle-${index}`) * Math.PI * 2;
+      const distance = .3 + seededValue(seed, `ground-rock-distance-${index}`) * .42;
+      const scale = .14 + seededValue(seed, `ground-rock-scale-${index}`) * .1;
+      const rock = new THREE.Mesh(shared.geometries.rock, shared.materials.rock);
+      rock.position.set(Math.cos(angle) * distance, .035, Math.sin(angle) * distance);
+      rock.scale.set(scale * 1.2, scale * .78, scale);
+      rock.rotation.set(
+        seededValue(seed, `ground-rock-x-${index}`),
+        seededValue(seed, `ground-rock-y-${index}`) * Math.PI,
+        seededValue(seed, `ground-rock-z-${index}`)
+      );
+      rock.castShadow = true;
+      rock.receiveShadow = true;
+      group.add(rock);
     }
 
     function addMountainPeak(group, x, z, scale, rotation) {
@@ -702,13 +772,21 @@
       return mesh;
     }
 
-    function addHouse3D(group, x, z, scale, rotation) {
+    function addHouse3D(
+      group,
+      x,
+      z,
+      scale,
+      rotation,
+      wallMaterial = shared.materials.stone,
+      roofMaterial = shared.materials.roof
+    ) {
       const house = new THREE.Group();
       house.position.set(x, 0, z);
       house.rotation.y = rotation;
       house.scale.setScalar(scale);
-      addModelMesh(house, shared.geometries.house, shared.materials.stone, [0, .16, 0]);
-      addModelMesh(house, shared.geometries.squareRoof, shared.materials.roof, [0, .41, 0], [.72, .72, .72], Math.PI / 4);
+      addModelMesh(house, shared.geometries.house, wallMaterial, [0, .16, 0]);
+      addModelMesh(house, shared.geometries.squareRoof, roofMaterial, [0, .41, 0], [.72, .72, .72], Math.PI / 4);
       addModelMesh(house, shared.geometries.gate, shared.materials.wood, [0, .14, .157], [.56, .72, 1]);
       addModelMesh(house, shared.geometries.window, shared.materials.windowGlow, [-.1, .22, .158]);
       addModelMesh(house, shared.geometries.window, shared.materials.windowGlow, [.1, .22, .158]);
@@ -899,6 +977,29 @@
       addModelMesh(fortress, shared.geometries.window, shared.materials.windowGlow, [.13, .49, .235]);
       addBanner(fortress, ownerColor, 1.22);
       group.add(fortress);
+      addFortressOutskirts(group, tile);
+    }
+
+    function addFortressOutskirts(group, tile) {
+      const outskirts = new THREE.Group();
+      const buildingCount = tile.kind === "throne" ? 4 : (tile.kind === "base" ? 3 : 2);
+      const startAngle = seededValue(tile.id, "outskirts-angle") * Math.PI * 2;
+      for (let index = 0; index < buildingCount; index += 1) {
+        const angle = startAngle + index * Math.PI * 2 / buildingCount;
+        const radius = .83 + seededValue(tile.id, `outskirts-radius-${index}`) * .07;
+        const scale = .35 + seededValue(tile.id, `outskirts-scale-${index}`) * .08;
+        addHouse3D(
+          outskirts,
+          Math.cos(angle) * radius,
+          Math.sin(angle) * radius,
+          scale,
+          -angle + Math.PI / 2,
+          shared.materials.cottageWall,
+          shared.materials.cottageRoof
+        );
+      }
+      addGroundRock(outskirts, `${tile.id}:outskirts`, 0);
+      group.add(outskirts);
     }
 
     function clearTiles() {
