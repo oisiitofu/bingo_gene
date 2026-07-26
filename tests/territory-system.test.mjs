@@ -38,6 +38,25 @@ function createStatsWithIds(nodeIds) {
   };
 }
 
+function territoryLineupForPlayer(state, playerId) {
+  return Object.values(state.tiles)
+    .filter((tile) => tile.ownerId === playerId)
+    .flatMap((tile) => tile.garrison?.lineup || []);
+}
+
+function assertUniqueTerritoryMonsters(state) {
+  for (const player of Territory.PLAYERS) {
+    const nodeIds = territoryLineupForPlayer(state, player.id)
+      .map((member) => member.nodeId)
+      .filter((nodeId) => nodeId !== "egg");
+    assert.equal(
+      nodeIds.length,
+      new Set(nodeIds).size,
+      `${player.id} has a duplicate non-egg territory monster`
+    );
+  }
+}
+
 test("六王領土戦は固定6人と61領地で初期化される", () => {
   const state = Territory.createInitialState(createStats(), MONDAY_JST);
   assert.deepEqual(
@@ -59,14 +78,16 @@ test("六王領土戦は固定6人と61領地で初期化される", () => {
 test("図鑑登録が3体未満なら領地PTの不足枠をたまごで補う", () => {
   const ids = Object.values(Monster.NODES).filter((node) => node.id !== "egg").slice(0, 2).map((node) => node.id);
   const state = Territory.createInitialState(createStatsWithIds(ids), MONDAY_JST);
-  for (const tile of Object.values(state.tiles).filter((entry) => entry.ownerId)) {
-    assert.equal(tile.garrison.lineup.length, 3);
+  for (const player of Territory.PLAYERS) {
+    const lineup = territoryLineupForPlayer(state, player.id);
+    assert.equal(lineup.length, 6);
     assert.deepEqual(
-      new Set(tile.garrison.lineup.filter((member) => member.nodeId !== "egg").map((member) => member.nodeId)),
+      new Set(lineup.filter((member) => member.nodeId !== "egg").map((member) => member.nodeId)),
       new Set(ids)
     );
-    assert.equal(tile.garrison.lineup.filter((member) => member.nodeId === "egg").length, 1);
+    assert.equal(lineup.filter((member) => member.nodeId === "egg").length, 4);
   }
+  assertUniqueTerritoryMonsters(state);
 });
 
 test("領地PTはコスト・伝説・星6の制限なしで3体を編成する", () => {
@@ -76,9 +97,15 @@ test("領地PTはコスト・伝説・星6の制限なしで3体を編成する"
     .slice(0, 3)
     .map((node) => node.id);
   const state = Territory.createInitialState(createStatsWithIds(ids), MONDAY_JST);
-  for (const tile of Object.values(state.tiles).filter((entry) => entry.ownerId)) {
-    assert.deepEqual(new Set(tile.garrison.lineup.map((member) => member.nodeId)), new Set(ids));
+  for (const player of Territory.PLAYERS) {
+    const lineup = territoryLineupForPlayer(state, player.id);
+    assert.deepEqual(
+      new Set(lineup.filter((member) => member.nodeId !== "egg").map((member) => member.nodeId)),
+      new Set(ids)
+    );
+    assert.equal(lineup.filter((member) => member.nodeId === "egg").length, 3);
   }
+  assertUniqueTerritoryMonsters(state);
 });
 
 test("同じ状態と時刻なら自動進行結果は決定論的になる", () => {
@@ -154,6 +181,7 @@ test("占領したPTは領地へ移動し出発地へ新しいPTが自動配置�
   assert.notEqual(capturedBattle.movedPartyId, capturedBattle.sourceReplacementPartyId);
   assert.equal(state.tiles[capturedBattle.tileId].garrison.id, capturedBattle.movedPartyId);
   assert.equal(state.tiles[capturedBattle.tileId].garrison.ownerId, capturedBattle.winnerId);
+  assertUniqueTerritoryMonsters(state);
 });
 
 test("領地イベントがPTのHYPEを初期20から増減させる", () => {
@@ -170,22 +198,22 @@ test("領地イベントがPTのHYPEを初期20から増減させる", () => {
   assert.ok(Object.values(state.tiles).filter((tile) => tile.garrison).some((tile) => tile.garrison.hype !== 20));
 });
 
-test("バージョン1のシーズン状態を所有権を保ったまま領地PT形式へ移行する", () => {
+test("バージョン2の重複PTを所有権を保ったまま再編成する", () => {
   const stats = createStats();
   const original = Territory.createInitialState(stats, MONDAY_JST);
   const legacy = structuredClone(original);
-  legacy.version = 1;
+  legacy.version = 2;
+  const repeated = Object.values(legacy.tiles).find((tile) => tile.ownerId)?.garrison?.lineup;
   Object.values(legacy.tiles).forEach((tile) => {
-    delete tile.garrison;
-    delete tile.eventId;
-    delete tile.eventCycle;
+    if (tile.ownerId && repeated) tile.garrison.lineup = structuredClone(repeated);
   });
   const beforeOwners = Object.fromEntries(Object.entries(legacy.tiles).map(([id, tile]) => [id, tile.ownerId]));
   const migrated = Territory.normalizeState(legacy, stats, MONDAY_JST + Territory.TICK_MS);
-  assert.equal(migrated.version, 2);
+  assert.equal(migrated.version, 3);
   assert.deepEqual(
     Object.fromEntries(Object.entries(migrated.tiles).map(([id, tile]) => [id, tile.ownerId])),
     beforeOwners
   );
   assert.ok(Object.values(migrated.tiles).filter((tile) => tile.ownerId).every((tile) => tile.garrison?.lineup?.length === 3));
+  assertUniqueTerritoryMonsters(migrated);
 });

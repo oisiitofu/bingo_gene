@@ -1,7 +1,7 @@
 (function bootstrapTerritorySystem(global) {
   "use strict";
 
-  const VERSION = 2;
+  const VERSION = 3;
   const MAP_RADIUS = 4;
   const TICK_MINUTES = 10;
   const TICK_MS = TICK_MINUTES * 60 * 1000;
@@ -453,8 +453,21 @@
     return state;
   }
 
-  function buildPartyLineup(record, player, seed) {
+  function assignedMonsterIds(state, playerId) {
+    const assigned = new Set();
+    Object.values(state?.tiles || {}).forEach((tile) => {
+      const party = tile?.garrison;
+      if (!party || party.ownerId !== playerId) return;
+      (party.lineup || []).forEach((member) => {
+        if (member?.nodeId && member.nodeId !== "egg") assigned.add(member.nodeId);
+      });
+    });
+    return assigned;
+  }
+
+  function buildPartyLineup(record, player, seed, unavailable = new Set()) {
     const candidates = candidateMonsters(record, player, seed)
+      .filter((candidate) => !unavailable.has(candidate.nodeId))
       .map((candidate) => ({
         ...candidate,
         partyScore: candidate.score * (.9 + (hashText(`${seed}:${candidate.nodeId}:party`) % 210) / 1000)
@@ -478,6 +491,7 @@
     state.players[playerId] = playerState;
     const record = resolvePlayerRecord(playerStats, player);
     const seed = `${state.season.id}:${state.season.tick}:${playerId}:${tileId}:${serial}`;
+    const unavailable = assignedMonsterIds(state, playerId);
     return {
       id: `${playerId}-${state.season.id}-${serial}`,
       ownerId: playerId,
@@ -488,7 +502,7 @@
       fatigue: 0,
       wins: 0,
       losses: 0,
-      lineup: buildPartyLineup(record, player, seed)
+      lineup: buildPartyLineup(record, player, seed, unavailable)
     };
   }
 
@@ -557,7 +571,7 @@
   function normalizeState(raw, playerStats = {}, now = Date.now()) {
     const expectedSeason = seasonWindow(now);
     const sourceVersion = Number(raw?.version);
-    if (!raw || ![1, VERSION].includes(sourceVersion) || raw.season?.id !== expectedSeason.id) {
+    if (!raw || ![1, 2, VERSION].includes(sourceVersion) || raw.season?.id !== expectedSeason.id) {
       return createInitialState(playerStats, now);
     }
     const state = clone(raw);
@@ -568,6 +582,14 @@
       state.players[player.id] = { ...emptyPlayerState(player), ...(state.players[player.id] || {}) };
       state.players[player.id].squads = Array.isArray(state.players[player.id].squads) ? state.players[player.id].squads : [];
     });
+    if (sourceVersion !== VERSION) {
+      Object.values(state.tiles).forEach((tile) => {
+        tile.garrison = null;
+      });
+      PLAYERS.forEach((player) => {
+        state.players[player.id].partySerial = 0;
+      });
+    }
     state.battles = Array.isArray(state.battles) ? state.battles.slice(-MAX_BATTLES) : [];
     state.logs = Array.isArray(state.logs) ? state.logs.slice(-MAX_LOGS) : [];
     state.season.nextTickAt = Number(state.season.nextTickAt) || (Number(state.season.lastTickAt) || Number(now)) + TICK_MS;

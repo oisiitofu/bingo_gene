@@ -221,14 +221,14 @@ test("六王領土戦の初期化は有効な管理者セッションだけが�
   admin.territoryState = null;
   admin.ui = { adminResult: { textContent: "" } };
   admin.bridge.createTerritoryInitialState = () => ({
-    version: 2,
+    version: 3,
     revision: 0,
     season: { id: "2026-07-20" }
   });
   admin.bridge.applyTerritorySnapshot = () => {};
 
   assert.equal(await admin.resetTerritorySeason(), true);
-  assert.equal(store.value.teamBingoV1.frontier.current.version, 2);
+  assert.equal(store.value.teamBingoV1.frontier.current.version, 3);
   assert.match(admin.ui.adminResult.textContent, /初期化/);
 });
 
