@@ -823,36 +823,30 @@
     }
 
     #territoryModeButton {
-      grid-column: 1 / -1;
-      position: relative;
+      grid-column: auto;
       width: 100%;
-      min-height: 44px;
-      overflow: hidden;
-      color: #f5e7b4;
-      border: 1px solid rgba(224, 187, 83, .58);
-      border-left: 5px solid #e0bb53;
-      border-radius: 4px;
-      background: #11151c;
-      box-shadow: inset 0 1px 0 rgba(255, 255, 255, .05);
-      font-size: 14px;
-      text-align: left;
+      min-height: 40px;
+      padding: 9px 16px;
+      color: #f4e7bd;
+      border: 1px solid rgba(210, 174, 77, .62);
+      border-radius: 6px;
+      background: #15171c;
+      box-shadow: inset 0 1px 0 rgba(255, 255, 255, .04);
+      font-size: 13px;
+      line-height: 1;
+      text-align: center;
     }
 
     #territoryModeButton::after {
-      position: absolute;
-      right: 13px;
-      color: rgba(224, 187, 83, .8);
-      content: "SIX KINGS";
-      font-size: 8px;
-      font-weight: 900;
+      display: none;
     }
 
     #territoryModeButton:hover,
     #territoryModeButton:focus-visible {
       color: #fff5cf;
-      border-color: #e0bb53;
-      background: #181d25;
-      box-shadow: inset 0 1px 0 rgba(255, 255, 255, .08), 0 0 14px rgba(224, 187, 83, .12);
+      border-color: #d7b453;
+      background: #1c1f25;
+      box-shadow: inset 0 1px 0 rgba(255, 255, 255, .07);
     }
 
     .setup-start-row {
