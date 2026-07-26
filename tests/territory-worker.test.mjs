@@ -121,3 +121,60 @@ test("秘密鍵がないWorkerはFirebase匿名管理セッションで定期処
     globalThis.fetch = originalFetch;
   }
 });
+
+test("定刻前でもバージョン1の領土状態をバージョン2へ保存移行する", async () => {
+  const originalFetch = globalThis.fetch;
+  const now = Date.UTC(2026, 6, 23, 0, 1);
+  const Territory = globalThis.TeamBingoTerritorySystem;
+  const legacy = Territory.createInitialState({ players: {} }, now);
+  legacy.version = 1;
+  legacy.season.nextTickAt = now + Territory.TICK_MS;
+  Object.values(legacy.tiles).forEach((tile) => {
+    delete tile.garrison;
+    delete tile.eventId;
+    delete tile.eventCycle;
+  });
+  let savedState = null;
+  globalThis.fetch = async (input, init = {}) => {
+    const url = String(input);
+    if (url.includes("identitytoolkit.googleapis.com/v1/accounts:signUp")) {
+      return Response.json({ localId: "migration-worker", idToken: "migration-token" });
+    }
+    if (url.includes("identitytoolkit.googleapis.com/v1/accounts:delete")) return Response.json({});
+    if (url.includes("/teamBingoV1/adminSessions/migration-worker.json")) {
+      return Response.json(init.body ? JSON.parse(init.body) : null);
+    }
+    if (url.includes("/teamBingoV1/globalStats.json")) {
+      return Response.json({ playerStats: { players: {} } });
+    }
+    if (url.includes("/teamBingoV1/frontier/current.json") && (!init.method || init.method === "GET")) {
+      return new Response(JSON.stringify(legacy), {
+        headers: { "content-type": "application/json", etag: "\"legacy\"" }
+      });
+    }
+    if (url.includes("/teamBingoV1/frontier/current.json") && init.method === "PUT") {
+      savedState = JSON.parse(init.body);
+      return new Response(init.body, { headers: { "content-type": "application/json" } });
+    }
+    throw new Error(`Unexpected request: ${init.method || "GET"} ${url}`);
+  };
+
+  try {
+    const { advanceFrontier } = await import("../worker/territory-worker.mjs");
+    const result = await advanceFrontier({
+      FIREBASE_API_KEY: "public-test-key",
+      FIREBASE_DATABASE_URL: "https://database.test",
+      FIREBASE_DATABASE_ROOT: "teamBingoV1",
+      TEAM_BINGO_ADMIN_PIN_HASH: "test-pin-hash"
+    }, now);
+
+    assert.equal(result.changed, true);
+    assert.equal(result.processed, 0);
+    assert.equal(savedState.version, 2);
+    assert.ok(Object.values(savedState.tiles).filter((tile) => tile.ownerId).every((tile) => (
+      tile.garrison?.lineup?.length === 3 && tile.garrison?.hype === 20
+    )));
+  } finally {
+    globalThis.fetch = originalFetch;
+  }
+});

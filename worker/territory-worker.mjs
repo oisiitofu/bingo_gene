@@ -214,7 +214,8 @@ export async function advanceFrontierWithToken(env, token, now = Date.now()) {
     const playerStats = statsResult.value?.playerStats || { players: {} };
     const rolled = await rolloverIfNeeded(env, currentResult.value, playerStats, token, now);
     const advanced = Territory.advanceState(rolled, playerStats, now, { maxTicks: 144 });
-    const requiresWrite = !currentResult.value || rolled !== currentResult.value || advanced.processed > 0;
+    const requiresMigration = Number(currentResult.value?.version) !== Territory.VERSION;
+    const requiresWrite = !currentResult.value || rolled !== currentResult.value || requiresMigration || advanced.processed > 0;
     if (!requiresWrite) {
       return {
         ok: true,
