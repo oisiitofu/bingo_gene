@@ -28,6 +28,16 @@ function createStats() {
   return { players };
 }
 
+function createStatsWithIds(nodeIds) {
+  const monsterDex = Object.fromEntries(nodeIds.map((nodeId) => [nodeId, 1]));
+  return {
+    players: Object.fromEntries(Territory.PLAYERS.map((player) => [
+      Territory.playerKey(player.name),
+      { name: player.name, monsterDex, monsterMastery: {} }
+    ]))
+  };
+}
+
 test("六王領土戦は固定6人と61領地で初期化される", () => {
   const state = Territory.createInitialState(createStats(), MONDAY_JST);
   assert.deepEqual(
@@ -38,15 +48,36 @@ test("六王領土戦は固定6人と61領地で初期化される", () => {
   assert.equal(Object.keys(state.players).length, 6);
   assert.equal(Object.values(state.tiles).filter((tile) => tile.baseFor).length, 6);
   assert.equal(Object.values(state.tiles).filter((tile) => tile.ownerId).length, 12);
+  assert.ok(Object.values(state.tiles).every((tile) => Territory.TILE_EVENT_BY_ID[tile.eventId]));
+  assert.ok(Object.values(state.tiles).filter((tile) => tile.ownerId).every((tile) => (
+    tile.garrison?.ownerId === tile.ownerId &&
+    tile.garrison?.lineup?.length === Territory.PARTY_SIZE &&
+    tile.garrison?.hype === Territory.DEFAULT_HYPE
+  )));
 });
 
-test("全参加者を収集済みモンスターから2部隊へ自動編成する", () => {
-  const state = Territory.createInitialState(createStats(), MONDAY_JST);
-  for (const player of Territory.PLAYERS) {
-    const squads = state.players[player.id].squads;
-    assert.equal(squads.length, 2);
-    assert.deepEqual(squads.map((squad) => squad.lineup.length), [3, 3]);
-    assert.equal(new Set(squads.flatMap((squad) => squad.lineup.map((member) => member.nodeId))).size, 6);
+test("図鑑登録が3体未満なら領地PTの不足枠をたまごで補う", () => {
+  const ids = Object.values(Monster.NODES).filter((node) => node.id !== "egg").slice(0, 2).map((node) => node.id);
+  const state = Territory.createInitialState(createStatsWithIds(ids), MONDAY_JST);
+  for (const tile of Object.values(state.tiles).filter((entry) => entry.ownerId)) {
+    assert.equal(tile.garrison.lineup.length, 3);
+    assert.deepEqual(
+      new Set(tile.garrison.lineup.filter((member) => member.nodeId !== "egg").map((member) => member.nodeId)),
+      new Set(ids)
+    );
+    assert.equal(tile.garrison.lineup.filter((member) => member.nodeId === "egg").length, 1);
+  }
+});
+
+test("領地PTはコスト・伝説・星6の制限なしで3体を編成する", () => {
+  const ids = Object.values(Monster.NODES)
+    .filter((node) => node.id !== "egg")
+    .sort((a, b) => Number(Boolean(b.legendary || b.rank6)) - Number(Boolean(a.legendary || a.rank6)) || b.stage - a.stage)
+    .slice(0, 3)
+    .map((node) => node.id);
+  const state = Territory.createInitialState(createStatsWithIds(ids), MONDAY_JST);
+  for (const tile of Object.values(state.tiles).filter((entry) => entry.ownerId)) {
+    assert.deepEqual(new Set(tile.garrison.lineup.map((member) => member.nodeId)), new Set(ids));
   }
 });
 
@@ -101,5 +132,60 @@ test("戦闘履歴は既存バトル画面で再生できる編成を保持す�
     assert.equal(battle.replay.winner, "red");
     assert.ok(battle.replay.red.lineup.every((nodeId) => Monster.NODES[nodeId]));
     assert.ok(battle.replay.blue.lineup.every((nodeId) => Monster.NODES[nodeId]));
+    assert.ok(battle.event?.benefit);
+    assert.ok(battle.event?.drawback);
+    assert.ok(Number.isFinite(battle.replay.red.hype));
+    assert.ok(Number.isFinite(battle.replay.blue.hype));
   }
+});
+
+test("占領したPTは領地へ移動し出発地へ新しいPTが自動配置される", () => {
+  const stats = createStats();
+  let state = Territory.createInitialState(stats, MONDAY_JST);
+  let capturedBattle = null;
+  for (let index = 0; index < 80 && !capturedBattle; index += 1) {
+    const beforeCount = state.battles.length;
+    state = Territory.advanceState(state, stats, state.season.nextTickAt, { maxTicks: 1 }).state;
+    capturedBattle = state.battles.slice(beforeCount).find((battle) => (
+      battle.captured && battle.movedPartyId && battle.sourceReplacementPartyId
+    )) || null;
+  }
+  assert.ok(capturedBattle);
+  assert.notEqual(capturedBattle.movedPartyId, capturedBattle.sourceReplacementPartyId);
+  assert.equal(state.tiles[capturedBattle.tileId].garrison.id, capturedBattle.movedPartyId);
+  assert.equal(state.tiles[capturedBattle.tileId].garrison.ownerId, capturedBattle.winnerId);
+});
+
+test("領地イベントがPTのHYPEを初期20から増減させる", () => {
+  const stats = createStats();
+  const initial = Territory.createInitialState(stats, MONDAY_JST);
+  assert.ok(Object.values(initial.tiles).filter((tile) => tile.garrison).every((tile) => tile.garrison.hype === 20));
+  const state = Territory.advanceState(
+    initial,
+    stats,
+    initial.season.nextTickAt + Territory.TICK_MS * 18,
+    { maxTicks: 24 }
+  ).state;
+  assert.ok(state.battles.some((battle) => battle.hypeChanges.some((change) => change.delta !== 0)));
+  assert.ok(Object.values(state.tiles).filter((tile) => tile.garrison).some((tile) => tile.garrison.hype !== 20));
+});
+
+test("バージョン1のシーズン状態を所有権を保ったまま領地PT形式へ移行する", () => {
+  const stats = createStats();
+  const original = Territory.createInitialState(stats, MONDAY_JST);
+  const legacy = structuredClone(original);
+  legacy.version = 1;
+  Object.values(legacy.tiles).forEach((tile) => {
+    delete tile.garrison;
+    delete tile.eventId;
+    delete tile.eventCycle;
+  });
+  const beforeOwners = Object.fromEntries(Object.entries(legacy.tiles).map(([id, tile]) => [id, tile.ownerId]));
+  const migrated = Territory.normalizeState(legacy, stats, MONDAY_JST + Territory.TICK_MS);
+  assert.equal(migrated.version, 2);
+  assert.deepEqual(
+    Object.fromEntries(Object.entries(migrated.tiles).map(([id, tile]) => [id, tile.ownerId])),
+    beforeOwners
+  );
+  assert.ok(Object.values(migrated.tiles).filter((tile) => tile.ownerId).every((tile) => tile.garrison?.lineup?.length === 3));
 });

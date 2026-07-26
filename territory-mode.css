@@ -272,6 +272,12 @@
   stroke-width: 3px;
 }
 
+.territory-hex .territory-event-mark {
+  fill: #fff1a8;
+  font-size: 9px;
+  stroke-width: 2px;
+}
+
 .territory-map-legend {
   position: absolute;
   right: 12px;
@@ -292,6 +298,8 @@
 }
 
 .territory-detail-body {
+  min-height: 0;
+  overflow: auto;
   padding: 14px;
 }
 
@@ -332,6 +340,51 @@
   box-shadow: 0 0 12px var(--owner-color, #657083);
 }
 
+.territory-event-card {
+  display: grid;
+  gap: 5px;
+  margin-top: 12px;
+  padding: 10px;
+  border: 1px solid rgba(255, 212, 93, .34);
+  background: linear-gradient(135deg, rgba(255, 212, 93, .11), rgba(255, 255, 255, .025));
+}
+
+.territory-event-title {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.territory-event-title span {
+  display: grid;
+  width: 27px;
+  height: 27px;
+  place-items: center;
+  color: #0b0d12;
+  background: #ffd45d;
+  font-size: 11px;
+  font-weight: 900;
+}
+
+.territory-event-title strong {
+  color: #fff3bf;
+  font-size: 13px;
+}
+
+.territory-event-card p {
+  margin: 0;
+  font-size: 9px;
+  line-height: 1.45;
+}
+
+.territory-event-benefit {
+  color: #77efb7;
+}
+
+.territory-event-drawback {
+  color: #ff889c;
+}
+
 .territory-squad {
   margin-top: 14px;
   border: 1px solid rgba(255, 255, 255, .12);
@@ -354,6 +407,36 @@
   grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: 4px;
   padding: 6px;
+}
+
+.territory-hype-row {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) 28px;
+  align-items: center;
+  gap: 7px;
+  padding: 7px 9px 9px;
+  color: #ffd45d;
+  font-size: 9px;
+  font-weight: 900;
+}
+
+.territory-hype-track {
+  height: 7px;
+  overflow: hidden;
+  border: 1px solid rgba(255, 255, 255, .2);
+  background: #06090e;
+}
+
+.territory-hype-track i {
+  display: block;
+  height: 100%;
+  background: linear-gradient(90deg, #f05a4f, #ffd45d, #fff3a8);
+  box-shadow: 0 0 9px #ffd45d;
+  transition: width .35s ease;
+}
+
+.territory-hype-row strong {
+  text-align: right;
 }
 
 .territory-monster {

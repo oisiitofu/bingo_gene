@@ -16,6 +16,8 @@ test("all inline index scripts compile", () => {
 test("六王領土戦のクライアント、Worker、Firebaseルールが公開構成へ接続されている", () => {
   const html = readFileSync(new URL("../index.html", import.meta.url), "utf8");
   const serviceWorker = readFileSync(new URL("../sw.js", import.meta.url), "utf8");
+  const territorySystem = readFileSync(new URL("../territory-system.js", import.meta.url), "utf8");
+  const territoryMode = readFileSync(new URL("../territory-mode.js", import.meta.url), "utf8");
   const rules = JSON.parse(readFileSync(new URL("../firebase-database.rules.json", import.meta.url), "utf8"));
   const worker = readFileSync(new URL("../worker/territory-worker.mjs", import.meta.url), "utf8");
 
@@ -29,6 +31,12 @@ test("六王領土戦のクライアント、Worker、Firebaseルールが公開
     rules.rules.teamBingoV1.frontier.current[".write"].includes("adminSessions"),
     true
   );
+  assert.match(rules.rules.teamBingoV1.frontier.current[".validate"], /version'\)\.val\(\) === 2/);
+  assert.match(territorySystem, /const DEFAULT_HYPE = 20/);
+  assert.match(territorySystem, /const PARTY_SIZE = 3/);
+  assert.match(territorySystem, /TILE_EVENTS/);
+  assert.match(territoryMode, /TERRITORY PARTY/);
+  assert.match(territoryMode, /territory-hype-track/);
   assert.match(worker, /crons|advanceFrontier|If-Match|if-match/i);
 });
 

@@ -134,11 +134,15 @@
         tile.kind,
         tile.id === selectedTileId ? "selected" : ""
       ].filter(Boolean).join(" ");
+      const event = Territory.TILE_EVENT_BY_ID[tile.eventId];
+      const hype = Number.isFinite(Number(tile.garrison?.hype)) ? Number(tile.garrison.hype) : Territory.DEFAULT_HYPE;
+      const hypeLabel = tile.garrison ? Math.round(hype) : "--";
       return `
         <g class="${classes}" data-tile-id="${escapeHtml(tile.id)}" style="--tile-color:${owner?.color || "#657083"}">
           <polygon points="${hexPoints(x, y, size * scale * .94)}"></polygon>
-          <text x="${x}" y="${y}">${escapeHtml(tileMark(tile))}</text>
-          <title>${escapeHtml(Territory.tileSummary(state, tile.id)?.terrainName || "")} / ${escapeHtml(owner?.name || "中立")}</title>
+          <text x="${x}" y="${y - 7}">${escapeHtml(tileMark(tile))}</text>
+          <text class="territory-event-mark" x="${x}" y="${y + 20}">${escapeHtml(event?.icon || "")}</text>
+          <title>${escapeHtml(Territory.tileSummary(state, tile.id)?.terrainName || "")} / ${escapeHtml(owner?.name || "中立")} / ${escapeHtml(event?.name || "")} / HYPE ${hypeLabel}</title>
         </g>
       `;
     }).join("");
@@ -150,7 +154,7 @@
     list.innerHTML = ranking.map((player, index) => `
       <button type="button" class="territory-rank-row ${state.tiles?.[selectedTileId]?.ownerId === player.id ? "active" : ""}" data-king-id="${player.id}" style="--king-color:${player.color}">
         <span class="territory-rank-position">${index + 1}</span>
-        <span class="territory-rank-copy"><strong>${escapeHtml(player.name)}</strong><span>${player.territoryCount}領地 / ${player.wins}勝</span></span>
+        <span class="territory-rank-copy"><strong>${escapeHtml(player.name)}</strong><span>${player.territoryCount}領地 / ${player.wins}勝 / HYPE ${player.averageHype}</span></span>
         <span class="territory-rank-score"><strong>${player.score}</strong><span>POINT</span></span>
       </button>
     `).join("");
@@ -174,19 +178,33 @@
       return;
     }
     const owner = Territory.PLAYER_BY_ID[tile.ownerId];
-    const squads = owner ? state.players?.[owner.id]?.squads || [] : [];
+    const party = owner ? tile.garrison : null;
+    const event = tile.event;
+    const hype = Number.isFinite(Number(party?.hype)) ? Number(party.hype) : Territory.DEFAULT_HYPE;
     detail.innerHTML = `
       <div class="territory-tile-heading">
         <span>${tile.kind === "base" ? "本拠地" : (tile.kind === "throne" ? "中央玉座" : (tile.kind === "outpost" ? "重要拠点" : "領地"))}</span>
         <strong>${escapeHtml(tile.terrainName)}</strong>
       </div>
       <div class="territory-owner" style="--owner-color:${owner?.color || "#657083"}">${escapeHtml(owner?.name || "中立領地")}</div>
-      ${squads.length ? squads.map((squad, index) => `
-        <section class="territory-squad">
-          <div class="territory-squad-head"><span>AUTO SQUAD ${index + 1}</span><span>戦力 ${Math.round(squad.lineup.reduce((sum, member) => sum + (Number(member.power) || 0), 0))}</span></div>
-          <div class="territory-squad-lineup">${squad.lineup.map(renderMonster).join("")}</div>
+      ${event ? `
+        <section class="territory-event-card">
+          <div class="territory-event-title"><span>${escapeHtml(event.icon)}</span><strong>${escapeHtml(event.name)}</strong></div>
+          <p class="territory-event-benefit">＋ ${escapeHtml(event.benefit)}</p>
+          <p class="territory-event-drawback">－ ${escapeHtml(event.drawback)}</p>
         </section>
-      `).join("") : `<div class="territory-empty">守備部隊なし</div>`}
+      ` : ""}
+      ${party?.lineup?.length ? `
+        <section class="territory-squad">
+          <div class="territory-squad-head"><span>TERRITORY PARTY</span><span>戦力 ${Math.round(party.lineup.reduce((sum, member) => sum + (Number(member.power) || 0), 0))}</span></div>
+          <div class="territory-squad-lineup">${party.lineup.map(renderMonster).join("")}</div>
+          <div class="territory-hype-row">
+            <span>HYPE</span>
+            <div class="territory-hype-track"><i style="width:${Math.max(0, Math.min(100, hype))}%"></i></div>
+            <strong>${Math.round(hype)}</strong>
+          </div>
+        </section>
+      ` : `<div class="territory-empty">${owner ? "PT編成待ち" : "中立領地のためPTなし"}</div>`}
     `;
   }
 

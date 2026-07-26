@@ -47,7 +47,12 @@
       "frontier": {
         "current": {
           ".write": "auth != null && root.child('teamBingoV1').child('adminSessions').child(auth.uid).child('expiresAt').isNumber() && root.child('teamBingoV1').child('adminSessions').child(auth.uid).child('expiresAt').val() > now",
-          ".validate": "!newData.exists() || (newData.child('version').val() === 1 && newData.hasChildren(['version', 'revision', 'season', 'tiles', 'players', 'updatedAt']) && newData.child('season').hasChildren(['id', 'startsAt', 'endsAt', 'status', 'tick', 'lastTickAt', 'nextTickAt']))"
+          ".validate": "!newData.exists() || (newData.child('version').val() === 2 && newData.hasChildren(['version', 'revision', 'season', 'tiles', 'players', 'updatedAt']) && newData.child('season').hasChildren(['id', 'startsAt', 'endsAt', 'status', 'tick', 'lastTickAt', 'nextTickAt']))",
+          "tiles": {
+            "$tileId": {
+              ".validate": "newData.hasChildren(['id', 'q', 'r', 'terrain', 'kind', 'ownerId', 'eventId', 'eventCycle']) && newData.child('eventId').isString() && newData.child('eventCycle').isNumber() && (newData.child('ownerId').val() === '' || (newData.child('garrison').hasChildren(['id', 'ownerId', 'tileId', 'hype', 'lineup']) && newData.child('garrison').child('ownerId').val() === newData.child('ownerId').val() && newData.child('garrison').child('tileId').val() === newData.child('id').val() && newData.child('garrison').child('hype').isNumber() && newData.child('garrison').child('hype').val() >= 0 && newData.child('garrison').child('hype').val() <= 100 && newData.child('garrison').child('lineup').hasChildren(['0', '1', '2'])))"
+            }
+          }
         },
         "archive": {
           ".write": "auth != null && root.child('teamBingoV1').child('adminSessions').child(auth.uid).child('expiresAt').isNumber() && root.child('teamBingoV1').child('adminSessions').child(auth.uid).child('expiresAt').val() > now"

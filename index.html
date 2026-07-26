@@ -11575,7 +11575,8 @@
       });
     }
 
-    function createAdminMonsterBattleFighters(team, nodeIds) {
+    function createAdminMonsterBattleFighters(team, nodeIds, teamHype = 100) {
+      const hype = Math.max(0, Math.min(100, Number.isFinite(Number(teamHype)) ? Number(teamHype) : 100));
       return (nodeIds || []).map((nodeId, index) => {
         const node = MONSTER_NODES[nodeId] || MONSTER_NODES.egg;
         const stats = MONSTER_SYSTEM.applyMasteryStats(MONSTER_SYSTEM.combatStats(node.id), 0);
@@ -11596,8 +11597,8 @@
           element,
           masteryXp: 0,
           hp: stats.hp,
-          hype: 100,
-          energy: Math.min(100, 55 + (passive.kind === "initial-energy" ? passive.value : 0)),
+          hype,
+          energy: Math.min(100, Math.round(hype * .55) + (passive.kind === "initial-energy" ? passive.value : 0)),
           ko: false,
           endureUsed: false,
           reviveUsed: false,
@@ -12063,8 +12064,8 @@
       const adminBattle = options.adminBattle === true;
       const parties = adminBattle
         ? {
-            red: createAdminMonsterBattleFighters("red", options.lineup?.red),
-            blue: createAdminMonsterBattleFighters("blue", options.lineup?.blue)
+            red: createAdminMonsterBattleFighters("red", options.lineup?.red, options.hype?.red),
+            blue: createAdminMonsterBattleFighters("blue", options.lineup?.blue, options.hype?.blue)
           }
         : { red: createMonsterBattleFighters("red"), blue: createMonsterBattleFighters("blue") };
       const teamLabels = options.teamLabels || { red: state.red.teamTitle, blue: state.blue.teamTitle };
@@ -15929,6 +15930,10 @@
       void runMonsterBattle(Number(battle.seed) || Date.now(), {
         adminBattle: true,
         lineup: { red, blue },
+        hype: {
+          red: Number.isFinite(Number(battle?.replay?.red?.hype)) ? Number(battle.replay.red.hype) : 20,
+          blue: Number.isFinite(Number(battle?.replay?.blue?.hype)) ? Number(battle.replay.blue.hype) : 20
+        },
         teamLabels: {
           red: battle.replay.red.name || "RED",
           blue: battle.replay.blue.name || "BLUE"

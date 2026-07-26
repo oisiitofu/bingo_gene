@@ -1,14 +1,16 @@
 (function bootstrapTerritorySystem(global) {
   "use strict";
 
-  const VERSION = 1;
+  const VERSION = 2;
   const MAP_RADIUS = 4;
   const TICK_MINUTES = 10;
   const TICK_MS = TICK_MINUTES * 60 * 1000;
   const SEASON_DAYS = 7;
   const MAX_BATTLES = 120;
   const MAX_LOGS = 180;
-  const MAX_SQUAD_COST = 15;
+  const PARTY_SIZE = 3;
+  const DEFAULT_HYPE = 20;
+  const EVENT_REROLL_TICKS = 6;
   const JST_OFFSET = 9 * 60 * 60 * 1000;
 
   const PLAYERS = Object.freeze([
@@ -32,10 +34,117 @@
     { id: "dark", name: "闇域", mark: "闇" }
   ]);
   const TERRAIN_BY_ID = Object.freeze(Object.fromEntries(TERRAINS.map((terrain) => [terrain.id, terrain])));
-  const STARTER_IDS = Object.freeze([
-    "inferno-growth", "thunder-growth", "mecha-growth", "beetle-growth",
-    "grove-growth", "spore-growth", "abyss-growth", "cosmic-growth"
+  const TILE_EVENTS = Object.freeze([
+    {
+      id: "tailwind",
+      name: "追い風回廊",
+      icon: "疾",
+      benefit: "侵攻側の戦力 +12%",
+      drawback: "守備側の戦力 -6%",
+      attackMultiplier: 1.12,
+      defenseMultiplier: .94,
+      winnerHype: 8,
+      loserHype: -3,
+      captureHype: 4,
+      pointMultiplier: 1
+    },
+    {
+      id: "iron-mist",
+      name: "鉄壁の霧",
+      icon: "盾",
+      benefit: "守備側の戦力 +14%",
+      drawback: "侵攻側の戦力 -8%",
+      attackMultiplier: .92,
+      defenseMultiplier: 1.14,
+      winnerHype: 5,
+      loserHype: -4,
+      captureHype: 3,
+      pointMultiplier: 1
+    },
+    {
+      id: "comeback-altar",
+      name: "逆境の祭壇",
+      icon: "逆",
+      benefit: "領地数が少ない王ほど最大18%強化",
+      drawback: "首位の王は戦力 -7%",
+      attackMultiplier: 1,
+      defenseMultiplier: 1,
+      underdogMultiplier: 1.18,
+      leaderMultiplier: .93,
+      winnerHype: 10,
+      loserHype: 5,
+      captureHype: 6,
+      pointMultiplier: 1
+    },
+    {
+      id: "hype-voltage",
+      name: "熱狂ボルテージ",
+      icon: "熱",
+      benefit: "勝者のHYPE +15",
+      drawback: "敗者のHYPE -10",
+      attackMultiplier: 1.03,
+      defenseMultiplier: 1.03,
+      winnerHype: 15,
+      loserHype: -10,
+      captureHype: 5,
+      pointMultiplier: 1
+    },
+    {
+      id: "silent-valley",
+      name: "静寂の谷",
+      icon: "静",
+      benefit: "守備側はHYPEを維持しやすい",
+      drawback: "全PTの戦力 -8%・勝者HYPE -2",
+      attackMultiplier: .92,
+      defenseMultiplier: .98,
+      winnerHype: -2,
+      loserHype: -8,
+      captureHype: 0,
+      pointMultiplier: 1
+    },
+    {
+      id: "gold-vein",
+      name: "黄金鉱脈",
+      icon: "金",
+      benefit: "領地ポイント +50%・占領HYPE +8",
+      drawback: "守備側の戦力 -5%",
+      attackMultiplier: 1,
+      defenseMultiplier: .95,
+      winnerHype: 5,
+      loserHype: -2,
+      captureHype: 8,
+      pointMultiplier: 1.5
+    },
+    {
+      id: "chaos-field",
+      name: "混沌磁場",
+      icon: "乱",
+      benefit: "劣勢側にも大逆転の一撃",
+      drawback: "戦力の振れ幅が大きい",
+      attackMultiplier: 1,
+      defenseMultiplier: 1,
+      noiseMin: .76,
+      noiseMax: 1.24,
+      winnerHype: 12,
+      loserHype: 6,
+      captureHype: 4,
+      pointMultiplier: 1
+    },
+    {
+      id: "healing-spring",
+      name: "再起の泉",
+      icon: "泉",
+      benefit: "敗者もHYPE +8",
+      drawback: "侵攻側の戦力 -3%",
+      attackMultiplier: .97,
+      defenseMultiplier: 1.06,
+      winnerHype: 6,
+      loserHype: 8,
+      captureHype: 2,
+      pointMultiplier: 1
+    }
   ]);
+  const TILE_EVENT_BY_ID = Object.freeze(Object.fromEntries(TILE_EVENTS.map((event) => [event.id, event])));
   const STARTER_NEIGHBORS = Object.freeze({
     tofu: [3, 0],
     eda: [0, 3],
@@ -183,6 +292,7 @@
       lastSkillTick: -1,
       lastRosterDay: "",
       squads: [],
+      partySerial: 0,
       championCount: 0
     };
   }
@@ -217,14 +327,7 @@
     const system = monsterSystem();
     if (!system?.NODES) return [];
     const unlocked = Object.keys(record?.monsterDex || {}).filter((id) => Number(record.monsterDex[id]) > 0 && system.NODES[id] && id !== "egg");
-    const ids = unlocked.length >= 6
-      ? unlocked
-      : Array.from(new Set([
-          ...unlocked,
-          ...STARTER_IDS.filter((id) => system.NODES[id]),
-          ...Object.values(system.NODES).filter((node) => node.stage === 2 && !node.legendary).map((node) => node.id)
-        ]));
-    return ids.map((nodeId) => {
+    return unlocked.map((nodeId) => {
       const node = system.NODES[nodeId];
       const masteryXp = Number(record?.monsterMastery?.[nodeId]) || 0;
       const role = system.combatRole(nodeId);
@@ -247,17 +350,33 @@
     }).sort((a, b) => b.score - a.score || a.nodeId.localeCompare(b.nodeId));
   }
 
+  function eggMonster() {
+    const system = monsterSystem();
+    const node = system?.NODES?.egg;
+    const role = system?.combatRole?.("egg");
+    const element = system?.combatElement?.("egg");
+    return {
+      nodeId: "egg",
+      name: node?.name || "たまご",
+      stage: Number(node?.stage) || 0,
+      legendary: false,
+      rank6: false,
+      masteryXp: 0,
+      role: role?.id || "support",
+      element: element?.id || "neutral",
+      power: combatPower("egg", 0),
+      cost: 0,
+      score: 0
+    };
+  }
+
   function buildSquad(candidates, used, player, squadIndex) {
     const roles = squadIndex === 0 ? ["guardian", "striker", "support"] : ["striker", "mystic", "speedster"];
     const lineup = [];
-    let cost = 0;
-    for (let slot = 0; slot < 3; slot += 1) {
+    for (let slot = 0; slot < PARTY_SIZE; slot += 1) {
       const desiredRole = roles[slot];
       const options = candidates
         .filter((candidate) => !used.has(candidate.nodeId))
-        .filter((candidate) => cost + candidate.cost <= MAX_SQUAD_COST)
-        .filter((candidate) => !candidate.legendary || !lineup.some((item) => item.legendary))
-        .filter((candidate) => !candidate.rank6 || !lineup.some((item) => item.rank6))
         .map((candidate) => ({
           candidate,
           value: candidate.score * (candidate.role === desiredRole ? 1.11 : 1) *
@@ -267,15 +386,17 @@
         }))
         .sort((a, b) => b.value - a.value);
       const selected = options[0]?.candidate;
-      if (!selected) break;
+      if (!selected) {
+        lineup.push(eggMonster());
+        continue;
+      }
       lineup.push(clone(selected));
       used.add(selected.nodeId);
-      cost += selected.cost;
     }
     return {
       id: `${player.id}-${squadIndex + 1}`,
       name: squadIndex === 0 ? "第一部隊" : "第二部隊",
-      cost,
+      cost: lineup.reduce((sum, member) => sum + (Number(member.cost) || 0), 0),
       fatigue: 0,
       wins: 0,
       losses: 0,
@@ -308,6 +429,99 @@
     return state;
   }
 
+  function clampHype(value) {
+    return Math.max(0, Math.min(100, Math.round(Number(value) || 0)));
+  }
+
+  function eventCycleForTick(tick) {
+    return Math.floor(Math.max(0, Number(tick) || 0) / EVENT_REROLL_TICKS);
+  }
+
+  function eventForTile(state, tile, cycle = eventCycleForTick(state?.season?.tick)) {
+    const index = hashText(`${state?.season?.id || "season"}:${cycle}:${tile.id}:event`) % TILE_EVENTS.length;
+    return TILE_EVENTS[index];
+  }
+
+  function assignTileEvents(state, cycle = eventCycleForTick(state?.season?.tick), force = false) {
+    Object.values(state.tiles || {}).forEach((tile) => {
+      if (!force && Number(tile.eventCycle) === cycle && TILE_EVENT_BY_ID[tile.eventId]) return;
+      const event = eventForTile(state, tile, cycle);
+      tile.eventId = event.id;
+      tile.eventCycle = cycle;
+    });
+    state.eventCycle = cycle;
+    return state;
+  }
+
+  function buildPartyLineup(record, player, seed) {
+    const candidates = candidateMonsters(record, player, seed)
+      .map((candidate) => ({
+        ...candidate,
+        partyScore: candidate.score * (.9 + (hashText(`${seed}:${candidate.nodeId}:party`) % 210) / 1000)
+      }))
+      .sort((a, b) => b.partyScore - a.partyScore || a.nodeId.localeCompare(b.nodeId));
+    const lineup = candidates.slice(0, PARTY_SIZE).map((candidate) => {
+      const member = clone(candidate);
+      delete member.partyScore;
+      return member;
+    });
+    while (lineup.length < PARTY_SIZE) lineup.push(eggMonster());
+    return lineup;
+  }
+
+  function createGarrison(state, playerStats, playerId, tileId, now = Date.now(), reason = "auto") {
+    const player = PLAYER_BY_ID[playerId];
+    if (!player) return null;
+    const playerState = state.players[playerId] || emptyPlayerState(player);
+    const serial = (Number(playerState.partySerial) || 0) + 1;
+    playerState.partySerial = serial;
+    state.players[playerId] = playerState;
+    const record = resolvePlayerRecord(playerStats, player);
+    const seed = `${state.season.id}:${state.season.tick}:${playerId}:${tileId}:${serial}`;
+    return {
+      id: `${playerId}-${state.season.id}-${serial}`,
+      ownerId: playerId,
+      tileId,
+      createdAt: Number(now),
+      reason,
+      hype: DEFAULT_HYPE,
+      fatigue: 0,
+      wins: 0,
+      losses: 0,
+      lineup: buildPartyLineup(record, player, seed)
+    };
+  }
+
+  function normalizeGarrison(state, playerStats, tile, now = Date.now()) {
+    if (!tile.ownerId || !PLAYER_BY_ID[tile.ownerId]) {
+      tile.garrison = null;
+      return null;
+    }
+    const current = tile.garrison;
+    if (!current || current.ownerId !== tile.ownerId || !Array.isArray(current.lineup)) {
+      tile.garrison = createGarrison(state, playerStats, tile.ownerId, tile.id, now, "territory-assignment");
+      return tile.garrison;
+    }
+    current.tileId = tile.id;
+    current.hype = Number.isFinite(Number(current.hype)) ? clampHype(current.hype) : DEFAULT_HYPE;
+    current.fatigue = Math.max(0, Number(current.fatigue) || 0);
+    current.wins = Math.max(0, Number(current.wins) || 0);
+    current.losses = Math.max(0, Number(current.losses) || 0);
+    current.lineup = current.lineup
+      .filter((member) => member?.nodeId && monsterSystem()?.NODES?.[member.nodeId])
+      .slice(0, PARTY_SIZE)
+      .map((member) => clone(member));
+    while (current.lineup.length < PARTY_SIZE) current.lineup.push(eggMonster());
+    return current;
+  }
+
+  function ensureTileGarrisons(state, playerStats, now = Date.now()) {
+    Object.values(state.tiles || {})
+      .sort((a, b) => a.id.localeCompare(b.id))
+      .forEach((tile) => normalizeGarrison(state, playerStats, tile, now));
+    return state;
+  }
+
   function createInitialState(playerStats = {}, now = Date.now()) {
     const season = seasonWindow(now);
     const tickStart = Math.floor(Number(now) / TICK_MS) * TICK_MS;
@@ -334,15 +548,20 @@
       }],
       updatedAt: Number(now)
     };
-    return refreshAllSquads(state, playerStats, now, true);
+    refreshAllSquads(state, playerStats, now, true);
+    assignTileEvents(state, 0, true);
+    ensureTileGarrisons(state, playerStats, now);
+    return state;
   }
 
   function normalizeState(raw, playerStats = {}, now = Date.now()) {
     const expectedSeason = seasonWindow(now);
-    if (!raw || Number(raw.version) !== VERSION || raw.season?.id !== expectedSeason.id) {
+    const sourceVersion = Number(raw?.version);
+    if (!raw || ![1, VERSION].includes(sourceVersion) || raw.season?.id !== expectedSeason.id) {
       return createInitialState(playerStats, now);
     }
     const state = clone(raw);
+    state.version = VERSION;
     state.tiles ||= createMap();
     state.players ||= {};
     PLAYERS.forEach((player) => {
@@ -352,7 +571,10 @@
     state.battles = Array.isArray(state.battles) ? state.battles.slice(-MAX_BATTLES) : [];
     state.logs = Array.isArray(state.logs) ? state.logs.slice(-MAX_LOGS) : [];
     state.season.nextTickAt = Number(state.season.nextTickAt) || (Number(state.season.lastTickAt) || Number(now)) + TICK_MS;
-    return refreshAllSquads(state, playerStats, now);
+    refreshAllSquads(state, playerStats, now, sourceVersion !== VERSION);
+    assignTileEvents(state, eventCycleForTick(state.season.tick));
+    ensureTileGarrisons(state, playerStats, now);
+    return state;
   }
 
   function ownedTiles(state, playerId) {
@@ -367,21 +589,31 @@
     return counts;
   }
 
-  function squadTerrainPower(squad, terrainId, player) {
-    const lineup = squad?.lineup || [];
+  function partyTerrainPower(party, terrainId, player, event = null, mode = "attack", counts = {}) {
+    const lineup = party?.lineup || [];
     if (!lineup.length) return 1;
     const base = lineup.reduce((sum, monster) => sum + (Number(monster.power) || 1), 0);
     const matches = lineup.filter((monster) => monster.element === terrainId).length;
     const roleBonus = new Set(lineup.map((monster) => monster.role)).size >= 3 ? 1.06 : 1;
     const terrainBonus = matches ? 1.1 + Math.max(0, matches - 1) * .025 : 1;
-    const fatigue = Math.max(.72, 1 - (Number(squad.fatigue) || 0) * .025);
-    return base * roleBonus * terrainBonus * fatigue * (player?.ai === "arcane" && matches ? 1.03 : 1);
-  }
-
-  function chooseSquad(playerState, terrainId, player) {
-    return [...(playerState?.squads || [])]
-      .map((squad) => ({ squad, power: squadTerrainPower(squad, terrainId, player) }))
-      .sort((a, b) => b.power - a.power)[0]?.squad || null;
+    const fatigue = Math.max(.72, 1 - (Number(party?.fatigue) || 0) * .025);
+    const hype = clampHype(Number.isFinite(Number(party?.hype)) ? party.hype : DEFAULT_HYPE);
+    const hypeMultiplier = Math.max(.88, Math.min(1.12, 1 + (hype - DEFAULT_HYPE) * .0015));
+    const territoryValues = Object.values(counts).filter((value) => Number.isFinite(Number(value)));
+    const ownCount = Number(counts[player?.id]) || 0;
+    const minimum = territoryValues.length ? Math.min(...territoryValues) : ownCount;
+    const maximum = territoryValues.length ? Math.max(...territoryValues) : ownCount;
+    const comebackMultiplier = event?.underdogMultiplier && ownCount === minimum
+      ? event.underdogMultiplier
+      : 1;
+    const leaderMultiplier = event?.leaderMultiplier && ownCount === maximum && maximum > minimum
+      ? event.leaderMultiplier
+      : 1;
+    const eventMultiplier = mode === "defense"
+      ? Number(event?.defenseMultiplier) || 1
+      : Number(event?.attackMultiplier) || 1;
+    return base * roleBonus * terrainBonus * fatigue * hypeMultiplier * eventMultiplier *
+      comebackMultiplier * leaderMultiplier * (player?.ai === "arcane" && matches ? 1.03 : 1);
   }
 
   function targetCandidates(state, player, counts, random) {
@@ -397,6 +629,12 @@
         if (target.kind === "throne") score += 38 * player.center;
         if (target.kind === "outpost") score += 14;
         if (target.ownerId && currentOwnerCount > ownCount) score += 7;
+        const event = TILE_EVENT_BY_ID[target.eventId];
+        if (event) {
+          score += ((Number(event.attackMultiplier) || 1) - (Number(event.defenseMultiplier) || 1)) * 30;
+          if (event.underdogMultiplier && ownCount === Math.min(...Object.values(counts))) score += 18;
+          if ((Number(event.pointMultiplier) || 1) > 1) score += 8;
+        }
         if (player.ai === "rush" && target.ownerId) score += 13;
         if (player.ai === "fortress" && axialDistance(target, { q: player.home[0], r: player.home[1] }) > 3) score -= 9;
         if (player.ai === "chaos") score += random() * 20;
@@ -439,16 +677,19 @@
       const playerState = state.players[player.id];
       const candidate = targetCandidates(state, player, counts, random)[0];
       if (!candidate) return;
-      const squad = chooseSquad(playerState, candidate.tile.terrain, player);
-      if (!squad?.lineup?.length) return;
+      const sourceTile = state.tiles[candidate.fromId];
+      const party = sourceTile?.garrison;
+      if (!party?.lineup?.length || party.ownerId !== player.id) return;
       const skill = shouldUseSkill(player, playerState, candidate.tile, counts, state.season.tick, random);
       actions.push({
         id: `${state.season.id}-${state.season.tick}-${player.id}`,
         playerId: player.id,
         targetId: candidate.tile.id,
         fromId: candidate.fromId,
-        squadId: squad.id,
-        lineup: squad.lineup.map((monster) => monster.nodeId),
+        partyId: party.id,
+        party: clone(party),
+        lineup: party.lineup.map((monster) => monster.nodeId),
+        hype: clampHype(party.hype),
         skill,
         mode: "attack"
       });
@@ -460,23 +701,36 @@
     return actions;
   }
 
-  function battleSide(state, playerId, target, action, random, defense = false) {
+  function battleSide(state, playerId, target, action, random, defense = false, counts = {}) {
     const player = PLAYER_BY_ID[playerId];
-    const playerState = state.players[playerId];
-    const squad = action
-      ? playerState.squads.find((item) => item.id === action.squadId)
-      : chooseSquad(playerState, target.terrain, player);
-    if (!squad) return null;
-    const basePower = squadTerrainPower(squad, target.terrain, player);
+    const sourceParty = action ? state.tiles?.[action.fromId]?.garrison : null;
+    const party = action
+      ? (sourceParty?.id === action.partyId ? sourceParty : action.party)
+      : target.garrison;
+    if (!party?.lineup?.length || party.ownerId !== playerId) return null;
+    const event = TILE_EVENT_BY_ID[target.eventId] || eventForTile(state, target);
+    const basePower = partyTerrainPower(
+      party,
+      target.terrain,
+      player,
+      event,
+      defense ? "defense" : "attack",
+      counts
+    );
     const defenseBonus = defense ? player.defense * 1.08 : player.aggression;
     const specialBonus = skillMultiplier(player, { ...action, mode: defense ? "defense" : "attack" });
     const comeback = Math.max(0, 5 - ownedTiles(state, playerId).length) * .018;
-    const noise = .9 + random() * .2;
+    const noiseMin = Number(event.noiseMin) || .9;
+    const noiseMax = Number(event.noiseMax) || 1.1;
+    const noise = noiseMin + random() * Math.max(0, noiseMax - noiseMin);
     return {
       playerId,
       playerName: player.name,
-      squadId: squad.id,
-      lineup: squad.lineup.map((monster) => monster.nodeId),
+      partyId: party.id,
+      sourceTileId: action?.fromId || target.id,
+      party,
+      lineup: party.lineup.map((monster) => monster.nodeId),
+      hype: clampHype(party.hype),
       skill: Boolean(action?.skill),
       power: Math.round(basePower * defenseBonus * specialBonus * (1 + comeback) * noise),
       rawPower: Math.round(basePower)
@@ -504,13 +758,80 @@
     return changed;
   }
 
-  function resolveTarget(state, targetId, actions, at, random) {
+  function adjustPartyHype(party, delta) {
+    if (!party) return DEFAULT_HYPE;
+    party.hype = clampHype((Number.isFinite(Number(party.hype)) ? Number(party.hype) : DEFAULT_HYPE) + (Number(delta) || 0));
+    return party.hype;
+  }
+
+  function currentPartyHype(party) {
+    return Number.isFinite(Number(party?.hype)) ? clampHype(party.hype) : DEFAULT_HYPE;
+  }
+
+  function replenishSourceTile(state, playerStats, sourceTileId, playerId, movedPartyId, at) {
+    const source = state.tiles?.[sourceTileId];
+    if (!source || source.ownerId !== playerId || source.garrison?.id !== movedPartyId) return null;
+    source.garrison = createGarrison(state, playerStats, playerId, source.id, at, "post-invasion-reinforcement");
+    return source.garrison;
+  }
+
+  function movePartyIntoTile(state, playerStats, tile, side, at) {
+    const source = state.tiles?.[side.sourceTileId];
+    const party = source?.garrison?.id === side.partyId
+      ? source.garrison
+      : clone(side.party);
+    if (!party) return { movedParty: null, replacementParty: null };
+    party.ownerId = side.playerId;
+    party.tileId = tile.id;
+    party.movedAt = Number(at);
+    party.reason = "successful-invasion";
+    tile.garrison = party;
+    const replacementParty = replenishSourceTile(
+      state,
+      playerStats,
+      side.sourceTileId,
+      side.playerId,
+      side.partyId,
+      at
+    );
+    return { movedParty: party, replacementParty };
+  }
+
+  function applyEventHype(event, winner, sides, captured) {
+    const winnerDelta = (Number(event?.winnerHype) || 0) + (captured ? Number(event?.captureHype) || 0 : 0);
+    const changes = [{
+      playerId: winner.playerId,
+      partyId: winner.partyId,
+      before: currentPartyHype(winner.party),
+      delta: winnerDelta
+    }];
+    adjustPartyHype(winner.party, winnerDelta);
+    sides.filter((side) => side !== winner).forEach((side) => {
+      const before = currentPartyHype(side.party);
+      const delta = Number(event?.loserHype) || 0;
+      adjustPartyHype(side.party, delta);
+      changes.push({ playerId: side.playerId, partyId: side.partyId, before, delta });
+    });
+    changes.forEach((change) => {
+      const side = sides.find((item) => item.partyId === change.partyId);
+      change.after = clampHype(side?.party?.hype);
+    });
+    return changes;
+  }
+
+  function resolveTarget(state, targetId, actions, playerStats, at, random) {
     const tile = state.tiles[targetId];
     if (!tile || !actions.length) return;
     const previousOwnerId = tile.ownerId;
+    const counts = territoryCounts(state);
+    const event = TILE_EVENT_BY_ID[tile.eventId] || eventForTile(state, tile);
     if (!previousOwnerId && actions.length === 1) {
       const action = actions[0];
-      applyCapture(state, tile, action.playerId, "", at);
+      const side = battleSide(state, action.playerId, tile, action, random, false, counts);
+      if (!side) return;
+      const captured = applyCapture(state, tile, action.playerId, "", at);
+      const hypeChanges = applyEventHype(event, side, [side], captured);
+      const movement = movePartyIntoTile(state, playerStats, tile, side, at);
       const player = PLAYER_BY_ID[action.playerId];
       pushLog(state, {
         id: `${action.id}-expand`,
@@ -519,16 +840,20 @@
         type: "capture",
         playerId: action.playerId,
         tileId: targetId,
-        text: `${player.name}が${TERRAIN_BY_ID[tile.terrain].name}へ進出`
+        eventId: event.id,
+        partyId: movement.movedParty?.id || side.partyId,
+        replacementPartyId: movement.replacementParty?.id || "",
+        hypeChanges,
+        text: `${player.name}が${TERRAIN_BY_ID[tile.terrain].name}へ進出 / ${event.name}`
       });
       return;
     }
 
     const sides = actions
-      .map((action) => battleSide(state, action.playerId, tile, action, random, false))
+      .map((action) => battleSide(state, action.playerId, tile, action, random, false, counts))
       .filter(Boolean);
     if (previousOwnerId && !actions.some((action) => action.playerId === previousOwnerId)) {
-      const defender = battleSide(state, previousOwnerId, tile, null, random, true);
+      const defender = battleSide(state, previousOwnerId, tile, null, random, true, counts);
       if (defender) sides.push(defender);
     }
     if (sides.length < 2) return;
@@ -540,10 +865,9 @@
     winnerState.wins += 1;
     winnerState.winStreak += 1;
     winnerState.longestWinStreak = Math.max(winnerState.longestWinStreak, winnerState.winStreak);
-    const winnerSquad = winnerState.squads.find((squad) => squad.id === winner.squadId);
-    if (winnerSquad) {
-      winnerSquad.wins += 1;
-      winnerSquad.fatigue = Math.min(10, (Number(winnerSquad.fatigue) || 0) + 1);
+    if (winner.party) {
+      winner.party.wins = (Number(winner.party.wins) || 0) + 1;
+      winner.party.fatigue = Math.min(10, (Number(winner.party.fatigue) || 0) + 1);
     }
     sides.slice(1).forEach((side) => {
       const loserState = state.players[side.playerId];
@@ -551,10 +875,9 @@
       loserState.losses += 1;
       loserState.winStreak = 0;
       if (side.playerId === previousOwnerId) loserState.defenses += 1;
-      const squad = loserState.squads.find((item) => item.id === side.squadId);
-      if (squad) {
-        squad.losses += 1;
-        squad.fatigue = Math.min(10, (Number(squad.fatigue) || 0) + 2);
+      if (side.party) {
+        side.party.losses = (Number(side.party.losses) || 0) + 1;
+        side.party.fatigue = Math.min(10, (Number(side.party.fatigue) || 0) + 2);
       }
     });
     if (winner.playerId === previousOwnerId) {
@@ -562,6 +885,11 @@
       winnerState.defenseWins += 1;
     }
     const captured = applyCapture(state, tile, winner.playerId, previousOwnerId, at);
+    const hypeChanges = applyEventHype(event, winner, sides, captured);
+    const movement = captured && winner.sourceTileId !== tile.id
+      ? movePartyIntoTile(state, playerStats, tile, winner, at)
+      : { movedParty: tile.garrison, replacementParty: null };
+    if (!captured && winner.playerId === previousOwnerId) tile.garrison = winner.party;
     const seed = hashText(`${state.season.id}:${state.season.tick}:${targetId}:${sides.map((side) => side.playerId).join(":")}`);
     const battle = {
       id: `frontier-${state.season.id}-${state.season.tick}-${targetId.replace(",", "_")}`,
@@ -573,16 +901,29 @@
       seed,
       winnerId: winner.playerId,
       captured,
+      event: {
+        id: event.id,
+        name: event.name,
+        benefit: event.benefit,
+        drawback: event.drawback
+      },
+      movedPartyId: movement.movedParty?.id || "",
+      sourceReplacementPartyId: movement.replacementParty?.id || "",
+      hypeChanges,
       sides: sides.map((side) => ({
         playerId: side.playerId,
         playerName: side.playerName,
+        partyId: side.partyId,
+        sourceTileId: side.sourceTileId,
         lineup: side.lineup,
         power: side.power,
+        hype: side.hype,
+        hypeAfter: clampHype(side.party?.hype),
         skill: side.skill
       })),
       replay: {
-        red: { playerId: winner.playerId, name: winner.playerName, lineup: winner.lineup },
-        blue: { playerId: runnerUp.playerId, name: runnerUp.playerName, lineup: runnerUp.lineup },
+        red: { playerId: winner.playerId, name: winner.playerName, lineup: winner.lineup, hype: winner.hype },
+        blue: { playerId: runnerUp.playerId, name: runnerUp.playerName, lineup: runnerUp.lineup, hype: runnerUp.hype },
         winner: "red"
       }
     };
@@ -596,24 +937,29 @@
       opponentId: runnerUp.playerId,
       tileId: targetId,
       battleId: battle.id,
+      eventId: event.id,
+      hypeChanges,
       text: captured
-        ? `${winner.playerName}が${runnerUp.playerName}を破り領地を占領`
-        : `${winner.playerName}が${runnerUp.playerName}の侵攻を防衛`
+        ? `${winner.playerName}が${runnerUp.playerName}を破り領地を占領 / ${event.name}`
+        : `${winner.playerName}が${runnerUp.playerName}の侵攻を防衛 / ${event.name}`
     });
   }
 
   function recoverFatigue(state) {
-    PLAYERS.forEach((player) => {
-      state.players[player.id].squads.forEach((squad) => {
-        squad.fatigue = Math.max(0, (Number(squad.fatigue) || 0) - .35);
-      });
+    Object.values(state.tiles || {}).forEach((tile) => {
+      if (tile.garrison) {
+        tile.garrison.fatigue = Math.max(0, (Number(tile.garrison.fatigue) || 0) - .35);
+      }
     });
   }
 
   function awardTerritoryPoints(state) {
     PLAYERS.forEach((player) => {
-      const gain = ownedTiles(state, player.id).reduce((sum, tile) => sum + (Number(tile.value) || 0), 0);
-      state.players[player.id].points += gain;
+      const gain = ownedTiles(state, player.id).reduce((sum, tile) => {
+        const event = TILE_EVENT_BY_ID[tile.eventId];
+        return sum + (Number(tile.value) || 0) * (Number(event?.pointMultiplier) || 1);
+      }, 0);
+      state.players[player.id].points += Math.round(gain);
     });
   }
 
@@ -622,6 +968,19 @@
     const random = seededRandom(seed);
     state.season.tick += 1;
     refreshAllSquads(state, playerStats, at);
+    const previousEventCycle = Number(state.eventCycle);
+    const currentEventCycle = eventCycleForTick(state.season.tick);
+    assignTileEvents(state, currentEventCycle);
+    if (currentEventCycle !== previousEventCycle) {
+      pushLog(state, {
+        id: `events-${state.season.id}-${currentEventCycle}`,
+        tick: state.season.tick,
+        at,
+        type: "event",
+        text: "全領地のランダムイベントが更新された"
+      });
+    }
+    ensureTileGarrisons(state, playerStats, at);
     recoverFatigue(state);
     const actions = createActions(state, random);
     const byTarget = actions.reduce((map, action) => {
@@ -629,7 +988,10 @@
       map[action.targetId].push(action);
       return map;
     }, {});
-    Object.keys(byTarget).sort().forEach((targetId) => resolveTarget(state, targetId, byTarget[targetId], at, random));
+    Object.keys(byTarget).sort().forEach((targetId) => {
+      resolveTarget(state, targetId, byTarget[targetId], playerStats, at, random);
+    });
+    ensureTileGarrisons(state, playerStats, at);
     awardTerritoryPoints(state);
     state.season.lastTickAt = at;
     state.season.nextTickAt = at + TICK_MS;
@@ -642,10 +1004,15 @@
     const counts = territoryCounts(state);
     return PLAYERS.map((player) => {
       const record = state.players?.[player.id] || emptyPlayerState(player);
+      const parties = ownedTiles(state, player.id).map((tile) => tile.garrison).filter(Boolean);
+      const averageHype = parties.length
+        ? Math.round(parties.reduce((sum, party) => sum + clampHype(party.hype), 0) / parties.length)
+        : DEFAULT_HYPE;
       return {
         ...player,
         ...record,
         territoryCount: counts[player.id] || 0,
+        averageHype,
         score: (Number(record.points) || 0) + (Number(record.wins) || 0) * 2 + (Number(record.defenseWins) || 0)
       };
     }).sort((a, b) => b.score - a.score || b.territoryCount - a.territoryCount || b.wins - a.wins || a.name.localeCompare(b.name, "ja-JP"));
@@ -686,17 +1053,21 @@
     const tile = state?.tiles?.[id];
     if (!tile) return null;
     const owner = PLAYER_BY_ID[tile.ownerId] || null;
+    const event = TILE_EVENT_BY_ID[tile.eventId] || null;
     return {
       ...tile,
       terrainName: TERRAIN_BY_ID[tile.terrain]?.name || tile.terrain,
       ownerName: owner?.name || "中立",
-      ownerColor: owner?.color || "#657083"
+      ownerColor: owner?.color || "#657083",
+      event
     };
   }
 
   global.TeamBingoTerritorySystem = Object.freeze({
-    VERSION, MAP_RADIUS, TICK_MINUTES, TICK_MS, SEASON_DAYS, PLAYERS, PLAYER_BY_ID, TERRAINS, TERRAIN_BY_ID,
+    VERSION, MAP_RADIUS, TICK_MINUTES, TICK_MS, SEASON_DAYS, PARTY_SIZE, DEFAULT_HYPE, EVENT_REROLL_TICKS,
+    PLAYERS, PLAYER_BY_ID, TERRAINS, TERRAIN_BY_ID, TILE_EVENTS, TILE_EVENT_BY_ID,
     tileId, parseTileId, neighbors, axialDistance, seasonWindow, createMap, createInitialState, normalizeState,
-    refreshAllSquads, advanceState, standings, territoryCounts, tileSummary, combatPower, playerKey, hashText
+    refreshAllSquads, ensureTileGarrisons, advanceState, standings, territoryCounts, tileSummary,
+    combatPower, playerKey, hashText
   });
 })(typeof window !== "undefined" ? window : globalThis);
