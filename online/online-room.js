@@ -224,7 +224,7 @@ function mergePlayerRecord(target = {}, incoming = {}) {
   numberFields.forEach((field) => {
     result[field] = Math.max(0, Number(target[field]) || 0) + Math.max(0, Number(incoming[field]) || 0);
   });
-  ["openedCharacters", "winCharacters", "specialCharacters", "skillUsage", "monsterDex", "monsterMastery", "monsterBattleUsage", "monsterWinsByMonster", "monsterKosByMonster", "territoryEquipment", "territoryItemDex", "territoryRewardRarity"].forEach((field) => {
+  ["openedCharacters", "winCharacters", "specialCharacters", "skillUsage", "monsterDex", "monsterMastery", "monsterBattleUsage", "monsterWinsByMonster", "monsterKosByMonster", "territoryEquipment", "territoryItemDex", "territoryRewardRarity", "territoryManualEquipment"].forEach((field) => {
     result[field] = mergeNumberMap(target[field], incoming[field]);
   });
   result.name = normalizeName(incoming.name || target.name);
@@ -464,7 +464,7 @@ export function createStatsDelta(before = {}, after = {}) {
       if (amount) numeric[field] = amount;
     });
     const maps = {};
-    ["openedCharacters", "winCharacters", "specialCharacters", "skillUsage", "monsterDex", "monsterMastery", "monsterBattleUsage", "monsterWinsByMonster", "monsterKosByMonster", "territoryEquipment", "territoryItemDex", "territoryRewardRarity"].forEach((field) => {
+    ["openedCharacters", "winCharacters", "specialCharacters", "skillUsage", "monsterDex", "monsterMastery", "monsterBattleUsage", "monsterWinsByMonster", "monsterKosByMonster", "territoryEquipment", "territoryItemDex", "territoryRewardRarity", "territoryManualEquipment"].forEach((field) => {
       const value = diffNumberMap(previous[field], record[field]);
       if (Object.keys(value).length) maps[field] = value;
     });

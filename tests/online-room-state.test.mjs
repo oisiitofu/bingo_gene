@@ -146,6 +146,7 @@ test("player counters and character maps are included in stats deltas", () => {
     monsterKosByMonster: { "child-ember": 2 },
     territoryEquipmentDrops: 4,
     territoryEquipment: { "common-weapon-blade": 2, "rare-armor-plate": 1 },
+    territoryManualEquipment: { "sprout-a|weapon|common-weapon-blade": 1 },
     territoryItemDex: { "common-weapon-blade": 1, "rare-armor-plate": 1 },
     territoryRewardRarity: { common: 3, rare: 1 },
     lastTeam: "RED",
@@ -163,7 +164,20 @@ test("player counters and character maps are included in stats deltas", () => {
   assert.deepEqual(result.playerStats.players.jan.monsterKosByMonster, { "child-ember": 2 });
   assert.equal(result.playerStats.players.jan.territoryEquipmentDrops, 4);
   assert.deepEqual(result.playerStats.players.jan.territoryEquipment, { "common-weapon-blade": 2, "rare-armor-plate": 1 });
+  assert.deepEqual(result.playerStats.players.jan.territoryManualEquipment, { "sprout-a|weapon|common-weapon-blade": 1 });
   assert.deepEqual(result.playerStats.players.jan.territoryRewardRarity, { common: 3, rare: 1 });
+});
+
+test("manual equipment can be returned to AUTO through a negative shared delta", () => {
+  const before = emptyStats();
+  before.playerStats.players.jan = {
+    name: "ジャン",
+    territoryManualEquipment: { "child-ember|weapon|common-weapon-blade": 1 }
+  };
+  const after = structuredClone(before);
+  after.playerStats.players.jan.territoryManualEquipment = {};
+  const result = applyStatsDelta(before, createStatsDelta(before, after));
+  assert.deepEqual(result.playerStats.players.jan.territoryManualEquipment, {});
 });
 
 test("legacy rankings merge into shared online stats", () => {

@@ -98,10 +98,14 @@ test("領土戦モンスターはスターター装備から日次自動装備�
   }
 });
 
-test("装備報酬は4レアリティでレジェンダリー率1%を維持する", () => {
-  assert.deepEqual(Equipment.RARITIES.map((rarity) => rarity.id), ["common", "rare", "epic", "legendary"]);
-  assert.equal(Equipment.RARITY_BY_ID.legendary.chance, .01);
-  assert.equal(Equipment.ITEMS.length, 72);
+test("装備報酬は5レアリティ1000種でレジェンダリー率0.1%を維持する", () => {
+  assert.deepEqual(Equipment.RARITIES.map((rarity) => rarity.id), ["common", "rare", "epic", "mythic", "legendary"]);
+  assert.equal(Equipment.RARITY_BY_ID.mythic.chance, .03);
+  assert.equal(Equipment.RARITY_BY_ID.legendary.chance, .001);
+  assert.equal(Equipment.ITEMS.length, 1000);
+  assert.equal(new Set(Equipment.ITEMS.map((item) => item.id)).size, 1000);
+  assert.equal(new Set(Equipment.ITEMS.map((item) => item.name)).size, 1000);
+  assert.equal(Equipment.ITEM_BY_ID["common-weapon-blade"].name, "旅人の闘志の剣");
   const record = { name: "ジャン" };
   Equipment.ensureStarterRecord(record);
   assert.ok(Object.keys(record.territoryEquipment).length >= 9);
@@ -111,6 +115,29 @@ test("装備報酬は4レアリティでレジェンダリー率1%を維持す�
     Object.values(record.territoryRewardRarity).reduce((sum, count) => sum + count, 0),
     12
   );
+});
+
+test("手動装備した枠だけ日次自動装備から保護される", () => {
+  const record = { name: "ジャン" };
+  Equipment.ensureStarterRecord(record);
+  const nodeIds = Object.values(Monster.NODES)
+    .filter((node) => node.id !== "egg")
+    .slice(0, 2)
+    .map((node) => node.id);
+  const monsters = nodeIds.map((nodeId, index) => ({
+    nodeId,
+    role: Monster.combatRole(nodeId).id,
+    element: Monster.combatElement(nodeId).id,
+    attackType: Monster.combatStats(nodeId).attackType,
+    score: 100 - index
+  }));
+  assert.equal(Equipment.setManualItem(record, nodeIds[0], "weapon", "common-weapon-blade"), true);
+  const first = Equipment.autoAssign(monsters, record);
+  assert.equal(first[nodeIds[0]].weapon, "common-weapon-blade");
+  assert.equal(Equipment.manualLoadouts(record)[nodeIds[0]].weapon, "common-weapon-blade");
+  Equipment.clearManualAssignment(record, nodeIds[0], "weapon");
+  assert.equal(Equipment.manualLoadouts(record)[nodeIds[0]]?.weapon, undefined);
+  assert.ok(Equipment.autoAssign(monsters, record)[nodeIds[0]].weapon);
 });
 
 test("図鑑登録が3体未満なら領地PTの不足枠をたまごで補う", () => {

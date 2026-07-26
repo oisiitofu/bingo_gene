@@ -822,6 +822,39 @@
       justify-self: stretch;
     }
 
+    #territoryModeButton {
+      grid-column: 1 / -1;
+      position: relative;
+      width: 100%;
+      min-height: 44px;
+      overflow: hidden;
+      color: #f5e7b4;
+      border: 1px solid rgba(224, 187, 83, .58);
+      border-left: 5px solid #e0bb53;
+      border-radius: 4px;
+      background: #11151c;
+      box-shadow: inset 0 1px 0 rgba(255, 255, 255, .05);
+      font-size: 14px;
+      text-align: left;
+    }
+
+    #territoryModeButton::after {
+      position: absolute;
+      right: 13px;
+      color: rgba(224, 187, 83, .8);
+      content: "SIX KINGS";
+      font-size: 8px;
+      font-weight: 900;
+    }
+
+    #territoryModeButton:hover,
+    #territoryModeButton:focus-visible {
+      color: #fff5cf;
+      border-color: #e0bb53;
+      background: #181d25;
+      box-shadow: inset 0 1px 0 rgba(255, 255, 255, .08), 0 0 14px rgba(224, 187, 83, .12);
+    }
+
     .setup-start-row {
       display: grid;
       place-items: center;
@@ -7199,7 +7232,7 @@
               <button type="button" class="btn active" id="randomEventButton" aria-pressed="true">EVENT ON</button>
               <button type="button" class="btn active" id="monsterBattleModeButton" aria-pressed="true">MONSTER BATTLE ON</button>
               <button type="button" class="btn" id="doubleMonsterModeButton" aria-pressed="false">DOUBLE MONSTER OFF</button>
-              <button type="button" class="btn" id="territoryModeButton">六王領土戦</button>
+              <button type="button" class="btn territory-entry-btn" id="territoryModeButton">六王領土戦</button>
             </div>
 
             <div class="deck-hub" id="deckHub">
@@ -7597,7 +7630,7 @@
             <button type="button" class="active" id="dexNumberViewButton">No.順</button>
             <button type="button" id="dexTreeViewButton">進化経路</button>
             <button type="button" id="dexMasteryViewButton">絆・熟練度</button>
-            <button type="button" id="monsterEquipmentViewButton">自動装備</button>
+            <button type="button" id="monsterEquipmentViewButton">装備</button>
             <button type="button" id="itemDexViewButton">アイテム図鑑</button>
           </div>
           <button type="button" class="btn simple-ui-btn" id="dexOverviewButton" aria-pressed="false">全体表示</button>
@@ -8437,6 +8470,7 @@
       activeStatsSeasonId: "",
       activeStatsMonsterPlayerKey: "",
       activeMonsterDexView: "number",
+      activeItemRarityFilter: "owned",
       activeMonsterDexOverview: { number: false, tree: false, mastery: false, equipment: false, items: false },
       adminMonsterDexMode: false,
       adminMonsterBattleActive: false,
@@ -8700,6 +8734,14 @@
         const button = event.target.closest("[data-dex-monster]");
         if (!button || !els.statsMonsterMasteryPage.contains(button)) return;
         showMonsterNodeZoom(button.dataset.dexMonster, button.dataset.dexPlayer || "MONSTER ENCYCLOPEDIA", "#f7c64a");
+      });
+      els.monsterEquipmentPage?.addEventListener("click", onMonsterEquipmentClick);
+      els.itemDexPage?.addEventListener("change", (event) => {
+        const filter = event.target.closest("[data-item-rarity-filter]");
+        if (!filter) return;
+        state.activeItemRarityFilter = filter.value;
+        const record = state.playerStats.players[state.activeStatsMonsterPlayerKey];
+        if (record) renderTerritoryItemDex(record);
       });
       document.querySelectorAll(".overlay").forEach((overlay) => {
         overlay.addEventListener("click", () => skipTimedOverlay(overlay));
@@ -9798,7 +9840,7 @@
       showMonsterSpeech(team, MONSTER_SYSTEM.monsterKey(monster.playerName, monster.slot), MONSTER_SYSTEM.dialogue(monster.nodeId, moment), 5000);
     }
 
-    function showMonsterNodeZoom(nodeId, playerLabel = "MONSTER ENCYCLOPEDIA", accent = "#f7c64a") {
+    function showMonsterNodeZoom(nodeId, playerLabel = "MONSTER ENCYCLOPEDIA", accent = "#f7c64a", options = {}) {
       if (!els.monsterZoomOverlay) return;
       const node = MONSTER_NODES[nodeId] || MONSTER_NODES.egg;
       const passive = MONSTER_SYSTEM.passiveSkill(node.id);
@@ -9806,8 +9848,15 @@
       const element = MONSTER_SYSTEM.combatElement(node.id);
       const masteryPlayer = String(playerLabel).split(" / ")[0];
       const masteryRecord = state.playerStats.players[playerStatsKey(masteryPlayer)] || null;
-      const masteryXp = Number(masteryRecord?.monsterMastery?.[node.id]) || 0;
-      const stats = MONSTER_SYSTEM.applyMasteryStats(MONSTER_SYSTEM.combatStats(node.id), masteryXp);
+      const masteryXp = Number.isFinite(Number(options.masteryXp))
+        ? Number(options.masteryXp)
+        : (Number(masteryRecord?.monsterMastery?.[node.id]) || 0);
+      const baseStats = MONSTER_SYSTEM.applyMasteryStats(MONSTER_SYSTEM.combatStats(node.id), masteryXp);
+      const loadout = TERRITORY_EQUIPMENT?.normalizeLoadout?.(options.equipment) || {};
+      const equippedItems = TERRITORY_EQUIPMENT?.loadoutItems?.(loadout) || [];
+      const stats = equippedItems.length
+        ? TERRITORY_EQUIPMENT.applyEquipmentStats(baseStats, loadout, node.id)
+        : baseStats;
       els.monsterZoomOverlay.style.setProperty("--zoom-team", accent);
       els.monsterZoomPlayer.textContent = playerLabel;
       els.monsterZoomArt.innerHTML = monsterSpriteMarkup(node);
@@ -9818,8 +9867,16 @@
         ["魔攻", stats.magic], ["魔防", stats.magicDefense], ["素早さ", stats.speed]
       ].map(([label, value]) => `<span class="monster-stat-row"><span>${label}</span><strong>${value}</strong></span>`).join("");
       els.monsterZoomSpecial.parentElement?.querySelector(".monster-zoom-passive")?.remove();
+      els.monsterZoomSpecial.parentElement?.querySelector(".monster-zoom-equipment")?.remove();
       els.monsterZoomSpecial.textContent = `必殺技 / ${stats.special}`;
-      els.monsterZoomSpecial.insertAdjacentHTML("afterend", `<div class="monster-zoom-passive"><b>${escapeHtml(element.name)}属性 / ${escapeHtml(role.name)}</b><span>${escapeHtml(role.description)}</span><b>固有スキル / ${escapeHtml(passive.name)}</b><span>${escapeHtml(passive.description)}</span><b>熟練度 / 絆 Lv.${MONSTER_SYSTEM.masteryLevel(masteryXp)} ${escapeHtml(MONSTER_SYSTEM.masteryTitle(masteryXp))}</b><span>${masteryXp} EXP</span></div>`);
+      els.monsterZoomSpecial.insertAdjacentHTML("afterend", `
+        <div class="monster-zoom-passive">
+          <b>${escapeHtml(element.name)}属性 / ${escapeHtml(role.name)}</b><span>${escapeHtml(role.description)}</span>
+          <b>固有スキル / ${escapeHtml(passive.name)}</b><span>${escapeHtml(passive.description)}</span>
+          <b>熟練度 / 絆 Lv.${MONSTER_SYSTEM.masteryLevel(masteryXp)} ${escapeHtml(MONSTER_SYSTEM.masteryTitle(masteryXp))}</b><span>${masteryXp} EXP</span>
+        </div>
+        ${equippedItems.length ? `<section class="monster-zoom-equipment"><h3>TERRITORY EQUIPMENT</h3>${equippedItems.map((item) => equipmentItemMarkup(item)).join("")}</section>` : ""}
+      `);
       showOverlay(els.monsterZoomOverlay);
     }
 
@@ -13427,6 +13484,7 @@
         stat.territoryEquipment = normalizeCountMap(value.territoryEquipment);
         stat.territoryItemDex = normalizeCountMap(value.territoryItemDex);
         stat.territoryRewardRarity = normalizeCountMap(value.territoryRewardRarity);
+        stat.territoryManualEquipment = normalizeCountMap(value.territoryManualEquipment);
         players[playerStatsKey(name)] = stat;
       });
       return {
@@ -13472,6 +13530,7 @@
         territoryEquipment: {},
         territoryItemDex: {},
         territoryRewardRarity: {},
+        territoryManualEquipment: {},
         lastTeam: "",
         lastPlayedAt: ""
       };
@@ -14316,6 +14375,123 @@
       </article>`;
     }
 
+    function getActiveEquipmentRecord() {
+      return state.playerStats.players[state.activeStatsMonsterPlayerKey] || null;
+    }
+
+    function closeEquipmentPicker() {
+      const picker = els.monsterEquipmentPage?.querySelector("[data-equipment-picker]");
+      if (picker) picker.hidden = true;
+    }
+
+    function equipmentCandidateContext(nodeId) {
+      return {
+        nodeId,
+        role: MONSTER_SYSTEM.combatRole(nodeId).id,
+        element: MONSTER_SYSTEM.combatElement(nodeId).id,
+        attackType: MONSTER_SYSTEM.combatStats(nodeId).attackType
+      };
+    }
+
+    function openEquipmentPicker(nodeId, slotId) {
+      const picker = els.monsterEquipmentPage?.querySelector("[data-equipment-picker]");
+      const record = getActiveEquipmentRecord();
+      const node = MONSTER_NODES[nodeId];
+      const slot = TERRITORY_EQUIPMENT?.SLOT_BY_ID?.[slotId];
+      if (!picker || !record || !node || !slot) return;
+      const inventory = TERRITORY_EQUIPMENT.effectiveInventory(record);
+      const manualLoadout = TERRITORY_EQUIPMENT.manualLoadouts(record)[nodeId] || {};
+      const selectedItemId = manualLoadout[slotId] || "";
+      const context = equipmentCandidateContext(nodeId);
+      const items = TERRITORY_EQUIPMENT.ITEMS_BY_SLOT[slotId]
+        .filter((item) => (Number(inventory[item.id]) || 0) > 0)
+        .map((item) => ({
+          item,
+          available: TERRITORY_EQUIPMENT.availableManualCount(record, item.id, nodeId, slotId)
+        }))
+        .filter(({ item, available }) => available > 0 || item.id === selectedItemId)
+        .sort((a, b) => (
+          TERRITORY_EQUIPMENT.RARITY_BY_ID[b.item.rarity].rank -
+          TERRITORY_EQUIPMENT.RARITY_BY_ID[a.item.rarity].rank ||
+          TERRITORY_EQUIPMENT.scoreItem(b.item, context) -
+          TERRITORY_EQUIPMENT.scoreItem(a.item, context) ||
+          a.item.name.localeCompare(b.item.name, "ja-JP")
+        ));
+      picker.innerHTML = `
+        <div class="equipment-picker-backdrop" data-equipment-picker-close></div>
+        <section class="equipment-picker-panel" role="dialog" aria-modal="true" aria-label="${escapeHtml(node.name)}の${escapeHtml(slot.name)}を変更">
+          <header>
+            <div><span>MANUAL EQUIPMENT</span><strong>${escapeHtml(node.name)} / ${escapeHtml(slot.name)}</strong></div>
+            <button type="button" class="simple-ui-btn" data-equipment-picker-close>CLOSE</button>
+          </header>
+          <p>ここで選んだ装備枠は毎日の自動更新から保護されます。</p>
+          <div class="equipment-picker-grid">
+            <button type="button" class="equipment-picker-choice auto-choice${selectedItemId ? "" : " selected"}" data-equipment-pick="" data-equipment-node="${escapeHtml(nodeId)}" data-equipment-slot="${escapeHtml(slotId)}">
+              <span class="equipment-picker-auto-icon">A</span><span><strong>AUTO</strong><small>この枠を自動最適化へ戻す</small></span>
+            </button>
+            ${items.map(({ item, available }) => `
+              <button type="button" class="equipment-picker-choice${item.id === selectedItemId ? " selected" : ""}" data-equipment-pick="${escapeHtml(item.id)}" data-equipment-node="${escapeHtml(nodeId)}" data-equipment-slot="${escapeHtml(slotId)}">
+                ${equipmentItemMarkup(item, available, true)}
+              </button>
+            `).join("")}
+          </div>
+        </section>
+      `;
+      picker.hidden = false;
+    }
+
+    async function updateManualEquipment(nodeId, slotId = "", itemId = null) {
+      const playerKey = state.activeStatsMonsterPlayerKey;
+      const mutate = () => {
+        const record = state.playerStats.players[playerKey];
+        if (!record) return false;
+        let changed = false;
+        if (itemId === null) {
+          TERRITORY_EQUIPMENT.clearManualAssignment(record, nodeId, slotId);
+          changed = true;
+        } else {
+          changed = TERRITORY_EQUIPMENT.setManualItem(record, nodeId, slotId, itemId);
+        }
+        if (!changed) {
+          showCommentary("EQUIPMENT", "この装備は所持数の上限まで使用中です。", 4200);
+          return false;
+        }
+        savePlayerStats();
+        window.TeamBingoTerritoryMode?.setPlayerStats(state.playerStats);
+        renderMonsterDex();
+        return true;
+      };
+      const action = {
+        type: "territory-equipment",
+        payload: { playerKey, nodeId, slotId, itemId: itemId ?? "__auto__" }
+      };
+      if (shouldUseOnlineAction()) return runOnlineAction(action, mutate);
+      return mutate();
+    }
+
+    function onMonsterEquipmentClick(event) {
+      if (event.target.closest("[data-equipment-picker-close]")) {
+        closeEquipmentPicker();
+        return;
+      }
+      const pick = event.target.closest("[data-equipment-pick]");
+      if (pick) {
+        void updateManualEquipment(
+          pick.dataset.equipmentNode,
+          pick.dataset.equipmentSlot,
+          pick.dataset.equipmentPick
+        );
+        return;
+      }
+      const slot = event.target.closest("[data-equipment-slot]");
+      if (slot) {
+        openEquipmentPicker(slot.dataset.equipmentNode, slot.dataset.equipmentSlot);
+        return;
+      }
+      const auto = event.target.closest("[data-equipment-auto]");
+      if (auto) void updateManualEquipment(auto.dataset.equipmentAuto || "", "", null);
+    }
+
     function renderMonsterEquipmentPage(record, nodes, unlocked) {
       if (!els.monsterEquipmentPage || !TERRITORY_EQUIPMENT) return;
       const virtualRecord = cloneOnlineValue(record);
@@ -14348,36 +14524,44 @@
         .sort((a, b) => b.score - a.score || a.node.name.localeCompare(b.node.name, "ja-JP"));
       if (hasLiveEquipment) monsters = monsters.filter((monster) => liveLoadouts.has(monster.nodeId));
       else monsters = monsters.slice(0, 24);
-      const assignments = hasLiveEquipment
-        ? Object.fromEntries(liveLoadouts)
-        : TERRITORY_EQUIPMENT.autoAssign(monsters, virtualRecord);
+      const assignments = TERRITORY_EQUIPMENT.autoAssign(monsters, virtualRecord);
+      const manualLoadouts = TERRITORY_EQUIPMENT.manualLoadouts(virtualRecord);
       const inventory = TERRITORY_EQUIPMENT.effectiveInventory(virtualRecord);
       const owned = Object.values(inventory).reduce((sum, count) => sum + Number(count || 0), 0);
+      const manualCount = Object.keys(virtualRecord.territoryManualEquipment || {}).length;
       els.monsterEquipmentPage.innerHTML = `
         <div class="monster-equipment-summary">
-          <div><span>DAILY AUTO EQUIP</span><strong>${escapeHtml(record.name)}</strong></div>
-          <p>毎日0時以降の領土戦更新で、所持品から属性・役割・攻撃タイプに合う装備へ自動更新されます。装備効果は領土戦のみ有効です。</p>
-          <b>${owned} ITEMS / ${monsters.length} MONSTERS</b>
+          <div><span>TERRITORY EQUIPMENT</span><strong>${escapeHtml(record.name)}</strong></div>
+          <p>装備枠を押すと手動で固定できます。AUTOの枠だけが毎日0時以降に属性・役割・攻撃タイプへ合わせて更新されます。</p>
+          <div class="monster-equipment-summary-actions"><b>${owned} ITEMS / MANUAL ${manualCount}</b><button type="button" class="simple-ui-btn" data-equipment-auto="">AUTO ALL</button></div>
         </div>
         <div class="monster-equipment-grid">
           ${monsters.length ? monsters.map(({ node, masteryXp }) => {
             const loadout = assignments[node.id] || {};
             const items = TERRITORY_EQUIPMENT.loadoutItems(loadout);
+            const manual = manualLoadouts[node.id] || {};
             const baseStats = MONSTER_SYSTEM.applyMasteryStats(MONSTER_SYSTEM.combatStats(node.id), masteryXp);
             const stats = TERRITORY_EQUIPMENT.applyEquipmentStats(baseStats, loadout, node.id);
             return `<section class="monster-loadout-card">
               <div class="monster-loadout-head">
                 <span class="monster-loadout-art">${monsterSpriteMarkup(node)}</span>
                 <span><strong>${escapeHtml(node.name)}</strong><small>${escapeHtml(MONSTER_SYSTEM.combatElement(node.id).name)} / ${escapeHtml(MONSTER_SYSTEM.combatRole(node.id).name)}</small></span>
+                <button type="button" class="monster-loadout-auto simple-ui-btn" data-equipment-auto="${escapeHtml(node.id)}">AUTO</button>
               </div>
-              <div class="monster-loadout-items">${TERRITORY_EQUIPMENT.SLOTS.map((slot) => (
-                equipmentItemMarkup(TERRITORY_EQUIPMENT.ITEM_BY_ID[loadout[slot.id]], null, true)
-              )).join("")}</div>
+              <div class="monster-loadout-items">${TERRITORY_EQUIPMENT.SLOTS.map((slot) => {
+                const item = TERRITORY_EQUIPMENT.ITEM_BY_ID[loadout[slot.id]];
+                const isManual = Boolean(manual[slot.id]);
+                return `<button type="button" class="monster-equipment-slot${isManual ? " manual" : " auto"}" data-equipment-node="${escapeHtml(node.id)}" data-equipment-slot="${escapeHtml(slot.id)}">
+                  ${equipmentItemMarkup(item, null, true)}
+                  <span class="equipment-assignment-mode">${isManual ? "MANUAL" : "AUTO"}</span>
+                </button>`;
+              }).join("")}</div>
               <div class="monster-loadout-stats">HP ${stats.hp}　攻 ${stats.attack}　防 ${stats.defense}　魔 ${stats.magic}　魔防 ${stats.magicDefense}　速 ${stats.speed}</div>
-              <div class="monster-loadout-note">${items.length === 3 ? "AUTO EQUIPPED" : `装備枠 ${items.length} / 3`}</div>
+              <div class="monster-loadout-note">${items.length === 3 ? `${Object.keys(manual).length} MANUAL / ${3 - Object.keys(manual).length} AUTO` : `装備枠 ${items.length} / 3`}</div>
             </section>`;
-          }).join("") : `<div class="stats-empty">図鑑へモンスターを登録すると自動装備の編成が表示されます。</div>`}
+          }).join("") : `<div class="stats-empty">図鑑へモンスターを登録すると装備編成が表示されます。</div>`}
         </div>
+        <div class="equipment-picker" data-equipment-picker hidden></div>
       `;
     }
 
@@ -14388,24 +14572,36 @@
       const inventory = TERRITORY_EQUIPMENT.effectiveInventory(virtualRecord);
       const discovered = virtualRecord.territoryItemDex || {};
       const foundCount = TERRITORY_EQUIPMENT.ITEMS.filter((item) => discovered[item.id]).length;
+      const requestedFilter = state.activeItemRarityFilter || "owned";
+      const activeFilter = requestedFilter === "owned" || TERRITORY_EQUIPMENT.RARITY_BY_ID[requestedFilter]
+        ? requestedFilter
+        : "owned";
+      const visibleItems = TERRITORY_EQUIPMENT.ITEMS
+        .filter((item) => activeFilter === "owned" ? discovered[item.id] : item.rarity === activeFilter)
+        .slice()
+        .sort((a, b) => b.sort - a.sort);
       els.itemDexPage.innerHTML = `
         <div class="item-dex-summary">
           <div><span>ITEM ENCYCLOPEDIA</span><strong>${escapeHtml(record.name)}</strong></div>
           <b>${foundCount} / ${TERRITORY_EQUIPMENT.ITEMS.length} DISCOVERED</b>
-          <p>試合終了と領土戦シーズン終了時に獲得。報酬数は勝敗・ビンゴ数・戦績で変わりますが、レアリティ抽選率は全員共通です。レジェンダリーは1%です。</p>
+          <p>試合終了と領土戦シーズン終了時に獲得。報酬数は勝敗・ビンゴ数・戦績で変わりますが、レアリティ抽選率は全員共通です。レジェンダリーは0.1%です。</p>
         </div>
-        <div class="item-dex-rarity-legend">${TERRITORY_EQUIPMENT.RARITIES.map((rarity) => (
-          `<span style="--rarity-color:${rarity.color}"><i></i>${escapeHtml(rarity.name)} ${Math.round(rarity.chance * 100)}%</span>`
-        )).join("")}</div>
-        <div class="item-dex-grid">${TERRITORY_EQUIPMENT.ITEMS
-          .slice()
-          .sort((a, b) => b.sort - a.sort)
+        <div class="item-dex-toolbar">
+          <div class="item-dex-rarity-legend">${TERRITORY_EQUIPMENT.RARITIES.map((rarity) => (
+            `<span style="--rarity-color:${rarity.color}"><i></i>${escapeHtml(rarity.name)} ${rarity.chance < .01 ? (rarity.chance * 100).toFixed(1) : (rarity.chance * 100).toFixed(1).replace(".0", "")}%</span>`
+          )).join("")}</div>
+          <select data-item-rarity-filter aria-label="アイテム図鑑の表示レアリティ">
+            <option value="owned"${activeFilter === "owned" ? " selected" : ""}>所持アイテム</option>
+            ${TERRITORY_EQUIPMENT.RARITIES.map((rarity) => `<option value="${escapeHtml(rarity.id)}"${activeFilter === rarity.id ? " selected" : ""}>${escapeHtml(rarity.name)} 200種</option>`).join("")}
+          </select>
+        </div>
+        <div class="item-dex-grid">${visibleItems
           .map((item) => {
             const found = Boolean(discovered[item.id]);
             return found
               ? equipmentItemMarkup(item, Number(inventory[item.id]) || 0)
               : `<article class="equipment-item locked"><span class="equipment-item-icon">?</span><span class="equipment-item-copy"><em>UNKNOWN</em><strong>未発見アイテム</strong><small>${escapeHtml(TERRITORY_EQUIPMENT.SLOT_BY_ID[item.slot].name)}</small></span></article>`;
-          }).join("")}</div>
+          }).join("") || `<div class="stats-empty">この条件の所持アイテムはありません。</div>`}</div>
       `;
     }
 
@@ -14419,7 +14615,7 @@
         els.statsMonsterDexGrid.innerHTML = `<div class="stats-empty">まだモンスターを発見していません。</div>`;
         els.statsMonsterDexTree.innerHTML = `<div class="stats-empty">まだモンスターを発見していません。</div>`;
         els.statsMonsterMasteryPage.innerHTML = `<div class="stats-empty">まだ絆・熟練度の記録がありません。</div>`;
-        els.monsterEquipmentPage.innerHTML = `<div class="stats-empty">まだ自動装備の対象モンスターがいません。</div>`;
+        els.monsterEquipmentPage.innerHTML = `<div class="stats-empty">まだ装備の対象モンスターがいません。</div>`;
         els.itemDexPage.innerHTML = `<div class="stats-empty">プレイヤーを登録するとスターター装備が表示されます。</div>`;
         return;
       }
@@ -16075,6 +16271,7 @@
       scheduleAutoBackup("online-stats");
       renderRankingTicker();
       if (els.statsModal?.classList.contains("show")) renderStatsPage();
+      if (els.monsterDexModal?.classList.contains("show") && !state.adminMonsterDexMode) renderMonsterDex();
     }
 
     function applyTerritorySnapshot(snapshot) {

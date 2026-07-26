@@ -542,7 +542,7 @@
     function createSelectionAura(tile, position, height, ownerColor, tileMesh) {
       const auraColor = tile.ownerId
         ? colorValue(ownerColor).lerp(new THREE.Color(0xffffff), .32)
-        : new THREE.Color(0x72d9ff);
+        : new THREE.Color(0xf2efe6);
       const auraMaterial = new THREE.ShaderMaterial({
         uniforms: {
           auraColor: { value: auraColor },

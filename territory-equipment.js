@@ -8,10 +8,11 @@
   ]);
 
   const RARITIES = Object.freeze([
-    { id: "common", name: "コモン", color: "#aeb8c5", rank: 1, chance: .65, prefix: "旅人の" },
-    { id: "rare", name: "レア", color: "#45a7ff", rank: 2, chance: .25, prefix: "蒼紋の" },
-    { id: "epic", name: "エピック", color: "#c86cff", rank: 3, chance: .09, prefix: "王家の" },
-    { id: "legendary", name: "レジェンダリー", color: "#ffbd35", rank: 4, chance: .01, prefix: "神話の" }
+    { id: "common", name: "コモン", color: "#aeb8c5", rank: 1, chance: .67, prefix: "旅人の", power: 10, conditionalPercent: 1 },
+    { id: "rare", name: "レア", color: "#45a7ff", rank: 2, chance: .219, prefix: "蒼紋の", power: 25, conditionalPercent: 2 },
+    { id: "epic", name: "エピック", color: "#c86cff", rank: 3, chance: .08, prefix: "王家の", power: 50, conditionalPercent: 3 },
+    { id: "mythic", name: "ミシック", color: "#ff5b87", rank: 4, chance: .03, prefix: "覇王の", power: 90, conditionalPercent: 5 },
+    { id: "legendary", name: "レジェンダリー", color: "#ffcf3d", rank: 5, chance: .001, prefix: "神話の", power: 240, conditionalPercent: 12 }
   ]);
 
   const SLOT_BY_ID = Object.freeze(Object.fromEntries(SLOTS.map((slot) => [slot.id, slot])));
@@ -89,6 +90,18 @@
     "accessory-bell": "創世の祝福鈴",
     "accessory-prism": "虹界のプリズム"
   });
+  const ITEM_ORIGINS = Object.freeze([
+    "暁", "黄昏", "星海", "深森", "紅蓮", "蒼天", "雷鳴", "氷晶", "大地", "月影",
+    "陽光", "冥府", "古代", "未来", "王都", "辺境", "天空", "深淵", "夢幻", "六王"
+  ]);
+  const ITEM_EPITHETS = Object.freeze([
+    "零式", "改", "真打", "守護式", "強襲式", "魔導式", "疾走式", "支援式", "共鳴型", "覚醒型",
+    "天穿", "地砕", "海割", "風断", "光臨", "常闇", "不滅", "無双", "継承", "極"
+  ]);
+  const ELEMENT_IDS = Object.freeze(Object.keys(ELEMENT_NAMES));
+  const SECONDARY_STATS = Object.freeze(["hp", "attack", "defense", "magic", "magicDefense", "speed"]);
+  const ITEMS_PER_RARITY = 200;
+  const MANUAL_SEPARATOR = "|";
 
   function clone(value) {
     return value === undefined ? undefined : JSON.parse(JSON.stringify(value));
@@ -114,14 +127,20 @@
     };
   }
 
-  function scaledStats(source, rarityRank, slot) {
+  function scaledStats(source, rarityRank, slot, variant = 0) {
     const result = {};
+    const rankBonus = [0, 0, 1, 2, 4, 12][rarityRank] || 0;
     Object.entries(source || {}).forEach(([stat, base]) => {
       const scale = stat === "hp" ? 2 : 1;
-      result[stat] = Math.max(1, Math.round(Number(base) * scale + rarityRank * (stat === "hp" ? 2 : 1)));
+      result[stat] = Math.max(1, Math.round(Number(base) * scale + rankBonus * (stat === "hp" ? 2 : 1)));
     });
     if (!Object.keys(result).length) {
-      result[slot === "weapon" ? "attack" : (slot === "armor" ? "defense" : "speed")] = rarityRank;
+      result[slot === "weapon" ? "attack" : (slot === "armor" ? "defense" : "speed")] = Math.max(1, rankBonus);
+    }
+    if (variant > 0 && variant % 3 === 0) {
+      const secondary = SECONDARY_STATS[(variant + rarityRank) % SECONDARY_STATS.length];
+      const amount = rarityRank === 5 ? (secondary === "hp" ? 10 : 5) : (secondary === "hp" ? 2 : 1);
+      result[secondary] = (Number(result[secondary]) || 0) + amount;
     }
     return result;
   }
@@ -130,34 +149,60 @@
     const stats = Object.entries(item.stats)
       .map(([stat, value]) => `${STAT_NAMES[stat] || stat}+${value}`)
       .join(" / ");
-    const condition = item.role
-      ? `${ROLE_NAMES[item.role] || item.role}型なら戦力+${item.conditionalPercent}%`
-      : `${ELEMENT_NAMES[item.element] || item.element}属性なら戦力+${item.conditionalPercent}%`;
+    const condition = item.attackType
+      ? `${item.attackType === "magic" ? "魔法" : "物理"}タイプなら戦力+${item.conditionalPercent}%`
+      : (item.role
+        ? `${ROLE_NAMES[item.role] || item.role}型なら戦力+${item.conditionalPercent}%`
+        : `${ELEMENT_NAMES[item.element] || item.element}属性なら戦力+${item.conditionalPercent}%`);
     return `${stats}。${condition}`;
   }
 
   function createCatalog() {
     const items = [];
+    const usedNames = new Set();
     RARITIES.forEach((rarity) => {
-      SLOTS.forEach((slot) => {
-        ITEM_ARCHETYPES[slot.id].forEach((archetype, index) => {
-          const id = `${rarity.id}-${slot.id}-${archetype.id}`;
-          const legendaryName = LEGENDARY_NAMES[`${slot.id}-${archetype.id}`];
-          const item = {
-            id,
-            slot: slot.id,
-            rarity: rarity.id,
-            name: rarity.id === "legendary" ? legendaryName : `${rarity.prefix}${archetype.name}`,
-            stats: scaledStats(archetype.stats, rarity.rank, slot.id),
-            role: archetype.role || "",
-            element: archetype.element || Object.keys(ELEMENT_NAMES)[(index + rarity.rank * 2) % Object.keys(ELEMENT_NAMES).length],
-            conditionalPercent: rarity.rank,
-            sort: rarity.rank * 100 + SLOTS.findIndex((entry) => entry.id === slot.id) * 10 + index
-          };
-          item.description = describeItem(item);
-          items.push(Object.freeze(item));
-        });
-      });
+      for (let itemIndex = 0; itemIndex < ITEMS_PER_RARITY; itemIndex += 1) {
+        const legacy = itemIndex < 18;
+        const variant = legacy ? 0 : itemIndex - 17;
+        const slot = legacy
+          ? SLOTS[Math.floor(itemIndex / 6)]
+          : SLOTS[(itemIndex - 18) % SLOTS.length];
+        const archetypes = ITEM_ARCHETYPES[slot.id];
+        const archetypeIndex = legacy
+          ? itemIndex % 6
+          : (Math.floor((itemIndex - 18) / SLOTS.length) + rarity.rank) % archetypes.length;
+        const archetype = archetypes[archetypeIndex];
+        const id = legacy
+          ? `${rarity.id}-${slot.id}-${archetype.id}`
+          : `${rarity.id}-${slot.id}-${archetype.id}-v${String(variant).padStart(3, "0")}`;
+        const origin = ITEM_ORIGINS[(variant + rarity.rank * 3 + archetypeIndex) % ITEM_ORIGINS.length];
+        const epithet = ITEM_EPITHETS[(variant * 3 + rarity.rank + archetypeIndex) % ITEM_EPITHETS.length];
+        const legendaryName = LEGENDARY_NAMES[`${slot.id}-${archetype.id}`];
+        const conditionMode = (variant + archetypeIndex) % 5;
+        const roleCondition = conditionMode <= 1 ? (archetype.role || "") : "";
+        const attackTypeCondition = conditionMode === 2 ? ((variant + rarity.rank) % 2 ? "physical" : "magic") : "";
+        const elementCondition = !roleCondition && !attackTypeCondition
+          ? (archetype.element || ELEMENT_IDS[(variant + rarity.rank * 2 + archetypeIndex) % ELEMENT_IDS.length])
+          : "";
+        const baseName = rarity.id === "legendary" && legacy
+          ? legendaryName
+          : (legacy ? `${rarity.prefix}${archetype.name}` : `${rarity.prefix}${origin}${archetype.name}${epithet}`);
+        const item = {
+          id,
+          slot: slot.id,
+          rarity: rarity.id,
+          name: usedNames.has(baseName) ? `${baseName}・${String(itemIndex + 1).padStart(3, "0")}` : baseName,
+          stats: scaledStats(archetype.stats, rarity.rank, slot.id, variant),
+          role: roleCondition,
+          element: elementCondition,
+          attackType: attackTypeCondition,
+          conditionalPercent: rarity.conditionalPercent,
+          sort: rarity.rank * 100000 + itemIndex
+        };
+        usedNames.add(item.name);
+        item.description = describeItem(item);
+        items.push(Object.freeze(item));
+      }
     });
     return Object.freeze(items);
   }
@@ -167,6 +212,10 @@
   const ITEMS_BY_RARITY = Object.freeze(Object.fromEntries(RARITIES.map((rarity) => [
     rarity.id,
     Object.freeze(ITEMS.filter((item) => item.rarity === rarity.id))
+  ])));
+  const ITEMS_BY_SLOT = Object.freeze(Object.fromEntries(SLOTS.map((slot) => [
+    slot.id,
+    Object.freeze(ITEMS.filter((item) => item.slot === slot.id))
   ])));
   const STARTER_ITEMS = Object.freeze({
     "common-weapon-blade": 2,
@@ -201,6 +250,7 @@
   function ensureStarterRecord(record = {}) {
     record.territoryEquipment = effectiveInventory(record);
     record.territoryItemDex = normalizeCountMap(record.territoryItemDex);
+    record.territoryManualEquipment = normalizeManualEquipment(record.territoryManualEquipment);
     Object.keys(STARTER_ITEMS).forEach((id) => {
       record.territoryItemDex[id] = Math.max(1, Number(record.territoryItemDex[id]) || 0);
     });
@@ -266,34 +316,118 @@
     const stats = global.TeamBingoMonsterSystem?.combatStats?.(monster.nodeId) || {};
     const attackType = stats.attackType || "physical";
     const primary = attackType === "magic" ? "magic" : "attack";
-    let score = RARITY_BY_ID[item.rarity].rank * 20;
+    let score = RARITY_BY_ID[item.rarity].power;
     Object.entries(item.stats).forEach(([stat, value]) => {
       const weight = stat === primary ? 2.2 : (stat === "hp" ? .45 : 1);
       score += Number(value) * weight;
     });
     if (item.role && item.role === monster.role) score += 18;
     if (item.element && item.element === monster.element) score += 14;
+    if (item.attackType && item.attackType === attackType) score += 16;
     return score;
+  }
+
+  function manualKey(nodeId, slot, itemId) {
+    return [nodeId, slot, itemId].map((value) => String(value || "")).join(MANUAL_SEPARATOR);
+  }
+
+  function normalizeManualEquipment(value = {}) {
+    const result = {};
+    Object.entries(value || {}).forEach(([key, enabled]) => {
+      if (!(Number(enabled) > 0)) return;
+      const [nodeId, slot, itemId] = String(key).split(MANUAL_SEPARATOR);
+      if (!nodeId || !SLOT_BY_ID[slot] || ITEM_BY_ID[itemId]?.slot !== slot) return;
+      result[manualKey(nodeId, slot, itemId)] = 1;
+    });
+    return result;
+  }
+
+  function manualLoadouts(record = {}) {
+    const result = {};
+    Object.keys(normalizeManualEquipment(record.territoryManualEquipment)).forEach((key) => {
+      const [nodeId, slot, itemId] = key.split(MANUAL_SEPARATOR);
+      result[nodeId] ||= {};
+      if (!result[nodeId][slot]) result[nodeId][slot] = itemId;
+    });
+    return result;
+  }
+
+  function manualItemCounts(record = {}, ignoreNodeId = "", ignoreSlot = "") {
+    const result = {};
+    Object.entries(manualLoadouts(record)).forEach(([nodeId, loadout]) => {
+      Object.entries(loadout).forEach(([slot, itemId]) => {
+        if (nodeId === ignoreNodeId && slot === ignoreSlot) return;
+        result[itemId] = (result[itemId] || 0) + 1;
+      });
+    });
+    return result;
+  }
+
+  function availableManualCount(record, itemId, nodeId = "", slot = "") {
+    const inventory = effectiveInventory(record);
+    const used = manualItemCounts(record, nodeId, slot);
+    return Math.max(0, (Number(inventory[itemId]) || 0) - (Number(used[itemId]) || 0));
+  }
+
+  function clearManualAssignment(record, nodeId = "", slot = "") {
+    record.territoryManualEquipment = normalizeManualEquipment(record.territoryManualEquipment);
+    Object.keys(record.territoryManualEquipment).forEach((key) => {
+      const [currentNodeId, currentSlot] = key.split(MANUAL_SEPARATOR);
+      if (nodeId && currentNodeId !== nodeId) return;
+      if (slot && currentSlot !== slot) return;
+      delete record.territoryManualEquipment[key];
+    });
+    return record.territoryManualEquipment;
+  }
+
+  function setManualItem(record, nodeId, slot, itemId = "") {
+    ensureStarterRecord(record);
+    if (!nodeId || !SLOT_BY_ID[slot]) return false;
+    if (!itemId) {
+      clearManualAssignment(record, nodeId, slot);
+      return true;
+    }
+    const item = ITEM_BY_ID[itemId];
+    if (!item || item.slot !== slot || availableManualCount(record, itemId, nodeId, slot) < 1) return false;
+    clearManualAssignment(record, nodeId, slot);
+    record.territoryManualEquipment[manualKey(nodeId, slot, itemId)] = 1;
+    return true;
   }
 
   function autoAssign(monsters, record = {}) {
     const remaining = effectiveInventory(record);
     const assignments = {};
-    [...(monsters || [])]
+    const manual = manualLoadouts(record);
+    const sortedMonsters = [...(monsters || [])]
       .filter((monster) => monster?.nodeId && monster.nodeId !== "egg")
-      .sort((a, b) => (Number(b.score) || Number(b.power) || 0) - (Number(a.score) || Number(a.power) || 0))
-      .forEach((monster) => {
-        assignments[monster.nodeId] = {};
+      .sort((a, b) => (Number(b.score) || Number(b.power) || 0) - (Number(a.score) || Number(a.power) || 0));
+    sortedMonsters.forEach((monster) => {
+      assignments[monster.nodeId] = {};
+      SLOTS.forEach((slot) => {
+        const itemId = manual[monster.nodeId]?.[slot.id];
+        if (!itemId || !(Number(remaining[itemId]) > 0)) return;
+        assignments[monster.nodeId][slot.id] = itemId;
+        remaining[itemId] -= 1;
+      });
+    });
+    sortedMonsters.forEach((monster) => {
         SLOTS.forEach((slot) => {
-          const item = ITEMS
-            .filter((candidate) => candidate.slot === slot.id && (Number(remaining[candidate.id]) || 0) > 0)
-            .map((candidate) => ({ candidate, score: scoreItem(candidate, monster) }))
-            .sort((a, b) => b.score - a.score || b.candidate.sort - a.candidate.sort)[0]?.candidate;
+          if (assignments[monster.nodeId][slot.id]) return;
+          let item = null;
+          let bestScore = -Infinity;
+          ITEMS_BY_SLOT[slot.id].forEach((candidate) => {
+            if (!(Number(remaining[candidate.id]) > 0)) return;
+            const candidateScore = scoreItem(candidate, monster);
+            if (candidateScore > bestScore || (candidateScore === bestScore && candidate.sort > (item?.sort || -1))) {
+              item = candidate;
+              bestScore = candidateScore;
+            }
+          });
           if (!item) return;
           assignments[monster.nodeId][slot.id] = item.id;
           remaining[item.id] -= 1;
         });
-      });
+    });
     return assignments;
   }
 
@@ -315,7 +449,8 @@
         result[stat] = Math.max(1, Math.round((Number(result[stat]) || 0) + Number(value)));
       });
       const matches = (item.role && item.role === monsterStats.role) ||
-        (item.element && item.element === monsterStats.element);
+        (item.element && item.element === monsterStats.element) ||
+        (item.attackType && item.attackType === monsterStats.attackType);
       if (matches) {
         const primary = monsterStats.attackType === "magic" ? "magic" : "attack";
         result[primary] = Math.max(1, Math.round((Number(result[primary]) || 0) + item.conditionalPercent));
@@ -326,15 +461,20 @@
 
   function equipmentMultiplier(monster) {
     const loadout = normalizeLoadout(monster?.equipment);
+    const attackType = monster?.attackType || global.TeamBingoMonsterSystem?.combatStats?.(monster?.nodeId)?.attackType || "";
     let multiplier = 1;
     Object.values(loadout).forEach((id) => {
       const item = ITEM_BY_ID[id];
       if (!item) return;
-      if ((item.role && item.role === monster.role) || (item.element && item.element === monster.element)) {
+      if (
+        (item.role && item.role === monster.role) ||
+        (item.element && item.element === monster.element) ||
+        (item.attackType && item.attackType === attackType)
+      ) {
         multiplier += item.conditionalPercent / 100;
       }
     });
-    return Math.min(1.1, multiplier);
+    return Math.min(1.4, multiplier);
   }
 
   function loadoutItems(loadout) {
@@ -349,6 +489,7 @@
     ITEMS,
     ITEM_BY_ID,
     ITEMS_BY_RARITY,
+    ITEMS_BY_SLOT,
     STARTER_ITEMS,
     clone,
     hashText,
@@ -361,6 +502,14 @@
     applyRewards,
     rewardCountForMatch,
     rewardCountForSeason,
+    scoreItem,
+    manualKey,
+    normalizeManualEquipment,
+    manualLoadouts,
+    manualItemCounts,
+    availableManualCount,
+    clearManualAssignment,
+    setManualItem,
     autoAssign,
     normalizeLoadout,
     applyEquipmentStats,

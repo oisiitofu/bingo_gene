@@ -52,7 +52,9 @@ test("六王領土戦のクライアント、Worker、Firebaseルールが公開
   assert.match(territoryMode, /SEASON \$\{formatDate\(season\.startsAt\)\}/);
   assert.doesNotMatch(territoryMode, /SEASON \$\{season\.id\} \//);
   assert.match(territoryEquipment, /const RARITIES/);
-  assert.match(territoryEquipment, /chance: \.01/);
+  assert.match(territoryEquipment, /chance: \.001/);
+  assert.match(territoryEquipment, /const ITEMS_PER_RARITY = 200/);
+  assert.match(territoryEquipment, /function setManualItem/);
   assert.match(territoryEquipment, /function autoAssign/);
   assert.match(territoryMode, /TeamBingoTerritoryMap3D/);
   assert.match(territoryMap3D, /new THREE\.WebGLRenderer/);

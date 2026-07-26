@@ -123,10 +123,16 @@
     if (monster) {
       const tile = state?.tiles?.[selectedTileId];
       const owner = Territory.PLAYER_BY_ID[tile?.ownerId];
+      const member = tile?.garrison?.lineup?.find((entry) => entry?.nodeId === monster.dataset.territoryMonster);
       showMonsterDetail(
         monster.dataset.territoryMonster,
         `${owner?.name || "六王"} / TERRITORY PARTY`,
-        owner?.color || "#f7c64a"
+        owner?.color || "#f7c64a",
+        {
+          equipment: effectiveTerritoryLoadout(member, owner),
+          masteryXp: Number(member?.masteryXp) || 0,
+          territory: true
+        }
       );
       return;
     }
@@ -210,11 +216,26 @@
     `).join("");
   }
 
-  function renderMonster(member) {
+  function resolveOwnerRecord(owner) {
+    if (!owner) return null;
+    const records = playerStats?.players || {};
+    const key = Territory.playerKey(owner.name);
+    return records[key] || Object.values(records).find((record) => Territory.playerKey(record?.name) === key) || null;
+  }
+
+  function effectiveTerritoryLoadout(member, owner) {
+    const equipment = global.TeamBingoTerritoryEquipment;
+    const record = resolveOwnerRecord(owner);
+    const manual = record ? equipment?.manualLoadouts?.(record)?.[member?.nodeId] : null;
+    return equipment?.normalizeLoadout?.({ ...(member?.equipment || {}), ...(manual || {}) }) || {};
+  }
+
+  function renderMonster(member, owner) {
     const node = global.TeamBingoMonsterSystem?.NODES?.[member.nodeId];
     const equipment = global.TeamBingoTerritoryEquipment;
     const name = node?.name || member.name || member.nodeId;
-    const equipped = equipment?.loadoutItems?.(member.equipment) || [];
+    const loadout = effectiveTerritoryLoadout(member, owner);
+    const equipped = equipment?.loadoutItems?.(loadout) || [];
     return `
       <button type="button" class="territory-monster" data-territory-monster="${escapeHtml(member.nodeId)}" aria-label="${escapeHtml(name)}の詳細を表示">
         <span class="territory-monster-art">${spriteMarkup(member.nodeId)}</span>
@@ -254,7 +275,7 @@
       ${party?.lineup?.length ? `
         <section class="territory-squad">
           <div class="territory-squad-head"><span>TERRITORY PARTY</span><span>戦力 ${Math.round(party.lineup.reduce((sum, member) => sum + (Number(member.power) || 0), 0))}</span></div>
-          <div class="territory-squad-lineup">${party.lineup.map(renderMonster).join("")}</div>
+          <div class="territory-squad-lineup">${party.lineup.map((member) => renderMonster(member, owner)).join("")}</div>
           <div class="territory-hype-row">
             <span>HYPE</span>
             <div class="territory-hype-track"><i style="width:${Math.max(0, Math.min(100, hype))}%"></i></div>
@@ -361,6 +382,7 @@
 
   function setPlayerStats(stats) {
     playerStats = stats || {};
+    if (root && !root.hidden) renderDetail();
   }
 
   global.TeamBingoTerritoryMode = Object.freeze({

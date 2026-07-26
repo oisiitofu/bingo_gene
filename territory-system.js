@@ -343,6 +343,7 @@
       const masteryXp = Number(record?.monsterMastery?.[nodeId]) || 0;
       const role = system.combatRole(nodeId);
       const element = system.combatElement(nodeId);
+      const attackType = system.combatStats(nodeId).attackType || "physical";
       const basePower = combatPower(nodeId, masteryXp);
       const jitter = (hashText(`${rosterSeed}:${player.id}:${nodeId}`) % 1000) / 1000;
       return {
@@ -354,6 +355,7 @@
         masteryXp,
         role: role.id,
         element: element.id,
+        attackType,
         power: basePower,
         cost: nodeCost(node),
         score: basePower + masteryXp * .06 + jitter * Math.max(5, basePower * .025)
