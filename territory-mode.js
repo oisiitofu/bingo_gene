@@ -11,6 +11,7 @@
   let preview = true;
   let spriteMarkup = () => "";
   let replayBattle = () => {};
+  let showMonsterDetail = () => {};
   let countdownTimer = 0;
 
   function escapeHtml(value) {
@@ -82,6 +83,17 @@
   function onClick(event) {
     if (event.target.closest("[data-territory-close]")) {
       close();
+      return;
+    }
+    const monster = event.target.closest("[data-territory-monster]");
+    if (monster) {
+      const tile = state?.tiles?.[selectedTileId];
+      const owner = Territory.PLAYER_BY_ID[tile?.ownerId];
+      showMonsterDetail(
+        monster.dataset.territoryMonster,
+        `${owner?.name || "六王"} / TERRITORY PARTY`,
+        owner?.color || "#f7c64a"
+      );
       return;
     }
     const hex = event.target.closest("[data-tile-id]");
@@ -162,11 +174,13 @@
 
   function renderMonster(member) {
     const node = global.TeamBingoMonsterSystem?.NODES?.[member.nodeId];
+    const name = node?.name || member.name || member.nodeId;
     return `
-      <div class="territory-monster">
+      <button type="button" class="territory-monster" data-territory-monster="${escapeHtml(member.nodeId)}" aria-label="${escapeHtml(name)}の詳細を表示">
         <span class="territory-monster-art">${spriteMarkup(member.nodeId)}</span>
-        <strong title="${escapeHtml(node?.name || member.name || member.nodeId)}">${escapeHtml(node?.name || member.name || member.nodeId)}</strong>
-      </div>
+        <strong title="${escapeHtml(name)}">${escapeHtml(name)}</strong>
+        <span class="territory-monster-detail-label">DETAIL</span>
+      </button>
     `;
   }
 
@@ -266,6 +280,7 @@
     playerStats = options.playerStats || playerStats || {};
     spriteMarkup = typeof options.spriteMarkup === "function" ? options.spriteMarkup : spriteMarkup;
     replayBattle = typeof options.replayBattle === "function" ? options.replayBattle : replayBattle;
+    showMonsterDetail = typeof options.showMonsterDetail === "function" ? options.showMonsterDetail : showMonsterDetail;
     if (options.state) {
       state = Territory.normalizeState(options.state, playerStats, Date.now());
       preview = options.preview === true;

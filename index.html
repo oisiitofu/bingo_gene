@@ -9790,14 +9790,14 @@
       els.monsterZoomPlayer.textContent = playerLabel;
       els.monsterZoomArt.innerHTML = monsterSpriteMarkup(node);
       els.monsterZoomName.textContent = node.name;
-      els.monsterZoomStage.textContent = `${monsterRankLabel(node)} / ${element.name}属性 / ${role.name} / ${stats.attackType === "magic" ? "魔法" : "物理"}タイプ${masteryXp ? ` / 絆 Lv.${MONSTER_SYSTEM.masteryLevel(masteryXp)}` : ""}${node.legendary ? " / 伝説のモンスター" : ""}${node.rank6 ? " / 4体融合モンスター" : ""}`;
+      els.monsterZoomStage.textContent = `${monsterRankLabel(node)} / ${element.name}属性 / ${role.name} / ${stats.attackType === "magic" ? "魔法" : "物理"}タイプ / 絆 Lv.${MONSTER_SYSTEM.masteryLevel(masteryXp)}${node.legendary ? " / 伝説のモンスター" : ""}${node.rank6 ? " / 4体融合モンスター" : ""}`;
       els.monsterZoomStats.innerHTML = [
         ["HP", stats.hp], ["攻撃", stats.attack], ["防御", stats.defense],
         ["魔攻", stats.magic], ["魔防", stats.magicDefense], ["素早さ", stats.speed]
       ].map(([label, value]) => `<span class="monster-stat-row"><span>${label}</span><strong>${value}</strong></span>`).join("");
       els.monsterZoomSpecial.parentElement?.querySelector(".monster-zoom-passive")?.remove();
       els.monsterZoomSpecial.textContent = `必殺技 / ${stats.special}`;
-      els.monsterZoomSpecial.insertAdjacentHTML("afterend", `<div class="monster-zoom-passive"><b>${escapeHtml(element.name)}属性 / ${escapeHtml(role.name)}</b><span>${escapeHtml(role.description)}</span><b>固有スキル / ${escapeHtml(passive.name)}</b><span>${escapeHtml(passive.description)}</span>${masteryXp ? `<b>熟練度 / 絆 Lv.${MONSTER_SYSTEM.masteryLevel(masteryXp)} ${escapeHtml(MONSTER_SYSTEM.masteryTitle(masteryXp))}</b><span>${masteryXp} EXP</span>` : ""}</div>`);
+      els.monsterZoomSpecial.insertAdjacentHTML("afterend", `<div class="monster-zoom-passive"><b>${escapeHtml(element.name)}属性 / ${escapeHtml(role.name)}</b><span>${escapeHtml(role.description)}</span><b>固有スキル / ${escapeHtml(passive.name)}</b><span>${escapeHtml(passive.description)}</span><b>熟練度 / 絆 Lv.${MONSTER_SYSTEM.masteryLevel(masteryXp)} ${escapeHtml(MONSTER_SYSTEM.masteryTitle(masteryXp))}</b><span>${masteryXp} EXP</span></div>`);
       showOverlay(els.monsterZoomOverlay);
     }
 
@@ -15917,7 +15917,8 @@
         preview: !liveState,
         playerStats: state.playerStats,
         spriteMarkup: (nodeId) => monsterSpriteMarkup(MONSTER_NODES[nodeId] || MONSTER_NODES.egg),
-        replayBattle: openTerritoryBattleReplay
+        replayBattle: openTerritoryBattleReplay,
+        showMonsterDetail: showMonsterNodeZoom
       });
     }
 

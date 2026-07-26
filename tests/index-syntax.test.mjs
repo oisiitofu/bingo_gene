@@ -37,6 +37,10 @@ test("六王領土戦のクライアント、Worker、Firebaseルールが公開
   assert.match(territorySystem, /TILE_EVENTS/);
   assert.match(territoryMode, /TERRITORY PARTY/);
   assert.match(territoryMode, /territory-hype-track/);
+  assert.match(territoryMode, /data-territory-monster/);
+  assert.match(territoryMode, /showMonsterDetail/);
+  assert.match(html, /showMonsterDetail: showMonsterNodeZoom/);
+  assert.match(html, /熟練度 \/ 絆 Lv\./);
   assert.match(worker, /crons|advanceFrontier|If-Match|if-match/i);
 });
 

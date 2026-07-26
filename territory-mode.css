@@ -441,7 +441,21 @@
 
 .territory-monster {
   min-width: 0;
+  padding: 4px 3px 5px;
+  border: 1px solid transparent;
+  color: inherit;
+  background: rgba(255, 255, 255, .025);
   text-align: center;
+  cursor: zoom-in;
+  transition: border-color .18s ease, background .18s ease, transform .18s ease;
+}
+
+.territory-monster:hover,
+.territory-monster:focus-visible {
+  border-color: rgba(255, 212, 93, .72);
+  outline: 0;
+  background: rgba(255, 212, 93, .09);
+  transform: translateY(-2px);
 }
 
 .territory-monster-art {
@@ -465,6 +479,18 @@
   font-size: 9px;
   text-overflow: ellipsis;
   white-space: nowrap;
+}
+
+.territory-monster-detail-label {
+  display: block;
+  margin-top: 4px;
+  color: #ffd45d;
+  font-size: 7px;
+  font-weight: 900;
+}
+
+body.territory-mode-open .monster-zoom-overlay {
+  z-index: 6200;
 }
 
 .territory-feed {
