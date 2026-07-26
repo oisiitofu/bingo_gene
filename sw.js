@@ -1,6 +1,6 @@
 "use strict";
 
-const CACHE_VERSION = "team-bingo-v1-20260726-territory-map-3d-buildings-49";
+const CACHE_VERSION = "team-bingo-v1-20260726-territory-map-full-3d-50";
 const SHELL_CACHE = `${CACHE_VERSION}-shell`;
 const ASSET_CACHE = `${CACHE_VERSION}-assets`;
 const SHELL_FILES = [
@@ -16,9 +16,6 @@ const SHELL_FILES = [
   "./online/online-room.css",
   "./online/online-room.js",
   "./images/territory/strategy-map-backdrop-v2.png",
-  "./images/territory/realistic/forest.png",
-  "./images/territory/realistic/mountains.png",
-  "./images/territory/realistic/volcano.png",
   "./images/territory/textures/stone-wall.png",
   "./images/territory/textures/roof-tiles.png",
   "./images/territory/textures/aged-wood.png",

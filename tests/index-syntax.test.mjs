@@ -45,21 +45,18 @@ test("六王領土戦のクライアント、Worker、Firebaseルールが公開
   assert.match(territoryMap3D, /new THREE\.WebGLRenderer/);
   assert.match(territoryMap3D, /addFortress/);
   assert.match(territoryMap3D, /addTerrainObjects/);
-  assert.match(territoryMap3D, /LANDMARK_ASSETS/);
   assert.match(territoryMap3D, /createTerritoryBoundary/);
   assert.match(territoryMap3D, /addVillage3D/);
+  assert.match(territoryMap3D, /addForest3D/);
+  assert.match(territoryMap3D, /addMountainRange3D/);
+  assert.match(territoryMap3D, /addVolcano3D/);
   assert.match(territoryMap3D, /addStormSpire3D/);
+  assert.match(territoryMap3D, /"landmark-presence"\) < \.42/);
+  assert.doesNotMatch(territoryMap3D, /LANDMARK_ASSETS|THREE\.Sprite/);
   assert.doesNotMatch(territoryMap3D, /addEventBeacon/);
   assert.ok(existsSync(new URL("../vendor/three/three.min.js", import.meta.url)));
   assert.ok(existsSync(new URL("../images/territory/strategy-map-backdrop-v2.png", import.meta.url)));
-  [
-    "forest.png",
-    "mountains.png",
-    "volcano.png"
-  ].forEach((asset) => {
-    assert.ok(existsSync(new URL(`../images/territory/realistic/${asset}`, import.meta.url)));
-    assert.match(serviceWorker, new RegExp(`realistic\\/${asset.replace(".", "\\.")}`));
-  });
+  assert.doesNotMatch(serviceWorker, /images\/territory\/realistic/);
   [
     "stone-wall.png",
     "roof-tiles.png",

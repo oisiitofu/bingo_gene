@@ -6,33 +6,14 @@
 
   const HEX_RADIUS = 1.06;
   const HEX_SCALE = 1.04;
-  const TERRAIN_COLORS = Object.freeze({
-    fire: 0x5f3025,
-    water: 0x245a6f,
-    earth: 0x6c6044,
-    wind: 0x3d6b46,
-    lightning: 0x56547a,
-    light: 0x857652,
-    dark: 0x302d3e
-  });
-  const LANDMARK_ASSETS = Object.freeze({
-    forest: "images/territory/realistic/forest.png",
-    mountains: "images/territory/realistic/mountains.png",
-    volcano: "images/territory/realistic/volcano.png"
-  });
+  const SOIL_SURFACE_COLOR = 0xd1b892;
   const BUILDING_TEXTURE_ASSETS = Object.freeze({
     stone: "images/territory/textures/stone-wall.png",
     roof: "images/territory/textures/roof-tiles.png",
     wood: "images/territory/textures/aged-wood.png"
   });
   const TERRAIN_TEXTURE_PALETTES = Object.freeze({
-    fire: ["#3b2822", "#70402b", "#1d1918"],
-    water: ["#236579", "#318da0", "#143d51"],
-    earth: ["#756a4d", "#918467", "#4f4939"],
-    wind: ["#355b38", "#547549", "#243d2c"],
-    lightning: ["#494c68", "#75789a", "#313448"],
-    light: ["#847a5a", "#ada071", "#5f583f"],
-    dark: ["#302f3d", "#4a465a", "#211f2b"]
+    earth: ["#756a4d", "#918467", "#4f4939"]
   });
 
   function hashText(value) {
@@ -165,6 +146,10 @@
         treeCrown: new THREE.ConeGeometry(.24, .62, 8),
         rock: new THREE.DodecahedronGeometry(.24, 0),
         mountain: new THREE.ConeGeometry(.42, 1.05, 7),
+        volcano: new THREE.CylinderGeometry(.16, .62, .72, 18, 3),
+        crater: new THREE.TorusGeometry(.18, .075, 8, 24),
+        lavaPool: new THREE.CylinderGeometry(.15, .18, .028, 18),
+        lavaStream: new THREE.CylinderGeometry(.018, .04, .5, 8),
         tower: new THREE.CylinderGeometry(.17, .2, .72, 12),
         roof: new THREE.ConeGeometry(.24, .32, 12),
         squareRoof: new THREE.ConeGeometry(.4, .3, 4),
@@ -184,11 +169,36 @@
         crown: new THREE.TorusKnotGeometry(.15, .045, 48, 8)
       };
       const materials = {
-        trunk: new THREE.MeshStandardMaterial({ color: 0x392c20, roughness: 1 }),
+        trunk: new THREE.MeshStandardMaterial({
+          color: 0x80604a,
+          map: buildingTextures.wood,
+          bumpMap: buildingTextures.wood,
+          bumpScale: .025,
+          roughness: 1
+        }),
         pine: new THREE.MeshStandardMaterial({ color: 0x173f2b, roughness: .88 }),
         pineLight: new THREE.MeshStandardMaterial({ color: 0x315c38, roughness: .88 }),
-        rock: new THREE.MeshStandardMaterial({ color: 0x625e58, roughness: .96 }),
-        mountain: new THREE.MeshStandardMaterial({ color: 0x4e4c48, roughness: .94 }),
+        rock: new THREE.MeshStandardMaterial({
+          color: 0xaaa295,
+          map: buildingTextures.stone,
+          bumpMap: buildingTextures.stone,
+          bumpScale: .05,
+          roughness: .96
+        }),
+        mountain: new THREE.MeshStandardMaterial({
+          color: 0x8f8c85,
+          map: buildingTextures.stone,
+          bumpMap: buildingTextures.stone,
+          bumpScale: .065,
+          roughness: .94
+        }),
+        volcanicRock: new THREE.MeshStandardMaterial({
+          color: 0x978177,
+          map: buildingTextures.stone,
+          bumpMap: buildingTextures.stone,
+          bumpScale: .075,
+          roughness: .98
+        }),
         snow: new THREE.MeshStandardMaterial({ color: 0xd9e1e7, roughness: .8 }),
         stone: new THREE.MeshStandardMaterial({
           color: 0xb8b5ac,
@@ -260,21 +270,7 @@
       const terrainTextures = Object.fromEntries(
         Object.keys(TERRAIN_TEXTURE_PALETTES).map((terrain) => [terrain, createTerrainTexture(terrain)])
       );
-      const landmarkMaterials = {};
-      Object.entries(LANDMARK_ASSETS).forEach(([key, url]) => {
-        const texture = textureLoader.load(url, renderOnce);
-        texture.colorSpace = THREE.SRGBColorSpace;
-        texture.anisotropy = Math.min(8, renderer.capabilities.getMaxAnisotropy());
-        landmarkMaterials[key] = new THREE.SpriteMaterial({
-          map: texture,
-          transparent: true,
-          alphaTest: .025,
-          depthTest: true,
-          depthWrite: false,
-          toneMapped: false
-        });
-      });
-      return { geometries, materials, terrainTextures, landmarkMaterials, buildingTextures };
+      return { geometries, materials, terrainTextures, buildingTextures };
     }
 
     function createTerrainTexture(terrain) {
@@ -410,10 +406,7 @@
       const height = tileElevation(tile);
       const ownerDefinition = options.playerById?.[tile.ownerId];
       const ownerColor = ownerDefinition?.color || "#657083";
-      const surfaceColor = tile.ownerId
-        ? colorValue(ownerColor).lerp(new THREE.Color(0xffffff), .2)
-        : colorValue(TERRAIN_COLORS[tile.terrain], 0x657083).lerp(new THREE.Color(0xffffff), .16);
-      const sourceTexture = shared.terrainTextures[tile.terrain] || shared.terrainTextures.earth;
+      const sourceTexture = shared.terrainTextures.earth;
       const terrainTexture = sourceTexture.clone();
       terrainTexture.center.set(.5, .5);
       terrainTexture.rotation = seededValue(tile.id, "texture-rotation") * Math.PI * 2;
@@ -421,16 +414,14 @@
       terrainTexture.needsUpdate = true;
       dynamicTextures.push(terrainTexture);
       const tileMaterial = new THREE.MeshPhysicalMaterial({
-        color: surfaceColor,
+        color: SOIL_SURFACE_COLOR,
         map: terrainTexture,
         bumpMap: terrainTexture,
-        bumpScale: tile.terrain === "water" ? .018 : .045,
-        roughness: tile.terrain === "water" ? .3 : .91,
-        metalness: tile.terrain === "water" ? .16 : .02,
-        clearcoat: tile.terrain === "water" ? .75 : .08,
-        clearcoatRoughness: tile.terrain === "water" ? .18 : .7,
-        transparent: tile.terrain === "water",
-        opacity: tile.terrain === "water" ? .94 : 1
+        bumpScale: .045,
+        roughness: .92,
+        metalness: .01,
+        clearcoat: .04,
+        clearcoatRoughness: .78
       });
       dynamicMaterials.push(tileMaterial);
       const geometry = new THREE.CylinderGeometry(HEX_RADIUS * 1.012, HEX_RADIUS * 1.02, height, 6, 1);
@@ -455,7 +446,6 @@
         addFortress(detail, tile, ownerColor);
       } else {
         addTerrainObjects(detail, tile);
-        if (tile.ownerId) addBanner(detail, ownerColor, .54);
       }
       tileRoot.add(detail);
     }
@@ -548,16 +538,17 @@
 
     function addTerrainObjects(group, tile) {
       const seed = tile.id;
+      if (seededValue(seed, "landmark-presence") < .42) return;
       if (tile.terrain === "wind") {
-        addLandmarkSprite(group, "forest", 1.62, 1.2, .03, seed);
+        addForest3D(group, seed);
       } else if (tile.terrain === "earth") {
         if (seededValue(seed, "earth-landmark") > .48) {
           addVillage3D(group, seed);
         } else {
-          addLandmarkSprite(group, "mountains", 1.55, 1.25, .02, seed);
+          addMountainRange3D(group, seed);
         }
       } else if (tile.terrain === "fire") {
-        addLandmarkSprite(group, "volcano", 1.64, 1.22, .02, seed);
+        addVolcano3D(group, seed);
       } else if (tile.terrain === "water") {
         addWaterRuins3D(group, seed);
         const rippleMaterial = new THREE.MeshBasicMaterial({
@@ -584,26 +575,77 @@
       }
     }
 
-    function addLandmarkSprite(group, assetName, width, height, y, seed, opacity = 1) {
-      const baseMaterial = shared.landmarkMaterials[assetName];
-      if (!baseMaterial) return;
-      const material = opacity === 1 ? baseMaterial : baseMaterial.clone();
-      if (material !== baseMaterial) {
-        material.opacity = opacity;
-        dynamicMaterials.push(material);
-      }
-      const sprite = new THREE.Sprite(material);
-      sprite.center.set(.5, 0);
-      const sizeVariation = .86 + seededValue(seed, "landmark-size") * .24;
-      const mirror = seededValue(seed, "landmark-mirror") > .5 ? 1 : -1;
-      sprite.scale.set(width * sizeVariation * mirror, height * sizeVariation, 1);
-      sprite.position.set(
-        (seededValue(seed, "landmark-x") - .5) * .14,
-        Math.max(.005, y),
-        (seededValue(seed, "landmark-z") - .5) * .1
+    function addForest3D(group, seed) {
+      const forest = new THREE.Group();
+      forest.rotation.y = seededValue(seed, "forest-rotation") * Math.PI;
+      const treeCount = 5 + Math.floor(seededValue(seed, "forest-count") * 3);
+      for (let index = 0; index < treeCount; index += 1) addTree(forest, seed, index);
+      addRock(forest, seed, 31, .55);
+      addRock(forest, seed, 32, .42);
+      group.add(forest);
+    }
+
+    function addMountainPeak(group, x, z, scale, rotation) {
+      const mountain = addModelMesh(
+        group,
+        shared.geometries.mountain,
+        shared.materials.mountain,
+        [x, .525 * scale, z],
+        [.92 * scale, scale, .92 * scale],
+        rotation
       );
-      sprite.renderOrder = 3;
-      group.add(sprite);
+      mountain.rotation.z = (scale - .75) * .08;
+      const snow = addModelMesh(
+        group,
+        shared.geometries.mountain,
+        shared.materials.snow,
+        [x, .89 * scale, z],
+        [.4 * scale, .32 * scale, .4 * scale],
+        rotation
+      );
+      snow.rotation.z = mountain.rotation.z;
+    }
+
+    function addMountainRange3D(group, seed) {
+      const range = new THREE.Group();
+      range.rotation.y = (seededValue(seed, "range-rotation") - .5) * .55;
+      addMountainPeak(range, -.26, .06, .92, seededValue(seed, "peak-a") * Math.PI);
+      addMountainPeak(range, .25, .11, .72, seededValue(seed, "peak-b") * Math.PI);
+      addMountainPeak(range, .02, -.27, .58, seededValue(seed, "peak-c") * Math.PI);
+      addRock(range, seed, 41, .6);
+      addRock(range, seed, 42, .48);
+      group.add(range);
+    }
+
+    function addVolcano3D(group, seed) {
+      const volcano = new THREE.Group();
+      volcano.rotation.y = seededValue(seed, "volcano-rotation") * Math.PI;
+      const body = addModelMesh(
+        volcano,
+        shared.geometries.volcano,
+        shared.materials.volcanicRock,
+        [0, .36, 0],
+        [1, .96, 1]
+      );
+      body.rotation.z = (seededValue(seed, "volcano-lean") - .5) * .05;
+      const crater = addModelMesh(volcano, shared.geometries.crater, shared.materials.volcanicRock, [0, .716, 0]);
+      crater.rotation.x = Math.PI / 2;
+      const lava = addModelMesh(volcano, shared.geometries.lavaPool, shared.materials.lava, [0, .711, 0]);
+      animatedObjects.push({ object: lava, type: "lava", phase: seededValue(seed, "lava") * 6 });
+      [0, Math.PI * .68, Math.PI * 1.34].forEach((angle, index) => {
+        const distance = .25 + index * .025;
+        const stream = addModelMesh(
+          volcano,
+          shared.geometries.lavaStream,
+          shared.materials.lava,
+          [Math.cos(angle) * distance, .38, Math.sin(angle) * distance],
+          [1, .84 + index * .08, 1],
+          angle
+        );
+        stream.rotation.z = .66;
+      });
+      for (let index = 0; index < 4; index += 1) addRock(volcano, seed, 70 + index, .48 + index * .04);
+      group.add(volcano);
     }
 
     function addModelMesh(group, geometry, material, position, scale = [1, 1, 1], rotationY = 0) {
@@ -694,9 +736,20 @@
         shared.geometries.treeCrown,
         index % 2 ? shared.materials.pine : shared.materials.pineLight
       );
-      crown.position.y = .38;
+      crown.position.y = .3;
+      crown.scale.set(1.08, .9, 1.08);
+      const middleCrown = crown.clone();
+      middleCrown.position.y = .49;
+      middleCrown.scale.set(.82, .76, .82);
+      middleCrown.rotation.y = .38;
+      const topCrown = crown.clone();
+      topCrown.position.y = .64;
+      topCrown.scale.set(.56, .58, .56);
+      topCrown.rotation.y = -.27;
       crown.castShadow = true;
-      tree.add(trunk, crown);
+      middleCrown.castShadow = true;
+      topCrown.castShadow = true;
+      tree.add(trunk, crown, middleCrown, topCrown);
       tree.scale.setScalar(.72 + seededValue(seed, index + 15) * .34);
       group.add(tree);
     }
@@ -720,20 +773,6 @@
       );
       rock.castShadow = true;
       group.add(rock);
-    }
-
-    function addMountain(group, seed, index, scale = 1) {
-      const mountain = new THREE.Mesh(shared.geometries.mountain, shared.materials.mountain);
-      mountain.scale.set(.9 * scale, 1.05 * scale, .9 * scale);
-      mountain.position.set(-.08, .47 * scale, .02);
-      mountain.rotation.y = seededValue(seed, index) * Math.PI;
-      mountain.castShadow = true;
-      group.add(mountain);
-      const snow = new THREE.Mesh(shared.geometries.mountain, shared.materials.snow);
-      snow.scale.set(.42 * scale, .36 * scale, .42 * scale);
-      snow.position.set(-.08, .92 * scale, .02);
-      snow.rotation.y = mountain.rotation.y;
-      group.add(snow);
     }
 
     function addBanner(group, ownerColor, height = .72) {
@@ -844,9 +883,6 @@
         if (selected) {
           mesh.material.emissive.setHex(0x6b4b18);
           mesh.material.emissiveIntensity = .48;
-        } else if (mesh.userData.ownerColor) {
-          mesh.material.emissive.copy(mesh.userData.ownerColor);
-          mesh.material.emissiveIntensity = .075;
         } else {
           mesh.material.emissive.setHex(0x000000);
           mesh.material.emissiveIntensity = 0;
@@ -901,6 +937,10 @@
           const cycle = (seconds * .33 + entry.phase) % 1;
           entry.object.scale.setScalar(.7 + cycle * .75);
           entry.object.material.opacity = (1 - cycle) * .5;
+        } else if (entry.type === "lava") {
+          const pulse = 1 + Math.sin(seconds * 2.6 + entry.phase) * .045;
+          entry.object.scale.set(pulse, 1, pulse);
+          entry.object.material.emissiveIntensity = 2.15 + Math.sin(seconds * 3.1 + entry.phase) * .35;
         } else if (entry.type === "banner") {
           entry.object.rotation.z = Math.sin(seconds * 2.1 + entry.phase) * .07;
         } else if (entry.type === "territoryAura") {
