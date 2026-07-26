@@ -1,6 +1,6 @@
 "use strict";
 
-const CACHE_VERSION = "team-bingo-v1-20260726-territory-monster-detail-45";
+const CACHE_VERSION = "team-bingo-v1-20260726-territory-map-realistic-48";
 const SHELL_CACHE = `${CACHE_VERSION}-shell`;
 const ASSET_CACHE = `${CACHE_VERSION}-assets`;
 const SHELL_FILES = [
@@ -8,11 +8,22 @@ const SHELL_FILES = [
   "./index.html",
   "./monster-system.js",
   "./territory-system.js",
+  "./vendor/three/three.min.js",
+  "./territory-map-3d.js",
   "./territory-mode.js",
   "./territory-mode.css",
   "./monster-battle.css",
   "./online/online-room.css",
   "./online/online-room.js",
+  "./images/territory/strategy-map-backdrop-v2.png",
+  "./images/territory/realistic/fortress.png",
+  "./images/territory/realistic/forest.png",
+  "./images/territory/realistic/mountains.png",
+  "./images/territory/realistic/volcano.png",
+  "./images/territory/realistic/water-ruins.png",
+  "./images/territory/realistic/village.png",
+  "./images/territory/realistic/storm-spire.png",
+  "./images/territory/realistic/dark-citadel.png",
   "./images/monster-battle/arena.png",
   "./images/ui/team-bingo-logo.png",
   "./images/ui/bg-arena-stage.png"

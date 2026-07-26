@@ -12,6 +12,7 @@
   let spriteMarkup = () => "";
   let replayBattle = () => {};
   let showMonsterDetail = () => {};
+  let map3D = null;
   let countdownTimer = 0;
 
   function escapeHtml(value) {
@@ -62,7 +63,8 @@
           <div class="territory-ranking-list" data-territory-ranking></div>
         </aside>
         <main class="territory-panel territory-map-panel">
-          <svg class="territory-map" data-territory-map viewBox="-520 -470 1040 940" role="img" aria-label="六王領土戦マップ"></svg>
+          <div class="territory-map-3d" data-territory-map-3d></div>
+          <svg class="territory-map territory-map-fallback" data-territory-map viewBox="-520 -470 1040 940" role="img" aria-label="六王領土戦マップ"></svg>
           <div class="territory-map-legend"><span>本拠地 ◆</span><span>玉座 王</span><span>拠点 砦</span></div>
         </main>
         <aside class="territory-panel territory-detail">
@@ -77,7 +79,31 @@
     `;
     document.body.append(root);
     root.addEventListener("click", onClick);
+    const mapHost = root.querySelector("[data-territory-map-3d]");
+    if (mapHost && global.TeamBingoTerritoryMap3D) {
+      try {
+        map3D = global.TeamBingoTerritoryMap3D.create(mapHost, {
+          playerById: Territory.PLAYER_BY_ID,
+          onSelect: selectTile,
+          summarize: (currentState, tileId) => Territory.tileSummary(currentState, tileId)
+        });
+        mapHost.classList.add("ready");
+      } catch (error) {
+        console.warn("3D territory map unavailable; using 2D fallback.", error);
+        mapHost.hidden = true;
+      }
+    } else if (mapHost) {
+      mapHost.hidden = true;
+    }
     return root;
+  }
+
+  function selectTile(tileId) {
+    if (!state?.tiles?.[tileId]) return;
+    selectedTileId = tileId;
+    renderRanking();
+    renderMap();
+    renderDetail();
   }
 
   function onClick(event) {
@@ -98,9 +124,7 @@
     }
     const hex = event.target.closest("[data-tile-id]");
     if (hex) {
-      selectedTileId = hex.dataset.tileId;
-      renderMap();
-      renderDetail();
+      selectTile(hex.dataset.tileId);
       return;
     }
     const king = event.target.closest("[data-king-id]");
@@ -134,6 +158,12 @@
   function renderMap() {
     if (!root || !state) return;
     const map = root.querySelector("[data-territory-map]");
+    if (map3D) {
+      map.setAttribute("hidden", "");
+      map3D.update(state, selectedTileId);
+      return;
+    }
+    map.removeAttribute("hidden");
     const size = 47;
     const scale = 1.35;
     map.innerHTML = Object.values(state.tiles || {}).map((tile) => {
@@ -292,6 +322,8 @@
     root.hidden = false;
     document.body.classList.add("territory-mode-open");
     render();
+    map3D?.setActive(true);
+    global.requestAnimationFrame(() => map3D?.resize());
     window.clearInterval(countdownTimer);
     countdownTimer = window.setInterval(updateCountdown, 1000);
   }
@@ -300,6 +332,7 @@
     if (!root) return;
     root.hidden = true;
     document.body.classList.remove("territory-mode-open");
+    map3D?.setActive(false);
     window.clearInterval(countdownTimer);
     countdownTimer = 0;
   }

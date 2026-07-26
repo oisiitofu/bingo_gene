@@ -17,15 +17,20 @@ test("六王領土戦のクライアント、Worker、Firebaseルールが公開
   const html = readFileSync(new URL("../index.html", import.meta.url), "utf8");
   const serviceWorker = readFileSync(new URL("../sw.js", import.meta.url), "utf8");
   const territorySystem = readFileSync(new URL("../territory-system.js", import.meta.url), "utf8");
+  const territoryMap3D = readFileSync(new URL("../territory-map-3d.js", import.meta.url), "utf8");
   const territoryMode = readFileSync(new URL("../territory-mode.js", import.meta.url), "utf8");
   const rules = JSON.parse(readFileSync(new URL("../firebase-database.rules.json", import.meta.url), "utf8"));
   const worker = readFileSync(new URL("../worker/territory-worker.mjs", import.meta.url), "utf8");
 
   assert.match(html, /id="territoryModeButton">六王領土戦</);
   assert.match(html, /src="territory-system\.js"/);
+  assert.match(html, /src="vendor\/three\/three\.min\.js"/);
+  assert.match(html, /src="territory-map-3d\.js"/);
   assert.match(html, /src="territory-mode\.js"/);
   assert.match(html, /href="territory-mode\.css"/);
   assert.match(serviceWorker, /\.\/territory-system\.js/);
+  assert.match(serviceWorker, /\.\/territory-map-3d\.js/);
+  assert.match(serviceWorker, /\.\/vendor\/three\/three\.min\.js/);
   assert.match(serviceWorker, /\.\/territory-mode\.js/);
   assert.equal(
     rules.rules.teamBingoV1.frontier.current[".write"].includes("adminSessions"),
@@ -36,6 +41,26 @@ test("六王領土戦のクライアント、Worker、Firebaseルールが公開
   assert.match(territorySystem, /const PARTY_SIZE = 3/);
   assert.match(territorySystem, /TILE_EVENTS/);
   assert.match(territoryMode, /TERRITORY PARTY/);
+  assert.match(territoryMode, /TeamBingoTerritoryMap3D/);
+  assert.match(territoryMap3D, /new THREE\.WebGLRenderer/);
+  assert.match(territoryMap3D, /addFortress/);
+  assert.match(territoryMap3D, /addTerrainObjects/);
+  assert.match(territoryMap3D, /LANDMARK_ASSETS/);
+  assert.ok(existsSync(new URL("../vendor/three/three.min.js", import.meta.url)));
+  assert.ok(existsSync(new URL("../images/territory/strategy-map-backdrop-v2.png", import.meta.url)));
+  [
+    "fortress.png",
+    "forest.png",
+    "mountains.png",
+    "volcano.png",
+    "water-ruins.png",
+    "village.png",
+    "storm-spire.png",
+    "dark-citadel.png"
+  ].forEach((asset) => {
+    assert.ok(existsSync(new URL(`../images/territory/realistic/${asset}`, import.meta.url)));
+    assert.match(serviceWorker, new RegExp(`realistic\\/${asset.replace(".", "\\.")}`));
+  });
   assert.match(territoryMode, /territory-hype-track/);
   assert.match(territoryMode, /data-territory-monster/);
   assert.match(territoryMode, /showMonsterDetail/);

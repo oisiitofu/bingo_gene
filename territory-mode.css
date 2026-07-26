@@ -215,17 +215,129 @@
   position: relative;
   overflow: hidden;
   background:
-    linear-gradient(rgba(255, 255, 255, .025) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(255, 255, 255, .025) 1px, transparent 1px),
+    linear-gradient(180deg, rgba(3, 7, 13, .06), rgba(3, 7, 13, .38)),
+    url("images/territory/strategy-map-backdrop-v2.png") center / cover no-repeat,
     #090e18;
-  background-size: 32px 32px;
+}
+
+.territory-map-panel::before {
+  position: absolute;
+  inset: 0;
+  z-index: 3;
+  content: "";
+  pointer-events: none;
+  background:
+    linear-gradient(90deg, rgba(4, 7, 12, .56), transparent 13%, transparent 87%, rgba(4, 7, 12, .56)),
+    linear-gradient(180deg, rgba(5, 8, 13, .18), transparent 22%, transparent 76%, rgba(5, 8, 13, .48));
+  box-shadow: inset 0 0 70px rgba(0, 0, 0, .44);
+}
+
+.territory-map-3d {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  min-width: 0;
+  min-height: 470px;
+  overflow: hidden;
+  touch-action: none;
+  user-select: none;
+}
+
+.territory-map-3d[hidden] {
+  display: none;
+}
+
+.territory-map-canvas {
+  width: 100%;
+  height: 100%;
+  display: block;
+  cursor: grab;
+  outline: none;
+}
+
+.territory-map-canvas:active {
+  cursor: grabbing;
+}
+
+.territory-map-controls {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  z-index: 5;
+  display: grid;
+  grid-template-columns: repeat(3, 34px);
+  gap: 5px;
+}
+
+.territory-map-controls button {
+  width: 34px;
+  height: 34px;
+  padding: 0;
+  border: 1px solid rgba(223, 231, 240, .36);
+  color: #f7f1df;
+  background: rgba(8, 12, 18, .82);
+  box-shadow: 0 6px 16px rgba(0, 0, 0, .34);
+  font-size: 18px;
+  font-weight: 900;
+  cursor: pointer;
+}
+
+.territory-map-controls button:hover,
+.territory-map-controls button:focus-visible {
+  border-color: #ffd45d;
+  color: #ffd45d;
+  outline: 0;
+  background: rgba(24, 29, 35, .94);
+}
+
+.territory-map-tooltip {
+  position: absolute;
+  z-index: 6;
+  min-width: 126px;
+  max-width: 170px;
+  padding: 8px 10px;
+  border-left: 3px solid #ffd45d;
+  color: #dbe3ed;
+  background: rgba(5, 8, 13, .9);
+  box-shadow: 0 10px 26px rgba(0, 0, 0, .44);
+  pointer-events: none;
+}
+
+.territory-map-tooltip[hidden] {
+  display: none;
+}
+
+.territory-map-tooltip strong,
+.territory-map-tooltip span {
+  display: block;
+}
+
+.territory-map-tooltip strong {
+  color: #fff;
+  font-size: 12px;
+}
+
+.territory-map-tooltip span {
+  margin-top: 3px;
+  color: #aeb9c8;
+  font-size: 9px;
 }
 
 .territory-map {
+  position: relative;
+  z-index: 2;
   width: 100%;
   height: 100%;
   min-height: 470px;
   display: block;
+}
+
+.territory-map[hidden] {
+  display: none;
+}
+
+.territory-map-3d.ready + .territory-map-fallback {
+  display: none;
 }
 
 .territory-hex {
@@ -282,6 +394,7 @@
   position: absolute;
   right: 12px;
   bottom: 10px;
+  z-index: 5;
   display: flex;
   gap: 9px;
   padding: 7px 9px;
