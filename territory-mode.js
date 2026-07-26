@@ -13,6 +13,8 @@
   let replayBattle = () => {};
   let showMonsterDetail = () => {};
   let openMonsterPage = () => {};
+  let onOpen = () => {};
+  let onClose = () => {};
   let map3D = null;
   let countdownTimer = 0;
 
@@ -346,6 +348,8 @@
     replayBattle = typeof options.replayBattle === "function" ? options.replayBattle : replayBattle;
     showMonsterDetail = typeof options.showMonsterDetail === "function" ? options.showMonsterDetail : showMonsterDetail;
     openMonsterPage = typeof options.openMonsterPage === "function" ? options.openMonsterPage : openMonsterPage;
+    onOpen = typeof options.onOpen === "function" ? options.onOpen : onOpen;
+    onClose = typeof options.onClose === "function" ? options.onClose : onClose;
     if (options.state) {
       state = Territory.normalizeState(options.state, playerStats, Date.now());
       preview = options.preview === true;
@@ -361,15 +365,17 @@
     global.requestAnimationFrame(() => map3D?.resize());
     window.clearInterval(countdownTimer);
     countdownTimer = window.setInterval(updateCountdown, 1000);
+    onOpen();
   }
 
   function close() {
-    if (!root) return;
+    if (!root || root.hidden) return;
     root.hidden = true;
     document.body.classList.remove("territory-mode-open");
     map3D?.setActive(false);
     window.clearInterval(countdownTimer);
     countdownTimer = 0;
+    onClose();
   }
 
   function applySnapshot(snapshot, stats = null) {

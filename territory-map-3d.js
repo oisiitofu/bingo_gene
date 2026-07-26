@@ -432,6 +432,7 @@
       mesh.receiveShadow = true;
       mesh.castShadow = false;
       mesh.userData.tileId = tile.id;
+      mesh.userData.ownerId = tile.ownerId || "";
       mesh.userData.ownerColor = tile.ownerId ? colorValue(ownerColor) : null;
       mesh.userData.surfaceEmissive = surfaceEmissive;
       mesh.userData.surfaceEmissiveIntensity = tile.ownerId ? .22 : 0;
@@ -540,9 +541,11 @@
     }
 
     function createSelectionAura(tile, position, height, ownerColor, tileMesh) {
-      const auraColor = tile.ownerId
-        ? colorValue(ownerColor).lerp(new THREE.Color(0xffffff), .32)
-        : new THREE.Color(0xf2efe6);
+      const auraColor = tile.ownerId === "tofu"
+        ? new THREE.Color(0x9aa0a8)
+        : (tile.ownerId
+          ? colorValue(ownerColor).lerp(new THREE.Color(0xffffff), .32)
+          : new THREE.Color(0xf2efe6));
       const auraMaterial = new THREE.ShaderMaterial({
         uniforms: {
           auraColor: { value: auraColor },
@@ -1043,7 +1046,7 @@
         const selected = tileId === selectedTileId;
         mesh.scale.set(1, 1, 1);
         if (selected) {
-          mesh.material.emissive.setHex(0x6b4b18);
+          mesh.material.emissive.setHex(mesh.userData.ownerId === "tofu" ? 0x4d535a : 0x6b4b18);
           mesh.material.emissiveIntensity = .48;
         } else {
           mesh.material.emissive.copy(mesh.userData.surfaceEmissive);

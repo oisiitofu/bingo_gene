@@ -1,6 +1,6 @@
 "use strict";
 
-const CACHE_VERSION = "team-bingo-v1-20260726-territory-button-56";
+const CACHE_VERSION = "team-bingo-v1-20260726-territory-audio-57";
 const SHELL_CACHE = `${CACHE_VERSION}-shell`;
 const ASSET_CACHE = `${CACHE_VERSION}-assets`;
 const SHELL_FILES = [
@@ -75,6 +75,10 @@ self.addEventListener("fetch", (event) => {
   const url = new URL(request.url);
   if (url.origin !== self.location.origin) return;
   if (url.pathname.includes("/audio/monster-battle/boss-bgm/")) {
+    event.respondWith(networkFirst(request));
+    return;
+  }
+  if (url.pathname.includes("/audio/territory/bgm/")) {
     event.respondWith(networkFirst(request));
     return;
   }

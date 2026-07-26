@@ -424,6 +424,26 @@ test("monster battle audio is dedicated stereo material", () => {
   });
 });
 
+test("territory mode has replaceable looping audio and a tofu gray selection aura", () => {
+  const html = readFileSync(new URL("../index.html", import.meta.url), "utf8");
+  const territoryMode = readFileSync(new URL("../territory-mode.js", import.meta.url), "utf8");
+  const territoryMap = readFileSync(new URL("../territory-map-3d.js", import.meta.url), "utf8");
+  const serviceWorker = readFileSync(new URL("../sw.js", import.meta.url), "utf8");
+  const candidates = ["bgm.mp3", "bgm.wav"];
+  const bgmFile = candidates.find((file) => existsSync(new URL(`../audio/territory/bgm/${file}`, import.meta.url)));
+
+  assert.ok(bgmFile, "A replaceable territory BGM is required");
+  assert.ok(readFileSync(new URL(`../audio/territory/bgm/${bgmFile}`, import.meta.url)).length > 500_000);
+  assert.match(html, /TERRITORY_BGM_CANDIDATES = \[\s*"audio\/territory\/bgm\/bgm\.mp3",\s*"audio\/territory\/bgm\/bgm\.wav"/);
+  assert.match(html, /playManagedAudioUrlCandidates\(TERRITORY_BGM_CANDIDATES, "territoryBgm", "territoryBgm"\)/);
+  assert.match(html, /onOpen: startTerritoryBgm/);
+  assert.match(html, /onClose: stopTerritoryBgm/);
+  assert.match(territoryMode, /onOpen\(\)/);
+  assert.match(territoryMode, /onClose\(\)/);
+  assert.match(territoryMap, /tile\.ownerId === "tofu"\s*\?\s*new THREE\.Color\(0x9aa0a8\)/);
+  assert.match(serviceWorker, /\/audio\/territory\/bgm\//);
+});
+
 test("season standings and automatic backup recovery are wired into stats", () => {
   const html = readFileSync(new URL("../index.html", import.meta.url), "utf8");
 

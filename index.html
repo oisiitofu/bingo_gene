@@ -827,26 +827,28 @@
       width: 100%;
       min-height: 40px;
       padding: 9px 16px;
-      color: #f4e7bd;
-      border: 1px solid rgba(210, 174, 77, .62);
+      color: #f7f7f7;
+      border: 1px solid rgba(255, 255, 255, .62);
       border-radius: 6px;
-      background: #15171c;
-      box-shadow: inset 0 1px 0 rgba(255, 255, 255, .04);
+      background: #101114;
+      box-shadow: inset 0 1px 0 rgba(255, 255, 255, .06);
       font-size: 13px;
       line-height: 1;
       text-align: center;
+      text-shadow: none;
     }
 
+    #territoryModeButton::before,
     #territoryModeButton::after {
       display: none;
     }
 
     #territoryModeButton:hover,
     #territoryModeButton:focus-visible {
-      color: #fff5cf;
-      border-color: #d7b453;
-      background: #1c1f25;
-      box-shadow: inset 0 1px 0 rgba(255, 255, 255, .07);
+      color: #090a0c;
+      border-color: #fff;
+      background: #f4f4f4;
+      box-shadow: none;
     }
 
     .setup-start-row {
@@ -8191,10 +8193,14 @@
       }
     });
 
-    const MANAGED_BGM_KEYS = new Set(["introBgm", "firstBingoBgm", "reachRush", "victory", "janSkillBgm", "edaSkillBgm", "monsterBattleBgm"]);
+    const MANAGED_BGM_KEYS = new Set(["introBgm", "firstBingoBgm", "reachRush", "victory", "janSkillBgm", "edaSkillBgm", "monsterBattleBgm", "territoryBgm"]);
     const BOSS_BATTLE_BGM_CANDIDATES = [
       "audio/monster-battle/boss-bgm/bgm.mp3",
       "audio/monster-battle/boss-bgm/bgm.wav"
+    ];
+    const TERRITORY_BGM_CANDIDATES = [
+      "audio/territory/bgm/bgm.mp3",
+      "audio/territory/bgm/bgm.wav"
     ];
 
     const OPEN_SOUND_EXTENSIONS = ["mp3", "wav", "ogg", "m4a"];
@@ -15273,6 +15279,13 @@
       activeOpenSoundNodes.forEach((node) => {
         applyTrackedOpenSoundVolume(node);
       });
+      if (
+        state.soundEnabled &&
+        window.TeamBingoTerritoryMode?.isOpen?.() === true &&
+        !activeBgmAudio
+      ) {
+        startTerritoryBgm();
+      }
       syncSetupTheme();
     }
 
@@ -15583,6 +15596,21 @@
       return tryNext();
     }
 
+    function startTerritoryBgm() {
+      stopSetupTheme();
+      if (!state.soundEnabled) return null;
+      if (activeBgmKey === "territoryBgm" && activeBgmAudio) {
+        activeBgmAudio.volume = getAudioVolume("territoryBgm");
+        return activeBgmAudio;
+      }
+      return playManagedAudioUrlCandidates(TERRITORY_BGM_CANDIDATES, "territoryBgm", "territoryBgm");
+    }
+
+    function stopTerritoryBgm() {
+      if (activeBgmKey === "territoryBgm") stopManagedBgm();
+      if (!activeBgmAudio) syncSetupTheme();
+    }
+
     function playManagedAudioUrl(src, key, volumeKey = "skillBgm", onFail = null) {
       if (!state.soundEnabled || !src || !key) return null;
       ensureAudioReady();
@@ -15721,7 +15749,8 @@
 
     function syncSetupTheme() {
       if (!els.setupScreen) return;
-      const shouldPlay = state.soundEnabled && els.setupScreen.classList.contains("active");
+      const territoryOpen = window.TeamBingoTerritoryMode?.isOpen?.() === true;
+      const shouldPlay = state.soundEnabled && els.setupScreen.classList.contains("active") && !territoryOpen;
       if (!shouldPlay) {
         stopSetupTheme();
         return;
@@ -15791,6 +15820,7 @@
       if (key === "comebackOh") return Math.min(1, 1.35 * master);
       if (key === "feverRise") return .84 * master;
       if (key === "eventSe") return .82 * master;
+      if (key === "territoryBgm") return .46 * master;
       if (key === "monsterBattleBgm") return .54 * master;
       if (key === "monsterBattleSe") return .9 * master;
       if (key === "janSkillSparkle") return .74 * master;
@@ -16283,7 +16313,9 @@
         spriteMarkup: (nodeId) => monsterSpriteMarkup(MONSTER_NODES[nodeId] || MONSTER_NODES.egg),
         replayBattle: openTerritoryBattleReplay,
         showMonsterDetail: showMonsterNodeZoom,
-        openMonsterPage: showMonsterDexPage
+        openMonsterPage: showMonsterDexPage,
+        onOpen: startTerritoryBgm,
+        onClose: stopTerritoryBgm
       });
     }
 

@@ -1,11 +1,11 @@
 {
   "version": 1,
-  "generatedAt": "2026-07-23T11:18:47.143Z",
+  "generatedAt": "2026-07-26T10:33:36.056Z",
   "totals": {
-    "all": 425,
-    "images": 263,
-    "audio": 162,
-    "bytes": 284559989
+    "all": 443,
+    "images": 280,
+    "audio": 163,
+    "bytes": 327126425
   },
   "assets": [
     {
@@ -967,6 +967,12 @@
       "type": "audio",
       "category": "audio",
       "bytes": 890864
+    },
+    {
+      "path": "audio/territory/bgm/bgm.mp3",
+      "type": "audio",
+      "category": "audio/territory/bgm",
+      "bytes": 2299439
     },
     {
       "path": "audio/tofu-space-flavor.mp3",
@@ -1933,6 +1939,108 @@
       "type": "image",
       "category": "images/random-events",
       "bytes": 1502180
+    },
+    {
+      "path": "images/territory/realistic/dark-citadel.png",
+      "type": "image",
+      "category": "images/territory/realistic",
+      "bytes": 1353596
+    },
+    {
+      "path": "images/territory/realistic/forest.png",
+      "type": "image",
+      "category": "images/territory/realistic",
+      "bytes": 1835958
+    },
+    {
+      "path": "images/territory/realistic/fortress.png",
+      "type": "image",
+      "category": "images/territory/realistic",
+      "bytes": 1397346
+    },
+    {
+      "path": "images/territory/realistic/mountains.png",
+      "type": "image",
+      "category": "images/territory/realistic",
+      "bytes": 1322745
+    },
+    {
+      "path": "images/territory/realistic/storm-spire.png",
+      "type": "image",
+      "category": "images/territory/realistic",
+      "bytes": 1115688
+    },
+    {
+      "path": "images/territory/realistic/village.png",
+      "type": "image",
+      "category": "images/territory/realistic",
+      "bytes": 1382299
+    },
+    {
+      "path": "images/territory/realistic/volcano.png",
+      "type": "image",
+      "category": "images/territory/realistic",
+      "bytes": 1173998
+    },
+    {
+      "path": "images/territory/realistic/water-ruins.png",
+      "type": "image",
+      "category": "images/territory/realistic",
+      "bytes": 1373942
+    },
+    {
+      "path": "images/territory/strategy-map-backdrop-v2.png",
+      "type": "image",
+      "category": "images/territory",
+      "bytes": 2444089
+    },
+    {
+      "path": "images/territory/textures/aged-wood.png",
+      "type": "image",
+      "category": "images/territory/textures",
+      "bytes": 2923196
+    },
+    {
+      "path": "images/territory/textures/ancient-stone-v2.png",
+      "type": "image",
+      "category": "images/territory/textures",
+      "bytes": 3427584
+    },
+    {
+      "path": "images/territory/textures/evergreen-foliage-v2.png",
+      "type": "image",
+      "category": "images/territory/textures",
+      "bytes": 3902428
+    },
+    {
+      "path": "images/territory/textures/molten-lava-v2.png",
+      "type": "image",
+      "category": "images/territory/textures",
+      "bytes": 3413514
+    },
+    {
+      "path": "images/territory/textures/roof-tiles.png",
+      "type": "image",
+      "category": "images/territory/textures",
+      "bytes": 2822055
+    },
+    {
+      "path": "images/territory/textures/stone-wall.png",
+      "type": "image",
+      "category": "images/territory/textures",
+      "bytes": 3363598
+    },
+    {
+      "path": "images/territory/textures/terrain-ground-v2.png",
+      "type": "image",
+      "category": "images/territory/textures",
+      "bytes": 3593875
+    },
+    {
+      "path": "images/territory/textures/volcanic-basalt-v2.png",
+      "type": "image",
+      "category": "images/territory/textures",
+      "bytes": 3421086
     },
     {
       "path": "images/ui/bg-arena-stage.png",
