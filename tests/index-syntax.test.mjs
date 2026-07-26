@@ -51,7 +51,10 @@ test("六王領土戦のクライアント、Worker、Firebaseルールが公開
   assert.match(territoryMap3D, /addMountainRange3D/);
   assert.match(territoryMap3D, /addVolcano3D/);
   assert.match(territoryMap3D, /addStormSpire3D/);
-  assert.match(territoryMap3D, /"landmark-presence"\) < \.42/);
+  assert.match(territoryMap3D, /addLightSanctuary3D/);
+  assert.match(territoryMap3D, /NEUTRAL_SURFACE_COLOR = 0x080a0e/);
+  assert.doesNotMatch(territoryMap3D, /"landmark-presence"/);
+  assert.match(territoryMap3D, /tile\.terrain === "earth"\) \{\s*return;/);
   assert.doesNotMatch(territoryMap3D, /LANDMARK_ASSETS|THREE\.Sprite/);
   assert.doesNotMatch(territoryMap3D, /addEventBeacon/);
   assert.ok(existsSync(new URL("../vendor/three/three.min.js", import.meta.url)));
@@ -60,7 +63,12 @@ test("六王領土戦のクライアント、Worker、Firebaseルールが公開
   [
     "stone-wall.png",
     "roof-tiles.png",
-    "aged-wood.png"
+    "aged-wood.png",
+    "terrain-ground-v2.png",
+    "volcanic-basalt-v2.png",
+    "molten-lava-v2.png",
+    "evergreen-foliage-v2.png",
+    "ancient-stone-v2.png"
   ].forEach((asset) => {
     assert.ok(existsSync(new URL(`../images/territory/textures/${asset}`, import.meta.url)));
     assert.match(serviceWorker, new RegExp(`textures\\/${asset.replace(".", "\\.")}`));

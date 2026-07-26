@@ -6,14 +6,16 @@
 
   const HEX_RADIUS = 1.06;
   const HEX_SCALE = 1.04;
-  const SOIL_SURFACE_COLOR = 0xd1b892;
+  const NEUTRAL_SURFACE_COLOR = 0x080a0e;
   const BUILDING_TEXTURE_ASSETS = Object.freeze({
     stone: "images/territory/textures/stone-wall.png",
     roof: "images/territory/textures/roof-tiles.png",
-    wood: "images/territory/textures/aged-wood.png"
-  });
-  const TERRAIN_TEXTURE_PALETTES = Object.freeze({
-    earth: ["#756a4d", "#918467", "#4f4939"]
+    wood: "images/territory/textures/aged-wood.png",
+    ground: "images/territory/textures/terrain-ground-v2.png",
+    basalt: "images/territory/textures/volcanic-basalt-v2.png",
+    lava: "images/territory/textures/molten-lava-v2.png",
+    foliage: "images/territory/textures/evergreen-foliage-v2.png",
+    ancientStone: "images/territory/textures/ancient-stone-v2.png"
   });
 
   function hashText(value) {
@@ -139,7 +141,12 @@
       const buildingTextures = {
         stone: loadBuildingTexture(BUILDING_TEXTURE_ASSETS.stone, 2.5, 2.5),
         roof: loadBuildingTexture(BUILDING_TEXTURE_ASSETS.roof, 2, 2),
-        wood: loadBuildingTexture(BUILDING_TEXTURE_ASSETS.wood, 1.5, 1.5)
+        wood: loadBuildingTexture(BUILDING_TEXTURE_ASSETS.wood, 1.5, 1.5),
+        ground: loadBuildingTexture(BUILDING_TEXTURE_ASSETS.ground, 1.35, 1.35),
+        basalt: loadBuildingTexture(BUILDING_TEXTURE_ASSETS.basalt, 1.7, 1.7),
+        lava: loadBuildingTexture(BUILDING_TEXTURE_ASSETS.lava, 1.4, 1.4),
+        foliage: loadBuildingTexture(BUILDING_TEXTURE_ASSETS.foliage, 1.25, 1.25),
+        ancientStone: loadBuildingTexture(BUILDING_TEXTURE_ASSETS.ancientStone, 1.8, 1.8)
       };
       const geometries = {
         treeTrunk: new THREE.CylinderGeometry(.055, .075, .38, 7),
@@ -176,43 +183,55 @@
           bumpScale: .025,
           roughness: 1
         }),
-        pine: new THREE.MeshStandardMaterial({ color: 0x173f2b, roughness: .88 }),
-        pineLight: new THREE.MeshStandardMaterial({ color: 0x315c38, roughness: .88 }),
+        pine: new THREE.MeshStandardMaterial({
+          color: 0x2c6d45,
+          map: buildingTextures.foliage,
+          bumpMap: buildingTextures.foliage,
+          bumpScale: .04,
+          roughness: .9
+        }),
+        pineLight: new THREE.MeshStandardMaterial({
+          color: 0x57935a,
+          map: buildingTextures.foliage,
+          bumpMap: buildingTextures.foliage,
+          bumpScale: .035,
+          roughness: .88
+        }),
         rock: new THREE.MeshStandardMaterial({
-          color: 0xaaa295,
-          map: buildingTextures.stone,
-          bumpMap: buildingTextures.stone,
+          color: 0xaaa69c,
+          map: buildingTextures.ancientStone,
+          bumpMap: buildingTextures.ancientStone,
           bumpScale: .05,
           roughness: .96
         }),
         mountain: new THREE.MeshStandardMaterial({
           color: 0x8f8c85,
-          map: buildingTextures.stone,
-          bumpMap: buildingTextures.stone,
+          map: buildingTextures.ancientStone,
+          bumpMap: buildingTextures.ancientStone,
           bumpScale: .065,
           roughness: .94
         }),
         volcanicRock: new THREE.MeshStandardMaterial({
-          color: 0x978177,
-          map: buildingTextures.stone,
-          bumpMap: buildingTextures.stone,
-          bumpScale: .075,
+          color: 0xb1a4a0,
+          map: buildingTextures.basalt,
+          bumpMap: buildingTextures.basalt,
+          bumpScale: .11,
           roughness: .98
         }),
         snow: new THREE.MeshStandardMaterial({ color: 0xd9e1e7, roughness: .8 }),
         stone: new THREE.MeshStandardMaterial({
-          color: 0xb8b5ac,
-          map: buildingTextures.stone,
-          bumpMap: buildingTextures.stone,
+          color: 0xd2d0c8,
+          map: buildingTextures.ancientStone,
+          bumpMap: buildingTextures.ancientStone,
           bumpScale: .045,
           roughness: .88,
           metalness: .04
         }),
         stoneDark: new THREE.MeshStandardMaterial({
-          color: 0xa0a8b6,
-          map: buildingTextures.stone,
-          bumpMap: buildingTextures.stone,
-          bumpScale: .055,
+          color: 0x8a8792,
+          map: buildingTextures.basalt,
+          bumpMap: buildingTextures.basalt,
+          bumpScale: .075,
           roughness: .86,
           metalness: .12
         }),
@@ -241,9 +260,11 @@
           clearcoat: 1
         }),
         lava: new THREE.MeshStandardMaterial({
-          color: 0xff5a24,
+          color: 0xffa45a,
+          map: buildingTextures.lava,
           emissive: 0xff2808,
-          emissiveIntensity: 2.2,
+          emissiveMap: buildingTextures.lava,
+          emissiveIntensity: 2.55,
           roughness: .55
         }),
         dark: new THREE.MeshStandardMaterial({ color: 0x2e2936, roughness: .8, metalness: .2 }),
@@ -265,93 +286,16 @@
           emissive: 0xd31d55,
           emissiveIntensity: 2.4,
           roughness: .24
+        }),
+        lightGlow: new THREE.MeshStandardMaterial({
+          color: 0xfff1a6,
+          emissive: 0xffc84c,
+          emissiveIntensity: 2.8,
+          roughness: .2,
+          metalness: .22
         })
       };
-      const terrainTextures = Object.fromEntries(
-        Object.keys(TERRAIN_TEXTURE_PALETTES).map((terrain) => [terrain, createTerrainTexture(terrain)])
-      );
-      return { geometries, materials, terrainTextures, buildingTextures };
-    }
-
-    function createTerrainTexture(terrain) {
-      const [base, accent, shadow] = TERRAIN_TEXTURE_PALETTES[terrain];
-      const canvas = document.createElement("canvas");
-      canvas.width = 256;
-      canvas.height = 256;
-      const context = canvas.getContext("2d");
-      context.fillStyle = base;
-      context.fillRect(0, 0, 256, 256);
-      for (let index = 0; index < 900; index += 1) {
-        const x = seededValue(terrain, index) * 256;
-        const y = seededValue(terrain, index + 1300) * 256;
-        const radius = 1 + seededValue(terrain, index + 2600) * 11;
-        context.globalAlpha = .025 + seededValue(terrain, index + 3900) * .09;
-        context.fillStyle = index % 3 ? accent : shadow;
-        context.beginPath();
-        context.ellipse(x, y, radius * 1.7, radius, seededValue(terrain, index + 5200) * Math.PI, 0, Math.PI * 2);
-        context.fill();
-      }
-      context.globalAlpha = terrain === "water" ? .26 : .1;
-      context.strokeStyle = terrain === "water" ? "#b6eff6" : "#d7cda5";
-      context.lineWidth = terrain === "water" ? 1.2 : .65;
-      for (let line = 0; line < 18; line += 1) {
-        const startY = seededValue(`${terrain}:line`, line) * 256;
-        context.beginPath();
-        context.moveTo(-20, startY);
-        context.bezierCurveTo(58, startY - 18, 174, startY + 22, 276, startY - 5);
-        context.stroke();
-      }
-      if (terrain === "earth" || terrain === "light") {
-        for (let patch = 0; patch < 22; patch += 1) {
-          const x = seededValue(`${terrain}:field-x`, patch) * 256;
-          const y = seededValue(`${terrain}:field-y`, patch) * 256;
-          const width = 18 + seededValue(`${terrain}:field-w`, patch) * 46;
-          const height = 12 + seededValue(`${terrain}:field-h`, patch) * 34;
-          context.save();
-          context.translate(x, y);
-          context.rotate((seededValue(`${terrain}:field-r`, patch) - .5) * .7);
-          context.globalAlpha = .11 + seededValue(`${terrain}:field-a`, patch) * .12;
-          context.fillStyle = patch % 3 === 0 ? "#d1bd72" : (patch % 2 ? "#53643b" : "#9c7443");
-          context.fillRect(-width / 2, -height / 2, width, height);
-          context.restore();
-        }
-      } else if (terrain === "wind") {
-        context.globalAlpha = .44;
-        context.strokeStyle = "#5b452b";
-        context.lineWidth = 8;
-        context.beginPath();
-        context.moveTo(-15, 220);
-        context.bezierCurveTo(72, 194, 78, 68, 276, 34);
-        context.stroke();
-        context.globalAlpha = .48;
-        context.strokeStyle = "#baa36e";
-        context.lineWidth = 2.5;
-        context.stroke();
-      } else if (terrain === "fire" || terrain === "lightning" || terrain === "dark") {
-        const fissure = terrain === "fire" ? "#ff6a1a" : (terrain === "lightning" ? "#a69cff" : "#5f507f");
-        context.strokeStyle = fissure;
-        context.lineWidth = terrain === "fire" ? 2.2 : 1.35;
-        context.globalAlpha = terrain === "dark" ? .3 : .48;
-        for (let crack = 0; crack < 34; crack += 1) {
-          let x = seededValue(`${terrain}:crack-x`, crack) * 256;
-          let y = seededValue(`${terrain}:crack-y`, crack) * 256;
-          context.beginPath();
-          context.moveTo(x, y);
-          for (let segment = 0; segment < 4; segment += 1) {
-            x += (seededValue(`${terrain}:${crack}:dx`, segment) - .5) * 34;
-            y += 8 + seededValue(`${terrain}:${crack}:dy`, segment) * 20;
-            context.lineTo(x, y);
-          }
-          context.stroke();
-        }
-      }
-      context.globalAlpha = 1;
-      const texture = new THREE.CanvasTexture(canvas);
-      texture.colorSpace = THREE.SRGBColorSpace;
-      texture.wrapS = THREE.RepeatWrapping;
-      texture.wrapT = THREE.RepeatWrapping;
-      texture.anisotropy = Math.min(8, renderer.capabilities.getMaxAnisotropy());
-      return texture;
+      return { geometries, materials, buildingTextures };
     }
 
     function createAtmosphere() {
@@ -406,18 +350,24 @@
       const height = tileElevation(tile);
       const ownerDefinition = options.playerById?.[tile.ownerId];
       const ownerColor = ownerDefinition?.color || "#657083";
-      const sourceTexture = shared.terrainTextures.earth;
+      const sourceTexture = shared.buildingTextures.ground;
       const terrainTexture = sourceTexture.clone();
       terrainTexture.center.set(.5, .5);
       terrainTexture.rotation = seededValue(tile.id, "texture-rotation") * Math.PI * 2;
       terrainTexture.repeat.set(1.18, 1.18);
       terrainTexture.needsUpdate = true;
       dynamicTextures.push(terrainTexture);
+      const surfaceColor = tile.ownerId
+        ? colorValue(ownerColor).lerp(new THREE.Color(0xffffff), .17)
+        : new THREE.Color(NEUTRAL_SURFACE_COLOR);
+      const surfaceEmissive = tile.ownerId ? colorValue(ownerColor) : new THREE.Color(0x000000);
       const tileMaterial = new THREE.MeshPhysicalMaterial({
-        color: SOIL_SURFACE_COLOR,
+        color: surfaceColor,
         map: terrainTexture,
         bumpMap: terrainTexture,
-        bumpScale: .045,
+        bumpScale: .065,
+        emissive: surfaceEmissive,
+        emissiveIntensity: tile.ownerId ? .22 : 0,
         roughness: .92,
         metalness: .01,
         clearcoat: .04,
@@ -433,6 +383,8 @@
       mesh.castShadow = false;
       mesh.userData.tileId = tile.id;
       mesh.userData.ownerColor = tile.ownerId ? colorValue(ownerColor) : null;
+      mesh.userData.surfaceEmissive = surfaceEmissive;
+      mesh.userData.surfaceEmissiveIntensity = tile.ownerId ? .22 : 0;
       clickTargets.push(mesh);
       tileMeshes.set(tile.id, mesh);
       tileRoot.add(mesh);
@@ -538,15 +490,10 @@
 
     function addTerrainObjects(group, tile) {
       const seed = tile.id;
-      if (seededValue(seed, "landmark-presence") < .42) return;
       if (tile.terrain === "wind") {
         addForest3D(group, seed);
       } else if (tile.terrain === "earth") {
-        if (seededValue(seed, "earth-landmark") > .48) {
-          addVillage3D(group, seed);
-        } else {
-          addMountainRange3D(group, seed);
-        }
+        return;
       } else if (tile.terrain === "fire") {
         addVolcano3D(group, seed);
       } else if (tile.terrain === "water") {
@@ -565,11 +512,7 @@
       } else if (tile.terrain === "lightning") {
         addStormSpire3D(group, seed);
       } else if (tile.terrain === "light") {
-        if (seededValue(seed, "light-landmark") > .46) {
-          addVillage3D(group, seed);
-        } else {
-          addWaterRuins3D(group, seed);
-        }
+        addLightSanctuary3D(group, seed);
       } else if (tile.terrain === "dark") {
         addDarkCitadel3D(group, seed);
       }
@@ -708,6 +651,24 @@
       crown.rotation.x = Math.PI / 2;
       animatedObjects.push({ object: crown, type: "rotate", phase: seededValue(seed, "crown") * 6 });
       group.add(spire);
+    }
+
+    function addLightSanctuary3D(group, seed) {
+      const sanctuary = new THREE.Group();
+      sanctuary.rotation.y = seededValue(seed, "sanctuary-rotation") * Math.PI;
+      addModelMesh(sanctuary, shared.geometries.foundation, shared.materials.stone, [0, .045, 0], [.82, .72, .82]);
+      [[-.32, -.25], [.32, -.25], [-.32, .25], [.32, .25]].forEach(([x, z]) => {
+        addModelMesh(sanctuary, shared.geometries.column, shared.materials.stone, [x, .28, z], [1.18, 1.15, 1.18]);
+      });
+      addModelMesh(sanctuary, shared.geometries.slab, shared.materials.gold, [0, .14, 0], [1.28, .72, 1.25], Math.PI / 2);
+      const crystal = addModelMesh(sanctuary, shared.geometries.crystal, shared.materials.lightGlow, [0, .52, 0], [.92, 1.3, .92]);
+      const crown = addModelMesh(sanctuary, shared.geometries.crown, shared.materials.lightGlow, [0, .51, 0], [1.05, 1.05, 1.05], Math.PI / 2);
+      crown.rotation.x = Math.PI / 2;
+      animatedObjects.push(
+        { object: crystal, type: "rotate", phase: seededValue(seed, "sanctuary-crystal") * 6 },
+        { object: crown, type: "rotate", phase: seededValue(seed, "sanctuary-crown") * 6 }
+      );
+      group.add(sanctuary);
     }
 
     function addDarkCitadel3D(group, seed) {
@@ -884,8 +845,8 @@
           mesh.material.emissive.setHex(0x6b4b18);
           mesh.material.emissiveIntensity = .48;
         } else {
-          mesh.material.emissive.setHex(0x000000);
-          mesh.material.emissiveIntensity = 0;
+          mesh.material.emissive.copy(mesh.userData.surfaceEmissive);
+          mesh.material.emissiveIntensity = mesh.userData.surfaceEmissiveIntensity;
         }
         if (mesh.userData.boundaryLine) {
           mesh.userData.boundaryLine.opacity = selected ? 1 : .86;

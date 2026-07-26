@@ -1,6 +1,6 @@
 "use strict";
 
-const CACHE_VERSION = "team-bingo-v1-20260726-territory-map-full-3d-50";
+const CACHE_VERSION = "team-bingo-v1-20260726-territory-terrain-materials-51";
 const SHELL_CACHE = `${CACHE_VERSION}-shell`;
 const ASSET_CACHE = `${CACHE_VERSION}-assets`;
 const SHELL_FILES = [
@@ -19,6 +19,11 @@ const SHELL_FILES = [
   "./images/territory/textures/stone-wall.png",
   "./images/territory/textures/roof-tiles.png",
   "./images/territory/textures/aged-wood.png",
+  "./images/territory/textures/terrain-ground-v2.png",
+  "./images/territory/textures/volcanic-basalt-v2.png",
+  "./images/territory/textures/molten-lava-v2.png",
+  "./images/territory/textures/evergreen-foliage-v2.png",
+  "./images/territory/textures/ancient-stone-v2.png",
   "./images/monster-battle/arena.png",
   "./images/ui/team-bingo-logo.png",
   "./images/ui/bg-arena-stage.png"
