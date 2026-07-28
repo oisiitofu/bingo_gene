@@ -13,6 +13,15 @@ test("all inline index scripts compile", () => {
   });
 });
 
+test("bingo cells are operated only through player-name buttons", () => {
+  const html = readFileSync(new URL("../index.html", import.meta.url), "utf8");
+  assert.doesNotMatch(html, /class="opener-row"/);
+  assert.doesNotMatch(html, /<span class="opener-label">OPENER/);
+  assert.doesNotMatch(html, /role="button"[^>]+data-testid="bingo-cell-/);
+  assert.match(html, /function canUseOnlinePlayerChoice\(team, memberName\)/);
+  assert.match(html, /selected\.length === 1 && selected\[0\] === playerStatsKey\(member\)/);
+});
+
 test("六王領土戦のクライアント、Worker、Firebaseルールが公開構成へ接続されている", () => {
   const html = readFileSync(new URL("../index.html", import.meta.url), "utf8");
   const serviceWorker = readFileSync(new URL("../sw.js", import.meta.url), "utf8");
@@ -25,6 +34,9 @@ test("六王領土戦のクライアント、Worker、Firebaseルールが公開
 
   assert.match(html, /id="territoryModeButton">六王領土戦</);
   assert.match(html, /id="setupMonsterButton">MONSTER</);
+  assert.match(html, /id="playTerritoryModeButton">/);
+  assert.match(html, /function openTerritoryWindow\(\)/);
+  assert.match(html, /searchParams\.set\("territory", "1"\)/);
   assert.match(html, /src="territory-system\.js"/);
   assert.match(html, /src="territory-equipment\.js"/);
   assert.match(html, /src="vendor\/three\/three\.min\.js"/);
@@ -210,6 +222,34 @@ test("monster evolution has eight childhood entries, rank six fusions, passives,
   assert.equal(firstEvolution.monster.stage, 1, "A personal OPEN must evolve that player's egg");
   assert.equal(duplicateOpen.monster.stage, 1, "The same player and cell must not evolve twice");
   assert.equal(party[1].stage, 0, "A teammate's monster must remain independent");
+
+  const rank4Source = result.createPlayerMonster("DEX PRIORITY", "red");
+  rank4Source.nodeId = "inferno-perfect-a";
+  rank4Source.stage = 4;
+  const rank5Candidates = result.NODES[rank4Source.nodeId].next;
+  const rank5Priority = result.evolvePlayerMonster(
+    rank4Source,
+    "red:rank5-priority",
+    (() => {
+      const rolls = [0, .5];
+      return () => rolls.shift() ?? .5;
+    })(),
+    { [rank5Candidates[0]]: 1 }
+  );
+  assert.equal(rank5Priority.monster.nodeId, rank5Candidates[1], "Rank five evolution must always select an undiscovered branch");
+
+  const rank3Source = result.createPlayerMonster("DEX CHANCE", "red");
+  rank3Source.nodeId = "inferno-mature";
+  rank3Source.stage = 3;
+  const rank4Candidates = result.NODES[rank3Source.nodeId].next;
+  const noveltyRolls = [.59, 0];
+  const rank4Priority = result.evolvePlayerMonster(
+    rank3Source,
+    "red:rank4-priority",
+    () => noveltyRolls.shift() ?? 0,
+    { [rank4Candidates[0]]: 1 }
+  );
+  assert.equal(rank4Priority.monster.nodeId, rank4Candidates[1], "Evolution through rank four must favor an undiscovered branch on a sixty-percent roll");
 
   const doubleParty = result.syncPlayerMonsters([], ["PLAYER A", "PLAYER B"], "red", 2);
   assert.equal(doubleParty.length, 4, "Double Monster Mode must create two eggs for every player");
@@ -437,7 +477,7 @@ test("territory mode has replaceable looping audio and a tofu gray selection aur
   assert.match(html, /TERRITORY_BGM_CANDIDATES = \[\s*"audio\/territory\/bgm\/bgm\.mp3",\s*"audio\/territory\/bgm\/bgm\.wav"/);
   assert.match(html, /playManagedAudioUrlCandidates\(TERRITORY_BGM_CANDIDATES, "territoryBgm", "territoryBgm"\)/);
   assert.match(html, /onOpen: startTerritoryBgm/);
-  assert.match(html, /onClose: stopTerritoryBgm/);
+  assert.match(html, /onClose: \(\) => \{[\s\S]*?stopTerritoryBgm\(\)/);
   assert.match(territoryMode, /onOpen\(\)/);
   assert.match(territoryMode, /onClose\(\)/);
   assert.match(territoryMap, /tile\.ownerId === "tofu"\s*\?\s*new THREE\.Color\(0x9aa0a8\)/);

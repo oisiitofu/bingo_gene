@@ -71,6 +71,13 @@
   color: #f7f9fc;
 }
 
+html.territory-standalone .online-lobby,
+html.territory-standalone .online-admin-page,
+html.territory-standalone .online-session-bar,
+html.territory-standalone .online-reaction-dock {
+  display: none !important;
+}
+
 .online-lobby.show,
 .online-admin-page.show { display: grid; }
 

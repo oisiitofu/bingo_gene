@@ -541,8 +541,17 @@
     if (rank6Target && !canEvolveRank6(current.id, monsterDex)) {
       return { monster, evolved: false, previousId, rank6Locked: true, requirements: rank6Requirements(current.id) };
     }
-    const nextIndex = Math.max(0, Math.min(current.next.length - 1, Math.floor(random() * current.next.length)));
-    let next = NODES[current.next[nextIndex]];
+    const undiscovered = current.next.filter((id) => !monsterDex?.[id]);
+    const targetStage = NODES[current.next[0]]?.stage ?? current.stage + 1;
+    const branchRoll = random();
+    let candidates = current.next;
+    if (undiscovered.length && targetStage === 5) {
+      candidates = undiscovered;
+    } else if (undiscovered.length && targetStage <= 4 && random() < .6) {
+      candidates = undiscovered;
+    }
+    const nextIndex = Math.max(0, Math.min(candidates.length - 1, Math.floor(branchRoll * candidates.length)));
+    let next = NODES[candidates[nextIndex]];
     if (current.stage === 4 && random() < LEGENDARY_CHANCE) {
       const legendaryIndex = Math.max(0, Math.min(LEGENDARY_IDS.length - 1, Math.floor(random() * LEGENDARY_IDS.length)));
       next = NODES[LEGENDARY_IDS[legendaryIndex]] || next;

@@ -9,6 +9,9 @@
   <link rel="stylesheet" href="monster-page.css" />
   <script src="online/firebase-config.js"></script>
   <script>
+    if (new URLSearchParams(location.search).get("territory") === "1") {
+      document.documentElement.classList.add("territory-standalone");
+    }
     if (window.TEAM_BINGO_ONLINE_CONFIG?.enabled || new URLSearchParams(location.search).get("onlineMock") === "1") {
       document.documentElement.classList.add("online-booting");
     }
@@ -2189,48 +2192,6 @@
       white-space: nowrap;
     }
 
-    .opener-row {
-      display: flex;
-      align-items: center;
-      gap: 6px;
-      flex-wrap: wrap;
-      margin-top: 8px;
-      min-height: 28px;
-    }
-
-    .opener-label {
-      color: rgba(255,255,255,.68);
-      font-size: 10px;
-      font-weight: 1000;
-      letter-spacing: .08em;
-    }
-
-    .opener-chip {
-      min-height: 26px;
-      max-width: 128px;
-      padding: 5px 8px;
-      color: rgba(255,255,255,.82);
-      background: rgba(3,5,11,.46);
-      border: 1px solid rgba(255,255,255,.18);
-      border-radius: 5px;
-      font-size: 11px;
-      font-weight: 1000;
-      line-height: 1;
-      overflow: hidden;
-      text-overflow: ellipsis;
-      white-space: nowrap;
-      box-shadow: inset 0 0 0 1px rgba(0,0,0,.28);
-    }
-
-    .opener-chip.active {
-      color: #050711;
-      background: linear-gradient(135deg, #fffbe8, var(--gold));
-      border-color: rgba(255,255,255,.82);
-      box-shadow:
-        0 0 0 2px color-mix(in srgb, var(--team-accent, var(--gold)) 45%, transparent),
-        0 0 14px color-mix(in srgb, var(--team-accent, var(--gold)) 46%, transparent);
-    }
-
     .opened-by-popover {
       position: fixed;
       left: var(--x, 50vw);
@@ -2419,7 +2380,7 @@
       display: grid;
       place-items: center;
       padding: 0;
-      cursor: pointer;
+      cursor: default;
       user-select: none;
       box-shadow:
         3px 3px 0 rgba(0,0,0,.74),
@@ -3050,6 +3011,7 @@
       white-space: nowrap;
       text-shadow: 0 1px 0 rgba(0,0,0,.78);
       box-shadow: inset 0 0 0 1px rgba(0,0,0,.28);
+      cursor: pointer;
     }
 
     .cell-player-choice.active {
@@ -7313,6 +7275,7 @@
             <button type="button" class="btn primary" id="playStartButton">GAME START</button>
             <button type="button" class="btn frame" id="playStatsButton">STATS</button>
             <button type="button" class="btn frame" id="playMonsterButton">MONSTER</button>
+            <button type="button" class="btn frame territory-entry-btn" id="playTerritoryModeButton">六王領土戦</button>
           </div>
         </div>
         <div class="top-right">
@@ -7332,7 +7295,6 @@
               <div>
                 <h2 class="board-title" id="redTeamTitle">RED TEAM</h2>
                 <div class="board-members" id="redBoardMembers">-</div>
-                <div class="opener-row" id="redOpenerRow" data-opener-row="red"></div>
               </div>
               <div class="score-box"><span>LINES</span><strong id="redScore">0</strong></div>
             </div>
@@ -7355,7 +7317,6 @@
               <div>
                 <h2 class="board-title" id="blueTeamTitle">BLUE TEAM</h2>
                 <div class="board-members" id="blueBoardMembers">-</div>
-                <div class="opener-row" id="blueOpenerRow" data-opener-row="blue"></div>
               </div>
               <div class="score-box"><span>LINES</span><strong id="blueScore">0</strong></div>
             </div>
@@ -8598,7 +8559,7 @@
         "copyDeckButton", "redDeckLoadCode", "blueDeckLoadCode", "bothDefaultDeckButton",
         "setupRoomIdInput", "redSetupMembers", "blueSetupMembers", "backButton", "playStartButton",
         "roomIdInput", "hypeCenterButton", "hypeGaugeRed", "hypeGaugeBlue", "hypeFillRed", "hypeFillBlue", "redBoard", "blueBoard", "redTeamTitle",
-        "blueTeamTitle", "redBoardMembers", "blueBoardMembers", "redOpenerRow", "blueOpenerRow", "redScore", "blueScore",
+        "blueTeamTitle", "redBoardMembers", "blueBoardMembers", "redScore", "blueScore",
         "redGrid", "blueGrid", "redStatus", "blueStatus", "commentary", "commentaryLabel", "commentaryText", "commentarySub", "commentaryMascot",
         "openRankingList", "voiceLogLaneLeft", "voiceLogLaneRight", "redMonsterPanel", "blueMonsterPanel",
         "startBlackoutOverlay", "finishFlashOverlay", "introOverlay", "versusRedName", "versusRedMembers", "versusRedStats", "versusBlueName",
@@ -8611,7 +8572,7 @@
         "adminMonsterBattleModal", "adminMonsterRed1", "adminMonsterRed2", "adminMonsterBlue1", "adminMonsterBlue2", "adminMonsterBattleCancel", "adminMonsterBattleStart",
         "teamSelectModal", "teamSelectList", "teamSelectRedMembers", "teamSelectBlueMembers", "teamSelectShuffleButton", "teamSelectConfirmButton", "teamSelectCancelButton", "teamSelectError",
         "statsSeasonSelect", "statsSeasonList", "statsTournamentList", "statsTerritoryList",
-        "randomEventButton", "monsterBattleModeButton", "doubleMonsterModeButton", "territoryModeButton",
+        "randomEventButton", "monsterBattleModeButton", "doubleMonsterModeButton", "territoryModeButton", "playTerritoryModeButton",
         "matchReplayModal", "replayMatchMeta", "replaySummary", "replayBoards", "replayTimeline", "replayCloseButton",
         "replayPrevButton", "replayPlayButton", "replayRange", "replayStepLabel",
         "feverAura", "fxLayer", "openedByPopover", "victoryParticles", "setupThemePlayer", "copyrightToggle",
@@ -8650,7 +8611,8 @@
       els.randomEventButton?.addEventListener("click", toggleRandomEvents);
       els.monsterBattleModeButton?.addEventListener("click", toggleMonsterBattleMode);
       els.doubleMonsterModeButton?.addEventListener("click", toggleDoubleMonsterMode);
-      els.territoryModeButton?.addEventListener("click", openTerritoryMode);
+      els.territoryModeButton?.addEventListener("click", openTerritoryWindow);
+      els.playTerritoryModeButton?.addEventListener("click", openTerritoryWindow);
       els.setupStatsButton.addEventListener("click", showStatsPage);
       els.playStatsButton.addEventListener("click", showStatsPage);
       els.setupMonsterButton?.addEventListener("click", showMonsterDexPage);
@@ -8666,8 +8628,6 @@
       els.redGrid.addEventListener("error", onCellImageError, true);
       els.blueGrid.addEventListener("error", onCellImageError, true);
       window.addEventListener("pagehide", releaseTofuCellThumbnails, { once: true });
-      els.redGrid.addEventListener("keydown", onGridKeydown);
-      els.blueGrid.addEventListener("keydown", onGridKeydown);
       [els.redMonsterPanel, els.blueMonsterPanel].forEach((panel) => {
         panel?.addEventListener("click", (event) => {
           const button = event.target.closest("[data-monster-zoom]");
@@ -8750,13 +8710,6 @@
       els.replayPrevButton?.addEventListener("click", () => setReplayStep(state.activeReplayStep - 1));
       els.replayPlayButton?.addEventListener("click", toggleReplayPlayback);
       els.replayRange?.addEventListener("input", (event) => setReplayStep(Number(event.target.value)));
-      document.querySelectorAll("[data-opener-row]").forEach((row) => {
-        row.addEventListener("click", (event) => {
-          const button = event.target.closest("[data-opener-index]");
-          if (!button || !row.contains(button)) return;
-          setActiveOpener(row.dataset.openerRow, Number(button.dataset.openerIndex));
-        });
-      });
       els.openedByPopover.addEventListener("click", (event) => {
         const choice = event.target.closest("[data-opened-by-index]");
         if (choice && els.openedByPopover.contains(choice)) {
@@ -9910,7 +9863,6 @@
       els[`${team}TeamTitle`].textContent = side.teamTitle;
       els[`${team}BoardMembers`].innerHTML = renderBoardMembers(team);
       els[`${team}Score`].textContent = String(side.bingoCount);
-      renderOpenerRow(team);
       grid.style.setProperty("--grid-size", state.gridSize);
       grid.dataset.size = String(state.gridSize);
       const gridMarkup = side.card.map((cell, index) => renderCell(team, cell, index)).join("");
@@ -9937,36 +9889,12 @@
       if (cell) cell.dataset.fallback = image.dataset.cellId || "";
     }
 
-    function renderOpenerRow(team) {
-      const row = els[`${team}OpenerRow`];
-      if (!row) return;
-      const side = state[team];
-      const members = side.members.length ? side.members : [getTeamLabel(team)];
-      if (!Number.isInteger(side.activeMemberIndex) || side.activeMemberIndex < 0 || side.activeMemberIndex >= members.length) {
-        side.activeMemberIndex = 0;
-      }
-      row.innerHTML = `
-        <span class="opener-label">OPENER</span>
-        ${members.map((member, index) => (
-          `<button type="button" class="opener-chip${index === side.activeMemberIndex ? " active" : ""}" data-opener-index="${index}" title="${escapeHtml(member)}">${escapeHtml(member)}</button>`
-        )).join("")}
-      `;
-    }
-
     function renderBoardMembers(team) {
       const side = state[team];
       const members = side.members.length ? side.members : [getTeamLabel(team)];
       return members.map((member) => (
         `<span class="board-member-chip" title="${escapeHtml(member)}">${escapeHtml(member)}</span>`
       )).join("");
-    }
-
-    function setActiveOpener(team, index) {
-      if (team !== "red" && team !== "blue") return;
-      const side = state[team];
-      if (!Number.isInteger(index) || index < 0 || index >= side.members.length) return;
-      side.activeMemberIndex = index;
-      renderOpenerRow(team);
     }
 
     function getActivePlayerName(team) {
@@ -10329,7 +10257,7 @@
       if (pairEntries[1]) styleParts.push(`--pair-color-2:${pairEntries[1].color}`);
       const playerChoices = cell.free ? "" : renderCellPlayerChoices(team, index, openedByKeys);
       return `
-        <div role="button" tabindex="${disabled ? "-1" : "0"}" aria-disabled="${disabled ? "true" : "false"}" class="${classes.join(" ")}" data-testid="bingo-cell-${team}-${index}" data-team="${team}" data-index="${index}" data-disabled="${disabled ? "1" : "0"}" style="${styleParts.join(";")}">
+        <div class="${classes.join(" ")}" data-testid="bingo-cell-${team}-${index}" data-team="${team}" data-index="${index}" data-disabled="${disabled ? "1" : "0"}" style="${styleParts.join(";")}">
           ${content}
           ${victoryCellArt}
           ${specialCellArt}
@@ -10357,9 +10285,7 @@
           ${members.map((member, memberIndex) => {
             const key = playerStatsKey(member);
             const active = selected.has(key);
-            const identityLocked = Boolean(onlineSession.roomId && !onlineSession.master && onlineSession.role === "player");
-            const isOwnIdentity = playerStatsKey(onlineSession.memberName) === key && onlineSession.team === team;
-            const disabled = isOnlineInputBusy() || (!active && maxReached) || (identityLocked && !isOwnIdentity);
+            const disabled = isOnlineInputBusy() || (!active && maxReached) || !canUseOnlinePlayerChoice(team, member);
             return `<button type="button" class="cell-player-choice${active ? " active" : ""}" data-testid="bingo-cell-player-${team}-${index}-${memberIndex}" data-cell-player-index="${memberIndex}" ${disabled ? "disabled" : ""} title="${escapeHtml(member)}">${escapeHtml(member)}</button>`;
           }).join("")}
         </div>
@@ -10387,27 +10313,22 @@
         toggleCellPlayer(cellElement.dataset.team, Number(cellElement.dataset.index), Number(playerChoice.dataset.cellPlayerIndex), cellElement);
         return;
       }
-      const button = event.target.closest(".cell");
-      if (!button) return;
-      if (button.dataset.disabled === "1") return;
-      toggleCell(button.dataset.team, Number(button.dataset.index), button);
     }
 
-    function onGridKeydown(event) {
-      if (event.key !== "Enter" && event.key !== " ") return;
-      const cellElement = event.target.closest(".cell");
-      if (!cellElement || event.target.closest("[data-cell-player-index]")) return;
-      if (cellElement.dataset.disabled === "1") return;
-      event.preventDefault();
-      toggleCell(cellElement.dataset.team, Number(cellElement.dataset.index), cellElement);
+    function canUseOnlinePlayerChoice(team, memberName) {
+      if (!onlineCoordinator?.isOnline?.()) return true;
+      if (onlineCoordinator.isMaster?.()) return true;
+      const currentName = onlineCoordinator.currentMemberName?.() || onlineSession.memberName;
+      return Boolean(
+        onlineCoordinator.canEditTeam?.(team) &&
+        currentName &&
+        playerStatsKey(currentName) === playerStatsKey(memberName)
+      );
     }
 
     function toggleCellPlayer(team, index, memberIndex, element, options = {}) {
       const requestedMember = state[team]?.members?.[memberIndex] || "";
-      if (
-        onlineSession.roomId && !onlineSession.master && onlineSession.role === "player" &&
-        (onlineSession.team !== team || playerStatsKey(requestedMember) !== playerStatsKey(onlineSession.memberName))
-      ) {
+      if (!canUseOnlinePlayerChoice(team, requestedMember)) {
         showCommentary("YOUR NAME ONLY", "参加者は自分の名前だけ担当者に設定できます。", 5000);
         return;
       }
@@ -10429,6 +10350,11 @@
       const member = side.members[memberIndex];
       if (!member) return;
       if (!side.marked[index]) {
+        toggleCell(team, index, element, { openerName: member, advanceOpener: false, onlineBypass: options.onlineBypass });
+        return;
+      }
+      const selected = getOpenedByKeys(side, index);
+      if (selected.length === 1 && selected[0] === playerStatsKey(member)) {
         toggleCell(team, index, element, { openerName: member, advanceOpener: false, onlineBypass: options.onlineBypass });
         return;
       }
@@ -15895,6 +15821,7 @@
     let onlineSession = { roomId: "", role: "", team: "", memberName: "", master: false };
     let onlineLastVictory = null;
     let onlineEventCapture = null;
+    let territoryStandaloneOpened = false;
 
     function beginOnlineEventCapture() {
       onlineEventCapture = { timeline: [] };
@@ -15949,6 +15876,7 @@
         applyOnlineStatsSnapshot,
         applyTerritorySnapshot,
         openTerritoryMode,
+        openTerritoryWindow,
         createTerritoryInitialState: () => window.TeamBingoTerritorySystem?.createInitialState(state.playerStats, Date.now()) || null,
         createOnlineEvent,
         playOnlineEvent,
@@ -15976,7 +15904,13 @@
           els.setupStartButton.classList.toggle("online-room-create", Boolean(active));
           showScreen("setup");
         },
-        onOnlineReady: (coordinator) => { onlineCoordinator = coordinator; },
+        onOnlineReady: (coordinator) => {
+          onlineCoordinator = coordinator;
+          if (!isTerritoryStandalonePage()) return;
+          coordinator.hideLobby?.();
+          const snapshot = coordinator.getTerritoryState?.();
+          if (snapshot) openTerritoryStandalone(snapshot);
+        },
         onOnlineBusyChanged: () => {
           if (state.gameStarted) {
             renderAll();
@@ -16302,6 +16236,34 @@
       if (!snapshot) return;
       window.TeamBingoTerritoryMode?.applySnapshot(snapshot, state.playerStats);
       if (els.statsModal?.classList.contains("show")) renderTerritoryStats();
+      if (isTerritoryStandalonePage()) openTerritoryStandalone(snapshot);
+    }
+
+    function isTerritoryStandalonePage() {
+      return new URLSearchParams(location.search).get("territory") === "1";
+    }
+
+    function territoryWindowUrl() {
+      const url = new URL(location.href);
+      const onlineMock = url.searchParams.get("onlineMock");
+      url.search = "";
+      url.searchParams.set("territory", "1");
+      if (onlineMock === "1") url.searchParams.set("onlineMock", "1");
+      url.hash = "";
+      return url.href;
+    }
+
+    function openTerritoryWindow() {
+      unlockAudio();
+      const territoryWindow = window.open(territoryWindowUrl(), "_blank");
+      territoryWindow?.focus();
+    }
+
+    function openTerritoryStandalone(snapshot) {
+      if (!snapshot || territoryStandaloneOpened) return;
+      territoryStandaloneOpened = true;
+      onlineCoordinator?.hideLobby?.();
+      openTerritoryMode(snapshot);
     }
 
     function openTerritoryMode(snapshot = null) {
@@ -16315,7 +16277,10 @@
         showMonsterDetail: showMonsterNodeZoom,
         openMonsterPage: showMonsterDexPage,
         onOpen: startTerritoryBgm,
-        onClose: stopTerritoryBgm
+        onClose: () => {
+          stopTerritoryBgm();
+          if (isTerritoryStandalonePage() && window.opener) window.close();
+        }
       });
     }
 
@@ -16539,6 +16504,7 @@
       onlineSession = { ...onlineSession, ...(session || {}) };
       document.body.classList.toggle("online-active", Boolean(onlineSession.roomId));
       updateMonsterBattleMode();
+      if (state.gameStarted) renderAll();
       if (state.winner) renderVictoryMonsterLineups();
     }
 

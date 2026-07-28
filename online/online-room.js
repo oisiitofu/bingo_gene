@@ -981,6 +981,12 @@ export class OnlineCoordinator {
     if (action.masterOnly && !isMaster) return false;
     const team = action?.payload?.team || "";
     if (team && !isMaster && (participant.role !== "player" || participant.team !== team)) return false;
+    if (
+      !isMaster &&
+      (action.type === "toggle-cell" || action.type === "toggle-cell-player") &&
+      action.payload?.openerName &&
+      playerKey(action.payload.openerName) !== playerKey(participant.memberName || participant.name)
+    ) return false;
     return true;
   }
 
@@ -1345,7 +1351,7 @@ export class OnlineCoordinator {
       this.syncLobbyVolume();
     });
     this.ui.localMode.addEventListener("click", () => this.enterLocalMode());
-    this.ui.territoryMode.addEventListener("click", () => this.bridge.openTerritoryMode?.(this.territoryState));
+    this.ui.territoryMode.addEventListener("click", () => this.openTerritoryWindow());
     this.ui.adminMode.addEventListener("click", () => {
       this.ui.adminPassword.value = "";
       this.ui.adminError.textContent = "";
@@ -1391,7 +1397,7 @@ export class OnlineCoordinator {
       if (this.isAdminMode()) this.bridge.openAdminMonsterBattleLab?.();
     });
     this.ui.adminTerritoryOpen.addEventListener("click", () => {
-      if (this.isAdminMode()) this.bridge.openTerritoryMode?.(this.territoryState);
+      if (this.isAdminMode()) this.openTerritoryWindow();
     });
     this.ui.adminTerritoryReset.addEventListener("click", async () => {
       if (!this.isAdminMode()) return;
@@ -1436,7 +1442,7 @@ export class OnlineCoordinator {
     });
     this.ui.openTerritory.addEventListener("click", () => {
       this.setSessionMenuOpen(false);
-      this.bridge.openTerritoryMode?.(this.territoryState);
+      this.openTerritoryWindow();
     });
     this.ui.statusClose.addEventListener("click", () => this.ui.statusDialog.close());
     this.ui.openReactions.addEventListener("click", () => {
@@ -2921,6 +2927,14 @@ export class OnlineCoordinator {
 
   isOnline() { return Boolean(this.enabled && this.backend && this.roomId); }
   getTerritoryState() { return clone(this.territoryState); }
+
+  openTerritoryWindow() {
+    if (typeof this.bridge.openTerritoryWindow === "function") {
+      this.bridge.openTerritoryWindow();
+      return;
+    }
+    this.bridge.openTerritoryMode?.(this.territoryState);
+  }
   isApplyingRemote() { return this.applyingRemote; }
   isBusy() { return Boolean(this.busy); }
   isMaster() { return Boolean(this.roomId && this.room?.meta?.masterUid === this.backend?.uid); }

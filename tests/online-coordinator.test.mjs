@@ -1221,6 +1221,27 @@ test("spectators cannot submit HYPE or any other game action", async () => {
   assert.equal(store.value.teamBingoV1.rooms.ROOM.meta.revision, 0);
 });
 
+test("online participants can operate only their own player-name controls", () => {
+  const store = createStore();
+  const room = store.value.teamBingoV1.rooms.ROOM;
+  const guest = createCoordinator(store, "guest", "player", "blue");
+
+  assert.equal(
+    guest.canPerformAuthoritativeAction(room, {
+      type: "toggle-cell-player",
+      payload: { team: "blue", index: 0, openerName: "Guest" }
+    }),
+    true
+  );
+  assert.equal(
+    guest.canPerformAuthoritativeAction(room, {
+      type: "toggle-cell-player",
+      payload: { team: "blue", index: 0, openerName: "Master" }
+    }),
+    false
+  );
+});
+
 test("players can still submit teamless HYPE actions", async () => {
   const store = createStore();
   const player = createCoordinator(store, "guest", "player", "blue");
@@ -1350,6 +1371,7 @@ test("concurrent secondary openers preserve every player attribution without cha
   const store = createStore();
   const room = store.value.teamBingoV1.rooms.ROOM;
   room.participants.guest.team = "red";
+  room.participants.guest.memberName = "EDA";
   room.game.red.marked[0] = true;
   room.game.red.openedBy = { 0: ["master"] };
   store.value.teamBingoV1.globalStats.ranking = { 53: 1 };
