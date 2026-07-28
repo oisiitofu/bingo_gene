@@ -1791,8 +1791,10 @@ export class OnlineCoordinator {
       return;
     }
     this.ui.roomList.innerHTML = rooms.map(([id, room]) => {
-      const red = (room.redMembers || []).filter(Boolean).join(" / ") || "未設定";
-      const blue = (room.blueMembers || []).filter(Boolean).join(" / ") || "未設定";
+      const members = [...new Set([...(room.redMembers || []), ...(room.blueMembers || [])]
+        .map(normalizeName)
+        .filter(Boolean))]
+        .join(" / ") || "メンバー未設定";
       const stale = now - (Number(room.updatedAt) || 0) > inactiveMs;
       const phase = stale ? "GHOST" : (PHASE_LABELS[room.phase] || PHASE_LABELS.setup);
       return `
@@ -1800,9 +1802,9 @@ export class OnlineCoordinator {
           <div class="online-room-card-head">
             <span class="online-room-phase ${stale ? "stale" : ""}">${phase}</span>
           </div>
-          <div class="online-room-teams">
-            <div class="online-room-team"><b>RED TEAM</b>${this.bridge.escapeHtml?.(red) || red}</div>
-            <div class="online-room-team blue"><b>BLUE TEAM</b>${this.bridge.escapeHtml?.(blue) || blue}</div>
+          <div class="online-room-members">
+            <b>MEMBERS</b>
+            <span>${this.bridge.escapeHtml?.(members) || members}</span>
           </div>
           <div class="online-room-card-foot">
             <span class="online-room-meta">${Number(room.onlineCount) || 0} ONLINE</span>
@@ -2126,11 +2128,11 @@ export class OnlineCoordinator {
       this.ui.seatError.hidden = true;
       this.ui.seatError.textContent = "";
     }
-    const groups = [
-      ["red", lobby.redMembers || []],
-      ["blue", lobby.blueMembers || []]
-    ];
     this.backend.get(this.roomPath(roomId)).then((room) => {
+      const groups = [
+        ["red", room?.game?.red?.members || room?.setup?.redMembers || lobby.redMembers || []],
+        ["blue", room?.game?.blue?.members || room?.setup?.blueMembers || lobby.blueMembers || []]
+      ];
       const seats = room?.seats || {};
       const now = this.backend.serverNow();
       const holdMs = Math.max(10, Number(this.config.seatHoldSeconds) || 60) * 1000;
@@ -2139,7 +2141,6 @@ export class OnlineCoordinator {
       const currentParticipant = room?.participants?.[this.backend.uid];
       const currentIdentityOnline = Boolean(currentParticipant?.online || currentSeatEntry?.[1]?.online);
       this.ui.seatList.innerHTML = groups.map(([team, members]) => `
-        <div class="online-seat-team-label ${team === "blue" ? "blue" : ""}">${team.toUpperCase()} TEAM</div>
         <div class="online-seat-buttons">
           ${members.length ? members.map((name) => {
             const key = playerKey(name);
@@ -2325,8 +2326,8 @@ export class OnlineCoordinator {
         uid: this.backend.uid,
         deviceId: this.deviceId,
         role: restoredRole,
-        team: saved.team || participant?.team || "",
-        memberName: saved.memberName || participant?.memberName || "",
+        team: participant?.team || saved.team || "",
+        memberName: participant?.memberName || saved.memberName || "",
         online: true,
         joinedAt: participant?.joinedAt || now,
         lastSeenAt: now,
@@ -2347,8 +2348,9 @@ export class OnlineCoordinator {
       : ((saved.role === "player" || saved.role === "master" || saved.team || saved.seatKey || participant?.team) ? "player" : "spectator");
     this.roomId = saved.roomId;
     this.role = restoredRole;
-    this.team = saved.team || "";
-    this.memberName = saved.memberName || (this.role === "spectator" ? "観戦" : "");
+    const restoredParticipant = result.value?.participants?.[this.backend.uid] || participant || {};
+    this.team = restoredParticipant.team || saved.team || "";
+    this.memberName = restoredParticipant.memberName || saved.memberName || (this.role === "spectator" ? "観戦" : "");
     this.seatKey = saved.seatKey || "";
     await this.enterRoom(saved.roomId, result.value);
     this.hideLobby();
@@ -2377,6 +2379,7 @@ export class OnlineCoordinator {
       this.role = participant.role || this.role;
       this.team = participant.team || "";
       this.memberName = participant.memberName || (this.role === "spectator" ? "観戦" : this.memberName);
+      this.saveSession();
     } else if (this.roomId && !this.leavingRoom) {
       this.scheduleMembershipLossCheck(this.roomId);
     }
@@ -2939,8 +2942,27 @@ export class OnlineCoordinator {
   isBusy() { return Boolean(this.busy); }
   isMaster() { return Boolean(this.roomId && this.room?.meta?.masterUid === this.backend?.uid); }
   canEditSetup() { return !this.isOnline() || this.isMaster(); }
-  canEditTeam(team) { return !this.isOnline() || this.isMaster() || (this.role === "player" && this.team === team); }
-  currentMemberName() { return this.memberName; }
+  currentParticipant(room = this.room) {
+    return room?.participants?.[this.backend?.uid] || null;
+  }
+  canEditTeam(team) {
+    if (!this.isOnline() || this.isMaster()) return true;
+    const participant = this.currentParticipant();
+    return participant?.role === "player" && participant.team === team;
+  }
+  canOperatePlayer(team, memberName) {
+    if (!this.isOnline() || this.isMaster()) return true;
+    const participant = this.currentParticipant();
+    return Boolean(
+      participant?.role === "player" &&
+      participant.team === team &&
+      playerKey(participant.memberName || participant.name) === playerKey(memberName)
+    );
+  }
+  currentMemberName() {
+    const participant = this.currentParticipant();
+    return participant?.memberName || participant?.name || this.memberName;
+  }
 
   async publishSetup(setup) {
     if (!this.isOnline() || !this.isMaster() || this.busy) return;

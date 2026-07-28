@@ -48,6 +48,7 @@
     let animationFrame = 0;
     let state = null;
     let selectedTileId = "0,0";
+    let highlightedOwnerId = "";
     let sceneSignature = "";
     let yaw = Math.PI * .23;
     let pitch = .72;
@@ -1025,9 +1026,10 @@
         .join("|");
     }
 
-    function update(nextState, nextSelectedTileId) {
+    function update(nextState, nextSelectedTileId, nextHighlightedOwnerId = "") {
       state = nextState;
       selectedTileId = nextSelectedTileId || selectedTileId;
+      highlightedOwnerId = nextHighlightedOwnerId || "";
       const signature = buildSignature(nextState);
       if (signature !== sceneSignature) {
         sceneSignature = signature;
@@ -1042,29 +1044,34 @@
 
     function updateSelection() {
       container.dataset.selectedTile = selectedTileId;
+      container.dataset.highlightedOwner = highlightedOwnerId;
       tileMeshes.forEach((mesh, tileId) => {
         const selected = tileId === selectedTileId;
+        const ownerFocused = Boolean(highlightedOwnerId && mesh.userData.ownerId === highlightedOwnerId);
         mesh.scale.set(1, 1, 1);
         if (selected) {
           mesh.material.emissive.setHex(mesh.userData.ownerId === "tofu" ? 0x4d535a : 0x6b4b18);
           mesh.material.emissiveIntensity = .48;
+        } else if (ownerFocused) {
+          mesh.material.emissive.copy(mesh.userData.ownerColor || mesh.userData.surfaceEmissive);
+          mesh.material.emissiveIntensity = .5;
         } else {
           mesh.material.emissive.copy(mesh.userData.surfaceEmissive);
           mesh.material.emissiveIntensity = mesh.userData.surfaceEmissiveIntensity;
         }
         if (mesh.userData.boundaryLine) {
-          mesh.userData.boundaryLine.opacity = selected ? 1 : .86;
+          mesh.userData.boundaryLine.opacity = selected || ownerFocused ? 1 : .86;
         }
         if (mesh.userData.boundaryAura) {
-          mesh.userData.boundaryAura.uniforms.strength.value = selected ? .34 : .24;
+          mesh.userData.boundaryAura.uniforms.strength.value = selected ? .38 : (ownerFocused ? .34 : .24);
         }
         if (mesh.userData.selectionAura) {
-          mesh.userData.selectionAura.visible = selected;
-          mesh.userData.selectionAuraMaterial.uniforms.strength.value = selected ? .72 : 0;
+          mesh.userData.selectionAura.visible = selected || ownerFocused;
+          mesh.userData.selectionAuraMaterial.uniforms.strength.value = selected ? .72 : (ownerFocused ? .48 : 0);
         }
         if (mesh.userData.selectionRing) {
-          mesh.userData.selectionRing.visible = selected;
-          mesh.userData.selectionRingMaterial.opacity = selected ? .92 : 0;
+          mesh.userData.selectionRing.visible = selected || ownerFocused;
+          mesh.userData.selectionRingMaterial.opacity = selected ? .92 : (ownerFocused ? .7 : 0);
         }
       });
     }

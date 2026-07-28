@@ -468,6 +468,29 @@ html.territory-standalone .online-reaction-dock {
   gap: 8px;
 }
 
+.online-room-members {
+  min-width: 0;
+  display: grid;
+  gap: 4px;
+  padding: 10px 12px;
+  border-left: 3px solid rgba(226, 232, 240, .7);
+  background: rgba(255, 255, 255, .045);
+}
+
+.online-room-members b {
+  color: #9aa7b8;
+  font-size: 9px;
+}
+
+.online-room-members span {
+  overflow: hidden;
+  color: #edf2f8;
+  font-size: 12px;
+  font-weight: 900;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
 .online-room-team {
   min-width: 0;
   padding: 8px 9px;

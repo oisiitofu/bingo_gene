@@ -16,6 +16,15 @@
       document.documentElement.classList.add("online-booting");
     }
   </script>
+  <style>
+    html.territory-standalone body {
+      background: #070a11;
+    }
+    html.territory-standalone body > .app {
+      visibility: hidden !important;
+      pointer-events: none !important;
+    }
+  </style>
   <link rel="preload" as="image" href="images/ui/fg-team-intro.png" />
   <link rel="preload" as="image" href="images/ui/commentator-intro.png" />
   <link rel="preload" as="image" href="images/ui/commentator-face-1.png" />
@@ -5248,7 +5257,16 @@
     .monster-mastery-combat { color:#f3f6fb; }
 
     .team-select-modal { z-index: 150; }
-    .team-select-card { width: min(880px, 94vw); max-height: 92vh; overflow: auto; padding: 20px; }
+    .team-select-card {
+      width: min(880px, calc(100vw - 36px));
+      max-width: calc(100vw - 36px);
+      max-height: calc(100vh - 36px);
+      overflow-x: hidden;
+      overflow-y: auto;
+      padding: 20px;
+      box-sizing: border-box;
+      contain: layout;
+    }
     .team-select-head { display: flex; align-items: center; justify-content: space-between; gap: 16px; }
     .team-select-kicker { color: #f7c64a; font-size: 10px; font-weight: 1000; }
     .team-select-head h2 { margin: 3px 0 0; color: #fff; font-size: 32px; }
@@ -5277,8 +5295,8 @@
     .team-select-side.blue { border-left-color: var(--blue); background: rgba(47,128,255,.13); }
     .team-select-side b { display: block; color: #fff; font-size: 11px; }
     .team-select-side span { display: block; margin-top: 4px; overflow-wrap: anywhere; color: rgba(255,255,255,.78); font-size: 12px; font-weight: 900; }
-    .team-select-list { display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); gap: 7px; }
-    .team-select-row { display: grid; grid-template-columns: minmax(0,1fr) 76px 76px; align-items: center; gap: 5px; min-height: 48px; padding: 6px 7px 6px 11px; border: 1px solid rgba(255,255,255,.14); background: rgba(255,255,255,.055); }
+    .team-select-list { min-width: 0; display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); gap: 7px; }
+    .team-select-row { min-width: 0; display: grid; grid-template-columns: minmax(0,1fr) 76px 76px; align-items: center; gap: 5px; min-height: 48px; padding: 6px 7px 6px 11px; border: 1px solid rgba(255,255,255,.14); background: rgba(255,255,255,.055); box-sizing: border-box; }
     .team-select-name { min-width: 0; overflow: hidden; color: #fff; font-size: 13px; font-weight: 1000; text-overflow: ellipsis; white-space: nowrap; }
     .team-choice { min-height: 32px; border: 1px solid rgba(255,255,255,.18); border-radius: 3px; color: rgba(255,255,255,.62); background: #101722; font-size: 10px; font-weight: 1000; cursor: pointer; }
     .team-choice.red.active { border-color: #ff6a80; color: #fff; background: #7a1527; }
@@ -6201,6 +6219,10 @@
 
     body.screen-shake .app {
       animation: screenShake .34s steps(2, end);
+    }
+
+    body:has(.modal.show).screen-shake .app {
+      animation: none;
     }
 
     @keyframes arenaScan {
@@ -8641,6 +8663,9 @@
       });
       els.monsterBattleStartButton?.addEventListener("click", startMonsterBattle);
       els.monsterBattleCloseButton?.addEventListener("click", closeMonsterBattle);
+      if (els.monsterBattleCloseButton?.parentElement !== document.body) {
+        document.body.appendChild(els.monsterBattleCloseButton);
+      }
       document.querySelectorAll("[data-shuffle-team]").forEach((button) => {
         button.addEventListener("click", () => shuffleTeamCard(button.dataset.shuffleTeam));
       });
@@ -10317,13 +10342,12 @@
 
     function canUseOnlinePlayerChoice(team, memberName) {
       if (!onlineCoordinator?.isOnline?.()) return true;
-      if (onlineCoordinator.isMaster?.()) return true;
+      if (typeof onlineCoordinator.canOperatePlayer === "function") {
+        return onlineCoordinator.canOperatePlayer(team, memberName);
+      }
       const currentName = onlineCoordinator.currentMemberName?.() || onlineSession.memberName;
-      return Boolean(
-        onlineCoordinator.canEditTeam?.(team) &&
-        currentName &&
-        playerStatsKey(currentName) === playerStatsKey(memberName)
-      );
+      return Boolean(onlineCoordinator.canEditTeam?.(team) && currentName &&
+        playerStatsKey(currentName) === playerStatsKey(memberName));
     }
 
     function toggleCellPlayer(team, index, memberIndex, element, options = {}) {
@@ -12235,6 +12259,7 @@
       state.monsterBattleRunId += 1;
       state.inputLocked = false;
       state.monsterBattlePresentationSeed = 0;
+      if (els.monsterBattleCloseButton) els.monsterBattleCloseButton.hidden = true;
       hideOverlay(els.monsterBattleOverlay);
       els.monsterBattleOverlay?.classList.remove("entrance-phase", "finish-slow-motion");
       if (els.monsterBattleEntrance) {
@@ -13249,6 +13274,7 @@
     }
 
     function screenShake() {
+      if (document.querySelector(".modal.show") || !els.monsterBattleCloseButton?.hidden) return;
       document.body.classList.remove("screen-shake");
       void document.body.offsetWidth;
       document.body.classList.add("screen-shake");

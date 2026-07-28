@@ -570,6 +570,40 @@
     return state;
   }
 
+  function fillUnlockedGarrisonSlots(state, playerStats, now = Date.now()) {
+    PLAYERS.forEach((player) => {
+      const record = resolvePlayerRecord(playerStats, player);
+      const candidates = candidateMonsters(record, player, `${state.season.id}:${rosterDay(now)}:garrisons`);
+      const candidateById = new Map(candidates.map((candidate) => [candidate.nodeId, candidate]));
+      const parties = Object.values(state.tiles || {})
+        .filter((tile) => tile.ownerId === player.id && tile.garrison?.ownerId === player.id)
+        .sort((a, b) => a.id.localeCompare(b.id))
+        .map((tile) => tile.garrison);
+      const used = new Set();
+
+      parties.forEach((party) => {
+        party.lineup = Array.from({ length: PARTY_SIZE }, (_, index) => {
+          const member = party.lineup?.[index];
+          const candidate = candidateById.get(member?.nodeId);
+          if (!candidate || used.has(candidate.nodeId)) return eggMonster();
+          used.add(candidate.nodeId);
+          return clone(candidate);
+        });
+      });
+
+      const available = candidates.filter((candidate) => !used.has(candidate.nodeId));
+      parties.forEach((party) => {
+        party.lineup = party.lineup.map((member) => {
+          if (member.nodeId !== "egg" || !available.length) return member;
+          const candidate = available.shift();
+          used.add(candidate.nodeId);
+          return clone(candidate);
+        });
+      });
+    });
+    return state;
+  }
+
   function refreshPlayerEquipment(state, playerStats, player, now = Date.now(), force = false) {
     const playerState = state.players[player.id] || emptyPlayerState(player);
     const day = rosterDay(now);
@@ -647,6 +681,7 @@
     refreshAllSquads(state, playerStats, now, true);
     assignTileEvents(state, 0, true);
     ensureTileGarrisons(state, playerStats, now);
+    fillUnlockedGarrisonSlots(state, playerStats, now);
     refreshAllEquipment(state, playerStats, now, true);
     return state;
   }
@@ -682,6 +717,7 @@
     refreshAllSquads(state, playerStats, now, sourceVersion !== VERSION);
     assignTileEvents(state, eventCycleForTick(state.season.tick));
     ensureTileGarrisons(state, playerStats, now);
+    fillUnlockedGarrisonSlots(state, playerStats, now);
     refreshAllEquipment(state, playerStats, now, sourceVersion !== VERSION);
     return state;
   }

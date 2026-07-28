@@ -155,6 +155,33 @@ test("図鑑登録が3体未満なら領地PTの不足枠をたまごで補う",
   assertUniqueTerritoryMonsters(state);
 });
 
+test("newly unlocked monsters replace existing territory eggs without resetting the season", () => {
+  const initialIds = Object.values(Monster.NODES)
+    .filter((node) => node.id !== "egg")
+    .slice(0, 2)
+    .map((node) => node.id);
+  const expandedIds = Object.values(Monster.NODES)
+    .filter((node) => node.id !== "egg")
+    .slice(0, 6)
+    .map((node) => node.id);
+  const state = Territory.createInitialState(createStatsWithIds(initialIds), MONDAY_JST);
+  const normalized = Territory.normalizeState(
+    state,
+    createStatsWithIds(expandedIds),
+    MONDAY_JST + Territory.TICK_MS
+  );
+
+  for (const player of Territory.PLAYERS) {
+    const lineup = territoryLineupForPlayer(normalized, player.id);
+    assert.deepEqual(
+      new Set(lineup.filter((member) => member.nodeId !== "egg").map((member) => member.nodeId)),
+      new Set(expandedIds)
+    );
+    assert.equal(lineup.some((member) => member.nodeId === "egg"), false);
+  }
+  assertUniqueTerritoryMonsters(normalized);
+});
+
 test("領地PTはコスト・伝説・星6の制限なしで3体を編成する", () => {
   const ids = Object.values(Monster.NODES)
     .filter((node) => node.id !== "egg")

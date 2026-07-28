@@ -8,6 +8,7 @@
   let state = null;
   let playerStats = {};
   let selectedTileId = "0,0";
+  let selectedPlayerId = "";
   let preview = true;
   let spriteMarkup = () => "";
   let replayBattle = () => {};
@@ -107,6 +108,7 @@
   function selectTile(tileId) {
     if (!state?.tiles?.[tileId]) return;
     selectedTileId = tileId;
+    selectedPlayerId = "";
     renderRanking();
     renderMap();
     renderDetail();
@@ -123,7 +125,7 @@
     }
     const monster = event.target.closest("[data-territory-monster]");
     if (monster) {
-      const tile = state?.tiles?.[selectedTileId];
+      const tile = state?.tiles?.[monster.dataset.territoryTileId || selectedTileId];
       const owner = Territory.PLAYER_BY_ID[tile?.ownerId];
       const member = tile?.garrison?.lineup?.find((entry) => entry?.nodeId === monster.dataset.territoryMonster);
       showMonsterDetail(
@@ -146,7 +148,10 @@
     const king = event.target.closest("[data-king-id]");
     if (king) {
       const player = Territory.PLAYER_BY_ID[king.dataset.kingId];
-      if (player) selectedTileId = Territory.tileId(player.home[0], player.home[1]);
+      if (player) {
+        selectedPlayerId = player.id;
+        selectedTileId = Territory.tileId(player.home[0], player.home[1]);
+      }
       render();
       return;
     }
@@ -176,7 +181,7 @@
     const map = root.querySelector("[data-territory-map]");
     if (map3D) {
       map.setAttribute("hidden", "");
-      map3D.update(state, selectedTileId);
+      map3D.update(state, selectedTileId, selectedPlayerId);
       return;
     }
     map.removeAttribute("hidden");
@@ -190,7 +195,8 @@
         "territory-hex",
         owner ? "" : "neutral",
         tile.kind,
-        tile.id === selectedTileId ? "selected" : ""
+        tile.id === selectedTileId ? "selected" : "",
+        selectedPlayerId && tile.ownerId === selectedPlayerId ? "owner-focus" : ""
       ].filter(Boolean).join(" ");
       const event = Territory.TILE_EVENT_BY_ID[tile.eventId];
       const hype = Number.isFinite(Number(tile.garrison?.hype)) ? Number(tile.garrison.hype) : Territory.DEFAULT_HYPE;
@@ -210,7 +216,7 @@
     const list = root.querySelector("[data-territory-ranking]");
     const ranking = Territory.standings(state);
     list.innerHTML = ranking.map((player, index) => `
-      <button type="button" class="territory-rank-row ${state.tiles?.[selectedTileId]?.ownerId === player.id ? "active" : ""}" data-king-id="${player.id}" style="--king-color:${player.color}">
+      <button type="button" class="territory-rank-row ${(selectedPlayerId || state.tiles?.[selectedTileId]?.ownerId) === player.id ? "active" : ""}" data-king-id="${player.id}" style="--king-color:${player.color}">
         <span class="territory-rank-position">${index + 1}</span>
         <span class="territory-rank-copy"><strong>${escapeHtml(player.name)}</strong><span>${player.territoryCount}領地 / ${player.wins}勝 / HYPE ${player.averageHype}</span></span>
         <span class="territory-rank-score"><strong>${player.score}</strong><span>POINT</span></span>
@@ -232,14 +238,14 @@
     return equipment?.normalizeLoadout?.({ ...(member?.equipment || {}), ...(manual || {}) }) || {};
   }
 
-  function renderMonster(member, owner) {
+  function renderMonster(member, owner, tileId = selectedTileId) {
     const node = global.TeamBingoMonsterSystem?.NODES?.[member.nodeId];
     const equipment = global.TeamBingoTerritoryEquipment;
     const name = node?.name || member.name || member.nodeId;
     const loadout = effectiveTerritoryLoadout(member, owner);
     const equipped = equipment?.loadoutItems?.(loadout) || [];
     return `
-      <button type="button" class="territory-monster" data-territory-monster="${escapeHtml(member.nodeId)}" aria-label="${escapeHtml(name)}の詳細を表示">
+      <button type="button" class="territory-monster" data-territory-monster="${escapeHtml(member.nodeId)}" data-territory-tile-id="${escapeHtml(tileId)}" aria-label="${escapeHtml(name)}の詳細を表示">
         <span class="territory-monster-art">${spriteMarkup(member.nodeId)}</span>
         <strong title="${escapeHtml(name)}">${escapeHtml(name)}</strong>
         <span class="territory-monster-equipment">${equipped.length ? equipped.map((item) => (
@@ -252,6 +258,10 @@
 
   function renderDetail() {
     const detail = root.querySelector("[data-territory-detail]");
+    if (selectedPlayerId && Territory.PLAYER_BY_ID[selectedPlayerId]) {
+      renderPlayerParties(detail, Territory.PLAYER_BY_ID[selectedPlayerId]);
+      return;
+    }
     const tile = Territory.tileSummary(state, selectedTileId) || Territory.tileSummary(state, "0,0");
     if (!tile) {
       detail.innerHTML = `<div class="territory-empty">領地を選択してください</div>`;
@@ -277,7 +287,7 @@
       ${party?.lineup?.length ? `
         <section class="territory-squad">
           <div class="territory-squad-head"><span>TERRITORY PARTY</span><span>戦力 ${Math.round(party.lineup.reduce((sum, member) => sum + (Number(member.power) || 0), 0))}</span></div>
-          <div class="territory-squad-lineup">${party.lineup.map((member) => renderMonster(member, owner)).join("")}</div>
+          <div class="territory-squad-lineup">${party.lineup.map((member) => renderMonster(member, owner, tile.id)).join("")}</div>
           <div class="territory-hype-row">
             <span>HYPE</span>
             <div class="territory-hype-track"><i style="width:${Math.max(0, Math.min(100, hype))}%"></i></div>
@@ -285,6 +295,36 @@
           </div>
         </section>
       ` : `<div class="territory-empty">${owner ? "PT編成待ち" : "中立領地のためPTなし"}</div>`}
+    `;
+  }
+
+  function renderPlayerParties(detail, owner) {
+    const territories = Object.values(state.tiles || {})
+      .filter((tile) => tile.ownerId === owner.id && tile.garrison?.ownerId === owner.id)
+      .sort((a, b) => a.id.localeCompare(b.id));
+    detail.innerHTML = `
+      <div class="territory-player-heading" style="--owner-color:${owner.color}">
+        <span>ALL TERRITORY PARTIES</span>
+        <strong>${escapeHtml(owner.name)}</strong>
+        <em>${territories.length} PT</em>
+      </div>
+      <div class="territory-player-parties">
+        ${territories.map((tile) => {
+          const party = tile.garrison;
+          const summary = Territory.tileSummary(state, tile.id);
+          const hype = Number.isFinite(Number(party.hype)) ? Number(party.hype) : Territory.DEFAULT_HYPE;
+          const power = party.lineup.reduce((sum, member) => sum + (Number(member.power) || 0), 0);
+          return `
+            <section class="territory-squad territory-player-party">
+              <button type="button" class="territory-player-party-head" data-tile-id="${escapeHtml(tile.id)}">
+                <span>${escapeHtml(summary?.terrainName || tile.id)}</span>
+                <strong>戦力 ${Math.round(power)} / HYPE ${Math.round(hype)}</strong>
+              </button>
+              <div class="territory-squad-lineup">${party.lineup.map((member) => renderMonster(member, owner, tile.id)).join("")}</div>
+            </section>
+          `;
+        }).join("") || `<div class="territory-empty">配置中のPTはありません</div>`}
+      </div>
     `;
   }
 
@@ -358,6 +398,7 @@
       preview = true;
     }
     selectedTileId = state.tiles?.[selectedTileId] ? selectedTileId : "0,0";
+    selectedPlayerId = Territory.PLAYER_BY_ID[selectedPlayerId] ? selectedPlayerId : "";
     root.hidden = false;
     document.body.classList.add("territory-mode-open");
     render();

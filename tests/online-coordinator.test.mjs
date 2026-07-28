@@ -1242,6 +1242,26 @@ test("online participants can operate only their own player-name controls", () =
   );
 });
 
+test("player controls follow the authoritative room identity after a team remap", () => {
+  const store = createStore();
+  const guest = createCoordinator(store, "guest", "player", "red");
+  guest.team = "red";
+  guest.memberName = "stale-name";
+  guest.room.participants.guest = {
+    uid: "guest",
+    role: "player",
+    team: "blue",
+    memberName: "Player 3",
+    online: true
+  };
+
+  assert.equal(guest.canEditTeam("red"), false);
+  assert.equal(guest.canEditTeam("blue"), true);
+  assert.equal(guest.canOperatePlayer("blue", "Player 3"), true);
+  assert.equal(guest.canOperatePlayer("blue", "Player 4"), false);
+  assert.equal(guest.currentMemberName(), "Player 3");
+});
+
 test("players can still submit teamless HYPE actions", async () => {
   const store = createStore();
   const player = createCoordinator(store, "guest", "player", "blue");

@@ -629,7 +629,24 @@
 .monster-mastery-entry strong,.monster-mastery-entry span,.monster-mastery-entry small { display:block; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
 .monster-mastery-entry strong { color:#fff; font-size:10px; } .monster-mastery-entry span { margin-top:2px; color:#ffe47d; font-size:9px; font-weight:1000; } .monster-mastery-entry small { margin-top:2px; color:#aeb9ca; font-size:7px; }
 .monster-mastery-empty { padding:9px; color:rgba(255,255,255,.55); border-left:3px solid rgba(255,255,255,.2); font-size:9px; }
-.monster-battle-close { position:absolute; z-index:21; left:50%; bottom:30px; transform:translateX(-50%); min-width:180px; padding:13px; border:1px solid #fff; color:#fff; background:rgba(2,4,10,.84); font-weight:1000; cursor:pointer; }
+.monster-battle-close {
+  position: fixed;
+  z-index: 7000;
+  left: 50%;
+  bottom: 24px;
+  width: 180px;
+  min-width: 180px;
+  height: 46px;
+  padding: 0 13px;
+  transform: translateX(-50%) !important;
+  animation: none !important;
+  transition: border-color .16s ease, background-color .16s ease;
+  border: 1px solid #fff;
+  color: #fff;
+  background: rgba(2,4,10,.94);
+  font-weight: 1000;
+  cursor: pointer;
+}
 
 .monster-battle-start.red-result,
 .monster-battle-start.blue-result {
