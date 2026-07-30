@@ -7893,7 +7893,7 @@
     };
     const TOFU_CELL_SKIN_FOLDER = "cell-skins";
     const TOFU_CELL_THUMBNAIL_FOLDER = `${TOFU_CELL_SKIN_FOLDER}/thumbs`;
-    const TOFU_OPTIMIZED_CELL_SKIN_IDS = new Set(Array.from({ length: 27 }, (_, index) => index + 1));
+    const TOFU_AVAILABLE_CELL_SKIN_IDS = new Set(Array.from({ length: 27 }, (_, index) => index + 1));
 
     function skillAssetUrls(skillId, fileKey) {
       const asset = SKILL_ASSETS[skillId] || SKILL_ASSETS.default;
@@ -7912,12 +7912,13 @@
     }
 
     function tofuCellSkinPath(id) {
+      if (!TOFU_AVAILABLE_CELL_SKIN_IDS.has(Number(id))) return "";
       const folder = SKILL_ASSETS.tofu.folder;
       return `${SKILL_ASSET_BASE}${encodeURIComponent(folder)}/${TOFU_CELL_SKIN_FOLDER}/${encodeURIComponent(String(id))}.png`;
     }
 
     function tofuCellThumbnailPath(id) {
-      if (!TOFU_OPTIMIZED_CELL_SKIN_IDS.has(Number(id))) return "";
+      if (!TOFU_AVAILABLE_CELL_SKIN_IDS.has(Number(id))) return "";
       const folder = SKILL_ASSETS.tofu.folder;
       return `${SKILL_ASSET_BASE}${encodeURIComponent(folder)}/${TOFU_CELL_THUMBNAIL_FOLDER}/${encodeURIComponent(String(id))}.webp`;
     }
@@ -12887,7 +12888,8 @@
     }
 
     function getTofuCommentIconPath(characterId) {
-      return tofuCellSkinPath(characterId || 1);
+      const id = characterId || 1;
+      return tofuCellSkinPath(id) || imagePath(id);
     }
 
     function buildVoiceIconHtml(src, fallbackSrc = "") {

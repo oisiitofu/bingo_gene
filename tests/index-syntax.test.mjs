@@ -170,7 +170,7 @@ test("おいしいとうふモードは静的軽量画像だけを使い継続�
 
   assert.match(html, /function tofuCellThumbnailPath\(/);
   assert.match(html, /TOFU_CELL_THUMBNAIL_FOLDER.*thumbs/);
-  assert.match(html, /TOFU_OPTIMIZED_CELL_SKIN_IDS/);
+  assert.match(html, /TOFU_AVAILABLE_CELL_SKIN_IDS/);
   assert.match(html, /\.webp/);
   assert.doesNotMatch(html, /createImageBitmap|toBlob\(|tofuCellThumbnailUrls|copyrightGoldPulse/);
   assert.ok(numericSkins.length > 0);
