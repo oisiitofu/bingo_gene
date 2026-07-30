@@ -6,6 +6,7 @@
 
   let root = null;
   let state = null;
+  let previousState = null;
   let playerStats = {};
   let selectedTileId = "0,0";
   let selectedPlayerId = "";
@@ -60,6 +61,7 @@
           <span>次の自動進行 <strong data-territory-countdown>--:--</strong></span>
         </div>
         <div class="territory-mode-actions">
+          <button type="button" class="territory-mode-close territory-history-button" data-territory-history-open>PREVIOUS SEASON</button>
           <button type="button" class="territory-mode-close" data-territory-items>MONSTER / ITEMS</button>
           <button type="button" class="territory-mode-close" data-territory-close>CLOSE</button>
         </div>
@@ -83,6 +85,18 @@
           <div class="territory-feed-list" data-territory-feed></div>
         </section>
       </div>
+      <section class="territory-history" data-territory-history hidden>
+        <div class="territory-history-panel">
+          <header class="territory-history-head">
+            <div>
+              <span>ARCHIVED RESULT</span>
+              <h2>前回シーズン詳細</h2>
+            </div>
+            <button type="button" class="territory-mode-close" data-territory-history-close>CLOSE</button>
+          </header>
+          <div class="territory-history-body" data-territory-history-body></div>
+        </div>
+      </section>
     `;
     document.body.append(root);
     root.addEventListener("click", onClick);
@@ -115,6 +129,14 @@
   }
 
   function onClick(event) {
+    if (event.target.closest("[data-territory-history-close]")) {
+      closePreviousSeason();
+      return;
+    }
+    if (event.target.closest("[data-territory-history-open]")) {
+      openPreviousSeason();
+      return;
+    }
     if (event.target.closest("[data-territory-close]")) {
       close();
       return;
@@ -157,7 +179,8 @@
     }
     const replay = event.target.closest("[data-territory-replay]");
     if (replay) {
-      const battle = state?.battles?.find((item) => item.id === replay.dataset.territoryReplay);
+      const source = root.querySelector("[data-territory-history]")?.hidden ? state : previousState;
+      const battle = source?.battles?.find((item) => item.id === replay.dataset.territoryReplay);
       if (battle) replayBattle(battle);
     }
   }
@@ -351,6 +374,108 @@
     updateCountdown();
   }
 
+  function previousSeasonPlayerTerrains(playerId) {
+    const counts = {};
+    Object.values(previousState?.tiles || {}).forEach((tile) => {
+      if (tile.ownerId !== playerId) return;
+      const name = Territory.TERRAIN_BY_ID[tile.terrain]?.name || tile.terrain || "不明";
+      counts[name] = (counts[name] || 0) + 1;
+    });
+    return Object.entries(counts)
+      .sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0], "ja-JP"))
+      .map(([name, count]) => `${name} ${count}`)
+      .join(" / ");
+  }
+
+  function renderPreviousSeason() {
+    const body = root?.querySelector("[data-territory-history-body]");
+    if (!body) return;
+    if (!previousState?.season?.id) {
+      body.innerHTML = `<div class="territory-history-empty"><strong>前回シーズンの保存データはありません</strong><span>現在のシーズン終了後、結果がここに自動保存されます。</span></div>`;
+      return;
+    }
+    const ranking = Territory.standings(previousState);
+    const champion = ranking[0] || Territory.PLAYER_BY_ID[previousState.season.championId] || null;
+    const battles = [...(previousState.battles || [])].reverse();
+    const totalCaptures = ranking.reduce((sum, player) => sum + (Number(player.captures) || 0), 0);
+    const totalDefenseWins = ranking.reduce((sum, player) => sum + (Number(player.defenseWins) || 0), 0);
+    body.innerHTML = `
+      <section class="territory-history-hero" style="--champion-color:${champion?.color || "#f7c64a"}">
+        <div class="territory-history-season">
+          <span>SEASON ${escapeHtml(previousState.season.id)}</span>
+          <small>${formatDate(previousState.season.startsAt)} - ${formatDate(previousState.season.endsAt)}</small>
+        </div>
+        <div class="territory-history-champion">
+          <span>CHAMPION</span>
+          <strong>${escapeHtml(champion?.name || "NO RESULT")}</strong>
+        </div>
+        <div class="territory-history-totals">
+          <span><strong>${battles.length}</strong>RECORD</span>
+          <span><strong>${totalCaptures}</strong>CAPTURE</span>
+          <span><strong>${totalDefenseWins}</strong>DEFENSE</span>
+        </div>
+      </section>
+      <section class="territory-history-section">
+        <h3>FINAL STANDINGS</h3>
+        <div class="territory-history-ranking">
+          ${ranking.map((player, index) => `
+            <article class="territory-history-rank" style="--history-player-color:${player.color}">
+              <span class="territory-history-position">${index + 1}</span>
+              <div class="territory-history-player">
+                <strong>${escapeHtml(player.name)}</strong>
+                <small>${escapeHtml(previousSeasonPlayerTerrains(player.id) || "領地なし")}</small>
+              </div>
+              <div class="territory-history-stat"><strong>${player.score}</strong><span>POINT</span></div>
+              <div class="territory-history-stat"><strong>${player.territoryCount}</strong><span>領地</span></div>
+              <div class="territory-history-stat"><strong>${Number(player.wins) || 0}-${Number(player.losses) || 0}</strong><span>勝敗</span></div>
+              <div class="territory-history-stat"><strong>${Number(player.captures) || 0}</strong><span>占領</span></div>
+              <div class="territory-history-stat"><strong>${Number(player.defenseWins) || 0}</strong><span>防衛</span></div>
+              <div class="territory-history-stat"><strong>${Number(player.averageHype) || 0}</strong><span>HYPE</span></div>
+            </article>
+          `).join("")}
+        </div>
+      </section>
+      <section class="territory-history-section">
+        <div class="territory-history-section-head">
+          <h3>BATTLE ARCHIVE</h3>
+          <span>${battles.length} RECORDS</span>
+        </div>
+        <div class="territory-history-battles">
+          ${battles.length ? battles.map((battle) => {
+            const winner = Territory.PLAYER_BY_ID[battle.winnerId];
+            const opponents = (battle.sides || [])
+              .filter((side) => side.playerId !== battle.winnerId)
+              .map((side) => side.playerName)
+              .join(" / ");
+            return `
+              <article class="territory-history-battle">
+                <time>${formatDate(battle.at)}</time>
+                <div>
+                  <strong>${escapeHtml(winner?.name || battle.sides?.[0]?.playerName || "BATTLE")}</strong>
+                  <span>vs ${escapeHtml(opponents || "DEFENDER")} / ${escapeHtml(Territory.TERRAIN_BY_ID[battle.terrain]?.name || battle.terrain || "")}</span>
+                </div>
+                <span class="territory-history-result">${battle.captured ? "CAPTURE" : "DEFENSE"}</span>
+                <button type="button" class="territory-replay-button" data-territory-replay="${escapeHtml(battle.id)}">REPLAY</button>
+              </article>
+            `;
+          }).join("") : `<div class="territory-empty">戦闘記録はありません</div>`}
+        </div>
+      </section>
+    `;
+  }
+
+  function openPreviousSeason() {
+    const history = root?.querySelector("[data-territory-history]");
+    if (!history) return;
+    renderPreviousSeason();
+    history.hidden = false;
+  }
+
+  function closePreviousSeason() {
+    const history = root?.querySelector("[data-territory-history]");
+    if (history) history.hidden = true;
+  }
+
   function updateCountdown() {
     if (!root || root.hidden) return;
     const output = root.querySelector("[data-territory-countdown]");
@@ -390,6 +515,7 @@
     openMonsterPage = typeof options.openMonsterPage === "function" ? options.openMonsterPage : openMonsterPage;
     onOpen = typeof options.onOpen === "function" ? options.onOpen : onOpen;
     onClose = typeof options.onClose === "function" ? options.onClose : onClose;
+    if (Object.hasOwn(options, "previousState")) previousState = options.previousState ? structuredClone(options.previousState) : null;
     if (options.state) {
       state = Territory.normalizeState(options.state, playerStats, Date.now());
       preview = options.preview === true;
@@ -411,6 +537,7 @@
 
   function close() {
     if (!root || root.hidden) return;
+    closePreviousSeason();
     root.hidden = true;
     document.body.classList.remove("territory-mode-open");
     map3D?.setActive(false);
@@ -427,6 +554,11 @@
     if (root && !root.hidden) render();
   }
 
+  function applyPreviousSnapshot(snapshot) {
+    previousState = snapshot ? structuredClone(snapshot) : null;
+    if (root && !root.hidden && !root.querySelector("[data-territory-history]")?.hidden) renderPreviousSeason();
+  }
+
   function setPlayerStats(stats) {
     playerStats = stats || {};
     if (root && !root.hidden) renderDetail();
@@ -436,6 +568,7 @@
     open,
     close,
     applySnapshot,
+    applyPreviousSnapshot,
     setPlayerStats,
     isOpen: () => Boolean(root && !root.hidden),
     getState: () => state

@@ -61,6 +61,10 @@ test("六王領土戦のクライアント、Worker、Firebaseルールが公開
   assert.match(territorySystem, /equipmentAssignments/);
   assert.match(territoryMode, /TERRITORY PARTY/);
   assert.match(territoryMode, /MONSTER \/ ITEMS/);
+  assert.match(territoryMode, /PREVIOUS SEASON/);
+  assert.match(territoryMode, /FINAL STANDINGS/);
+  assert.match(territoryMode, /BATTLE ARCHIVE/);
+  assert.match(html, /applyTerritoryPreviousSnapshot/);
   assert.match(territoryMode, /SEASON \$\{formatDate\(season\.startsAt\)\}/);
   assert.doesNotMatch(territoryMode, /SEASON \$\{season\.id\} \//);
   assert.match(territoryEquipment, /const RARITIES/);
@@ -113,6 +117,16 @@ test("六王領土戦のクライアント、Worker、Firebaseルールが公開
   assert.match(html, /showMonsterDetail: showMonsterNodeZoom/);
   assert.match(html, /熟練度 \/ 絆 Lv\./);
   assert.match(worker, /crons|advanceFrontier|If-Match|if-match/i);
+});
+
+test("勝利画面の装備報酬は獲得アイテムと効果を開ける", () => {
+  const html = readFileSync(new URL("../index.html", import.meta.url), "utf8");
+
+  assert.match(html, /id="victoryEquipmentRewardModal"/);
+  assert.match(html, /data-victory-equipment-reward=/);
+  assert.match(html, /function showVictoryEquipmentRewards\(playerKey\)/);
+  assert.match(html, /equipmentItemMarkup\(item, count\)/);
+  assert.match(html, /装備効果は六王領土戦で反映されます/);
 });
 
 test("every declared custom OPEN sound asset exists", () => {

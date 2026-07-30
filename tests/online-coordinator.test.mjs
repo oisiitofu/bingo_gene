@@ -200,6 +200,40 @@ test("六王領土戦の共有状態を購読して観戦ブリッジへ渡す",
   assert.equal(typeof viewer.territoryUnsubscribe, "function");
 });
 
+test("六王領土戦のアーカイブから直近シーズンだけを結果画面へ渡す", () => {
+  const store = {
+    value: {
+      teamBingoV1: {
+        rooms: { ROOM: createRoom() },
+        frontier: {
+          archive: {
+            "2026-07-06": {
+              version: 4,
+              archivedAt: 100,
+              season: { id: "2026-07-06", endsAt: 100 }
+            },
+            "2026-07-13": {
+              version: 4,
+              archivedAt: 200,
+              season: { id: "2026-07-13", endsAt: 200 }
+            }
+          }
+        }
+      }
+    }
+  };
+  const viewer = createCoordinator(store, "guest", "player", "blue");
+  viewer.territoryArchiveUnsubscribe = null;
+  let received = null;
+  viewer.bridge.applyTerritoryPreviousSnapshot = (snapshot) => { received = clone(snapshot); };
+
+  viewer.subscribeTerritoryArchive();
+
+  assert.equal(viewer.previousTerritoryState.season.id, "2026-07-13");
+  assert.equal(received.season.id, "2026-07-13");
+  assert.equal(typeof viewer.territoryArchiveUnsubscribe, "function");
+});
+
 test("六王領土戦の初期化は有効な管理者セッションだけが実行できる", async () => {
   const expiresAt = Date.now() + 300000;
   const store = {

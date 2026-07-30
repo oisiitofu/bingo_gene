@@ -7498,6 +7498,20 @@
     </div>
   </section>
 
+  <section class="modal victory-equipment-reward-modal" id="victoryEquipmentRewardModal" aria-hidden="true">
+    <div class="modal-card victory-equipment-reward-card">
+      <div class="victory-equipment-reward-head">
+        <div>
+          <span>MATCH REWARD</span>
+          <h2 id="victoryEquipmentRewardTitle">獲得装備</h2>
+        </div>
+        <button type="button" class="simple-action-button" id="victoryEquipmentRewardClose">CLOSE</button>
+      </div>
+      <p class="victory-equipment-reward-summary" id="victoryEquipmentRewardSummary"></p>
+      <div class="victory-equipment-reward-list" id="victoryEquipmentRewardList"></div>
+    </div>
+  </section>
+
   <section class="overlay monster-zoom-overlay" id="monsterZoomOverlay" aria-hidden="true">
     <button type="button" class="monster-overlay-close" id="monsterZoomCloseButton" aria-label="閉じる">×</button>
     <div class="monster-zoom-card">
@@ -8588,7 +8602,7 @@
         "versusBlueMembers", "versusBlueStats", "readyOverlay", "firstBingoOverlay", "reachOverlay", "reachText",
         "skillOverlay", "skillTitleArt", "skillTeamLine", "skillMemberLine",
         "victoryOverlay", "victoryTeam", "victoryPraise", "victorySpecialBadge", "mvpImage", "mvpName", "mvpTitle", "winnerTitles", "victoryResultPanel",
-        "closeVictoryButton",
+        "closeVictoryButton", "victoryEquipmentRewardModal", "victoryEquipmentRewardTitle", "victoryEquipmentRewardSummary", "victoryEquipmentRewardList", "victoryEquipmentRewardClose",
         "statsModal", "statsSummary", "statsPlayerList", "statsHighlightList", "statsRivalryList", "statsMatchList", "statsCloseButton",
         "monsterDexModal", "monsterDexCloseButton", "statsMonsterDexSummary", "statsMonsterPlayerSelect", "statsMonsterDexGrid", "statsMonsterDexTree", "statsMonsterMasteryPage", "monsterEquipmentPage", "itemDexPage", "dexNumberViewButton", "dexTreeViewButton", "dexMasteryViewButton", "monsterEquipmentViewButton", "itemDexViewButton", "dexOverviewButton",
         "adminMonsterBattleModal", "adminMonsterRed1", "adminMonsterRed2", "adminMonsterBlue1", "adminMonsterBlue2", "adminMonsterBattleCancel", "adminMonsterBattleStart",
@@ -8745,6 +8759,15 @@
         if (done && els.openedByPopover.contains(done)) hideOpenedByPopover();
       });
       els.closeVictoryButton.addEventListener("click", closeVictoryOverlay);
+      els.victoryResultPanel?.addEventListener("click", (event) => {
+        const button = event.target.closest("[data-victory-equipment-reward]");
+        if (!button || !els.victoryResultPanel.contains(button)) return;
+        showVictoryEquipmentRewards(button.dataset.victoryEquipmentReward);
+      });
+      els.victoryEquipmentRewardClose?.addEventListener("click", closeVictoryEquipmentRewards);
+      els.victoryEquipmentRewardModal?.addEventListener("click", (event) => {
+        if (event.target === els.victoryEquipmentRewardModal) closeVictoryEquipmentRewards();
+      });
       els.players.forEach((input) => input.addEventListener("input", () => {
         if (onlineCoordinator?.isOnline?.() && !onlineCoordinator.canEditSetup?.()) return;
         divideTeams();
@@ -12390,11 +12413,41 @@
             <span class="result-chip">OPEN ${entry.opens}</span>
             <span class="result-chip">SKILL ${entry.skills}</span>
             <span class="result-chip">逆転 ${entry.comebackMoves}</span>
-            ${equipmentReward ? `<span class="result-chip territory-loot-chip">装備 +${Number(equipmentReward.count) || 0}</span>` : ""}
+            ${equipmentReward ? `<button type="button" class="result-chip territory-loot-chip" data-victory-equipment-reward="${escapeHtml(entry.key)}">装備 +${Number(equipmentReward.count) || 0}<span>DETAIL</span></button>` : ""}
           </div>
           <div class="result-character-row">${characters || `<span class="result-chip">NO OPEN</span>`}</div>
         </article>
       `;
+    }
+
+    function closeVictoryEquipmentRewards() {
+      if (els.victoryEquipmentRewardModal) hideModal(els.victoryEquipmentRewardModal);
+    }
+
+    function showVictoryEquipmentRewards(playerKey) {
+      const reward = state.matchTracker?.equipmentRewards?.[playerKey];
+      if (!reward) return;
+      const entry = ["red", "blue"]
+        .flatMap((team) => getMatchPlayerEntries(team))
+        .find((player) => player.key === playerKey);
+      const rows = Object.entries(reward.items || {})
+        .map(([itemId, count]) => ({
+          item: TERRITORY_EQUIPMENT.ITEM_BY_ID[itemId],
+          count: Math.max(0, Math.floor(Number(count) || 0))
+        }))
+        .filter((row) => row.item && row.count)
+        .sort((a, b) => {
+          const rarityDiff = (TERRITORY_EQUIPMENT.RARITY_BY_ID[b.item.rarity]?.rank || 0)
+            - (TERRITORY_EQUIPMENT.RARITY_BY_ID[a.item.rarity]?.rank || 0);
+          return rarityDiff || (Number(b.item.sort) || 0) - (Number(a.item.sort) || 0);
+        });
+      const total = rows.reduce((sum, row) => sum + row.count, 0);
+      els.victoryEquipmentRewardTitle.textContent = `${entry?.name || "PLAYER"} の獲得装備`;
+      els.victoryEquipmentRewardSummary.textContent = `${total}個獲得 / ${rows.length}種類　装備効果は六王領土戦で反映されます。`;
+      els.victoryEquipmentRewardList.innerHTML = rows.length
+        ? rows.map(({ item, count }) => equipmentItemMarkup(item, count)).join("")
+        : `<div class="stats-empty">獲得装備の詳細データがありません。</div>`;
+      showModal(els.victoryEquipmentRewardModal);
     }
 
     function getVictorySpecial(victoryKind) {
@@ -15901,6 +15954,7 @@
         getOnlineStatsSnapshot,
         applyOnlineStatsSnapshot,
         applyTerritorySnapshot,
+        applyTerritoryPreviousSnapshot,
         openTerritoryMode,
         openTerritoryWindow,
         createTerritoryInitialState: () => window.TeamBingoTerritorySystem?.createInitialState(state.playerStats, Date.now()) || null,
@@ -16265,6 +16319,10 @@
       if (isTerritoryStandalonePage()) openTerritoryStandalone(snapshot);
     }
 
+    function applyTerritoryPreviousSnapshot(snapshot) {
+      window.TeamBingoTerritoryMode?.applyPreviousSnapshot(snapshot);
+    }
+
     function isTerritoryStandalonePage() {
       return new URLSearchParams(location.search).get("territory") === "1";
     }
@@ -16296,6 +16354,7 @@
       const liveState = snapshot || onlineCoordinator?.getTerritoryState?.() || null;
       window.TeamBingoTerritoryMode?.open({
         state: liveState,
+        previousState: onlineCoordinator?.getPreviousTerritoryState?.() || null,
         preview: !liveState,
         playerStats: state.playerStats,
         spriteMarkup: (nodeId) => monsterSpriteMarkup(MONSTER_NODES[nodeId] || MONSTER_NODES.egg),

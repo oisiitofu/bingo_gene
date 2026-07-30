@@ -761,6 +761,7 @@ export class OnlineCoordinator {
     this.lobbyUnsubscribe = null;
     this.statsUnsubscribe = null;
     this.territoryUnsubscribe = null;
+    this.territoryArchiveUnsubscribe = null;
     this.reactionUnsubscribe = null;
     this.seenReactionIds = new Set();
     this.lastReactionSentAt = 0;
@@ -773,6 +774,7 @@ export class OnlineCoordinator {
     this.lastAppliedGameSignature = "";
     this.globalStatsSnapshot = null;
     this.territoryState = null;
+    this.previousTerritoryState = null;
     this.globalProcessedActions = new Set();
     this.lastMasterLobbySyncKey = "";
     this.masterHandoverTimer = 0;
@@ -1016,6 +1018,7 @@ export class OnlineCoordinator {
       this.subscribeLobby();
       this.subscribeGlobalStats();
       this.subscribeTerritory();
+      this.subscribeTerritoryArchive();
       this.startGhostCleanupTimer();
       const restored = await this.restoreSession();
       if (!restored) this.showLobby();
@@ -2930,6 +2933,7 @@ export class OnlineCoordinator {
 
   isOnline() { return Boolean(this.enabled && this.backend && this.roomId); }
   getTerritoryState() { return clone(this.territoryState); }
+  getPreviousTerritoryState() { return clone(this.previousTerritoryState); }
 
   openTerritoryWindow() {
     if (typeof this.bridge.openTerritoryWindow === "function") {
@@ -3216,6 +3220,21 @@ export class OnlineCoordinator {
     this.territoryUnsubscribe = this.backend.subscribe(this.path("frontier/current"), (snapshot) => {
       this.territoryState = snapshot ? clone(snapshot) : null;
       if (snapshot) this.bridge.applyTerritorySnapshot?.(snapshot);
+    });
+  }
+
+  subscribeTerritoryArchive() {
+    if (this.territoryArchiveUnsubscribe) return;
+    this.territoryArchiveUnsubscribe = this.backend.subscribe(this.path("frontier/archive"), (archive) => {
+      const latest = Object.values(archive || {})
+        .filter((snapshot) => snapshot?.season?.id)
+        .sort((a, b) => {
+          const aTime = Number(a.archivedAt) || Number(a.season?.completedAt) || Number(a.season?.endsAt) || 0;
+          const bTime = Number(b.archivedAt) || Number(b.season?.completedAt) || Number(b.season?.endsAt) || 0;
+          return bTime - aTime;
+        })[0] || null;
+      this.previousTerritoryState = latest ? clone(latest) : null;
+      this.bridge.applyTerritoryPreviousSnapshot?.(this.previousTerritoryState);
     });
   }
 
