@@ -3487,18 +3487,6 @@
       text-shadow:
         0 2px 0 rgba(0,0,0,.78),
         0 0 10px rgba(255, 236, 117, .88);
-      animation: copyrightGoldPulse 1.3s ease-in-out infinite alternate;
-    }
-
-    @keyframes copyrightGoldPulse {
-      from {
-        transform: translateY(0);
-        filter: brightness(1);
-      }
-      to {
-        transform: translateY(-1px);
-        filter: brightness(1.2);
-      }
     }
 
     .voice-lane {
@@ -7904,12 +7892,8 @@
       default: { folder: "", logo: ["images/ui/title-skill-activation.png"], se: ["audio/hype-voice.wav"], bgm: [] }
     };
     const TOFU_CELL_SKIN_FOLDER = "cell-skins";
-    const TOFU_CELL_THUMBNAIL_SIZE = 224;
-    const TOFU_CELL_THUMBNAIL_WORKERS = 2;
-    const tofuCellThumbnailUrls = new Map();
-    const tofuCellThumbnailPromises = new Map();
-    const pendingTofuCellThumbnailIds = new Set();
-    let tofuCellThumbnailTimer = 0;
+    const TOFU_CELL_THUMBNAIL_FOLDER = `${TOFU_CELL_SKIN_FOLDER}/thumbs`;
+    const TOFU_OPTIMIZED_CELL_SKIN_IDS = new Set(Array.from({ length: 27 }, (_, index) => index + 1));
 
     function skillAssetUrls(skillId, fileKey) {
       const asset = SKILL_ASSETS[skillId] || SKILL_ASSETS.default;
@@ -7932,95 +7916,10 @@
       return `${SKILL_ASSET_BASE}${encodeURIComponent(folder)}/${TOFU_CELL_SKIN_FOLDER}/${encodeURIComponent(String(id))}.png`;
     }
 
-    function getTofuCellThumbnailPath(id) {
-      return tofuCellThumbnailUrls.get(tofuCellSkinPath(id)) || "";
-    }
-
-    function scheduleTofuCellThumbnails(ids) {
-      if (isFileProtocol() || typeof window.createImageBitmap !== "function") return;
-      (ids || []).forEach((id) => {
-        const source = tofuCellSkinPath(id);
-        if (!tofuCellThumbnailUrls.has(source) && !failedCellImagePaths.has(source)) {
-          pendingTofuCellThumbnailIds.add(Number(id));
-        }
-      });
-      if (!pendingTofuCellThumbnailIds.size || tofuCellThumbnailTimer) return;
-      tofuCellThumbnailTimer = window.setTimeout(async () => {
-        tofuCellThumbnailTimer = 0;
-        const queue = Array.from(pendingTofuCellThumbnailIds);
-        pendingTofuCellThumbnailIds.clear();
-        let cursor = 0;
-        let created = false;
-        const worker = async () => {
-          while (cursor < queue.length) {
-            const id = queue[cursor];
-            cursor += 1;
-            if (await prepareTofuCellThumbnail(id)) created = true;
-          }
-        };
-        await Promise.all(Array.from({ length: Math.min(TOFU_CELL_THUMBNAIL_WORKERS, queue.length) }, worker));
-        if (created) {
-          if (state.tofuCopyrightMode || state.skillEffects?.tofuCellSkinTeam) {
-            renderMarkupCache.grids.red = "";
-            renderMarkupCache.grids.blue = "";
-            renderAll();
-          } else {
-            releaseTofuCellThumbnails();
-          }
-        }
-      }, 40);
-    }
-
-    function prepareTofuCellThumbnail(id) {
-      const source = tofuCellSkinPath(id);
-      if (tofuCellThumbnailUrls.has(source) || failedCellImagePaths.has(source)) return Promise.resolve(false);
-      if (tofuCellThumbnailPromises.has(source)) return tofuCellThumbnailPromises.get(source);
-      const promise = fetch(source, { cache: "force-cache" })
-        .then((response) => response.ok ? response.blob() : Promise.reject(new Error("missing tofu skin")))
-        .then(async (blob) => {
-          const bitmap = await window.createImageBitmap(blob);
-          try {
-            const scale = Math.min(1, TOFU_CELL_THUMBNAIL_SIZE / Math.max(bitmap.width, bitmap.height));
-            const width = Math.max(1, Math.round(bitmap.width * scale));
-            const height = Math.max(1, Math.round(bitmap.height * scale));
-            const canvas = document.createElement("canvas");
-            canvas.width = width;
-            canvas.height = height;
-            const context = canvas.getContext("2d", { alpha: true });
-            if (!context) throw new Error("canvas unavailable");
-            context.drawImage(bitmap, 0, 0, width, height);
-            const thumbnail = await new Promise((resolve, reject) => {
-              canvas.toBlob((value) => value ? resolve(value) : reject(new Error("tofu thumbnail failed")), "image/png");
-            });
-            const url = URL.createObjectURL(thumbnail);
-            tofuCellThumbnailUrls.set(source, url);
-            return true;
-          } finally {
-            bitmap.close();
-          }
-        })
-        .catch(() => {
-          failedCellImagePaths.add(source);
-          return false;
-        })
-        .finally(() => tofuCellThumbnailPromises.delete(source));
-      tofuCellThumbnailPromises.set(source, promise);
-      return promise;
-    }
-
-    function releaseTofuCellThumbnails() {
-      tofuCellThumbnailUrls.forEach((url) => URL.revokeObjectURL(url));
-      tofuCellThumbnailUrls.clear();
-      pendingTofuCellThumbnailIds.clear();
-      if (tofuCellThumbnailTimer) window.clearTimeout(tofuCellThumbnailTimer);
-      tofuCellThumbnailTimer = 0;
-    }
-
-    function releaseInactiveTofuCellThumbnails() {
-      if (state.tofuCopyrightMode || state.skillEffects?.tofuCellSkinTeam || !tofuCellThumbnailUrls.size) return;
-      releaseTofuCellThumbnails();
-      renderMarkupCache.grids.red = "";
-      renderMarkupCache.grids.blue = "";
+    function tofuCellThumbnailPath(id) {
+      if (!TOFU_OPTIMIZED_CELL_SKIN_IDS.has(Number(id))) return "";
+      const folder = SKILL_ASSETS.tofu.folder;
+      return `${SKILL_ASSET_BASE}${encodeURIComponent(folder)}/${TOFU_CELL_THUMBNAIL_FOLDER}/${encodeURIComponent(String(id))}.webp`;
     }
 
     const SKILL_LOGO_IMAGES = {
@@ -8668,7 +8567,6 @@
       els.blueGrid.addEventListener("click", onGridClick);
       els.redGrid.addEventListener("error", onCellImageError, true);
       els.blueGrid.addEventListener("error", onCellImageError, true);
-      window.addEventListener("pagehide", releaseTofuCellThumbnails, { once: true });
       [els.redMonsterPanel, els.blueMonsterPanel].forEach((panel) => {
         panel?.addEventListener("click", (event) => {
           const button = event.target.closest("[data-monster-zoom]");
@@ -9652,7 +9550,6 @@
     }
 
     function renderAll() {
-      releaseInactiveTofuCellThumbnails();
       renderBoard("red");
       renderBoard("blue");
       renderMonsterPanel("red");
@@ -9909,9 +9806,6 @@
       const side = state[team];
       const grid = els[`${team}Grid`];
       const board = els[`${team}Board`];
-      if (state.tofuCopyrightMode || state.skillEffects?.tofuCellSkinTeam === team) {
-        scheduleTofuCellThumbnails(side.card.filter((cell) => cell && !cell.free).map((cell) => cell.id));
-      }
       if (board) board.classList.toggle("reach-hidden", isReachHidden(team));
       if (board) {
         const kentoAura = state.skillEffects?.kentoAura;
@@ -9938,9 +9832,12 @@
       if (!(image instanceof HTMLImageElement) || !image.matches(".cell > img[data-cell-image]")) return;
       const requestedSrc = image.dataset.requestedSrc || "";
       const fallbackSrc = image.dataset.fallbackSrc || "";
+      const finalFallbackSrc = image.dataset.finalFallbackSrc || "";
       if (requestedSrc) failedCellImagePaths.add(requestedSrc);
       if (fallbackSrc) {
-        image.dataset.fallbackSrc = "";
+        image.dataset.requestedSrc = fallbackSrc;
+        image.dataset.fallbackSrc = finalFallbackSrc;
+        image.dataset.finalFallbackSrc = "";
         image.src = fallbackSrc;
         return;
       }
@@ -10283,11 +10180,15 @@
       const disabled = state.inputLocked || isOnlineInputBusy() || cell.free;
       const defaultCellImage = cell.free ? "" : imagePath(cell.id);
       const tofuSourceImage = useTofuCellSkin ? tofuCellSkinPath(cell.id) : "";
-      const tofuCellImage = useTofuCellSkin
-        ? (getTofuCellThumbnailPath(cell.id) || (isFileProtocol() ? tofuSourceImage : ""))
+      const tofuThumbnailImage = useTofuCellSkin ? tofuCellThumbnailPath(cell.id) : "";
+      const activeCellImage = tofuThumbnailImage && !failedCellImagePaths.has(tofuThumbnailImage)
+        ? tofuThumbnailImage
+        : (tofuSourceImage && !failedCellImagePaths.has(tofuSourceImage) ? tofuSourceImage : defaultCellImage);
+      const fallbackImage = activeCellImage === tofuThumbnailImage ? tofuSourceImage : (activeCellImage === tofuSourceImage ? defaultCellImage : "");
+      const finalFallbackImage = activeCellImage === tofuThumbnailImage ? defaultCellImage : "";
+      const fallbackImageAttr = fallbackImage
+        ? ` data-fallback-src="${fallbackImage}"${finalFallbackImage ? ` data-final-fallback-src="${finalFallbackImage}"` : ""}`
         : "";
-      const activeCellImage = tofuCellImage && !failedCellImagePaths.has(tofuCellImage) ? tofuCellImage : defaultCellImage;
-      const fallbackImageAttr = activeCellImage !== defaultCellImage ? ` data-fallback-src="${defaultCellImage}"` : "";
       const content = cell.free
         ? (isLickeyCastleCell
           ? `<img class="lickey-castle-art" src="${skillAssetUrl("lickey", "castle")}" alt="" />`
@@ -12986,9 +12887,7 @@
     }
 
     function getTofuCommentIconPath(characterId) {
-      const id = characterId || 1;
-      scheduleTofuCellThumbnails([id]);
-      return getTofuCellThumbnailPath(id) || imagePath(id);
+      return tofuCellSkinPath(characterId || 1);
     }
 
     function buildVoiceIconHtml(src, fallbackSrc = "") {

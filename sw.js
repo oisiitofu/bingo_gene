@@ -1,6 +1,6 @@
 "use strict";
 
-const CACHE_VERSION = "team-bingo-v1-20260730-world-shared-stats-63";
+const CACHE_VERSION = "team-bingo-v1-20260730-tofu-static-thumbs-64";
 const SHELL_CACHE = `${CACHE_VERSION}-shell`;
 const ASSET_CACHE = `${CACHE_VERSION}-assets`;
 const SHELL_FILES = [

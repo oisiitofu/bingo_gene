@@ -1,6 +1,6 @@
 import test from "node:test";
 import assert from "node:assert/strict";
-import { existsSync, readFileSync } from "node:fs";
+import { existsSync, readFileSync, readdirSync } from "node:fs";
 
 test("all inline index scripts compile", () => {
   const html = readFileSync(new URL("../index.html", import.meta.url), "utf8");
@@ -160,6 +160,23 @@ test("世界大会は独立部屋、全組み合わせ、通常戦績加算へ�
   assert.equal(rules.rules.teamBingoV1.worldTournaments.rooms[".write"], "auth != null");
   assert.match(serviceWorker, /\.\/world-tournament\.js/);
   assert.match(serviceWorker, /\.\/world-tournament\.css/);
+});
+
+test("おいしいとうふモードは静的軽量画像だけを使い継続再描画しない", () => {
+  const html = readFileSync(new URL("../index.html", import.meta.url), "utf8");
+  const sourceDirectory = new URL("../skill-assets/おいしいとうふ/cell-skins/", import.meta.url);
+  const numericSkins = readdirSync(sourceDirectory)
+    .filter((name) => /^\d+\.png$/.test(name));
+
+  assert.match(html, /function tofuCellThumbnailPath\(/);
+  assert.match(html, /TOFU_CELL_THUMBNAIL_FOLDER.*thumbs/);
+  assert.match(html, /TOFU_OPTIMIZED_CELL_SKIN_IDS/);
+  assert.match(html, /\.webp/);
+  assert.doesNotMatch(html, /createImageBitmap|toBlob\(|tofuCellThumbnailUrls|copyrightGoldPulse/);
+  assert.ok(numericSkins.length > 0);
+  numericSkins.forEach((name) => {
+    assert.ok(existsSync(new URL(`thumbs/${name.replace(/\.png$/, ".webp")}`, sourceDirectory)));
+  });
 });
 
 test("モンスターバトル勝者へ一人一個の装備報酬を付与する", () => {
@@ -444,13 +461,13 @@ test("monster evolution has eight childhood entries, rank six fusions, passives,
   assert.match(html, /value \* 1\.001/);
   assert.match(html, /const renderMarkupCache =/);
   assert.match(html, /function onCellImageError\(/);
-  assert.match(html, /TOFU_CELL_THUMBNAIL_SIZE = 224/);
-  assert.match(html, /function prepareTofuCellThumbnail\(/);
+  assert.match(html, /TOFU_CELL_THUMBNAIL_FOLDER/);
+  assert.match(html, /function tofuCellThumbnailPath\(/);
   assert.match(html, /CUSTOM_OPEN_SOUND_BUFFER_LIMIT = 24/);
   assert.doesNotMatch(html, /function unlockAudio\(\) \{\s*Object\.keys\(AUDIO\)/);
   assert.doesNotMatch(html, /function unlockOpenSoundAudio\(\) \{[\s\S]{0,260}primeCustomOpenSoundBuffers\(\)/);
   assert.match(html, /customOpenSoundBufferCache\.size > CUSTOM_OPEN_SOUND_BUFFER_LIMIT/);
-  assert.match(html, /function releaseInactiveTofuCellThumbnails\(/);
+  assert.doesNotMatch(html, /function releaseInactiveTofuCellThumbnails\(/);
   assert.doesNotMatch(html, /<img src="\$\{activeCellImage\}"[^>]+onerror=/);
   assert.match(html, /function renderMonsterDex\(/);
   assert.match(html, /monsterRankLabel\(node\)/);
