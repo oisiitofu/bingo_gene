@@ -10,6 +10,11 @@
   let activeMatch = null;
   let returnPending = false;
   let deleteArmedId = "";
+  let viewMode = "room";
+  let repository = null;
+  let repositoryUnsubscribe = null;
+  let repositoryQueue = Promise.resolve();
+  let syncState = "local";
 
   function escapeHtml(value) {
     return String(value ?? "")
@@ -211,12 +216,82 @@
     return rooms;
   }
 
-  function saveRooms() {
+  function persistLocalRooms() {
     try {
       storage()?.setItem(STORAGE_KEY, JSON.stringify(rooms));
     } catch (error) {
       console.warn("World Tournament save failed", error);
     }
+  }
+
+  function applyRemoteRooms(values) {
+    rooms = (Array.isArray(values) ? values : []).map(normalizeRoom).filter(Boolean);
+    rooms.sort((a, b) => b.createdAt.localeCompare(a.createdAt));
+    if (!rooms.some((room) => room.id === selectedRoomId)) selectedRoomId = rooms[0]?.id || "";
+    persistLocalRooms();
+    if (root && !root.hidden) render();
+    return rooms;
+  }
+
+  function setSyncState(next) {
+    syncState = next;
+    if (root && !root.hidden) renderSyncState();
+  }
+
+  async function connectRepository() {
+    if (!repository?.mergeWorldTournamentRooms || !repository?.subscribeWorldTournamentRooms) return false;
+    const localRooms = rooms.map((room) => structuredClone(room));
+    setSyncState("loading");
+    try {
+      const merged = await repository.mergeWorldTournamentRooms(localRooms);
+      applyRemoteRooms(merged);
+      repositoryUnsubscribe?.();
+      repositoryUnsubscribe = repository.subscribeWorldTournamentRooms((snapshot) => {
+        setSyncState("shared");
+        applyRemoteRooms(snapshot);
+      });
+      setSyncState("shared");
+      return true;
+    } catch (error) {
+      console.warn("World Tournament sync failed", error);
+      setSyncState("error");
+      return false;
+    }
+  }
+
+  function saveRooms(room = null) {
+    persistLocalRooms();
+    if (!room || !repository?.saveWorldTournamentRoom) return;
+    const snapshot = structuredClone(room);
+    setSyncState("saving");
+    repositoryQueue = repositoryQueue
+      .catch(() => {})
+      .then(() => repository.saveWorldTournamentRoom(snapshot))
+      .then(async () => {
+        if (!repositoryUnsubscribe) await connectRepository();
+        else setSyncState("shared");
+      })
+      .catch((error) => {
+        console.warn("World Tournament remote save failed", error);
+        setSyncState("error");
+      });
+  }
+
+  function deleteRoom(roomId) {
+    persistLocalRooms();
+    if (!roomId || !repository?.deleteWorldTournamentRoom) return;
+    setSyncState("saving");
+    repositoryQueue = repositoryQueue
+      .catch(() => {})
+      .then(() => repository.deleteWorldTournamentRoom(roomId))
+      .then(async () => {
+        if (!repositoryUnsubscribe) await connectRepository();
+        else setSyncState("shared");
+      })
+      .catch((error) => {
+        console.warn("World Tournament remote delete failed", error);
+        setSyncState("error");
+      });
   }
 
   function selectedRoom() {
@@ -226,6 +301,39 @@
   function playerNames(room, keys) {
     const names = new Map(room.players.map((player) => [player.key, player.name]));
     return keys.map((key) => names.get(key) || key);
+  }
+
+  function aggregateAllTimeStats(roomValues = rooms) {
+    const totals = {};
+    (Array.isArray(roomValues) ? roomValues : []).forEach((room) => {
+      const roomStats = Object.values(room?.stats || {});
+      const complete = Boolean(room?.matches?.length) && room.matches.every((match) => match.status === "complete");
+      const bestWins = complete ? Math.max(0, ...roomStats.map((stat) => Number(stat.wins) || 0)) : -1;
+      room.players.forEach((player) => {
+        const source = room.stats?.[player.key] || emptyPlayerStat(player);
+        const total = totals[player.key] || (totals[player.key] = {
+          ...emptyPlayerStat(player),
+          tournaments: 0,
+          championships: 0
+        });
+        total.name = player.name;
+        total.tournaments += 1;
+        total.championships += complete && Number(source.wins) === bestWins ? 1 : 0;
+        ["games", "wins", "losses", "opens", "skills", "comebackMoves", "mvps"].forEach((field) => {
+          total[field] += Number(source[field]) || 0;
+        });
+        Object.entries(source.characters || {}).forEach(([characterId, count]) => {
+          total.characters[characterId] = (Number(total.characters[characterId]) || 0) + (Number(count) || 0);
+        });
+      });
+    });
+    return Object.values(totals).sort((a, b) => (
+      b.championships - a.championships ||
+      b.wins - a.wins ||
+      b.opens - a.opens ||
+      b.mvps - a.mvps ||
+      a.name.localeCompare(b.name, "ja-JP")
+    ));
   }
 
   function recordMatch(roomId, matchId, result = {}) {
@@ -269,7 +377,7 @@
       });
     });
     room.updatedAt = match.endedAt;
-    saveRooms();
+    saveRooms(room);
     activeMatch = null;
     return true;
   }
@@ -320,6 +428,8 @@
             <h1>世界大会</h1>
           </div>
           <div class="world-tournament-head-actions">
+            <span class="world-sync-state" data-world-sync-state>LOCAL</span>
+            <button type="button" class="world-simple-button" data-world-all-stats>ALL STATS</button>
             <button type="button" class="world-simple-button" data-world-new>NEW</button>
             <button type="button" class="world-simple-button" data-world-close>CLOSE</button>
           </div>
@@ -331,7 +441,7 @@
       </div>
       <section class="world-create-dialog" data-world-create hidden>
         <form class="world-create-card" data-world-create-form>
-          <span>LOCAL TOURNAMENT ROOM</span>
+          <span>SHARED TOURNAMENT ROOM</span>
           <h2>世界大会を作成</h2>
           <label>大会名<input type="text" maxlength="40" data-world-room-name /></label>
           <div class="world-create-players" data-world-create-players></div>
@@ -347,6 +457,22 @@
     root.addEventListener("click", onClick);
     root.querySelector("[data-world-create-form]").addEventListener("submit", onCreate);
     return root;
+  }
+
+  function renderSyncState() {
+    if (!root) return;
+    const badge = root.querySelector("[data-world-sync-state]");
+    if (!badge) return;
+    const labels = {
+      local: "LOCAL",
+      loading: "SYNCING",
+      saving: "SAVING",
+      shared: "SHARED",
+      error: "SYNC ERROR"
+    };
+    badge.textContent = labels[syncState] || "LOCAL";
+    badge.className = `world-sync-state ${syncState}`;
+    root.querySelector("[data-world-all-stats]")?.classList.toggle("active", viewMode === "stats");
   }
 
   function roomCardMarkup(room) {
@@ -370,12 +496,60 @@
     `).join("");
   }
 
+  function allTimeStatsMarkup() {
+    const totals = aggregateAllTimeStats();
+    const completedMatches = rooms.reduce((count, room) => (
+      count + room.matches.filter((match) => match.status === "complete").length
+    ), 0);
+    return `
+      <header class="world-room-head world-all-stats-head">
+        <div>
+          <span>ALL TOURNAMENT HISTORY</span>
+          <h2>世界大会 累計STATS</h2>
+          <p>${rooms.length} TOURNAMENTS / ${completedMatches} MATCHES / ${totals.length} PLAYERS</p>
+        </div>
+      </header>
+      <section class="world-leaderboard world-all-stats">
+        <h3>ALL-TIME STANDINGS <span>すべての世界大会を合算</span></h3>
+        <div class="world-leaderboard-grid">
+          ${totals.length ? totals.map((stat, index) => {
+            const winRate = stat.games ? Math.round((stat.wins / stat.games) * 1000) / 10 : 0;
+            return `
+              <article class="world-player-stat world-all-player-stat">
+                <b>${index + 1}</b>
+                <div>
+                  <strong>${escapeHtml(stat.name)}</strong>
+                  <span>${stat.tournaments}大会 / 優勝 ${stat.championships}回 / 勝率 ${winRate}%</span>
+                </div>
+                <dl>
+                  <dt>PLAY</dt><dd>${stat.games}</dd>
+                  <dt>WIN</dt><dd>${stat.wins}</dd>
+                  <dt>LOSE</dt><dd>${stat.losses}</dd>
+                  <dt>OPEN</dt><dd>${stat.opens}</dd>
+                  <dt>MVP</dt><dd>${stat.mvps}</dd>
+                  <dt>SKILL</dt><dd>${stat.skills}</dd>
+                  <dt>COMEBACK</dt><dd>${stat.comebackMoves}</dd>
+                </dl>
+                <div class="world-character-list">${characterSummary(stat)}</div>
+              </article>
+            `;
+          }).join("") : `<div class="world-empty-detail"><strong>累計記録はまだありません</strong></div>`}
+        </div>
+      </section>
+    `;
+  }
+
   function render() {
     if (!root) return;
+    renderSyncState();
     root.querySelector("[data-world-room-list]").innerHTML = rooms.length
       ? rooms.map(roomCardMarkup).join("")
       : `<div class="world-empty-room">大会部屋はまだありません</div>`;
     const detail = root.querySelector("[data-world-room-detail]");
+    if (viewMode === "stats") {
+      detail.innerHTML = allTimeStatsMarkup();
+      return;
+    }
     const room = selectedRoom();
     if (!room) {
       detail.innerHTML = `
@@ -394,7 +568,7 @@
     detail.innerHTML = `
       <header class="world-room-head">
         <div>
-          <span>LOCAL / PERSISTENT</span>
+          <span>SHARED / PERSISTENT</span>
           <h2>${escapeHtml(room.name)}</h2>
           <p>${room.players.length} PLAYERS / ${complete} OF ${room.matches.length} COMPLETE</p>
         </div>
@@ -468,7 +642,8 @@
       const room = createRoom(dialog.querySelector("[data-world-room-name]").value, players);
       rooms.unshift(room);
       selectedRoomId = room.id;
-      saveRooms();
+      viewMode = "room";
+      saveRooms(room);
       hideCreate();
       render();
     } catch (error) {
@@ -495,7 +670,7 @@
     match.startedAt = new Date().toISOString();
     room.updatedAt = match.startedAt;
     activeMatch = { roomId: room.id, matchId: match.id };
-    saveRooms();
+    saveRooms(room);
     close();
     host.startMatch?.({ roomId: room.id, matchId: match.id, red, blue });
   }
@@ -509,6 +684,11 @@
       showCreate();
       return;
     }
+    if (event.target.closest("[data-world-all-stats]")) {
+      viewMode = viewMode === "stats" ? "room" : "stats";
+      render();
+      return;
+    }
     if (event.target.closest("[data-world-create-cancel]")) {
       hideCreate();
       return;
@@ -516,6 +696,7 @@
     const roomButton = event.target.closest("[data-world-room]");
     if (roomButton) {
       selectedRoomId = roomButton.dataset.worldRoom;
+      viewMode = "room";
       deleteArmedId = "";
       render();
       return;
@@ -535,7 +716,7 @@
     if (shuffle) {
       const room = rooms.find((entry) => entry.id === shuffle.dataset.worldShuffle);
       if (room && shuffleRoom(room)) {
-        saveRooms();
+        saveRooms(room);
         render();
       }
       return;
@@ -551,14 +732,21 @@
       rooms = rooms.filter((room) => room.id !== id);
       if (selectedRoomId === id) selectedRoomId = rooms[0]?.id || "";
       deleteArmedId = "";
-      saveRooms();
+      deleteRoom(id);
       render();
     }
   }
 
   function configure(options = {}) {
+    const nextRepository = options.repository || repository;
     host = { ...host, ...options };
     loadRooms();
+    if (nextRepository && nextRepository !== repository) {
+      repositoryUnsubscribe?.();
+      repositoryUnsubscribe = null;
+      repository = nextRepository;
+      repositoryQueue = repositoryQueue.catch(() => {}).then(() => connectRepository());
+    }
   }
 
   function open() {
@@ -605,8 +793,10 @@
     shuffleRoom,
     createRoom,
     recordMatch,
+    aggregateAllTimeStats,
     roomCsv,
     _loadRooms: loadRooms,
+    _applyRemoteRooms: applyRemoteRooms,
     _getRooms: () => rooms
   });
 })(typeof window !== "undefined" ? window : globalThis);

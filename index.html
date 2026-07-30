@@ -16391,6 +16391,7 @@
     function configureWorldTournament() {
       window.TeamBingoWorldTournament?.configure({
         getPlayers: getTeamSelectionPlayers,
+        repository: onlineCoordinator,
         characterMarkup: (characterId) => {
           const id = Math.max(1, Math.min(CHARACTER_COUNT, Number(characterId) || 1));
           return `<img src="${imagePath(id)}" alt="" loading="lazy" />`;

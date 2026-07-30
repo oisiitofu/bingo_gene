@@ -66,7 +66,34 @@ body.world-tournament-open {
 .world-tournament-head-actions,
 .world-room-head > div:last-child {
   display: flex;
+  align-items: center;
   gap: 8px;
+}
+
+.world-sync-state {
+  min-width: 62px;
+  padding: 6px 8px;
+  border: 1px solid #3c4856;
+  color: #8f9cab !important;
+  background: #090e15;
+  font-size: 7px !important;
+  text-align: center;
+}
+
+.world-sync-state.shared {
+  border-color: #247c58;
+  color: #65e6a8 !important;
+}
+
+.world-sync-state.loading,
+.world-sync-state.saving {
+  border-color: #8c7130;
+  color: #f0cb68 !important;
+}
+
+.world-sync-state.error {
+  border-color: #8b3243;
+  color: #ff9caf !important;
 }
 
 .world-simple-button {
@@ -91,6 +118,12 @@ body.world-tournament-open {
   border-color: #e6bd4c;
   color: #111;
   background: #f2cf69;
+}
+
+.world-simple-button.active {
+  border-color: #e6bd4c;
+  color: #f6d879;
+  background: #221e13;
 }
 
 .world-simple-button.danger {
@@ -237,6 +270,25 @@ body.world-tournament-open {
   grid-template-columns: repeat(3, auto 1fr);
   gap: 3px 5px;
   margin: 0;
+}
+
+.world-all-player-stat {
+  grid-template-columns: 32px minmax(150px, .72fr) minmax(310px, 1.28fr);
+  grid-template-rows: auto auto;
+  min-height: 96px;
+}
+
+.world-all-player-stat dl {
+  grid-template-columns: repeat(4, auto minmax(18px, 1fr));
+}
+
+.world-all-player-stat .world-character-list {
+  grid-column: 2 / -1;
+  width: 100%;
+}
+
+.world-all-stats .world-empty-detail {
+  grid-column: 1 / -1;
 }
 
 .world-player-stat dt {
@@ -480,6 +532,21 @@ body.world-tournament-open {
     padding: 0;
   }
 
+  .world-tournament-head {
+    flex-wrap: wrap;
+    padding: 12px;
+  }
+
+  .world-tournament-head-actions {
+    width: 100%;
+    display: grid;
+    grid-template-columns: auto repeat(3, minmax(0, 1fr));
+  }
+
+  .world-tournament-head-actions .world-simple-button {
+    min-width: 0;
+  }
+
   .world-tournament-shell {
     min-height: 100vh;
   }
@@ -500,5 +567,18 @@ body.world-tournament-open {
 
   .world-match-result {
     display: none;
+  }
+
+  .world-all-player-stat {
+    grid-template-columns: 28px minmax(0, 1fr);
+  }
+
+  .world-all-player-stat dl {
+    grid-column: 2;
+    grid-template-columns: repeat(2, auto minmax(18px, 1fr));
+  }
+
+  .world-all-player-stat .world-character-list {
+    grid-column: 2;
   }
 }

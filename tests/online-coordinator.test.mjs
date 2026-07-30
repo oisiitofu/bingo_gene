@@ -238,6 +238,57 @@ test("六王領土戦のアーカイブから直近結果と全シーズンを�
   assert.equal(typeof viewer.territoryArchiveUnsubscribe, "function");
 });
 
+test("世界大会のローカル部屋を共通保存へ統合して端末をまたいで更新・削除できる", async () => {
+  const remoteOld = {
+    id: "world-1-remote",
+    version: 1,
+    name: "REMOTE OLD",
+    createdAt: "2026-07-29T00:00:00.000Z",
+    updatedAt: "2026-07-29T01:00:00.000Z"
+  };
+  const remoteOnly = {
+    id: "world-2-remote",
+    version: 1,
+    name: "REMOTE ONLY",
+    createdAt: "2026-07-29T00:00:00.000Z",
+    updatedAt: "2026-07-29T02:00:00.000Z"
+  };
+  const store = {
+    value: {
+      teamBingoV1: {
+        rooms: { ROOM: createRoom() },
+        worldTournaments: {
+          rooms: {
+            [remoteOld.id]: remoteOld,
+            [remoteOnly.id]: remoteOnly
+          }
+        }
+      }
+    }
+  };
+  const coordinator = createCoordinator(store, "master", "master", "red");
+  const localNewer = {
+    ...remoteOld,
+    name: "LOCAL NEWER",
+    updatedAt: "2026-07-30T01:00:00.000Z"
+  };
+
+  const merged = await coordinator.mergeWorldTournamentRooms([localNewer]);
+  assert.equal(merged.length, 2);
+  assert.equal(store.value.teamBingoV1.worldTournaments.rooms[remoteOld.id].name, "LOCAL NEWER");
+  assert.equal(store.value.teamBingoV1.worldTournaments.rooms[remoteOnly.id].name, "REMOTE ONLY");
+
+  await coordinator.saveWorldTournamentRoom({ ...localNewer, name: "SHARED RESULT" });
+  assert.equal(store.value.teamBingoV1.worldTournaments.rooms[remoteOld.id].name, "SHARED RESULT");
+
+  let received = null;
+  coordinator.subscribeWorldTournamentRooms((rooms) => { received = rooms; });
+  assert.equal(received.length, 2);
+
+  await coordinator.deleteWorldTournamentRoom(remoteOnly.id);
+  assert.equal(store.value.teamBingoV1.worldTournaments.rooms[remoteOnly.id], undefined);
+});
+
 test("六王領土戦の初期化は有効な管理者セッションだけが実行できる", async () => {
   const expiresAt = Date.now() + 300000;
   const store = {

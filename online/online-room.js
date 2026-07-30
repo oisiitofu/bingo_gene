@@ -816,6 +816,9 @@ export class OnlineCoordinator {
   roomPath(roomId = this.roomId, part = "") { return this.path(["rooms", roomId, part].filter(Boolean).join("/")); }
   lobbyPath(roomId = this.roomId) { return this.path(["lobby", roomId].filter(Boolean).join("/")); }
   reactionPath(roomId = this.roomId, part = "") { return this.path(["reactions", roomId, part].filter(Boolean).join("/")); }
+  worldTournamentPath(roomId = "") {
+    return this.path(["worldTournaments", "rooms", roomId].filter(Boolean).join("/"));
+  }
 
   seatReclaimStorageKey(roomId, seatKey) {
     return `teamBingo.seatReclaim.v1.${encodeURIComponent(roomId)}.${encodeURIComponent(seatKey)}`;
@@ -3240,6 +3243,41 @@ export class OnlineCoordinator {
       this.bridge.applyTerritoryPreviousSnapshot?.(this.previousTerritoryState);
       this.bridge.applyTerritoryArchive?.(this.territoryArchive);
     });
+  }
+
+  subscribeWorldTournamentRooms(callback) {
+    if (!this.backend || typeof callback !== "function") return () => {};
+    return this.backend.subscribe(this.worldTournamentPath(), (snapshot) => {
+      callback(Object.values(clone(snapshot || {})).filter((room) => room?.id));
+    });
+  }
+
+  async mergeWorldTournamentRooms(localRooms = []) {
+    if (!this.backend) return [];
+    const incoming = (Array.isArray(localRooms) ? localRooms : []).filter((room) => room?.id);
+    const result = await this.backend.transaction(this.worldTournamentPath(), (current) => {
+      const next = { ...(current || {}) };
+      incoming.forEach((room) => {
+        const existing = next[room.id];
+        const localTime = Date.parse(room.updatedAt || room.createdAt || "") || 0;
+        const remoteTime = Date.parse(existing?.updatedAt || existing?.createdAt || "") || 0;
+        if (!existing || localTime > remoteTime) next[room.id] = clone(room);
+      });
+      return next;
+    });
+    return Object.values(clone(result.value || {})).filter((room) => room?.id);
+  }
+
+  async saveWorldTournamentRoom(room) {
+    if (!this.backend || !room?.id) return false;
+    await this.backend.set(this.worldTournamentPath(room.id), clone(room));
+    return true;
+  }
+
+  async deleteWorldTournamentRoom(roomId) {
+    if (!this.backend || !roomId) return false;
+    await this.backend.set(this.worldTournamentPath(roomId), null);
+    return true;
   }
 
   syncStandaloneStats(snapshot) {

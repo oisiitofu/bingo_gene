@@ -105,3 +105,44 @@ test("world tournament CSV includes match, player, and character records", () =>
   assert.match(csv, /"CHARACTER"/);
   assert.match(csv, /"2026\/07\/30"/);
 });
+
+test("all-time tournament stats combine every room without using normal career stats", () => {
+  const { api } = createApi();
+  const first = api.createRoom("DAY 1", ["A", "B"], new Date("2026-07-29T00:00:00+09:00"));
+  const second = api.createRoom("DAY 2", ["A", "B"], new Date("2026-07-30T00:00:00+09:00"));
+
+  first.matches[0].status = "complete";
+  first.stats.a = { ...first.stats.a, games: 1, wins: 1, opens: 7, mvps: 1, characters: { 53: 2 } };
+  first.stats.b = { ...first.stats.b, games: 1, losses: 1, opens: 4 };
+  second.matches[0].status = "complete";
+  second.stats.a = { ...second.stats.a, games: 1, losses: 1, opens: 3, skills: 1, characters: { 53: 1 } };
+  second.stats.b = { ...second.stats.b, games: 1, wins: 1, opens: 8, comebackMoves: 1 };
+
+  const totals = api.aggregateAllTimeStats([first, second]);
+  const playerA = totals.find((stat) => stat.key === "a");
+  const playerB = totals.find((stat) => stat.key === "b");
+
+  assert.equal(playerA.tournaments, 2);
+  assert.equal(playerA.championships, 1);
+  assert.equal(playerA.games, 2);
+  assert.equal(playerA.wins, 1);
+  assert.equal(playerA.losses, 1);
+  assert.equal(playerA.opens, 10);
+  assert.equal(playerA.mvps, 1);
+  assert.equal(playerA.skills, 1);
+  assert.deepEqual(playerA.characters, { 53: 3 });
+  assert.equal(playerB.championships, 1);
+  assert.equal(playerB.comebackMoves, 1);
+});
+
+test("a server snapshot replaces the browser cache so every browser sees the same rooms", () => {
+  const local = createApi();
+  const localRoom = local.api.createRoom("LOCAL", ["A", "B"], new Date("2026-07-29T00:00:00+09:00"));
+  const remoteRoom = local.api.createRoom("SHARED", ["A", "B"], new Date("2026-07-30T00:00:00+09:00"));
+  const { api, read } = createApi([localRoom]);
+
+  api._applyRemoteRooms([remoteRoom]);
+
+  assert.deepEqual(api._getRooms().map((room) => room.name), ["SHARED"]);
+  assert.deepEqual(read().map((room) => room.name), ["SHARED"]);
+});

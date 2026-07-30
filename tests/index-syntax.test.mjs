@@ -135,6 +135,8 @@ test("勝利画面の装備報酬は獲得アイテムと効果を開ける", ()
 test("世界大会は独立部屋、全組み合わせ、通常戦績加算へ接続されている", () => {
   const html = readFileSync(new URL("../index.html", import.meta.url), "utf8");
   const tournament = readFileSync(new URL("../world-tournament.js", import.meta.url), "utf8");
+  const online = readFileSync(new URL("../online/online-room.js", import.meta.url), "utf8");
+  const rules = JSON.parse(readFileSync(new URL("../firebase-database.rules.json", import.meta.url), "utf8"));
   const serviceWorker = readFileSync(new URL("../sw.js", import.meta.url), "utf8");
 
   assert.match(html, /id="worldTournamentButton">世界大会</);
@@ -148,7 +150,14 @@ test("世界大会は独立部屋、全組み合わせ、通常戦績加算へ�
   assert.match(tournament, /function randomizeMatchups\(/);
   assert.match(tournament, /data-world-shuffle/);
   assert.match(tournament, /function canShuffleRoom\(/);
+  assert.match(tournament, /function aggregateAllTimeStats\(/);
+  assert.match(tournament, /data-world-all-stats/);
+  assert.match(tournament, /SHARED \/ PERSISTENT/);
   assert.match(tournament, /function roomCsv\(/);
+  assert.match(html, /repository: onlineCoordinator/);
+  assert.match(online, /mergeWorldTournamentRooms/);
+  assert.match(online, /subscribeWorldTournamentRooms/);
+  assert.equal(rules.rules.teamBingoV1.worldTournaments.rooms[".write"], "auth != null");
   assert.match(serviceWorker, /\.\/world-tournament\.js/);
   assert.match(serviceWorker, /\.\/world-tournament\.css/);
 });
