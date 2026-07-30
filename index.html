@@ -15877,7 +15877,13 @@
       if ("serviceWorker" in navigator && /^https?:$/.test(location.protocol)) {
         navigator.serviceWorker.register("./sw.js").then((registration) => registration.update()).catch((error) => console.warn("Service worker registration failed", error));
       }
-      import("./online/online-room.js")
+      const onlineRoomModuleUrl = "./online/online-room.js?v=20260731-room-boot-1";
+      import(onlineRoomModuleUrl)
+        .catch((firstError) => import(`${onlineRoomModuleUrl}&retry=${Date.now()}`)
+          .catch((retryError) => {
+            retryError.cause = firstError;
+            throw retryError;
+          }))
         .then(({ initOnlineRoom, shouldAnnounceOnlineMatchStart, shouldResetOnlineMatchPresentation, shouldPresentOnlineMonsterBattle }) => {
           if (typeof shouldResetOnlineMatchPresentation === "function") {
             onlineMatchResetDetector = shouldResetOnlineMatchPresentation;

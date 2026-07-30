@@ -13,6 +13,15 @@ test("all inline index scripts compile", () => {
   });
 });
 
+test("online lobby boot bypasses stale browser modules and retries once", () => {
+  const html = readFileSync(new URL("../index.html", import.meta.url), "utf8");
+  const serviceWorker = readFileSync(new URL("../sw.js", import.meta.url), "utf8");
+
+  assert.match(html, /online-room\.js\?v=20260731-room-boot-1/);
+  assert.match(html, /retry=\$\{Date\.now\(\)\}/);
+  assert.match(serviceWorker, /20260731-online-room-boot-66/);
+});
+
 test("bingo cells are operated only through player-name buttons", () => {
   const html = readFileSync(new URL("../index.html", import.meta.url), "utf8");
   assert.doesNotMatch(html, /class="opener-row"/);
