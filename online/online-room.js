@@ -775,6 +775,7 @@ export class OnlineCoordinator {
     this.globalStatsSnapshot = null;
     this.territoryState = null;
     this.previousTerritoryState = null;
+    this.territoryArchive = {};
     this.globalProcessedActions = new Set();
     this.lastMasterLobbySyncKey = "";
     this.masterHandoverTimer = 0;
@@ -2934,6 +2935,7 @@ export class OnlineCoordinator {
   isOnline() { return Boolean(this.enabled && this.backend && this.roomId); }
   getTerritoryState() { return clone(this.territoryState); }
   getPreviousTerritoryState() { return clone(this.previousTerritoryState); }
+  getTerritoryArchive() { return clone(this.territoryArchive); }
 
   openTerritoryWindow() {
     if (typeof this.bridge.openTerritoryWindow === "function") {
@@ -3226,7 +3228,8 @@ export class OnlineCoordinator {
   subscribeTerritoryArchive() {
     if (this.territoryArchiveUnsubscribe) return;
     this.territoryArchiveUnsubscribe = this.backend.subscribe(this.path("frontier/archive"), (archive) => {
-      const latest = Object.values(archive || {})
+      this.territoryArchive = clone(archive || {});
+      const latest = Object.values(this.territoryArchive)
         .filter((snapshot) => snapshot?.season?.id)
         .sort((a, b) => {
           const aTime = Number(a.archivedAt) || Number(a.season?.completedAt) || Number(a.season?.endsAt) || 0;
@@ -3235,6 +3238,7 @@ export class OnlineCoordinator {
         })[0] || null;
       this.previousTerritoryState = latest ? clone(latest) : null;
       this.bridge.applyTerritoryPreviousSnapshot?.(this.previousTerritoryState);
+      this.bridge.applyTerritoryArchive?.(this.territoryArchive);
     });
   }
 

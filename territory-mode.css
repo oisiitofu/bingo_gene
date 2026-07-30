@@ -805,7 +805,7 @@ body.territory-mode-open .monster-zoom-overlay {
 }
 
 .territory-history-panel {
-  width: min(1120px, 96vw);
+  width: min(1380px, 97vw);
   max-height: 90vh;
   display: grid;
   grid-template-rows: auto minmax(0, 1fr);
@@ -840,10 +840,176 @@ body.territory-mode-open .monster-zoom-overlay {
   letter-spacing: 0;
 }
 
+.territory-history-head-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.territory-history-head-actions select {
+  min-width: 190px;
+  height: 36px;
+  padding: 0 28px 0 10px;
+  border: 1px solid #4d5a69;
+  border-radius: 2px;
+  color: #edf3f8;
+  background: #080d14;
+  font: 800 10px sans-serif;
+}
+
 .territory-history-body {
   min-height: 0;
   overflow: auto;
   padding: 14px;
+}
+
+.territory-history-final-map {
+  height: min(570px, 59vh);
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 315px;
+  margin-bottom: 12px;
+  overflow: hidden;
+  border: 1px solid rgba(255, 255, 255, .12);
+  background: #06090e;
+}
+
+.territory-history-final-map[hidden] {
+  display: none;
+}
+
+.territory-history-map {
+  position: relative;
+  min-width: 0;
+  min-height: 390px;
+  background:
+    radial-gradient(circle at 50% 42%, rgba(59, 83, 111, .22), transparent 55%),
+    #080c12;
+}
+
+.territory-history-map .territory-map-canvas {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+}
+
+.territory-history-map-detail {
+  min-width: 0;
+  padding: 15px;
+  overflow: auto;
+  border-left: 1px solid rgba(255, 255, 255, .1);
+  background: rgba(8, 12, 19, .96);
+}
+
+.territory-history-map-kicker {
+  color: #d6b555;
+  font-size: 8px;
+  font-weight: 900;
+}
+
+.territory-history-map-detail h3 {
+  margin: 4px 0 8px;
+  color: #fff;
+  font-size: 20px;
+  letter-spacing: 0;
+}
+
+.territory-history-map-owner {
+  --history-owner: #657083;
+  padding: 8px 9px;
+  border-left: 4px solid var(--history-owner);
+  color: #eef3f8;
+  background: color-mix(in srgb, var(--history-owner) 18%, #0c1119);
+  font-size: 11px;
+  font-weight: 900;
+}
+
+.territory-history-map-event {
+  margin: 8px 0 0;
+  color: #e2c46d;
+  font-size: 9px;
+}
+
+.territory-history-monsters {
+  display: grid;
+  gap: 7px;
+  margin-top: 11px;
+}
+
+.territory-history-monster {
+  min-width: 0;
+  display: grid;
+  grid-template-columns: 58px minmax(0, 1fr);
+  align-items: center;
+  gap: 8px;
+  min-height: 67px;
+  padding: 5px;
+  border: 1px solid rgba(255, 255, 255, .1);
+  background: rgba(255, 255, 255, .035);
+}
+
+.territory-history-monster > span {
+  width: 58px;
+  height: 58px;
+  display: grid;
+  place-items: center;
+  overflow: hidden;
+}
+
+.territory-history-monster > span > * {
+  max-width: 100%;
+  max-height: 100%;
+}
+
+.territory-history-monster > div {
+  min-width: 0;
+  display: grid;
+  gap: 3px;
+}
+
+.territory-history-monster strong {
+  overflow: hidden;
+  color: #f3f6f9;
+  font-size: 10px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.territory-history-monster small,
+.territory-history-monster em {
+  overflow: hidden;
+  color: #8491a1;
+  font-size: 7px;
+  font-style: normal;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.territory-history-monster em {
+  color: #d8ba61;
+}
+
+.territory-history-map-hype {
+  display: grid;
+  grid-template-columns: 38px minmax(0, 1fr) 28px;
+  align-items: center;
+  gap: 7px;
+  margin-top: 11px;
+  color: #95a1af;
+  font-size: 8px;
+  font-weight: 900;
+}
+
+.territory-history-map-hype i {
+  height: 5px;
+  overflow: hidden;
+  background: #18202b;
+}
+
+.territory-history-map-hype b {
+  display: block;
+  height: 100%;
+  background: #e5bd51;
 }
 
 .territory-history-empty {
@@ -1041,6 +1207,22 @@ body.territory-mode-open .monster-zoom-overlay {
 .territory-history-battle strong {
   color: #eef3f9;
   font-size: 10px;
+}
+
+@media (max-width: 900px) {
+  .territory-history-final-map {
+    height: auto;
+    grid-template-columns: 1fr;
+  }
+
+  .territory-history-map {
+    min-height: 430px;
+  }
+
+  .territory-history-map-detail {
+    border-top: 1px solid rgba(255, 255, 255, .1);
+    border-left: 0;
+  }
 }
 
 .territory-history-battle div span {

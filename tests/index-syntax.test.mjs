@@ -61,7 +61,7 @@ test("六王領土戦のクライアント、Worker、Firebaseルールが公開
   assert.match(territorySystem, /equipmentAssignments/);
   assert.match(territoryMode, /TERRITORY PARTY/);
   assert.match(territoryMode, /MONSTER \/ ITEMS/);
-  assert.match(territoryMode, /PREVIOUS SEASON/);
+  assert.match(territoryMode, /SEASON HISTORY/);
   assert.match(territoryMode, /FINAL STANDINGS/);
   assert.match(territoryMode, /BATTLE ARCHIVE/);
   assert.match(html, /applyTerritoryPreviousSnapshot/);
@@ -127,6 +127,34 @@ test("勝利画面の装備報酬は獲得アイテムと効果を開ける", ()
   assert.match(html, /function showVictoryEquipmentRewards\(playerKey\)/);
   assert.match(html, /equipmentItemMarkup\(item, count\)/);
   assert.match(html, /装備効果は六王領土戦で反映されます/);
+});
+
+test("世界大会は独立部屋、全組み合わせ、通常戦績加算へ接続されている", () => {
+  const html = readFileSync(new URL("../index.html", import.meta.url), "utf8");
+  const tournament = readFileSync(new URL("../world-tournament.js", import.meta.url), "utf8");
+  const serviceWorker = readFileSync(new URL("../sw.js", import.meta.url), "utf8");
+
+  assert.match(html, /id="worldTournamentButton">世界大会</);
+  assert.match(html, /src="world-tournament\.js"/);
+  assert.match(html, /href="world-tournament\.css"/);
+  assert.match(html, /function recordWorldTournamentMatch\(/);
+  assert.match(html, /recordWorldTournamentMatch\(winnerTeam, victoryKind, mvpName\)/);
+  assert.match(html, /lockedTeams: true/);
+  assert.match(tournament, /teamBingo\.worldTournamentRooms\.v1/);
+  assert.match(tournament, /function generateMatchups\(/);
+  assert.match(tournament, /function roomCsv\(/);
+  assert.match(serviceWorker, /\.\/world-tournament\.js/);
+  assert.match(serviceWorker, /\.\/world-tournament\.css/);
+});
+
+test("モンスターバトル勝者へ一人一個の装備報酬を付与する", () => {
+  const html = readFileSync(new URL("../index.html", import.meta.url), "utf8");
+
+  assert.match(html, /function recordMonsterBattleOutcome\(/);
+  assert.match(html, /if \(won && TERRITORY_EQUIPMENT\)/);
+  assert.match(html, /monster-battle:\$\{state\.monsterBattle\?\.seed/);
+  assert.match(html, /TERRITORY_EQUIPMENT\.applyRewards\(stat, rewards\)/);
+  assert.match(html, /勝利メンバー 装備 \+1/);
 });
 
 test("every declared custom OPEN sound asset exists", () => {

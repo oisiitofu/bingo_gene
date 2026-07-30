@@ -200,7 +200,7 @@ test("六王領土戦の共有状態を購読して観戦ブリッジへ渡す",
   assert.equal(typeof viewer.territoryUnsubscribe, "function");
 });
 
-test("六王領土戦のアーカイブから直近シーズンだけを結果画面へ渡す", () => {
+test("六王領土戦のアーカイブから直近結果と全シーズンを結果画面へ渡す", () => {
   const store = {
     value: {
       teamBingoV1: {
@@ -225,12 +225,16 @@ test("六王領土戦のアーカイブから直近シーズンだけを結果�
   const viewer = createCoordinator(store, "guest", "player", "blue");
   viewer.territoryArchiveUnsubscribe = null;
   let received = null;
+  let receivedArchive = null;
   viewer.bridge.applyTerritoryPreviousSnapshot = (snapshot) => { received = clone(snapshot); };
+  viewer.bridge.applyTerritoryArchive = (archive) => { receivedArchive = clone(archive); };
 
   viewer.subscribeTerritoryArchive();
 
   assert.equal(viewer.previousTerritoryState.season.id, "2026-07-13");
   assert.equal(received.season.id, "2026-07-13");
+  assert.deepEqual(Object.keys(viewer.getTerritoryArchive()).sort(), ["2026-07-06", "2026-07-13"]);
+  assert.deepEqual(Object.keys(receivedArchive).sort(), ["2026-07-06", "2026-07-13"]);
   assert.equal(typeof viewer.territoryArchiveUnsubscribe, "function");
 });
 

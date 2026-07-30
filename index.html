@@ -7,6 +7,7 @@
   <link rel="stylesheet" href="online/online-room.css" />
   <link rel="stylesheet" href="territory-mode.css" />
   <link rel="stylesheet" href="monster-page.css" />
+  <link rel="stylesheet" href="world-tournament.css" />
   <script src="online/firebase-config.js"></script>
   <script>
     if (new URLSearchParams(location.search).get("territory") === "1") {
@@ -7213,6 +7214,7 @@
               <button type="button" class="btn active" id="monsterBattleModeButton" aria-pressed="true">MONSTER BATTLE ON</button>
               <button type="button" class="btn" id="doubleMonsterModeButton" aria-pressed="false">DOUBLE MONSTER OFF</button>
               <button type="button" class="btn territory-entry-btn" id="territoryModeButton">六王領土戦</button>
+              <button type="button" class="btn" id="worldTournamentButton">世界大会</button>
             </div>
 
             <div class="deck-hub" id="deckHub">
@@ -7714,6 +7716,7 @@
   <script src="vendor/three/three.min.js"></script>
   <script src="territory-map-3d.js"></script>
   <script src="territory-mode.js"></script>
+  <script src="world-tournament.js"></script>
   <script>
     "use strict";
 
@@ -8577,6 +8580,7 @@
       renderRankingTicker();
       updateSoundButton();
       updateVolumeControls();
+      configureWorldTournament();
       updateCopyrightToggle();
       updateGridButtons();
       updateDeckStatus();
@@ -8608,7 +8612,7 @@
         "adminMonsterBattleModal", "adminMonsterRed1", "adminMonsterRed2", "adminMonsterBlue1", "adminMonsterBlue2", "adminMonsterBattleCancel", "adminMonsterBattleStart",
         "teamSelectModal", "teamSelectList", "teamSelectRedMembers", "teamSelectBlueMembers", "teamSelectShuffleButton", "teamSelectConfirmButton", "teamSelectCancelButton", "teamSelectError",
         "statsSeasonSelect", "statsSeasonList", "statsTournamentList", "statsTerritoryList",
-        "randomEventButton", "monsterBattleModeButton", "doubleMonsterModeButton", "territoryModeButton", "playTerritoryModeButton",
+        "randomEventButton", "monsterBattleModeButton", "doubleMonsterModeButton", "territoryModeButton", "playTerritoryModeButton", "worldTournamentButton",
         "matchReplayModal", "replayMatchMeta", "replaySummary", "replayBoards", "replayTimeline", "replayCloseButton",
         "replayPrevButton", "replayPlayButton", "replayRange", "replayStepLabel",
         "feverAura", "fxLayer", "openedByPopover", "victoryParticles", "setupThemePlayer", "copyrightToggle",
@@ -8649,6 +8653,7 @@
       els.doubleMonsterModeButton?.addEventListener("click", toggleDoubleMonsterMode);
       els.territoryModeButton?.addEventListener("click", openTerritoryWindow);
       els.playTerritoryModeButton?.addEventListener("click", openTerritoryWindow);
+      els.worldTournamentButton?.addEventListener("click", openWorldTournament);
       els.setupStatsButton.addEventListener("click", showStatsPage);
       els.playStatsButton.addEventListener("click", showStatsPage);
       els.setupMonsterButton?.addEventListener("click", showMonsterDexPage);
@@ -9372,7 +9377,14 @@
 
     function startGame(options = {}) {
       if (!options.teamsConfirmed) return openTeamSelection();
-      const selectedTeams = normalizeSelectedTeams(options.teams || { red: state.red.members, blue: state.blue.members });
+      const requestedTeams = options.teams || { red: state.red.members, blue: state.blue.members };
+      const selectedTeams = options.lockedTeams === true
+        ? {
+            red: [...new Set((requestedTeams.red || []).map(normalizePlayerName).filter(Boolean))],
+            blue: [...new Set((requestedTeams.blue || []).map(normalizePlayerName).filter(Boolean))]
+          }
+        : normalizeSelectedTeams(requestedTeams);
+      if (!selectedTeams.red.length || !selectedTeams.blue.length) return false;
       if (shouldUseOnlineAction(options)) {
         return runOnlineAction(
           { type: "start-game", masterOnly: true, payload: { teams: cloneOnlineValue(selectedTeams) } },
@@ -11567,6 +11579,11 @@
       hideOverlay(els.victoryOverlay);
       els.victoryOverlay.classList.remove("victory-comeback", "victory-straight");
       cleanupVictoryParticles();
+      if (window.TeamBingoWorldTournament?.shouldReturnAfterMatch?.()) {
+        backToSetup({ onlineBypass: true });
+        window.requestAnimationFrame(() => window.TeamBingoWorldTournament?.returnToRoom?.());
+        return;
+      }
       renderAll();
     }
 
@@ -12079,6 +12096,7 @@
     function recordMonsterBattleOutcome(parties, winner) {
       if (onlineCoordinator?.isOnline?.() && !onlineCoordinator.isMaster?.()) return false;
       const countedPlayers = new Set();
+      const equipmentRewards = {};
       [...parties.red, ...parties.blue].forEach((fighter) => {
         if (!fighter.playerName || fighter.playerKey.startsWith("admin-")) return;
         const stat = getPlayerStat(fighter.playerName);
@@ -12089,6 +12107,15 @@
           stat.monsterBattles += 1;
           stat.monsterBattleWins += won ? 1 : 0;
           stat.monsterBattleLosses += won ? 0 : 1;
+          if (won && TERRITORY_EQUIPMENT) {
+            TERRITORY_EQUIPMENT.ensureStarterRecord(stat);
+            const rewards = TERRITORY_EQUIPMENT.generateRewards(
+              `monster-battle:${state.monsterBattle?.seed || Date.now()}:${fighter.playerKey}`,
+              1
+            );
+            TERRITORY_EQUIPMENT.applyRewards(stat, rewards);
+            equipmentRewards[fighter.playerKey] = { count: 1, items: rewards };
+          }
         }
         stat.monsterKos += fighter.battleStats.kos;
         stat.monsterRevives += fighter.battleStats.revives;
@@ -12106,6 +12133,7 @@
         });
         touchPlayerStat(stat, fighter.team);
       });
+      if (state.monsterBattle) state.monsterBattle.equipmentRewards = equipmentRewards;
       savePlayerStats();
       return true;
     }
@@ -12265,7 +12293,7 @@
       const summary = createMonsterBattleSummary(parties, winner, completedTurns);
       await showMonsterBattleFinish(winner, teamLabels[winner]);
       if (!adminBattle) state.monsterBattle = { seed, status: "complete", startedAt, result: winner, summary };
-      els.monsterBattleResult.textContent = `${teamLabels[winner]}　モンスター勝利！`;
+      els.monsterBattleResult.textContent = `${teamLabels[winner]}　モンスター勝利！　勝利メンバー 装備 +1`;
       els.monsterBattleResult.className = `monster-battle-result ${winner}`;
       els.monsterBattleResult.hidden = false;
       els.monsterBattleCloseButton.hidden = false;
@@ -12273,6 +12301,15 @@
       if (activeBgmKey === "monsterBattleBgm" && activeBgmAudio) fadeOutTimedAudio(activeBgmAudio, "monsterBattleBgm", 1200);
       if (!adminBattle) {
         const statsRecorded = recordMonsterBattleOutcome(parties, winner);
+        if (statsRecorded) {
+          const namesByKey = new Map(parties[winner].map((fighter) => [fighter.playerKey, fighter.playerName]));
+          const rewardText = Object.entries(state.monsterBattle?.equipmentRewards || {}).map(([playerKey, reward]) => {
+            const itemId = Object.keys(reward.items || {})[0];
+            const item = TERRITORY_EQUIPMENT?.ITEM_BY_ID?.[itemId];
+            return `${namesByKey.get(playerKey) || playerKey}「${item?.name || "装備"}」`;
+          }).join(" / ");
+          if (rewardText) els.monsterBattleLog.textContent = `勝利報酬　${rewardText}`;
+        }
         renderVictoryMonsterLineups();
         if (!onlineCoordinator?.isOnline?.() || (statsRecorded && onlineCoordinator.isMaster?.())) scheduleOnlineStateSync("monster-battle-result", 40);
       }
@@ -13968,7 +14005,30 @@
       recordWinnerCharacterStats(winnerTeam);
       recordRivalries(winnerTeam);
       recordRecentMatch(winnerTeam, victoryKind, mvpName);
+      recordWorldTournamentMatch(winnerTeam, victoryKind, mvpName);
       savePlayerStats();
+    }
+
+    function recordWorldTournamentMatch(winnerTeam, victoryKind = "normal", mvpName = "") {
+      if (!window.TeamBingoWorldTournament?.hasActiveMatch?.()) return false;
+      const players = ["red", "blue"].flatMap((team) => getMatchPlayerEntries(team).map((entry) => ({
+        key: playerStatsKey(entry.name),
+        name: entry.name,
+        team,
+        opens: Number(entry.opens) || 0,
+        skills: Number(entry.skills) || 0,
+        comebackMoves: Number(entry.comebackMoves) || 0,
+        characters: cloneOnlineValue(entry.characters || {})
+      })));
+      return window.TeamBingoWorldTournament.recordActiveMatch({
+        winnerTeam,
+        victoryKind,
+        mvpName,
+        score: { red: state.red.bingoCount, blue: state.blue.bingoCount },
+        players,
+        startedAt: state.matchTracker?.startedAt,
+        endedAt: new Date().toISOString()
+      });
     }
 
     function awardTerritoryEquipmentForMatch(winnerTeam, mvpName = "") {
@@ -15955,6 +16015,7 @@
         applyOnlineStatsSnapshot,
         applyTerritorySnapshot,
         applyTerritoryPreviousSnapshot,
+        applyTerritoryArchive,
         openTerritoryMode,
         openTerritoryWindow,
         createTerritoryInitialState: () => window.TeamBingoTerritorySystem?.createInitialState(state.playerStats, Date.now()) || null,
@@ -16323,6 +16384,43 @@
       window.TeamBingoTerritoryMode?.applyPreviousSnapshot(snapshot);
     }
 
+    function applyTerritoryArchive(archive) {
+      window.TeamBingoTerritoryMode?.applyArchive(archive);
+    }
+
+    function configureWorldTournament() {
+      window.TeamBingoWorldTournament?.configure({
+        getPlayers: getTeamSelectionPlayers,
+        characterMarkup: (characterId) => {
+          const id = Math.max(1, Math.min(CHARACTER_COUNT, Number(characterId) || 1));
+          return `<img src="${imagePath(id)}" alt="" loading="lazy" />`;
+        },
+        startMatch: ({ red, blue }) => {
+          if (onlineCoordinator?.isOnline?.()) {
+            showCommentary("LOCAL ONLY", "世界大会はローカルモードで開催してください。", 6000);
+            window.TeamBingoWorldTournament?.returnToRoom?.();
+            return false;
+          }
+          return startGame({
+            teamsConfirmed: true,
+            lockedTeams: true,
+            teams: { red, blue }
+          });
+        }
+      });
+    }
+
+    function openWorldTournament() {
+      if (onlineCoordinator?.isOnline?.()) {
+        showCommentary("LOCAL ONLY", "世界大会はローカルモードで開催してください。", 6000);
+        return false;
+      }
+      unlockAudio();
+      configureWorldTournament();
+      window.TeamBingoWorldTournament?.open();
+      return true;
+    }
+
     function isTerritoryStandalonePage() {
       return new URLSearchParams(location.search).get("territory") === "1";
     }
@@ -16355,6 +16453,7 @@
       window.TeamBingoTerritoryMode?.open({
         state: liveState,
         previousState: onlineCoordinator?.getPreviousTerritoryState?.() || null,
+        archive: onlineCoordinator?.getTerritoryArchive?.() || {},
         preview: !liveState,
         playerStats: state.playerStats,
         spriteMarkup: (nodeId) => monsterSpriteMarkup(MONSTER_NODES[nodeId] || MONSTER_NODES.egg),

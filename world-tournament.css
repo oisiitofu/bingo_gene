@@ -1,0 +1,504 @@
+.world-tournament[hidden],
+.world-create-dialog[hidden] {
+  display: none;
+}
+
+.world-tournament {
+  box-sizing: border-box;
+  position: fixed;
+  z-index: 6100;
+  inset: 0;
+  padding: 18px;
+  color: #eef3f8;
+  background:
+    linear-gradient(90deg, rgba(130, 17, 35, .22), transparent 34%, transparent 66%, rgba(12, 73, 130, .22)),
+    #070a0f;
+  overflow-x: hidden;
+  overflow-y: auto;
+}
+
+.world-tournament-shell {
+  box-sizing: border-box;
+  width: min(1500px, 100%);
+  min-height: calc(100vh - 36px);
+  margin: auto;
+  border: 1px solid rgba(255, 255, 255, .14);
+  background: rgba(9, 13, 20, .97);
+  box-shadow: 0 28px 90px rgba(0, 0, 0, .65);
+}
+
+body.world-tournament-open {
+  overflow: hidden;
+}
+
+.world-tournament-head,
+.world-room-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.world-tournament-head {
+  min-height: 82px;
+  padding: 14px 18px;
+  border-bottom: 1px solid rgba(255, 255, 255, .12);
+  background: #0c111a;
+}
+
+.world-tournament-head span,
+.world-room-head span,
+.world-create-card > span {
+  color: #e7bd58;
+  font-size: 9px;
+  font-weight: 900;
+}
+
+.world-tournament-head h1,
+.world-room-head h2,
+.world-create-card h2 {
+  margin: 2px 0 0;
+  color: #fff;
+  font-size: 25px;
+  letter-spacing: 0;
+}
+
+.world-tournament-head-actions,
+.world-room-head > div:last-child {
+  display: flex;
+  gap: 8px;
+}
+
+.world-simple-button {
+  min-width: 78px;
+  min-height: 36px;
+  padding: 8px 13px;
+  border: 1px solid #526071;
+  border-radius: 3px;
+  color: #dfe7f0;
+  background: #111823;
+  font: 900 10px/1 sans-serif;
+  cursor: pointer;
+}
+
+.world-simple-button:hover,
+.world-simple-button:focus-visible {
+  border-color: #e5c15c;
+  color: #fff;
+}
+
+.world-simple-button.primary {
+  border-color: #e6bd4c;
+  color: #111;
+  background: #f2cf69;
+}
+
+.world-simple-button.danger {
+  border-color: #873344;
+  color: #ff9caf;
+  background: #211017;
+}
+
+.world-simple-button:disabled {
+  opacity: .45;
+  cursor: default;
+}
+
+.world-tournament-layout {
+  display: grid;
+  grid-template-columns: 225px minmax(0, 1fr);
+  min-height: calc(100vh - 119px);
+}
+
+.world-room-list {
+  display: grid;
+  align-content: start;
+  gap: 7px;
+  padding: 12px;
+  border-right: 1px solid rgba(255, 255, 255, .1);
+  background: #080c13;
+}
+
+.world-room-card {
+  min-height: 58px;
+  display: grid;
+  gap: 4px;
+  padding: 10px 11px;
+  border: 1px solid rgba(255, 255, 255, .11);
+  border-left: 3px solid transparent;
+  border-radius: 3px;
+  color: #dce5ef;
+  background: #101620;
+  text-align: left;
+  cursor: pointer;
+}
+
+.world-room-card.active {
+  border-left-color: #e8c257;
+  background: #171b22;
+}
+
+.world-room-card strong {
+  font-size: 13px;
+}
+
+.world-room-card span,
+.world-room-head p {
+  margin: 0;
+  color: #7f8b9a;
+  font-size: 8px;
+  font-weight: 900;
+}
+
+.world-room-detail {
+  min-width: 0;
+  padding: 14px;
+}
+
+.world-room-head {
+  min-height: 70px;
+  padding: 2px 3px 13px;
+}
+
+.world-progress {
+  height: 5px;
+  background: #151c26;
+}
+
+.world-progress i {
+  display: block;
+  height: 100%;
+  background: linear-gradient(90deg, #b51935, #f0ca5d, #1e77c4);
+  transition: width .35s ease;
+}
+
+.world-leaderboard,
+.world-matchups {
+  margin-top: 13px;
+  border: 1px solid rgba(255, 255, 255, .1);
+  background: rgba(255, 255, 255, .025);
+}
+
+.world-leaderboard h3,
+.world-matchups h3 {
+  margin: 0;
+  padding: 10px 12px;
+  color: #dfe7f0;
+  border-bottom: 1px solid rgba(255, 255, 255, .09);
+  font-size: 11px;
+}
+
+.world-leaderboard h3 span {
+  margin-left: 10px;
+  color: #788493;
+  font-size: 8px;
+}
+
+.world-leaderboard-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.world-player-stat {
+  min-width: 0;
+  display: grid;
+  grid-template-columns: 32px minmax(130px, .8fr) minmax(230px, 1fr) minmax(130px, 1fr);
+  align-items: center;
+  gap: 10px;
+  min-height: 72px;
+  padding: 9px 11px;
+  border-right: 1px solid rgba(255, 255, 255, .07);
+  border-bottom: 1px solid rgba(255, 255, 255, .07);
+}
+
+.world-player-stat > b {
+  color: #e7bd58;
+  font-size: 21px;
+  text-align: center;
+}
+
+.world-player-stat > div:nth-child(2) {
+  display: grid;
+  gap: 3px;
+}
+
+.world-player-stat > div strong {
+  color: #fff;
+  font-size: 12px;
+}
+
+.world-player-stat > div span {
+  color: #7d8998;
+  font-size: 8px;
+}
+
+.world-player-stat dl {
+  display: grid;
+  grid-template-columns: repeat(3, auto 1fr);
+  gap: 3px 5px;
+  margin: 0;
+}
+
+.world-player-stat dt {
+  color: #6f7c8b;
+  font-size: 7px;
+}
+
+.world-player-stat dd {
+  margin: 0;
+  color: #eef3f8;
+  font-size: 12px;
+  font-weight: 900;
+}
+
+.world-character-list {
+  min-width: 0;
+  display: flex;
+  gap: 4px;
+  align-items: center;
+  overflow-x: auto;
+  padding-bottom: 2px;
+}
+
+.world-character-chip {
+  flex: 0 0 31px;
+  position: relative;
+  width: 31px;
+  height: 31px;
+  display: grid;
+  place-items: center;
+  overflow: hidden;
+  border: 1px solid rgba(255, 255, 255, .16);
+  background: #fff;
+}
+
+.world-character-chip img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
+
+.world-character-chip small {
+  position: absolute;
+  right: 1px;
+  bottom: 0;
+  padding: 1px 2px;
+  color: #fff;
+  background: rgba(0, 0, 0, .8);
+  font-size: 6px;
+}
+
+.world-empty-character {
+  color: #687483;
+  font-size: 8px;
+}
+
+.world-matchups > div {
+  display: grid;
+}
+
+.world-match-row {
+  display: grid;
+  grid-template-columns: 38px minmax(150px, 1fr) 25px minmax(150px, 1fr) minmax(135px, .75fr) 72px;
+  align-items: center;
+  gap: 8px;
+  min-height: 53px;
+  padding: 7px 9px;
+  border-bottom: 1px solid rgba(255, 255, 255, .07);
+}
+
+.world-match-row:last-child {
+  border-bottom: 0;
+}
+
+.world-match-row.complete {
+  opacity: .72;
+}
+
+.world-match-number {
+  color: #7c8896;
+  font-size: 9px;
+  font-weight: 900;
+}
+
+.world-match-team {
+  min-width: 0;
+  padding: 7px 9px;
+  overflow: hidden;
+  color: #f2f5f8;
+  font-size: 10px;
+  font-weight: 900;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.world-match-team.red {
+  border-left: 3px solid #e72a4d;
+  background: rgba(186, 25, 53, .16);
+}
+
+.world-match-team.blue {
+  border-right: 3px solid #3296ed;
+  background: rgba(26, 105, 176, .16);
+  text-align: right;
+}
+
+.world-match-row > strong {
+  color: #e7bd58;
+  font-size: 9px;
+  text-align: center;
+}
+
+.world-match-result {
+  display: grid;
+  gap: 2px;
+  color: #7b8796;
+  font-size: 8px;
+}
+
+.world-match-result b {
+  overflow: hidden;
+  color: #f1cc63;
+  font-size: 9px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.world-create-dialog {
+  position: fixed;
+  z-index: 6110;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  padding: 18px;
+  background: rgba(0, 0, 0, .8);
+}
+
+.world-create-card {
+  width: min(520px, 94vw);
+  padding: 20px;
+  border: 1px solid rgba(232, 194, 87, .45);
+  background: #0d131d;
+  box-shadow: 0 24px 70px rgba(0, 0, 0, .65);
+}
+
+.world-create-card label {
+  display: grid;
+  gap: 7px;
+  margin-top: 18px;
+  color: #8e9aa9;
+  font-size: 9px;
+  font-weight: 900;
+}
+
+.world-create-card input {
+  height: 42px;
+  padding: 0 11px;
+  border: 1px solid #4d5a69;
+  color: #fff;
+  background: #080d14;
+  font: 800 14px sans-serif;
+}
+
+.world-create-players {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: 13px;
+}
+
+.world-create-players span {
+  padding: 6px 8px;
+  border: 1px solid rgba(255, 255, 255, .14);
+  color: #dfe7ef;
+  background: #121a25;
+  font-size: 9px;
+  font-weight: 800;
+}
+
+.world-create-card p {
+  min-height: 16px;
+  color: #e4bd58;
+  font-size: 9px;
+}
+
+.world-create-card > div:last-child {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+}
+
+.world-empty-room,
+.world-empty-detail {
+  color: #728090;
+  text-align: center;
+}
+
+.world-empty-room {
+  padding: 28px 8px;
+  font-size: 9px;
+}
+
+.world-empty-detail {
+  min-height: 430px;
+  display: grid;
+  place-content: center;
+  justify-items: center;
+  gap: 8px;
+}
+
+.world-empty-detail strong {
+  color: #edf2f7;
+  font-size: 19px;
+}
+
+.world-empty-detail span {
+  margin-bottom: 8px;
+  font-size: 10px;
+}
+
+@media (max-width: 1000px) {
+  .world-tournament-layout {
+    grid-template-columns: 170px minmax(0, 1fr);
+  }
+
+  .world-leaderboard-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .world-player-stat {
+    grid-template-columns: 28px minmax(120px, .7fr) minmax(190px, 1fr);
+  }
+
+  .world-character-list {
+    display: none;
+  }
+}
+
+@media (max-width: 720px) {
+  .world-tournament {
+    padding: 0;
+  }
+
+  .world-tournament-shell {
+    min-height: 100vh;
+  }
+
+  .world-tournament-layout {
+    grid-template-columns: 1fr;
+  }
+
+  .world-room-list {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    border-right: 0;
+    border-bottom: 1px solid rgba(255, 255, 255, .1);
+  }
+
+  .world-match-row {
+    grid-template-columns: 30px minmax(110px, 1fr) 20px minmax(110px, 1fr) 68px;
+  }
+
+  .world-match-result {
+    display: none;
+  }
+}
