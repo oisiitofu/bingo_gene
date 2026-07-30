@@ -1176,6 +1176,128 @@ body.territory-mode-open .monster-zoom-overlay {
   font-weight: 900;
 }
 
+.territory-history-reward-players {
+  display: grid;
+}
+
+.territory-history-reward-player {
+  border-bottom: 1px solid rgba(255, 255, 255, .08);
+}
+
+.territory-history-reward-player:last-child {
+  border-bottom: 0;
+}
+
+.territory-history-reward-player summary {
+  --reward-player-color: #657083;
+  min-height: 48px;
+  display: grid;
+  grid-template-columns: 36px minmax(160px, 1fr) minmax(130px, auto) 50px;
+  align-items: center;
+  gap: 8px;
+  padding: 7px 11px;
+  border-left: 4px solid var(--reward-player-color);
+  color: #e9eef4;
+  background: linear-gradient(90deg, color-mix(in srgb, var(--reward-player-color) 14%, transparent), transparent 48%);
+  cursor: pointer;
+  list-style: none;
+}
+
+.territory-history-reward-player summary::-webkit-details-marker {
+  display: none;
+}
+
+.territory-history-reward-player summary > span {
+  color: var(--reward-player-color);
+  font-size: 18px;
+  font-weight: 900;
+  text-align: center;
+}
+
+.territory-history-reward-player summary strong {
+  font-size: 12px;
+}
+
+.territory-history-reward-player summary small {
+  color: #8e9aa9;
+  font-size: 8px;
+  font-weight: 900;
+  text-align: right;
+}
+
+.territory-history-reward-player summary i {
+  color: #d7b85d;
+  font-size: 7px;
+  font-style: normal;
+  font-weight: 900;
+  text-align: right;
+}
+
+.territory-history-reward-player[open] summary i {
+  color: #fff;
+}
+
+.territory-history-reward-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 6px;
+  padding: 8px;
+  background: rgba(0, 0, 0, .18);
+}
+
+.territory-history-reward-item {
+  --reward-rarity: #aeb8c5;
+  min-width: 0;
+  min-height: 67px;
+  display: grid;
+  grid-template-columns: 34px minmax(0, 1fr);
+  align-items: center;
+  gap: 7px;
+  padding: 7px;
+  border: 1px solid color-mix(in srgb, var(--reward-rarity) 44%, rgba(255, 255, 255, .08));
+  border-left: 3px solid var(--reward-rarity);
+  background: linear-gradient(115deg, color-mix(in srgb, var(--reward-rarity) 12%, #0b1018), #0b1018 58%);
+}
+
+.territory-history-reward-slot {
+  width: 30px;
+  height: 30px;
+  display: grid;
+  place-items: center;
+  border: 1px solid var(--reward-rarity);
+  color: var(--reward-rarity);
+  background: rgba(0, 0, 0, .28);
+  font-size: 11px;
+  font-weight: 900;
+}
+
+.territory-history-reward-item > div {
+  min-width: 0;
+  display: grid;
+  gap: 2px;
+}
+
+.territory-history-reward-item small {
+  color: var(--reward-rarity);
+  font-size: 7px;
+  font-weight: 900;
+}
+
+.territory-history-reward-item strong {
+  overflow: hidden;
+  color: #f2f5f8;
+  font-size: 9px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.territory-history-reward-item p {
+  margin: 0;
+  color: #8f9baa;
+  font-size: 7px;
+  line-height: 1.35;
+}
+
 .territory-history-battles {
   max-height: 300px;
   overflow: auto;
@@ -1222,6 +1344,10 @@ body.territory-mode-open .monster-zoom-overlay {
   .territory-history-map-detail {
     border-top: 1px solid rgba(255, 255, 255, .1);
     border-left: 0;
+  }
+
+  .territory-history-reward-grid {
+    grid-template-columns: 1fr;
   }
 }
 

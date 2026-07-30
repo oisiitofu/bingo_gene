@@ -503,6 +503,83 @@
     `;
   }
 
+  function seasonEquipmentReward(archived, result, rank) {
+    const equipment = global.TeamBingoTerritoryEquipment;
+    const stored = archived?.seasonEquipmentRewards?.[result.id];
+    if (stored?.items) return {
+      ...stored,
+      items: equipment?.normalizeCountMap?.(stored.items) || stored.items
+    };
+    const count = equipment?.rewardCountForSeason?.(result, rank) || 0;
+    return {
+      playerId: result.id,
+      playerName: result.name,
+      rank,
+      count,
+      items: equipment?.generateRewards?.(
+        `territory-season:${archived?.season?.id || ""}:${result.id}:${rank}`,
+        count
+      ) || {}
+    };
+  }
+
+  function seasonRewardItemMarkup(item, count) {
+    const equipment = global.TeamBingoTerritoryEquipment;
+    const rarity = equipment?.RARITY_BY_ID?.[item.rarity];
+    const slot = equipment?.SLOT_BY_ID?.[item.slot];
+    return `
+      <article class="territory-history-reward-item" style="--reward-rarity:${rarity?.color || "#aeb8c5"}">
+        <span class="territory-history-reward-slot">${escapeHtml(slot?.mark || "装")}</span>
+        <div>
+          <small>${escapeHtml(rarity?.name || item.rarity)} / ${escapeHtml(slot?.name || item.slot)}</small>
+          <strong>${escapeHtml(item.name)}${count > 1 ? ` ×${count}` : ""}</strong>
+          <p>${escapeHtml(item.description || "")}</p>
+        </div>
+      </article>
+    `;
+  }
+
+  function renderSeasonEquipmentRewards(archived, ranking) {
+    const equipment = global.TeamBingoTerritoryEquipment;
+    if (!equipment) return "";
+    return `
+      <section class="territory-history-section territory-history-rewards">
+        <div class="territory-history-section-head">
+          <h3>SEASON EQUIPMENT REWARDS</h3>
+          <span>シーズン終了時の獲得装備</span>
+        </div>
+        <div class="territory-history-reward-players">
+          ${ranking.map((result, index) => {
+            const reward = seasonEquipmentReward(archived, result, index + 1);
+            const rows = Object.entries(reward.items || {})
+              .map(([itemId, count]) => ({ item: equipment.ITEM_BY_ID[itemId], count: Math.max(0, Number(count) || 0) }))
+              .filter((row) => row.item && row.count)
+              .sort((a, b) => (
+                (equipment.RARITY_BY_ID[b.item.rarity]?.rank || 0) - (equipment.RARITY_BY_ID[a.item.rarity]?.rank || 0) ||
+                (Number(b.item.sort) || 0) - (Number(a.item.sort) || 0)
+              ));
+            const total = rows.reduce((sum, row) => sum + row.count, 0);
+            return `
+              <details class="territory-history-reward-player" ${index === 0 ? "open" : ""}>
+                <summary style="--reward-player-color:${result.color || "#657083"}">
+                  <span>${index + 1}</span>
+                  <strong>${escapeHtml(result.name)}</strong>
+                  <small>${total} ITEMS / ${rows.length} TYPES</small>
+                  <i>DETAIL</i>
+                </summary>
+                <div class="territory-history-reward-grid">
+                  ${rows.length
+                    ? rows.map(({ item, count }) => seasonRewardItemMarkup(item, count)).join("")
+                    : `<div class="territory-empty">獲得装備はありません</div>`}
+                </div>
+              </details>
+            `;
+          }).join("")}
+        </div>
+      </section>
+    `;
+  }
+
   function renderPreviousSeason() {
     const body = root?.querySelector("[data-territory-history-body]");
     const selector = root?.querySelector("[data-territory-history-season]");
@@ -577,6 +654,7 @@
           `).join("")}
         </div>
       </section>
+      ${latest ? renderSeasonEquipmentRewards(archived, ranking) : ""}
       ${latest ? `<section class="territory-history-section">
         <div class="territory-history-section-head">
           <h3>BATTLE ARCHIVE</h3>

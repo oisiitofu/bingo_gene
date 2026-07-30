@@ -63,6 +63,9 @@ test("六王領土戦のクライアント、Worker、Firebaseルールが公開
   assert.match(territoryMode, /MONSTER \/ ITEMS/);
   assert.match(territoryMode, /SEASON HISTORY/);
   assert.match(territoryMode, /FINAL STANDINGS/);
+  assert.match(territoryMode, /SEASON EQUIPMENT REWARDS/);
+  assert.match(territoryMode, /rewardCountForSeason/);
+  assert.match(worker, /seasonEquipmentRewards/);
   assert.match(territoryMode, /BATTLE ARCHIVE/);
   assert.match(html, /applyTerritoryPreviousSnapshot/);
   assert.match(territoryMode, /SEASON \$\{formatDate\(season\.startsAt\)\}/);
@@ -142,6 +145,9 @@ test("世界大会は独立部屋、全組み合わせ、通常戦績加算へ�
   assert.match(html, /lockedTeams: true/);
   assert.match(tournament, /teamBingo\.worldTournamentRooms\.v1/);
   assert.match(tournament, /function generateMatchups\(/);
+  assert.match(tournament, /function randomizeMatchups\(/);
+  assert.match(tournament, /data-world-shuffle/);
+  assert.match(tournament, /function canShuffleRoom\(/);
   assert.match(tournament, /function roomCsv\(/);
   assert.match(serviceWorker, /\.\/world-tournament\.js/);
   assert.match(serviceWorker, /\.\/world-tournament\.css/);

@@ -136,6 +136,20 @@ function rootPath(env, part) {
   return [env.FIREBASE_DATABASE_ROOT || "teamBingoV1", part].filter(Boolean).join("/");
 }
 
+export function buildSeasonEquipmentRewards(archive, ranking = Territory.standings(archive)) {
+  const seasonId = archive?.season?.id || "";
+  return Object.fromEntries(ranking.map((result, index) => {
+    const count = Equipment.rewardCountForSeason(result, index + 1);
+    return [result.id, {
+      playerId: result.id,
+      playerName: result.name,
+      rank: index + 1,
+      count,
+      items: Equipment.generateRewards(`territory-season:${seasonId}:${result.id}:${index + 1}`, count)
+    }];
+  }));
+}
+
 function finalizedArchive(raw, now) {
   const archived = JSON.parse(JSON.stringify(raw));
   const ranking = Territory.standings(archived);
@@ -156,6 +170,7 @@ function finalizedArchive(raw, now) {
     points: player.points,
     wins: player.wins
   }));
+  archived.seasonEquipmentRewards = buildSeasonEquipmentRewards(archived, ranking);
   archived.archivedAt = Number(now);
   return archived;
 }
@@ -189,8 +204,11 @@ async function mergeSeasonStats(env, archive, token) {
         bestRank: Math.min(Number(totals.bestRank) || 99, index + 1)
       };
       Equipment.ensureStarterRecord(record);
-      const rewardCount = Equipment.rewardCountForSeason(result, index + 1);
-      const rewards = Equipment.generateRewards(`territory-season:${seasonId}:${result.id}:${index + 1}`, rewardCount);
+      const archivedReward = archive.seasonEquipmentRewards?.[result.id];
+      const rewards = archivedReward?.items || Equipment.generateRewards(
+        `territory-season:${seasonId}:${result.id}:${index + 1}`,
+        Equipment.rewardCountForSeason(result, index + 1)
+      );
       Equipment.applyRewards(record, rewards);
       next.playerStats.players[key] = record;
     });

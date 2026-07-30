@@ -59,6 +59,15 @@
     return output;
   }
 
+  function shuffleArray(values, random = Math.random) {
+    const result = [...values];
+    for (let index = result.length - 1; index > 0; index -= 1) {
+      const target = Math.floor(random() * (index + 1));
+      [result[index], result[target]] = [result[target], result[index]];
+    }
+    return result;
+  }
+
   function generateMatchups(playerValues) {
     const players = normalizePlayers(playerValues);
     if (players.length < 2 || players.length % 2 !== 0) return [];
@@ -85,6 +94,33 @@
         endedAt: ""
       };
     });
+  }
+
+  function randomizeMatchups(matchups, random = Math.random) {
+    const randomized = (Array.isArray(matchups) ? matchups : []).map((match) => {
+      let redKeys = shuffleArray(match.redKeys || [], random);
+      let blueKeys = shuffleArray(match.blueKeys || [], random);
+      if (random() < .5) [redKeys, blueKeys] = [blueKeys, redKeys];
+      return { ...match, redKeys, blueKeys };
+    });
+    return shuffleArray(randomized, random).map((match, index) => ({
+      ...match,
+      id: `match-${String(index + 1).padStart(3, "0")}`,
+      order: index + 1
+    }));
+  }
+
+  function canShuffleRoom(room) {
+    return Boolean(room?.matches?.length) && room.matches.every((match) => (
+      match.status === "pending" && !match.startedAt
+    ));
+  }
+
+  function shuffleRoom(room, random = Math.random) {
+    if (!canShuffleRoom(room)) return false;
+    room.matches = randomizeMatchups(generateMatchups(room.players), random);
+    room.updatedAt = new Date().toISOString();
+    return true;
   }
 
   function emptyPlayerStat(player) {
@@ -115,7 +151,7 @@
       createdAt,
       updatedAt: createdAt,
       players,
-      matches: generateMatchups(players),
+      matches: randomizeMatchups(generateMatchups(players)),
       stats: Object.fromEntries(players.map((player) => [player.key, emptyPlayerStat(player)]))
     };
   }
@@ -351,6 +387,7 @@
       return;
     }
     const complete = room.matches.filter((match) => match.status === "complete").length;
+    const shuffleEnabled = canShuffleRoom(room);
     const leaderboard = Object.values(room.stats).sort((a, b) => (
       b.wins - a.wins || b.opens - a.opens || b.mvps - a.mvps || a.name.localeCompare(b.name, "ja-JP")
     ));
@@ -362,6 +399,7 @@
           <p>${room.players.length} PLAYERS / ${complete} OF ${room.matches.length} COMPLETE</p>
         </div>
         <div>
+          <button type="button" class="world-simple-button" data-world-shuffle="${escapeHtml(room.id)}" ${shuffleEnabled ? "" : "disabled"} title="${shuffleEnabled ? "全対戦カードをシャッフル" : "試合開始後はシャッフルできません"}">SHUFFLE</button>
           <button type="button" class="world-simple-button" data-world-csv="${escapeHtml(room.id)}">CSV</button>
           <button type="button" class="world-simple-button danger" data-world-delete="${escapeHtml(room.id)}">${deleteArmedId === room.id ? "CONFIRM DELETE" : "DELETE"}</button>
         </div>
@@ -493,6 +531,15 @@
       if (room) downloadCsv(room);
       return;
     }
+    const shuffle = event.target.closest("[data-world-shuffle]");
+    if (shuffle) {
+      const room = rooms.find((entry) => entry.id === shuffle.dataset.worldShuffle);
+      if (room && shuffleRoom(room)) {
+        saveRooms();
+        render();
+      }
+      return;
+    }
     const remove = event.target.closest("[data-world-delete]");
     if (remove) {
       const id = remove.dataset.worldDelete;
@@ -553,6 +600,9 @@
     hasActiveMatch: () => Boolean(activeMatch),
     shouldReturnAfterMatch: () => returnPending,
     generateMatchups,
+    randomizeMatchups,
+    canShuffleRoom,
+    shuffleRoom,
     createRoom,
     recordMatch,
     roomCsv,

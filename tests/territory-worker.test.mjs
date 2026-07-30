@@ -178,3 +178,25 @@ test("定刻前でもバージョン2の領土状態をバージョン4へ保存
     globalThis.fetch = originalFetch;
   }
 });
+
+test("シーズン装備報酬はアーカイブ表示と戦績付与で再現できる", async () => {
+  const Territory = globalThis.TeamBingoTerritorySystem;
+  const Equipment = globalThis.TeamBingoTerritoryEquipment;
+  const state = Territory.createInitialState({ players: {} }, Date.UTC(2026, 6, 27, 0, 0));
+  const ranking = Territory.standings(state);
+  const { buildSeasonEquipmentRewards } = await import("../worker/territory-worker.mjs");
+  const first = buildSeasonEquipmentRewards(state, ranking);
+  const second = buildSeasonEquipmentRewards(state, ranking);
+
+  assert.deepEqual(first, second);
+  assert.deepEqual(Object.keys(first).sort(), ranking.map((player) => player.id).sort());
+  ranking.forEach((player, index) => {
+    const reward = first[player.id];
+    assert.equal(reward.rank, index + 1);
+    assert.equal(
+      Object.values(reward.items).reduce((sum, count) => sum + count, 0),
+      Equipment.rewardCountForSeason(player, index + 1)
+    );
+    Object.keys(reward.items).forEach((itemId) => assert.ok(Equipment.ITEM_BY_ID[itemId]));
+  });
+});
