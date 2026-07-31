@@ -19,7 +19,7 @@ test("online lobby boot bypasses stale browser modules and retries once", () => 
 
   assert.match(html, /online-room\.js\?v=20260731-room-boot-1/);
   assert.match(html, /retry=\$\{Date\.now\(\)\}/);
-  assert.match(serviceWorker, /20260731-monster-lineage-animation-72/);
+  assert.match(serviceWorker, /20260731-monster-lineage-animation-73/);
 });
 
 test("bingo cells are operated only through player-name buttons", () => {
@@ -579,6 +579,10 @@ test("available monster pose sheets animate toward the opposing bingo card", () 
   assert.match(html, /lineage-crystal-attack\.png/);
   assert.match(html, /lineage-sky-attack\.png/);
   assert.match(html, /lineage-tempest-attack\.png/);
+  assert.match(html, /lineage-shadow-attack\.png/);
+  assert.match(html, /lineage-spirit-attack\.png/);
+  assert.match(html, /lineage-candy-attack\.png/);
+  assert.match(html, /lineage-junk-attack\.png/);
   assert.doesNotMatch(battleCss, /stageOneAttackEffect/);
   assert.doesNotMatch(battleCss, /stage-one-animated/);
   assert.doesNotMatch(battleCss, /effects\/physical-v2\.png/);
