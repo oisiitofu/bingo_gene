@@ -115,7 +115,7 @@
   scale: clamp(1.08, var(--monster-zoom, 1.12), 1.24);
 }
 
-.monster-player-card.stage-one-animated .monster-portrait-button::before {
+.monster-player-card.monster-pose-animated .monster-portrait-button::before {
   position: absolute;
   z-index: 2;
   inset: 0;
@@ -123,7 +123,7 @@
   pointer-events: none;
 }
 
-.monster-player-card.stage-one-animated .monster-portrait-button::before {
+.monster-player-card.monster-pose-animated .monster-portrait-button::before {
   inset: auto 12% 7% 12%;
   height: 24%;
   opacity: 0;
@@ -132,15 +132,15 @@
     radial-gradient(circle at 42% 42%, color-mix(in srgb, var(--monster-card-accent) 58%, white) 0 4%, transparent 5%),
     radial-gradient(circle at 68% 68%, rgba(255,228,128,.72) 0 3%, transparent 4%);
   filter: blur(.2px) drop-shadow(0 0 7px var(--monster-card-accent));
-  animation: stageOneRunDust 8s linear var(--monster-action-delay, 0s) infinite;
+  animation: monsterBoardRunDust 8s linear var(--monster-action-delay, 0s) infinite;
 }
 
-.monster-player-card.stage-one-animated .monster-sprite {
+.monster-player-card.monster-pose-animated .monster-sprite {
   transform-origin: 50% 78%;
   will-change: transform;
 }
 
-.monster-player-card.stage-one-animated .monster-sprite-attack {
+.monster-player-card.monster-pose-animated .monster-sprite-attack {
   position: absolute;
   inset: -2% 0 auto;
   margin: auto;
@@ -148,31 +148,31 @@
   pointer-events: none;
 }
 
-.monster-panel.red .monster-player-card.stage-one-animated .monster-sprite-base {
+.monster-panel.red .monster-player-card.monster-pose-animated .monster-sprite-base {
   animation:
-    stageOneActionRed 8s linear var(--monster-action-delay, 0s) infinite,
-    stageOneBasePose 8s steps(1, end) var(--monster-action-delay, 0s) infinite;
+    monsterBoardActionRed 8s linear var(--monster-action-delay, 0s) infinite,
+    monsterBasePose 8s steps(1, end) var(--monster-action-delay, 0s) infinite;
 }
 
-.monster-panel.red .monster-player-card.stage-one-animated .monster-sprite-attack {
+.monster-panel.red .monster-player-card.monster-pose-animated .monster-sprite-attack {
   animation:
-    stageOneActionRed 8s linear var(--monster-action-delay, 0s) infinite,
-    stageOneAttackPose 8s steps(1, end) var(--monster-action-delay, 0s) infinite;
+    monsterBoardActionRed 8s linear var(--monster-action-delay, 0s) infinite,
+    monsterAttackPose 8s steps(1, end) var(--monster-action-delay, 0s) infinite;
 }
 
-.monster-panel.blue .monster-player-card.stage-one-animated .monster-sprite-base {
+.monster-panel.blue .monster-player-card.monster-pose-animated .monster-sprite-base {
   animation:
-    stageOneActionBlue 8s linear var(--monster-action-delay, 0s) infinite,
-    stageOneBasePose 8s steps(1, end) var(--monster-action-delay, 0s) infinite;
+    monsterBoardActionBlue 8s linear var(--monster-action-delay, 0s) infinite,
+    monsterBasePose 8s steps(1, end) var(--monster-action-delay, 0s) infinite;
 }
 
-.monster-panel.blue .monster-player-card.stage-one-animated .monster-sprite-attack {
+.monster-panel.blue .monster-player-card.monster-pose-animated .monster-sprite-attack {
   animation:
-    stageOneActionBlue 8s linear var(--monster-action-delay, 0s) infinite,
-    stageOneAttackPose 8s steps(1, end) var(--monster-action-delay, 0s) infinite;
+    monsterBoardActionBlue 8s linear var(--monster-action-delay, 0s) infinite,
+    monsterAttackPose 8s steps(1, end) var(--monster-action-delay, 0s) infinite;
 }
 
-@keyframes stageOneActionRed {
+@keyframes monsterBoardActionRed {
   0%, 16%, 48%, 62%, 84%, 100% { transform: translate3d(0,0,0) rotate(0deg) scale(1); }
   19% { transform: translate3d(-8px,7px,0) rotate(-3deg) scale(1.05,.94); }
   23% { transform: translate3d(8px,-5px,0) rotate(3deg) scale(.98,1.04); }
@@ -187,7 +187,7 @@
   80% { transform: translate3d(-5px,2px,0) rotate(-2deg) scale(1.03,.98); }
 }
 
-@keyframes stageOneActionBlue {
+@keyframes monsterBoardActionBlue {
   0%, 16%, 48%, 62%, 84%, 100% { transform: translate3d(0,0,0) rotate(0deg) scale(1); }
   19% { transform: translate3d(8px,7px,0) rotate(3deg) scale(1.05,.94); }
   23% { transform: translate3d(-8px,-5px,0) rotate(-3deg) scale(.98,1.04); }
@@ -202,31 +202,31 @@
   80% { transform: translate3d(5px,2px,0) rotate(2deg) scale(1.03,.98); }
 }
 
-@keyframes stageOneRunDust {
+@keyframes monsterBoardRunDust {
   0%, 18%, 45%, 100% { opacity: 0; transform: translate3d(0,5px,0) scale(.72); }
   23%, 28%, 33%, 38% { opacity: .8; transform: translate3d(0,0,0) scale(1); }
   43% { opacity: 0; transform: translate3d(0,-4px,0) scale(1.25); }
 }
 
-@keyframes stageOneBasePose {
+@keyframes monsterBasePose {
   0%, 64%, 68%, 72%, 80%, 100% { opacity: 1; }
   65%, 67%, 69%, 71%, 73%, 79% { opacity: 0; }
 }
 
-@keyframes stageOneAttackPose {
+@keyframes monsterAttackPose {
   0%, 64%, 68%, 72%, 80%, 100% { opacity: 0; }
   65%, 67%, 69%, 71%, 73%, 79% { opacity: 1; }
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .monster-player-card.stage-one-animated .monster-sprite,
-  .monster-player-card.stage-one-animated .monster-portrait-button::before {
+  .monster-player-card.monster-pose-animated .monster-sprite,
+  .monster-player-card.monster-pose-animated .monster-portrait-button::before {
     animation: none !important;
     will-change: auto;
   }
 
-  .monster-player-card.stage-one-animated .monster-sprite-base { opacity: 1; }
-  .monster-player-card.stage-one-animated .monster-sprite-attack { opacity: 0; }
+  .monster-player-card.monster-pose-animated .monster-sprite-base { opacity: 1; }
+  .monster-player-card.monster-pose-animated .monster-sprite-attack { opacity: 0; }
 }
 
 .monster-evolution-before,
@@ -393,6 +393,7 @@
     "player player"
     "art name"
     "art stage"
+    "art animation"
     "art stats"
     "art special";
   align-items: center;
@@ -404,13 +405,92 @@
 }
 
 .monster-zoom-player { grid-area: player; color: #ffe96c; font-size: 16px; font-weight: 1000; }
-.monster-zoom-art { grid-area: art; height: min(62vh, 560px); display: flex; align-items: center; justify-content: center; }
+.monster-zoom-art { position:relative; grid-area: art; height: min(62vh, 560px); display: flex; align-items: center; justify-content: center; }
 .monster-zoom-name { grid-area: name; color: #fff; font-family: Impact, "Arial Black", sans-serif; font-size: clamp(38px, 5vw, 70px); line-height: .95; text-shadow: 0 0 28px var(--zoom-team, #ff385d); }
 .monster-zoom-stage { grid-area: stage; color: #ced7e6; font-size: 18px; font-weight: 900; }
+.monster-zoom-animation-control { grid-area:animation; display:flex; align-items:center; }
+.monster-zoom-animation-control .simple-action-button { min-width:150px; min-height:34px; font-size:10px; }
+.monster-zoom-animation-control .simple-action-button:disabled { opacity:.42; cursor:not-allowed; }
 .monster-zoom-stats { grid-area: stats; display: grid; grid-template-columns: repeat(2, minmax(0,1fr)); gap: 6px; }
 .monster-stat-row { display: flex; justify-content: space-between; padding: 7px 9px; border-left: 2px solid var(--zoom-team, #ff385d); background: rgba(255,255,255,.07); color: #d6deea; font-size: 12px; font-weight: 900; }
 .monster-stat-row strong { color: #fff; }
 .monster-zoom-special { grid-area: special; padding: 12px; color: #fff36c; border: 1px solid color-mix(in srgb, var(--zoom-team, #ff385d) 55%, transparent); background: rgba(0,0,0,.35); font-family: Impact, "Arial Black", sans-serif; font-size: 22px; }
+
+.monster-zoom-art.has-pose-animation .monster-sprite {
+  transform-origin:50% 78%;
+  will-change:transform, opacity;
+}
+
+.monster-zoom-art.has-pose-animation .monster-sprite-base {
+  animation:
+    monsterDexAction 5.6s ease-in-out infinite,
+    monsterBasePose 5.6s steps(1, end) infinite;
+}
+
+.monster-zoom-art.has-pose-animation .monster-sprite-attack {
+  position:absolute;
+  inset:-2% 0 auto;
+  margin:auto;
+  opacity:0;
+  pointer-events:none;
+  animation:
+    monsterDexAction 5.6s ease-in-out infinite,
+    monsterAttackPose 5.6s steps(1, end) infinite;
+}
+
+.monster-zoom-art.has-pose-animation .monster-sprite[data-monster-facing="right"] {
+  --dex-x-a:16px;
+  --dex-x-b:34px;
+  --dex-x-c:52px;
+  --dex-x-d:20px;
+  --dex-x-windup:-12px;
+  --dex-x-strike:54px;
+  --dex-x-return:8px;
+  --dex-rotate-a:2deg;
+  --dex-rotate-b:-2deg;
+  --dex-rotate-c:3deg;
+  --dex-rotate-windup:-5deg;
+  --dex-rotate-strike:7deg;
+  --dex-rotate-return:-2deg;
+}
+
+.monster-zoom-art.has-pose-animation .monster-sprite[data-monster-facing="left"] {
+  --dex-x-a:-16px;
+  --dex-x-b:-34px;
+  --dex-x-c:-52px;
+  --dex-x-d:-20px;
+  --dex-x-windup:12px;
+  --dex-x-strike:-54px;
+  --dex-x-return:-8px;
+  --dex-rotate-a:-2deg;
+  --dex-rotate-b:2deg;
+  --dex-rotate-c:-3deg;
+  --dex-rotate-windup:5deg;
+  --dex-rotate-strike:-7deg;
+  --dex-rotate-return:2deg;
+}
+
+.monster-zoom-art.animation-paused .monster-sprite { animation-play-state:paused; }
+
+@keyframes monsterDexAction {
+  0%, 14%, 48%, 62%, 86%, 100% { transform:translate3d(0,0,0) rotate(0deg) scale(1); }
+  19% { transform:translate3d(var(--dex-x-a,16px),-8px,0) rotate(var(--dex-rotate-a,2deg)) scale(.98,1.04); }
+  25% { transform:translate3d(var(--dex-x-b,34px),3px,0) rotate(var(--dex-rotate-b,-2deg)) scale(1.05,.96); }
+  31% { transform:translate3d(var(--dex-x-c,52px),-7px,0) rotate(var(--dex-rotate-c,3deg)) scale(.98,1.05); }
+  39% { transform:translate3d(var(--dex-x-d,20px),2px,0) rotate(0deg) scale(1.02,.98); }
+  65% { transform:translate3d(var(--dex-x-windup,-12px),8px,0) rotate(var(--dex-rotate-windup,-5deg)) scale(1.08,.92); }
+  72% { transform:translate3d(var(--dex-x-strike,54px),-3px,0) rotate(var(--dex-rotate-strike,7deg)) scale(1.14,.91); }
+  80% { transform:translate3d(var(--dex-x-return,8px),-5px,0) rotate(var(--dex-rotate-return,-2deg)) scale(.99,1.04); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .monster-zoom-art.has-pose-animation .monster-sprite {
+    animation:none !important;
+    will-change:auto;
+  }
+  .monster-zoom-art.has-pose-animation .monster-sprite-base { opacity:1; }
+  .monster-zoom-art.has-pose-animation .monster-sprite-attack { opacity:0; }
+}
 
 #victoryOverlay .victory-card {
   width: min(1240px, 97vw);
@@ -798,6 +878,7 @@
   .monster-portrait-button { width:100%; height:140px; }
   .monster-zoom-card { display:flex; flex-direction:column; gap:7px; overflow-y:auto; text-align:center; }
   .monster-zoom-art { width:100%; height:42vh; }
+  .monster-zoom-animation-control { justify-content:center; }
   .monster-zoom-name { font-size:36px; }
   .victory-monster-lineups { grid-template-columns:1fr; }
   .monster-battle-header { grid-template-columns:1fr auto 1fr; padding:7px; }
