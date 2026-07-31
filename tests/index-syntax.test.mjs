@@ -19,7 +19,7 @@ test("online lobby boot bypasses stale browser modules and retries once", () => 
 
   assert.match(html, /online-room\.js\?v=20260731-room-boot-1/);
   assert.match(html, /retry=\$\{Date\.now\(\)\}/);
-  assert.match(serviceWorker, /20260731-online-room-boot-66/);
+  assert.match(serviceWorker, /20260731-stage-one-actions-67/);
 });
 
 test("bingo cells are operated only through player-name buttons", () => {
@@ -545,6 +545,22 @@ test("monster battle audio is dedicated stereo material", () => {
     assert.equal(wave.readUInt32LE(24), 48000, `${file} must be 48 kHz`);
     assert.ok(wave.length > 150_000, `${file} is unexpectedly small`);
   });
+});
+
+test("first evolution monsters run and attack toward the opposing bingo card", () => {
+  const html = readFileSync(new URL("../index.html", import.meta.url), "utf8");
+  const battleCss = readFileSync(new URL("../monster-battle.css", import.meta.url), "utf8");
+
+  assert.match(html, /Number\(node\.stage\) === 1/);
+  assert.match(html, /stage-one-animated/);
+  assert.match(html, /data-monster-stage=/);
+  assert.match(html, /--monster-action-delay:/);
+  assert.match(battleCss, /@keyframes stageOneActionRed/);
+  assert.match(battleCss, /@keyframes stageOneActionBlue/);
+  assert.match(battleCss, /@keyframes stageOneRunDust/);
+  assert.match(battleCss, /@keyframes stageOneAttackEffect/);
+  assert.match(battleCss, /effects\/physical-v2\.png/);
+  assert.match(battleCss, /prefers-reduced-motion: reduce/);
 });
 
 test("territory mode has replaceable looping audio and a tofu gray selection aura", () => {

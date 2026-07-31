@@ -115,6 +115,100 @@
   scale: clamp(1.08, var(--monster-zoom, 1.12), 1.24);
 }
 
+.monster-player-card.stage-one-animated .monster-portrait-button::before,
+.monster-player-card.stage-one-animated .monster-portrait-button::after {
+  position: absolute;
+  z-index: 2;
+  inset: 0;
+  content: "";
+  pointer-events: none;
+}
+
+.monster-player-card.stage-one-animated .monster-portrait-button::before {
+  inset: auto 12% 7% 12%;
+  height: 24%;
+  opacity: 0;
+  background:
+    radial-gradient(circle at 20% 72%, rgba(255,255,255,.72) 0 3%, transparent 4%),
+    radial-gradient(circle at 42% 42%, color-mix(in srgb, var(--monster-card-accent) 58%, white) 0 4%, transparent 5%),
+    radial-gradient(circle at 68% 68%, rgba(255,228,128,.72) 0 3%, transparent 4%);
+  filter: blur(.2px) drop-shadow(0 0 7px var(--monster-card-accent));
+  animation: stageOneRunDust 8s linear var(--monster-action-delay, 0s) infinite;
+}
+
+.monster-player-card.stage-one-animated .monster-portrait-button::after {
+  inset: 9%;
+  opacity: 0;
+  background: url("images/monster-battle/effects/physical-v2.png") 66.667% 50% / 400% 100% no-repeat;
+  filter: drop-shadow(0 0 8px #fff) drop-shadow(0 0 14px var(--monster-card-accent));
+  animation: stageOneAttackEffect 8s linear var(--monster-action-delay, 0s) infinite;
+}
+
+.monster-player-card.stage-one-animated .monster-sprite {
+  transform-origin: 50% 78%;
+  will-change: transform;
+}
+
+.monster-panel.red .monster-player-card.stage-one-animated .monster-sprite {
+  animation: stageOneActionRed 8s linear var(--monster-action-delay, 0s) infinite;
+}
+
+.monster-panel.blue .monster-player-card.stage-one-animated .monster-sprite {
+  animation: stageOneActionBlue 8s linear var(--monster-action-delay, 0s) infinite;
+}
+
+@keyframes stageOneActionRed {
+  0%, 16%, 48%, 62%, 84%, 100% { transform: translate3d(0,0,0) rotate(0deg) scale(1); }
+  19% { transform: translate3d(-8px,7px,0) rotate(-3deg) scale(1.05,.94); }
+  23% { transform: translate3d(8px,-5px,0) rotate(3deg) scale(.98,1.04); }
+  28% { transform: translate3d(25px,3px,0) rotate(-2deg) scale(1.04,.97); }
+  33% { transform: translate3d(42px,-6px,0) rotate(3deg) scale(.98,1.05); }
+  38% { transform: translate3d(24px,2px,0) rotate(-2deg) scale(1.04,.97); }
+  43% { transform: translate3d(5px,-4px,0) rotate(2deg) scale(.99,1.03); }
+  65% { transform: translate3d(-9px,7px,0) rotate(-5deg) scale(1.08,.92); }
+  69% { transform: translate3d(22px,-3px,0) rotate(5deg) scale(1.08,.98); }
+  72% { transform: translate3d(42px,0,0) rotate(7deg) scale(1.15,.91); }
+  76% { transform: translate3d(16px,-7px,0) rotate(-4deg) scale(.97,1.08); }
+  80% { transform: translate3d(-5px,2px,0) rotate(-2deg) scale(1.03,.98); }
+}
+
+@keyframes stageOneActionBlue {
+  0%, 16%, 48%, 62%, 84%, 100% { transform: translate3d(0,0,0) rotate(0deg) scale(1); }
+  19% { transform: translate3d(8px,7px,0) rotate(3deg) scale(1.05,.94); }
+  23% { transform: translate3d(-8px,-5px,0) rotate(-3deg) scale(.98,1.04); }
+  28% { transform: translate3d(-25px,3px,0) rotate(2deg) scale(1.04,.97); }
+  33% { transform: translate3d(-42px,-6px,0) rotate(-3deg) scale(.98,1.05); }
+  38% { transform: translate3d(-24px,2px,0) rotate(2deg) scale(1.04,.97); }
+  43% { transform: translate3d(-5px,-4px,0) rotate(-2deg) scale(.99,1.03); }
+  65% { transform: translate3d(9px,7px,0) rotate(5deg) scale(1.08,.92); }
+  69% { transform: translate3d(-22px,-3px,0) rotate(-5deg) scale(1.08,.98); }
+  72% { transform: translate3d(-42px,0,0) rotate(-7deg) scale(1.15,.91); }
+  76% { transform: translate3d(-16px,-7px,0) rotate(4deg) scale(.97,1.08); }
+  80% { transform: translate3d(5px,2px,0) rotate(2deg) scale(1.03,.98); }
+}
+
+@keyframes stageOneRunDust {
+  0%, 18%, 45%, 100% { opacity: 0; transform: translate3d(0,5px,0) scale(.72); }
+  23%, 28%, 33%, 38% { opacity: .8; transform: translate3d(0,0,0) scale(1); }
+  43% { opacity: 0; transform: translate3d(0,-4px,0) scale(1.25); }
+}
+
+@keyframes stageOneAttackEffect {
+  0%, 68%, 77%, 100% { opacity: 0; transform: scale(.48) rotate(-12deg); }
+  71% { opacity: .25; transform: scale(.78) rotate(-5deg); }
+  73% { opacity: 1; transform: scale(1.18) rotate(4deg); }
+  76% { opacity: 0; transform: scale(1.46) rotate(10deg); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .monster-player-card.stage-one-animated .monster-sprite,
+  .monster-player-card.stage-one-animated .monster-portrait-button::before,
+  .monster-player-card.stage-one-animated .monster-portrait-button::after {
+    animation: none !important;
+    will-change: auto;
+  }
+}
+
 .monster-evolution-before,
 .monster-evolution-after,
 .monster-zoom-art,

@@ -9585,7 +9585,7 @@
       const markup = `
         <div class="monster-panel-head"><b>MONSTERS</b><span>${team.toUpperCase()} PARTY</span></div>
         <div class="monster-player-list">
-          ${side.monsters.map((monster) => renderPlayerMonsterCard(team, monster)).join("")}
+          ${side.monsters.map((monster, monsterIndex) => renderPlayerMonsterCard(team, monster, monsterIndex)).join("")}
         </div>
       `;
       if (renderMarkupCache.monsters[team] === markup) return;
@@ -9593,12 +9593,14 @@
       panel.innerHTML = markup;
     }
 
-    function renderPlayerMonsterCard(team, monster) {
+    function renderPlayerMonsterCard(team, monster, monsterIndex = 0) {
       const node = MONSTER_NODES[monster.nodeId] || MONSTER_NODES.egg;
       const identity = MONSTER_SYSTEM.monsterKey(monster.playerName, monster.slot);
       const slotLabel = state.doubleMonsterMode ? `<small>MONSTER ${monster.slot + 1}</small>` : "";
+      const stageOneAnimated = Number(node.stage) === 1;
+      const actionDelay = -((monsterIndex * 1.65) + (team === "blue" ? .8 : 0));
       return `
-        <article class="monster-player-card" data-monster-player="${escapeHtml(identity)}">
+        <article class="monster-player-card${stageOneAnimated ? " stage-one-animated" : ""}" data-monster-player="${escapeHtml(identity)}" data-monster-stage="${Number(node.stage) || 0}" style="--monster-action-delay:${actionDelay}s">
           <button type="button" class="monster-portrait-button" data-monster-team="${team}" data-monster-zoom="${escapeHtml(identity)}" title="${escapeHtml(node.name)}を拡大">
             ${monsterSpriteMarkup(node)}
           </button>
