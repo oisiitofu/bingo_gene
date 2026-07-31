@@ -9576,6 +9576,21 @@
       return `<span class="monster-sprite${extraClass ? ` ${extraClass}` : ""}" data-monster-facing="${facing}" style="${style}" aria-hidden="true"></span>`;
     }
 
+    const STAGE_ONE_ATTACK_SHEETS = Object.freeze({
+      "images/monsters/childhood.png": "images/monsters/childhood-attack.png",
+      "images/monsters/childhood-new.png": "images/monsters/childhood-new-attack.png",
+      "images/monsters/childhood-extra.png": "images/monsters/childhood-extra-attack.png"
+    });
+
+    function monsterAttackSpriteMarkup(node) {
+      const attackSheet = STAGE_ONE_ATTACK_SHEETS[node?.sprite?.sheet];
+      if (!attackSheet || Number(node?.stage) !== 1) return "";
+      return monsterSpriteMarkup({
+        ...node,
+        sprite: { ...node.sprite, sheet: attackSheet }
+      }, "monster-sprite-attack");
+    }
+
     function renderMonsterPanel(team) {
       const panel = els[`${team}MonsterPanel`];
       if (!panel) return;
@@ -9602,7 +9617,8 @@
       return `
         <article class="monster-player-card${stageOneAnimated ? " stage-one-animated" : ""}" data-monster-player="${escapeHtml(identity)}" data-monster-stage="${Number(node.stage) || 0}" style="--monster-action-delay:${actionDelay}s">
           <button type="button" class="monster-portrait-button" data-monster-team="${team}" data-monster-zoom="${escapeHtml(identity)}" title="${escapeHtml(node.name)}を拡大">
-            ${monsterSpriteMarkup(node)}
+            ${monsterSpriteMarkup(node, stageOneAnimated ? "monster-sprite-base" : "")}
+            ${stageOneAnimated ? monsterAttackSpriteMarkup(node) : ""}
           </button>
           <div class="monster-player-info">
             <strong class="monster-player-name">${escapeHtml(monster.playerName)}${slotLabel}</strong>

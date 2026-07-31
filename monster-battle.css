@@ -115,8 +115,7 @@
   scale: clamp(1.08, var(--monster-zoom, 1.12), 1.24);
 }
 
-.monster-player-card.stage-one-animated .monster-portrait-button::before,
-.monster-player-card.stage-one-animated .monster-portrait-button::after {
+.monster-player-card.stage-one-animated .monster-portrait-button::before {
   position: absolute;
   z-index: 2;
   inset: 0;
@@ -136,25 +135,41 @@
   animation: stageOneRunDust 8s linear var(--monster-action-delay, 0s) infinite;
 }
 
-.monster-player-card.stage-one-animated .monster-portrait-button::after {
-  inset: 9%;
-  opacity: 0;
-  background: url("images/monster-battle/effects/physical-v2.png") 66.667% 50% / 400% 100% no-repeat;
-  filter: drop-shadow(0 0 8px #fff) drop-shadow(0 0 14px var(--monster-card-accent));
-  animation: stageOneAttackEffect 8s linear var(--monster-action-delay, 0s) infinite;
-}
-
 .monster-player-card.stage-one-animated .monster-sprite {
   transform-origin: 50% 78%;
   will-change: transform;
 }
 
-.monster-panel.red .monster-player-card.stage-one-animated .monster-sprite {
-  animation: stageOneActionRed 8s linear var(--monster-action-delay, 0s) infinite;
+.monster-player-card.stage-one-animated .monster-sprite-attack {
+  position: absolute;
+  inset: -2% 0 auto;
+  margin: auto;
+  opacity: 0;
+  pointer-events: none;
 }
 
-.monster-panel.blue .monster-player-card.stage-one-animated .monster-sprite {
-  animation: stageOneActionBlue 8s linear var(--monster-action-delay, 0s) infinite;
+.monster-panel.red .monster-player-card.stage-one-animated .monster-sprite-base {
+  animation:
+    stageOneActionRed 8s linear var(--monster-action-delay, 0s) infinite,
+    stageOneBasePose 8s steps(1, end) var(--monster-action-delay, 0s) infinite;
+}
+
+.monster-panel.red .monster-player-card.stage-one-animated .monster-sprite-attack {
+  animation:
+    stageOneActionRed 8s linear var(--monster-action-delay, 0s) infinite,
+    stageOneAttackPose 8s steps(1, end) var(--monster-action-delay, 0s) infinite;
+}
+
+.monster-panel.blue .monster-player-card.stage-one-animated .monster-sprite-base {
+  animation:
+    stageOneActionBlue 8s linear var(--monster-action-delay, 0s) infinite,
+    stageOneBasePose 8s steps(1, end) var(--monster-action-delay, 0s) infinite;
+}
+
+.monster-panel.blue .monster-player-card.stage-one-animated .monster-sprite-attack {
+  animation:
+    stageOneActionBlue 8s linear var(--monster-action-delay, 0s) infinite,
+    stageOneAttackPose 8s steps(1, end) var(--monster-action-delay, 0s) infinite;
 }
 
 @keyframes stageOneActionRed {
@@ -193,20 +208,25 @@
   43% { opacity: 0; transform: translate3d(0,-4px,0) scale(1.25); }
 }
 
-@keyframes stageOneAttackEffect {
-  0%, 68%, 77%, 100% { opacity: 0; transform: scale(.48) rotate(-12deg); }
-  71% { opacity: .25; transform: scale(.78) rotate(-5deg); }
-  73% { opacity: 1; transform: scale(1.18) rotate(4deg); }
-  76% { opacity: 0; transform: scale(1.46) rotate(10deg); }
+@keyframes stageOneBasePose {
+  0%, 64%, 68%, 72%, 80%, 100% { opacity: 1; }
+  65%, 67%, 69%, 71%, 73%, 79% { opacity: 0; }
+}
+
+@keyframes stageOneAttackPose {
+  0%, 64%, 68%, 72%, 80%, 100% { opacity: 0; }
+  65%, 67%, 69%, 71%, 73%, 79% { opacity: 1; }
 }
 
 @media (prefers-reduced-motion: reduce) {
   .monster-player-card.stage-one-animated .monster-sprite,
-  .monster-player-card.stage-one-animated .monster-portrait-button::before,
-  .monster-player-card.stage-one-animated .monster-portrait-button::after {
+  .monster-player-card.stage-one-animated .monster-portrait-button::before {
     animation: none !important;
     will-change: auto;
   }
+
+  .monster-player-card.stage-one-animated .monster-sprite-base { opacity: 1; }
+  .monster-player-card.stage-one-animated .monster-sprite-attack { opacity: 0; }
 }
 
 .monster-evolution-before,

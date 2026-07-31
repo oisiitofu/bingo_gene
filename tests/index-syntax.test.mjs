@@ -19,7 +19,7 @@ test("online lobby boot bypasses stale browser modules and retries once", () => 
 
   assert.match(html, /online-room\.js\?v=20260731-room-boot-1/);
   assert.match(html, /retry=\$\{Date\.now\(\)\}/);
-  assert.match(serviceWorker, /20260731-stage-one-actions-67/);
+  assert.match(serviceWorker, /20260731-stage-one-pose-art-68/);
 });
 
 test("bingo cells are operated only through player-name buttons", () => {
@@ -547,7 +547,7 @@ test("monster battle audio is dedicated stereo material", () => {
   });
 });
 
-test("first evolution monsters run and attack toward the opposing bingo card", () => {
+test("first evolution monsters animate with illustrated attack poses", () => {
   const html = readFileSync(new URL("../index.html", import.meta.url), "utf8");
   const battleCss = readFileSync(new URL("../monster-battle.css", import.meta.url), "utf8");
 
@@ -558,8 +558,13 @@ test("first evolution monsters run and attack toward the opposing bingo card", (
   assert.match(battleCss, /@keyframes stageOneActionRed/);
   assert.match(battleCss, /@keyframes stageOneActionBlue/);
   assert.match(battleCss, /@keyframes stageOneRunDust/);
-  assert.match(battleCss, /@keyframes stageOneAttackEffect/);
-  assert.match(battleCss, /effects\/physical-v2\.png/);
+  assert.match(battleCss, /@keyframes stageOneBasePose/);
+  assert.match(battleCss, /@keyframes stageOneAttackPose/);
+  assert.match(html, /childhood-attack\.png/);
+  assert.match(html, /childhood-new-attack\.png/);
+  assert.match(html, /childhood-extra-attack\.png/);
+  assert.doesNotMatch(battleCss, /stageOneAttackEffect/);
+  assert.doesNotMatch(battleCss, /effects\/physical-v2\.png/);
   assert.match(battleCss, /prefers-reduced-motion: reduce/);
 });
 
