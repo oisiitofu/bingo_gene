@@ -1,11 +1,11 @@
 {
   "version": 1,
-  "generatedAt": "2026-07-26T10:33:36.056Z",
+  "generatedAt": "2026-07-31T16:40:49.928Z",
   "totals": {
-    "all": 443,
-    "images": 280,
+    "all": 495,
+    "images": 332,
     "audio": 163,
-    "bytes": 327126425
+    "bytes": 425354627
   },
   "assets": [
     {
@@ -972,7 +972,7 @@
       "path": "audio/territory/bgm/bgm.mp3",
       "type": "audio",
       "category": "audio/territory/bgm",
-      "bytes": 2299439
+      "bytes": 5686413
     },
     {
       "path": "audio/tofu-space-flavor.mp3",
@@ -1617,10 +1617,28 @@
       "bytes": 686640
     },
     {
+      "path": "images/monsters/childhood-attack.png",
+      "type": "image",
+      "category": "images/monsters",
+      "bytes": 1058159
+    },
+    {
+      "path": "images/monsters/childhood-extra-attack.png",
+      "type": "image",
+      "category": "images/monsters",
+      "bytes": 1231957
+    },
+    {
       "path": "images/monsters/childhood-extra.png",
       "type": "image",
       "category": "images/monsters",
       "bytes": 1262670
+    },
+    {
+      "path": "images/monsters/childhood-new-attack.png",
+      "type": "image",
+      "category": "images/monsters",
+      "bytes": 1200556
     },
     {
       "path": "images/monsters/childhood-new.png",
@@ -1635,10 +1653,22 @@
       "bytes": 1077731
     },
     {
+      "path": "images/monsters/egg-attack.png",
+      "type": "image",
+      "category": "images/monsters",
+      "bytes": 1153647
+    },
+    {
       "path": "images/monsters/egg.png",
       "type": "image",
       "category": "images/monsters",
       "bytes": 1225482
+    },
+    {
+      "path": "images/monsters/growth-extra-v2-attack.png",
+      "type": "image",
+      "category": "images/monsters",
+      "bytes": 1018165
     },
     {
       "path": "images/monsters/growth-extra-v2.png",
@@ -1653,16 +1683,34 @@
       "bytes": 1345312
     },
     {
+      "path": "images/monsters/growth-new-a-attack.png",
+      "type": "image",
+      "category": "images/monsters",
+      "bytes": 1165669
+    },
+    {
       "path": "images/monsters/growth-new-a.png",
       "type": "image",
       "category": "images/monsters",
       "bytes": 1332756
     },
     {
+      "path": "images/monsters/growth-new-b-attack.png",
+      "type": "image",
+      "category": "images/monsters",
+      "bytes": 1345854
+    },
+    {
       "path": "images/monsters/growth-new-b.png",
       "type": "image",
       "category": "images/monsters",
       "bytes": 1475470
+    },
+    {
+      "path": "images/monsters/growth-v2-attack.png",
+      "type": "image",
+      "category": "images/monsters",
+      "bytes": 875138
     },
     {
       "path": "images/monsters/growth-v2.png",
@@ -1677,6 +1725,18 @@
       "bytes": 1140741
     },
     {
+      "path": "images/monsters/legendary-attack.png",
+      "type": "image",
+      "category": "images/monsters",
+      "bytes": 2697013
+    },
+    {
+      "path": "images/monsters/legendary-new-attack.png",
+      "type": "image",
+      "category": "images/monsters",
+      "bytes": 2992707
+    },
+    {
       "path": "images/monsters/legendary-new.png",
       "type": "image",
       "category": "images/monsters",
@@ -1689,10 +1749,22 @@
       "bytes": 3092289
     },
     {
+      "path": "images/monsters/lineage-abyss-attack.png",
+      "type": "image",
+      "category": "images/monsters",
+      "bytes": 1783903
+    },
+    {
       "path": "images/monsters/lineage-abyss.png",
       "type": "image",
       "category": "images/monsters",
       "bytes": 1846909
+    },
+    {
+      "path": "images/monsters/lineage-beetle-attack.png",
+      "type": "image",
+      "category": "images/monsters",
+      "bytes": 1544071
     },
     {
       "path": "images/monsters/lineage-beetle.png",
@@ -1701,10 +1773,22 @@
       "bytes": 1547900
     },
     {
+      "path": "images/monsters/lineage-bloom-attack.png",
+      "type": "image",
+      "category": "images/monsters",
+      "bytes": 1885855
+    },
+    {
       "path": "images/monsters/lineage-bloom.png",
       "type": "image",
       "category": "images/monsters",
       "bytes": 3159829
+    },
+    {
+      "path": "images/monsters/lineage-candy-attack.png",
+      "type": "image",
+      "category": "images/monsters",
+      "bytes": 2329291
     },
     {
       "path": "images/monsters/lineage-candy.png",
@@ -1713,10 +1797,22 @@
       "bytes": 2377160
     },
     {
+      "path": "images/monsters/lineage-coral-attack.png",
+      "type": "image",
+      "category": "images/monsters",
+      "bytes": 2044633
+    },
+    {
       "path": "images/monsters/lineage-coral.png",
       "type": "image",
       "category": "images/monsters",
       "bytes": 2196500
+    },
+    {
+      "path": "images/monsters/lineage-corsair-attack.png",
+      "type": "image",
+      "category": "images/monsters",
+      "bytes": 1948968
     },
     {
       "path": "images/monsters/lineage-corsair.png",
@@ -1725,10 +1821,22 @@
       "bytes": 1939059
     },
     {
+      "path": "images/monsters/lineage-cosmic-attack.png",
+      "type": "image",
+      "category": "images/monsters",
+      "bytes": 1562066
+    },
+    {
       "path": "images/monsters/lineage-cosmic.png",
       "type": "image",
       "category": "images/monsters",
       "bytes": 1532875
+    },
+    {
+      "path": "images/monsters/lineage-crystal-attack.png",
+      "type": "image",
+      "category": "images/monsters",
+      "bytes": 2120169
     },
     {
       "path": "images/monsters/lineage-crystal.png",
@@ -1737,10 +1845,22 @@
       "bytes": 2196762
     },
     {
+      "path": "images/monsters/lineage-dojo-attack.png",
+      "type": "image",
+      "category": "images/monsters",
+      "bytes": 1701895
+    },
+    {
       "path": "images/monsters/lineage-dojo.png",
       "type": "image",
       "category": "images/monsters",
       "bytes": 1666602
+    },
+    {
+      "path": "images/monsters/lineage-dream-attack.png",
+      "type": "image",
+      "category": "images/monsters",
+      "bytes": 1602037
     },
     {
       "path": "images/monsters/lineage-dream.png",
@@ -1749,10 +1869,22 @@
       "bytes": 1538106
     },
     {
+      "path": "images/monsters/lineage-dune-attack.png",
+      "type": "image",
+      "category": "images/monsters",
+      "bytes": 1758489
+    },
+    {
       "path": "images/monsters/lineage-dune.png",
       "type": "image",
       "category": "images/monsters",
       "bytes": 1785211
+    },
+    {
+      "path": "images/monsters/lineage-festival-attack.png",
+      "type": "image",
+      "category": "images/monsters",
+      "bytes": 1769518
     },
     {
       "path": "images/monsters/lineage-festival.png",
@@ -1761,10 +1893,22 @@
       "bytes": 1892393
     },
     {
+      "path": "images/monsters/lineage-fossil-attack.png",
+      "type": "image",
+      "category": "images/monsters",
+      "bytes": 1709985
+    },
+    {
       "path": "images/monsters/lineage-fossil.png",
       "type": "image",
       "category": "images/monsters",
       "bytes": 1667136
+    },
+    {
+      "path": "images/monsters/lineage-glacier-attack.png",
+      "type": "image",
+      "category": "images/monsters",
+      "bytes": 2202545
     },
     {
       "path": "images/monsters/lineage-glacier.png",
@@ -1773,10 +1917,22 @@
       "bytes": 2599993
     },
     {
+      "path": "images/monsters/lineage-gourmet-attack.png",
+      "type": "image",
+      "category": "images/monsters",
+      "bytes": 1905299
+    },
+    {
       "path": "images/monsters/lineage-gourmet.png",
       "type": "image",
       "category": "images/monsters",
       "bytes": 1918649
+    },
+    {
+      "path": "images/monsters/lineage-grove-attack.png",
+      "type": "image",
+      "category": "images/monsters",
+      "bytes": 2201993
     },
     {
       "path": "images/monsters/lineage-grove.png",
@@ -1785,10 +1941,22 @@
       "bytes": 2129900
     },
     {
+      "path": "images/monsters/lineage-inferno-attack.png",
+      "type": "image",
+      "category": "images/monsters",
+      "bytes": 2088964
+    },
+    {
       "path": "images/monsters/lineage-inferno.png",
       "type": "image",
       "category": "images/monsters",
       "bytes": 2157193
+    },
+    {
+      "path": "images/monsters/lineage-ink-attack.png",
+      "type": "image",
+      "category": "images/monsters",
+      "bytes": 2121212
     },
     {
       "path": "images/monsters/lineage-ink.png",
@@ -1797,10 +1965,22 @@
       "bytes": 2025204
     },
     {
+      "path": "images/monsters/lineage-junk-attack.png",
+      "type": "image",
+      "category": "images/monsters",
+      "bytes": 2168582
+    },
+    {
       "path": "images/monsters/lineage-junk.png",
       "type": "image",
       "category": "images/monsters",
       "bytes": 2263994
+    },
+    {
+      "path": "images/monsters/lineage-mecha-attack.png",
+      "type": "image",
+      "category": "images/monsters",
+      "bytes": 1869275
     },
     {
       "path": "images/monsters/lineage-mecha.png",
@@ -1809,10 +1989,22 @@
       "bytes": 2020228
     },
     {
+      "path": "images/monsters/lineage-ninja-attack.png",
+      "type": "image",
+      "category": "images/monsters",
+      "bytes": 1729208
+    },
+    {
       "path": "images/monsters/lineage-ninja.png",
       "type": "image",
       "category": "images/monsters",
       "bytes": 1466536
+    },
+    {
+      "path": "images/monsters/lineage-rail-attack.png",
+      "type": "image",
+      "category": "images/monsters",
+      "bytes": 1760510
     },
     {
       "path": "images/monsters/lineage-rail.png",
@@ -1821,10 +2013,22 @@
       "bytes": 1738153
     },
     {
+      "path": "images/monsters/lineage-ryu-attack.png",
+      "type": "image",
+      "category": "images/monsters",
+      "bytes": 2374452
+    },
+    {
       "path": "images/monsters/lineage-ryu.png",
       "type": "image",
       "category": "images/monsters",
       "bytes": 2355786
+    },
+    {
+      "path": "images/monsters/lineage-samurai-attack.png",
+      "type": "image",
+      "category": "images/monsters",
+      "bytes": 1801209
     },
     {
       "path": "images/monsters/lineage-samurai.png",
@@ -1833,10 +2037,22 @@
       "bytes": 1716798
     },
     {
+      "path": "images/monsters/lineage-shadow-attack.png",
+      "type": "image",
+      "category": "images/monsters",
+      "bytes": 1989501
+    },
+    {
       "path": "images/monsters/lineage-shadow.png",
       "type": "image",
       "category": "images/monsters",
       "bytes": 1814445
+    },
+    {
+      "path": "images/monsters/lineage-sky-attack.png",
+      "type": "image",
+      "category": "images/monsters",
+      "bytes": 2021035
     },
     {
       "path": "images/monsters/lineage-sky.png",
@@ -1845,10 +2061,22 @@
       "bytes": 2346443
     },
     {
+      "path": "images/monsters/lineage-slime-attack.png",
+      "type": "image",
+      "category": "images/monsters",
+      "bytes": 1763487
+    },
+    {
       "path": "images/monsters/lineage-slime.png",
       "type": "image",
       "category": "images/monsters",
       "bytes": 1720563
+    },
+    {
+      "path": "images/monsters/lineage-sonic-attack.png",
+      "type": "image",
+      "category": "images/monsters",
+      "bytes": 1810748
     },
     {
       "path": "images/monsters/lineage-sonic.png",
@@ -1857,10 +2085,22 @@
       "bytes": 1908530
     },
     {
+      "path": "images/monsters/lineage-spirit-attack.png",
+      "type": "image",
+      "category": "images/monsters",
+      "bytes": 2309617
+    },
+    {
       "path": "images/monsters/lineage-spirit.png",
       "type": "image",
       "category": "images/monsters",
       "bytes": 2332563
+    },
+    {
+      "path": "images/monsters/lineage-spore-attack.png",
+      "type": "image",
+      "category": "images/monsters",
+      "bytes": 2180070
     },
     {
       "path": "images/monsters/lineage-spore.png",
@@ -1869,10 +2109,22 @@
       "bytes": 2176295
     },
     {
+      "path": "images/monsters/lineage-tempest-attack.png",
+      "type": "image",
+      "category": "images/monsters",
+      "bytes": 2231231
+    },
+    {
       "path": "images/monsters/lineage-tempest.png",
       "type": "image",
       "category": "images/monsters",
       "bytes": 2414839
+    },
+    {
+      "path": "images/monsters/lineage-thunder-attack.png",
+      "type": "image",
+      "category": "images/monsters",
+      "bytes": 1679101
     },
     {
       "path": "images/monsters/lineage-thunder.png",
@@ -1885,6 +2137,12 @@
       "type": "image",
       "category": "images/monsters",
       "bytes": 2694715
+    },
+    {
+      "path": "images/monsters/rank6-a-v3-attack.png",
+      "type": "image",
+      "category": "images/monsters",
+      "bytes": 6375187
     },
     {
       "path": "images/monsters/rank6-a-v3.png",
@@ -1905,6 +2163,12 @@
       "bytes": 3110316
     },
     {
+      "path": "images/monsters/rank6-b-v3-attack.png",
+      "type": "image",
+      "category": "images/monsters",
+      "bytes": 6821962
+    },
+    {
       "path": "images/monsters/rank6-b-v3.png",
       "type": "image",
       "category": "images/monsters",
@@ -1915,6 +2179,54 @@
       "type": "image",
       "category": "images/monsters",
       "bytes": 3061319
+    },
+    {
+      "path": "images/monsters/singles/bone-raptor-attack.png",
+      "type": "image",
+      "category": "images/monsters/singles",
+      "bytes": 439695
+    },
+    {
+      "path": "images/monsters/singles/bone-raptor.png",
+      "type": "image",
+      "category": "images/monsters/singles",
+      "bytes": 544501
+    },
+    {
+      "path": "images/monsters/singles/chibi-dragon-attack.png",
+      "type": "image",
+      "category": "images/monsters/singles",
+      "bytes": 705350
+    },
+    {
+      "path": "images/monsters/singles/chibi-dragon.png",
+      "type": "image",
+      "category": "images/monsters/singles",
+      "bytes": 705350
+    },
+    {
+      "path": "images/monsters/singles/electric-owl-attack.png",
+      "type": "image",
+      "category": "images/monsters/singles",
+      "bytes": 674136
+    },
+    {
+      "path": "images/monsters/singles/electric-owl.png",
+      "type": "image",
+      "category": "images/monsters/singles",
+      "bytes": 674136
+    },
+    {
+      "path": "images/monsters/singles/fossil-triceratops-attack.png",
+      "type": "image",
+      "category": "images/monsters/singles",
+      "bytes": 516174
+    },
+    {
+      "path": "images/monsters/singles/fossil-triceratops.png",
+      "type": "image",
+      "category": "images/monsters/singles",
+      "bytes": 676953
     },
     {
       "path": "images/random-events/gold-rush.png",

@@ -19,7 +19,7 @@ test("online lobby boot bypasses stale browser modules and retries once", () => 
 
   assert.match(html, /online-room\.js\?v=20260731-room-boot-1/);
   assert.match(html, /retry=\$\{Date\.now\(\)\}/);
-  assert.match(serviceWorker, /20260801-battle-pose-fixed-stats-79/);
+  assert.match(serviceWorker, /20260801-sprite-crop-name-fit-80/);
 });
 
 test("bingo cells are operated only through player-name buttons", () => {
@@ -208,6 +208,28 @@ test("monster battles use pose artwork while attacks are active", () => {
   assert.match(styles, /@keyframes battleAttackPoseSwap/);
 });
 
+test("oversized monster sheet entries use isolated artwork and fitted encyclopedia names", () => {
+  const html = readFileSync(new URL("../index.html", import.meta.url), "utf8");
+  const monsterSystem = readFileSync(new URL("../monster-system.js", import.meta.url), "utf8");
+  const styles = readFileSync(new URL("../monster-battle.css", import.meta.url), "utf8");
+  const assets = [
+    "chibi-dragon.png", "chibi-dragon-attack.png",
+    "electric-owl.png", "electric-owl-attack.png",
+    "bone-raptor.png", "bone-raptor-attack.png",
+    "fossil-triceratops.png", "fossil-triceratops-attack.png"
+  ];
+
+  assets.forEach((name) => assert.ok(existsSync(new URL(`../images/monsters/singles/${name}`, import.meta.url)), name));
+  assert.match(monsterSystem, /singles\/chibi-dragon\.png/);
+  assert.match(monsterSystem, /singles\/electric-owl\.png/);
+  assert.match(monsterSystem, /singles\/bone-raptor\.png/);
+  assert.match(monsterSystem, /singles\/fossil-triceratops\.png/);
+  assert.match(html, /function monsterNameFitStyle\(/);
+  assert.match(html, /--monster-name-size:/);
+  assert.match(styles, /--monster-zoom-name-vw/);
+  assert.match(styles, /white-space:nowrap/);
+});
+
 test("persistent player stats are limited to the fixed six members", () => {
   const html = readFileSync(new URL("../index.html", import.meta.url), "utf8");
 
@@ -297,7 +319,12 @@ test("monster evolution has eight childhood entries, rank six fusions, passives,
     [1, 8, 16, 32, 64, 132, 32]
   );
   Object.values(result.NODES).filter((node) => node.stage === 2).forEach((node) => {
-    assert.match(node.sprite.size, /^400% (?:100|200)%$/, `${node.id} must use a four-column growth sheet`);
+    if (node.id === "growth-rail") {
+      assert.equal(node.sprite.size, "contain", "growth-rail must use isolated artwork without the adjacent sprite");
+      assert.match(node.sprite.sheet, /singles\/chibi-dragon\.png$/);
+    } else {
+      assert.match(node.sprite.size, /^400% (?:100|200)%$/, `${node.id} must use a four-column growth sheet`);
+    }
     assert.ok(node.sprite.aspect > 0, `${node.id} must preserve its source cell aspect ratio`);
   });
   Object.values(result.NODES).forEach((node) => {

@@ -5212,7 +5212,7 @@
     .monster-tree-node.legendary { border-color: #f8dc72; box-shadow: 0 0 18px rgba(137,99,255,.35); }
     .monster-tree-node.rank6 { border-color: #fff36c; background: linear-gradient(145deg,rgba(83,24,130,.96),rgba(15,8,33,.98)); box-shadow: 0 0 18px rgba(255,231,83,.4), inset 0 0 16px rgba(161,73,255,.24); }
     .monster-tree-node .monster-sprite { width: 100%; height: 76px; overflow: hidden; }
-    .monster-tree-node strong { overflow: hidden; font-size: 9px; text-overflow: ellipsis; white-space: nowrap; }
+    .monster-tree-node strong { overflow: hidden; font-size: var(--monster-name-size, 9px); letter-spacing: 0; text-overflow: clip; white-space: nowrap; }
     .monster-tree-node span:last-child { color: rgba(255,255,255,.58); font-size: 8px; }
     .monster-tree-unknown { display: grid; height: 76px; place-items: center; color: rgba(255,255,255,.2); font: 1000 30px/1 Impact,sans-serif; }
     .monster-tree-legends { display: flex; gap: 8px; padding: 12px; border-left: 2px solid #f8dc72; background: rgba(248,220,114,.06); }
@@ -5353,10 +5353,11 @@
       display: block;
       overflow: hidden;
       color: #f8fafc;
-      font-size: 9px;
+      font-size: var(--monster-name-size, 9px);
+      letter-spacing: 0;
       line-height: 18px;
       text-align: center;
-      text-overflow: ellipsis;
+      text-overflow: clip;
       white-space: nowrap;
     }
 
@@ -9638,6 +9639,10 @@
       "images/monsters/lineage-ninja.png": "images/monsters/lineage-ninja-attack.png",
       "images/monsters/lineage-rail.png": "images/monsters/lineage-rail-attack.png",
       "images/monsters/lineage-ryu.png": "images/monsters/lineage-ryu-attack.png",
+      "images/monsters/singles/chibi-dragon.png": "images/monsters/singles/chibi-dragon-attack.png",
+      "images/monsters/singles/electric-owl.png": "images/monsters/singles/electric-owl-attack.png",
+      "images/monsters/singles/bone-raptor.png": "images/monsters/singles/bone-raptor-attack.png",
+      "images/monsters/singles/fossil-triceratops.png": "images/monsters/singles/fossil-triceratops-attack.png",
       "images/monsters/rank6-a-v3.png": "images/monsters/rank6-a-v3-attack.png",
       "images/monsters/rank6-b-v3.png": "images/monsters/rank6-b-v3-attack.png",
       "images/monsters/legendary.png": "images/monsters/legendary-attack.png",
@@ -9706,6 +9711,17 @@
 
     function monsterRankLabel(node) {
       return `☆${monsterRank(node)}`;
+    }
+
+    function monsterNameUnits(name) {
+      return Array.from(String(name || "")).reduce((total, character) => (
+        total + (/^[\x20-\x7E]$/.test(character) ? .62 : 1)
+      ), 0) || 1;
+    }
+
+    function monsterNameFitStyle(name, availableWidth = 76, maxSize = 9, minSize = 5.5) {
+      const size = Math.max(minSize, Math.min(maxSize, availableWidth / monsterNameUnits(name)));
+      return `--monster-name-size:${size.toFixed(2)}px`;
     }
 
     function showMonsterEvolution(team, previousId, nextId, playerName = "") {
@@ -9865,6 +9881,8 @@
         els.monsterZoomAnimationButton.setAttribute("aria-pressed", String(Boolean(attackMarkup)));
       }
       els.monsterZoomName.textContent = node.name;
+      const zoomNameVw = Math.max(2.5, Math.min(5, 55 / monsterNameUnits(node.name)));
+      els.monsterZoomName.style.setProperty("--monster-zoom-name-vw", `${zoomNameVw.toFixed(2)}vw`);
       els.monsterZoomStage.textContent = `${monsterRankLabel(node)} / ${element.name}属性 / ${role.name} / ${stats.attackType === "magic" ? "魔法" : "物理"}タイプ / 絆 Lv.${MONSTER_SYSTEM.masteryLevel(masteryXp)}${node.legendary ? " / 伝説のモンスター" : ""}${node.rank6 ? " / 4体融合モンスター" : ""}`;
       els.monsterZoomStats.innerHTML = [
         ["HP", stats.hp], ["攻撃", stats.attack], ["防御", stats.defense],
@@ -14355,7 +14373,7 @@
       return `<li>
         <button type="button" class="monster-tree-node${found ? " discovered" : " locked"}${node.legendary ? " legendary" : ""}${node.rank6 ? " rank6" : ""}"${found ? ` data-dex-monster="${escapeHtml(node.id)}" data-dex-player="${escapeHtml(record.name)}"` : " disabled"}>
           ${found ? monsterSpriteMarkup(node) : `<span class="monster-tree-unknown">?</span>`}
-          <strong>${found ? escapeHtml(node.name) : (node.rank6 ? `融合条件 ${rank6Progress}/4` : "？？？")}</strong>
+          <strong style="${monsterNameFitStyle(found ? node.name : "？？？", 80)}">${found ? escapeHtml(node.name) : (node.rank6 ? `融合条件 ${rank6Progress}/4` : "？？？")}</strong>
           <span>${node.legendary ? "LEGEND" : (node.rank6 ? `4体融合 ${rank6Progress}/4` : `No.${String(numberById.get(node.id) || 0).padStart(3, "0")}`)} / ${monsterRankLabel(node)}</span>
         </button>
         ${children.length ? `<ul>${children.join("")}</ul>` : ""}
@@ -14373,7 +14391,7 @@
         <div class="monster-tree-origin">
           <button type="button" class="monster-tree-node${eggFound ? " discovered" : " locked"}"${eggFound ? ` data-dex-monster="egg" data-dex-player="${escapeHtml(record.name)}"` : " disabled"}>
             ${eggFound ? monsterSpriteMarkup(egg) : `<span class="monster-tree-unknown">?</span>`}
-            <strong>${eggFound ? escapeHtml(egg.name) : "？？？"}</strong>
+            <strong style="${monsterNameFitStyle(eggFound ? egg.name : "？？？", 80)}">${eggFound ? escapeHtml(egg.name) : "？？？"}</strong>
             <span>No.${String(numberById.get("egg") || 1).padStart(3, "0")} / ${monsterRankLabel(egg)}</span>
           </button>
         </div>
@@ -14388,7 +14406,7 @@
               const found = Boolean(unlocked[node.id]);
               return `<button type="button" class="monster-tree-node legendary${found ? " discovered" : " locked"}"${found ? ` data-dex-monster="${escapeHtml(node.id)}" data-dex-player="${escapeHtml(record.name)}"` : " disabled"}>
                 ${found ? monsterSpriteMarkup(node) : `<span class="monster-tree-unknown">?</span>`}
-                <strong>${found ? escapeHtml(node.name) : "？？？"}</strong><span>LEGEND / ${monsterRankLabel(node)}</span>
+                <strong style="${monsterNameFitStyle(found ? node.name : "？？？", 80)}">${found ? escapeHtml(node.name) : "？？？"}</strong><span>LEGEND / ${monsterRankLabel(node)}</span>
               </button>`;
             }).join("")}</div>
           </section>
@@ -14704,7 +14722,7 @@
         return `<button type="button" class="monster-dex-card${found ? " discovered" : " locked"}${node.legendary ? " legendary" : ""}${node.rank6 ? " rank6" : ""}"${found ? ` data-dex-monster="${escapeHtml(node.id)}" data-dex-player="${escapeHtml(record.name)}"` : " disabled"} aria-label="${found ? `${escapeHtml(node.name)}を拡大` : "未発見のモンスター"}">
           <span class="monster-dex-number">${node.legendary ? "LEGEND" : (node.rank6 ? "FUSION ☆6" : `No.${String(index + 1).padStart(3, "0")}`)}</span>
           <span class="monster-dex-art">${found ? monsterSpriteMarkup(node) : `<span class="monster-dex-unknown">?</span>`}</span>
-          <strong title="${found ? escapeHtml(node.name) : "未発見"}">${found ? escapeHtml(node.name) : (node.rank6 ? `融合条件 ${rank6Progress}/4` : "？？？？")}</strong>
+          <strong style="${monsterNameFitStyle(found ? node.name : "？？？？")}" title="${found ? escapeHtml(node.name) : "未発見"}">${found ? escapeHtml(node.name) : (node.rank6 ? `融合条件 ${rank6Progress}/4` : "？？？？")}</strong>
           ${found && record.name !== "ADMIN FULL DEX" ? `<span class="monster-dex-mastery">絆 Lv.${MONSTER_SYSTEM.masteryLevel(Number(record.monsterMastery?.[node.id]) || 0)}</span>` : ""}
         </button>`;
       }).join("");

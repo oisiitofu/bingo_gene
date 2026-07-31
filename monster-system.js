@@ -22,10 +22,10 @@
     { id: "coral", sheet: "lineage-coral.png", aspect: 1, mature: "サンゴリュウ", perfect: ["珊瑚騎竜", "真珠海蛇"], ultimate: ["珊瑚海神", "潮皇ネプティス", "光礁鳳凰", "貝殻巨獣"] },
     { id: "corsair", sheet: "lineage-corsair.png", aspect: 1, mature: "コルセアラッコ", perfect: ["鮫船長バルカ", "幽霊タコ航海士"], ultimate: ["海賊王クラーケン", "戦艦鯨アドミラ", "幽海竜ドレイク", "宝島蟹皇"] },
     { id: "dune", sheet: "lineage-dune.png", aspect: 1, mature: "サンドアルマ", perfect: ["琥珀サソリ", "砂宮ジャッカル"], ultimate: ["大砂竜ワーム", "黄金獅子ファラオ", "砂城亀バスティア", "玻璃嵐ジン"] },
-    { id: "fossil", sheet: "lineage-fossil.png", aspect: 1, mature: "ホネラプター", perfect: ["化石トリケラ", "琥珀プテラ"], ultimate: ["骨王ティラノ", "琥珀鳳凰", "太古マンモス", "化石冥竜ヒュドラ"] },
+    { id: "fossil", sheet: "lineage-fossil.png", aspect: 1, mature: "ホネラプター", perfect: ["化石トリケラ", "琥珀プテラ"], ultimate: ["骨王ティラノ", "琥珀鳳凰", "太古マンモス", "化石冥竜ヒュドラ"], spriteOverrides: { mature: { sheet: "singles/bone-raptor.png" }, "perfect-a": { sheet: "singles/fossil-triceratops.png" } } },
     { id: "samurai", sheet: "lineage-samurai.png", aspect: .937, rightFacing: ["perfect-b", "ultimate-2"], mature: "ムシャカマキリ", perfect: ["青鬼クワガタ", "白鶴槍士"], ultimate: ["炎将軍竜", "双刃鬼大将", "天鎧キリン", "城塞武神"] },
     { id: "dojo", sheet: "lineage-dojo.png", aspect: 1, mature: "トラケンポウ", perfect: ["翡翠ゴリラ僧", "白兎蹴闘士"], ultimate: ["金龍大師", "山嶽熊王", "百拳阿修羅", "天武麒麟"] },
-    { id: "sonic", sheet: "lineage-sonic.png", aspect: 1, rightFacing: ["perfect-a"], mature: "オトギツネ", perfect: ["雷弦ウルフ", "電奏フクロウ"], ultimate: ["爆音竜アンプリオン", "宇宙楽鳳凰", "重低音ゴリラ", "交響ユニコーン"] },
+    { id: "sonic", sheet: "lineage-sonic.png", aspect: 1, rightFacing: ["perfect-a"], mature: "オトギツネ", perfect: ["雷弦ウルフ", "電奏フクロウ"], ultimate: ["爆音竜アンプリオン", "宇宙楽鳳凰", "重低音ゴリラ", "交響ユニコーン"], spriteOverrides: { "perfect-b": { sheet: "singles/electric-owl.png" } } },
     { id: "festival", sheet: "lineage-festival.png", aspect: 1, mature: "ちょうちんタヌキ", perfect: ["太鼓イノシシ", "花火ツル"], ultimate: ["祭獅子大山車", "大花火竜", "千灯九尾", "踊神タコマツリ"] },
     { id: "bloom", sheet: "lineage-bloom.png", aspect: .75, mature: "ハナツノジカ", perfect: ["薔薇騎士鹿", "蓮華ツル"], ultimate: ["世界花竜", "春神キリン", "茨聖堂巨人", "虹庭鳳凰"] },
     { id: "dream", sheet: "lineage-dream.png", aspect: 1, mature: "ねむねむバク", perfect: ["月枕クマ", "星羊の魔導士"], ultimate: ["夢喰獣バクオウ", "月宮鯨", "悪夢翼獅子", "目覚時計神"] },
@@ -407,17 +407,32 @@
       ["growth-bloom", "ハナモリ", 0, "bloom", ["bloom-mature", "dream-mature"]],
       ["growth-slime", "ぷるゼリー", 1, "slime", ["slime-mature", "gourmet-mature"]],
       ["growth-ink", "スミマル", 2, "ink", ["ink-mature", "ninja-mature"]],
-      ["growth-rail", "ちびドラ号", 3, "rail", ["rail-mature", "ryu-mature"]]
-    ].forEach(([id, name, x, lineage, next]) => add({ id, name, stage: 2, lineage, sprite: sprite("growth-new-b.png", "400% 100%", `${x * 33.333}% 50%`, .75, 1.15), next }));
+      ["growth-rail", "ちびドラ号", 3, "rail", ["rail-mature", "ryu-mature"], "singles/chibi-dragon.png"]
+    ].forEach(([id, name, x, lineage, next, standaloneSheet]) => add({
+      id,
+      name,
+      stage: 2,
+      lineage,
+      sprite: standaloneSheet
+        ? sprite(standaloneSheet, "contain", "center", 1, 1.05)
+        : sprite("growth-new-b.png", "400% 100%", `${x * 33.333}% 50%`, .75, 1.15),
+      next
+    }));
     LINEAGES.forEach((lineage) => {
       const matureId = `${lineage.id}-mature`;
       const perfectA = `${lineage.id}-perfect-a`;
       const perfectB = `${lineage.id}-perfect-b`;
       const aspect = lineage.aspect || .75;
       const facingFor = (slot) => lineage.rightFacing?.includes(slot) ? "right" : "left";
-      add({ id: matureId, name: lineage.mature, stage: 3, lineage: lineage.id, sprite: sprite(lineage.sheet, "400% 200%", "0% 0%", aspect, 1.16, facingFor("mature")), next: [perfectA, perfectB] });
-      add({ id: perfectA, name: lineage.perfect[0], stage: 4, lineage: lineage.id, sprite: sprite(lineage.sheet, "400% 200%", "33.333% 0%", aspect, 1.16, facingFor("perfect-a")), next: [`${lineage.id}-ultimate-0`, `${lineage.id}-ultimate-1`] });
-      add({ id: perfectB, name: lineage.perfect[1], stage: 4, lineage: lineage.id, sprite: sprite(lineage.sheet, "400% 200%", "66.667% 0%", aspect, 1.16, facingFor("perfect-b")), next: [`${lineage.id}-ultimate-2`, `${lineage.id}-ultimate-3`] });
+      const lineageSprite = (slot, position) => {
+        const override = lineage.spriteOverrides?.[slot];
+        return override
+          ? sprite(override.sheet, "contain", "center", override.aspect || 1, override.zoom || 1.04, facingFor(slot))
+          : sprite(lineage.sheet, "400% 200%", position, aspect, 1.16, facingFor(slot));
+      };
+      add({ id: matureId, name: lineage.mature, stage: 3, lineage: lineage.id, sprite: lineageSprite("mature", "0% 0%"), next: [perfectA, perfectB] });
+      add({ id: perfectA, name: lineage.perfect[0], stage: 4, lineage: lineage.id, sprite: lineageSprite("perfect-a", "33.333% 0%"), next: [`${lineage.id}-ultimate-0`, `${lineage.id}-ultimate-1`] });
+      add({ id: perfectB, name: lineage.perfect[1], stage: 4, lineage: lineage.id, sprite: lineageSprite("perfect-b", "66.667% 0%"), next: [`${lineage.id}-ultimate-2`, `${lineage.id}-ultimate-3`] });
       lineage.ultimate.forEach((name, index) => add({ id: `${lineage.id}-ultimate-${index}`, name, stage: 5, lineage: lineage.id, sprite: sprite(lineage.sheet, "400% 200%", `${index * 33.333}% 100%`, aspect, 1.14, facingFor(`ultimate-${index}`)), next: [`${lineage.id}-rank6`] }));
     });
     LINEAGES.forEach((lineage, index) => {
