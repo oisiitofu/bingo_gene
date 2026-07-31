@@ -7713,6 +7713,19 @@
 
     const CHARACTER_COUNT = 87;
     const FIXED_MEMBERS = ["おいしいとうふ", "えだ", "ジャン", "リーマ", "Kento", "Lickey"];
+    const FIXED_MEMBER_LOOKUP = new Map(FIXED_MEMBERS.map((name) => [
+      String(name).trim().replace(/\s+/g, " ").toLocaleLowerCase("ja-JP"),
+      name
+    ]));
+
+    function canonicalFixedMemberName(name) {
+      const key = String(name || "").trim().replace(/\s+/g, " ").toLocaleLowerCase("ja-JP");
+      return FIXED_MEMBER_LOOKUP.get(key) || "";
+    }
+
+    function isFixedMemberName(name) {
+      return Boolean(canonicalFixedMemberName(name));
+    }
     const STORAGE = {
       ranking: "teamBingo.openRanking.v2",
       roomId: "teamBingo.roomId.v2",
@@ -11677,8 +11690,9 @@
       if (!container) return;
       container.innerHTML = fighters.map((fighter) => {
         const node = MONSTER_NODES[fighter.nodeId] || MONSTER_NODES.egg;
+        const attackMarkup = monsterAttackSpriteMarkup(node);
         return `<article class="battle-fighter" data-battle-fighter="${fighter.id}">
-          <div class="battle-fighter-art">${monsterSpriteMarkup(node)}</div>
+          <div class="battle-fighter-art${attackMarkup ? " has-pose-animation" : ""}">${monsterSpriteMarkup(node, attackMarkup ? "monster-sprite-base" : "")}${attackMarkup}</div>
           <div class="battle-fighter-ui">
             <b>${escapeHtml(fighter.name)}</b>
             <div class="battle-profile-row"><span class="battle-element element-${fighter.element.id}">${escapeHtml(fighter.element.icon)} ${escapeHtml(fighter.element.name)}</span><span class="battle-role role-${fighter.role.id}">${escapeHtml(fighter.role.short)}</span><span class="battle-mastery">絆 Lv.${MONSTER_SYSTEM.masteryLevel(fighter.masteryXp)}</span></div>
@@ -12080,7 +12094,7 @@
       const countedPlayers = new Set();
       const equipmentRewards = {};
       [...parties.red, ...parties.blue].forEach((fighter) => {
-        if (!fighter.playerName || fighter.playerKey.startsWith("admin-")) return;
+        if (!fighter.playerName || fighter.playerKey.startsWith("admin-") || !isFixedMemberName(fighter.playerName)) return;
         const stat = getPlayerStat(fighter.playerName);
         const won = fighter.team === winner;
         const participantKey = `${fighter.team}:${fighter.playerKey}`;
@@ -12275,7 +12289,7 @@
       const summary = createMonsterBattleSummary(parties, winner, completedTurns);
       await showMonsterBattleFinish(winner, teamLabels[winner]);
       if (!adminBattle) state.monsterBattle = { seed, status: "complete", startedAt, result: winner, summary };
-      els.monsterBattleResult.textContent = `${teamLabels[winner]}　モンスター勝利！　勝利メンバー 装備 +1`;
+      els.monsterBattleResult.textContent = `${teamLabels[winner]}　モンスター勝利！`;
       els.monsterBattleResult.className = `monster-battle-result ${winner}`;
       els.monsterBattleResult.hidden = false;
       els.monsterBattleCloseButton.hidden = false;
@@ -13470,7 +13484,8 @@
       const players = {};
       Object.entries(source).forEach(([key, value]) => {
         if (!value || typeof value !== "object") return;
-        const name = normalizePlayerName(value.name || key);
+        const name = canonicalFixedMemberName(value.name || key);
+        if (!name) return;
         const stat = createPlayerStat(name);
         stat.games = toStatNumber(value.games);
         stat.wins = toStatNumber(value.wins);
@@ -13666,11 +13681,13 @@
 
     function getPlayerStat(name) {
       const normalized = normalizePlayerName(name);
-      const key = playerStatsKey(normalized);
+      const fixedName = canonicalFixedMemberName(normalized);
+      if (!fixedName) return createPlayerStat(normalized);
+      const key = playerStatsKey(fixedName);
       if (!state.playerStats.players[key]) {
-        state.playerStats.players[key] = createPlayerStat(normalized);
+        state.playerStats.players[key] = createPlayerStat(fixedName);
       }
-      state.playerStats.players[key].name = normalized;
+      state.playerStats.players[key].name = fixedName;
       return state.playerStats.players[key];
     }
 
@@ -13969,6 +13986,7 @@
       ["red", "blue"].forEach((team) => {
         const won = team === winnerTeam;
         getUniqueTeamMembers(team).forEach((member) => {
+          if (!isFixedMemberName(member)) return;
           const stat = getPlayerStat(member);
           if (won) {
             stat.wins += 1;
@@ -14044,6 +14062,7 @@
 
     function recordWinnerCharacterStats(winnerTeam) {
       getMatchPlayerEntries(winnerTeam).forEach((entry) => {
+        if (!isFixedMemberName(entry.name)) return;
         const stat = getPlayerStat(entry.name);
         Object.entries(entry.characters || {}).forEach(([characterId, count]) => {
           stat.winCharacters[characterId] = (stat.winCharacters[characterId] || 0) + count;
@@ -14056,8 +14075,10 @@
       const redMembers = getUniqueTeamMembers("red");
       const blueMembers = getUniqueTeamMembers("blue");
       redMembers.forEach((redMember) => {
+        if (!isFixedMemberName(redMember)) return;
         const redKey = playerStatsKey(redMember);
         blueMembers.forEach((blueMember) => {
+          if (!isFixedMemberName(blueMember)) return;
           const blueKey = playerStatsKey(blueMember);
           if (!redKey || !blueKey || redKey === blueKey) return;
           const pair = [redKey, blueKey].sort();
@@ -14809,7 +14830,9 @@
         .filter((match) => (match.seasonId || getSeasonId(match.endedAt || match.startedAt)) === seasonId)
         .forEach((match) => {
           ["red", "blue"].forEach((team) => {
-            const members = [...new Set((match.replay?.[team]?.members || []).map((name) => normalizePlayerName(name)))];
+            const members = [...new Set((match.replay?.[team]?.members || [])
+              .map((name) => canonicalFixedMemberName(name))
+              .filter(Boolean))];
             const won = match.winnerTeam === team;
             members.forEach((name) => {
               const key = playerStatsKey(name);
@@ -15018,6 +15041,7 @@
 
     function getPlayerStatsRecords() {
       return Object.values(state.playerStats.players)
+        .filter((record) => isFixedMemberName(record?.name))
         .sort((a, b) => (
           b.wins - a.wins ||
           b.mvps - a.mvps ||

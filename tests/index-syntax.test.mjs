@@ -19,7 +19,7 @@ test("online lobby boot bypasses stale browser modules and retries once", () => 
 
   assert.match(html, /online-room\.js\?v=20260731-room-boot-1/);
   assert.match(html, /retry=\$\{Date\.now\(\)\}/);
-  assert.match(serviceWorker, /20260731-monster-lineage-animation-78/);
+  assert.match(serviceWorker, /20260801-battle-pose-fixed-stats-79/);
 });
 
 test("bingo cells are operated only through player-name buttons", () => {
@@ -195,7 +195,27 @@ test("モンスターバトル勝者へ一人一個の装備報酬を付与す�
   assert.match(html, /if \(won && TERRITORY_EQUIPMENT\)/);
   assert.match(html, /monster-battle:\$\{state\.monsterBattle\?\.seed/);
   assert.match(html, /TERRITORY_EQUIPMENT\.applyRewards\(stat, rewards\)/);
-  assert.match(html, /勝利メンバー 装備 \+1/);
+  assert.doesNotMatch(html, /勝利メンバー 装備 \+1/);
+});
+
+test("monster battles use pose artwork while attacks are active", () => {
+  const html = readFileSync(new URL("../index.html", import.meta.url), "utf8");
+  const styles = readFileSync(new URL("../monster-battle.css", import.meta.url), "utf8");
+
+  assert.match(html, /class="battle-fighter-art\$\{attackMarkup \? " has-pose-animation"/);
+  assert.match(html, /monsterAttackSpriteMarkup\(node\)/);
+  assert.match(styles, /\.battle-fighter\.attacking \.battle-fighter-art\.has-pose-animation \.monster-sprite-attack/);
+  assert.match(styles, /@keyframes battleAttackPoseSwap/);
+});
+
+test("persistent player stats are limited to the fixed six members", () => {
+  const html = readFileSync(new URL("../index.html", import.meta.url), "utf8");
+
+  assert.match(html, /const FIXED_MEMBERS = \["おいしいとうふ", "えだ", "ジャン", "リーマ", "Kento", "Lickey"\]/);
+  assert.match(html, /function canonicalFixedMemberName\(name\)/);
+  assert.match(html, /if \(!fixedName\) return createPlayerStat\(normalized\)/);
+  assert.match(html, /\.filter\(\(record\) => isFixedMemberName\(record\?\.name\)\)/);
+  assert.match(html, /!isFixedMemberName\(fighter\.playerName\)/);
 });
 
 test("every declared custom OPEN sound asset exists", () => {
