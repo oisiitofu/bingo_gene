@@ -19,7 +19,7 @@ test("online lobby boot bypasses stale browser modules and retries once", () => 
 
   assert.match(html, /online-room\.js\?v=20260731-room-boot-1/);
   assert.match(html, /retry=\$\{Date\.now\(\)\}/);
-  assert.match(serviceWorker, /20260801-monster-detail-fit-82/);
+  assert.match(serviceWorker, /20260801-monster-dex-fullbody-83/);
 });
 
 test("bingo cells are operated only through player-name buttons", () => {
@@ -497,7 +497,9 @@ test("monster evolution has eight childhood entries, rank six fusions, passives,
   assert.match(html, /BOSS_BATTLE_BGM_CANDIDATES = \[\s*"audio\/monster-battle\/boss-bgm\/bgm\.mp3"/);
   assert.match(html, /grid-auto-rows: 142px/);
   assert.match(html, /contain: layout paint/);
-  assert.match(html, /\.monster-dex-art \.monster-sprite[\s\S]*aspect-ratio: var\(--monster-aspect, 1\)/);
+  assert.match(html, /\.monster-dex-art \.monster-sprite[\s\S]*position: absolute[\s\S]*inset: 3px[\s\S]*max-width: none[\s\S]*aspect-ratio: auto/);
+  assert.match(html, /function monsterDexSpriteMarkup\(node\)[\s\S]*monsterSpriteMarkup\(node, "monster-dex-sprite", 80\)/);
+  assert.match(html, /monster-dex-art">\$\{found \? monsterDexSpriteMarkup\(node\)/);
   assert.match(html, /id="monsterBattleEntrance"/);
   assert.match(html, /function showMonsterBattleEntrances\(/);
   assert.match(html, /remotePresentation: true/);

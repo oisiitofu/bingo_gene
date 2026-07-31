@@ -5144,7 +5144,11 @@
     .monster-dex-grid.overview .monster-dex-card strong { display: none; }
     .monster-dex-grid.overview .monster-dex-number { font-size: 5px; line-height: 8px; }
     .monster-dex-grid.overview .monster-dex-art { padding: 0; }
-    .monster-dex-grid.overview .monster-dex-art .monster-sprite { max-width: 96%; height: 96%; }
+    .monster-dex-grid.overview .monster-dex-art .monster-sprite {
+      inset: 1px;
+      width: calc(100% - 2px);
+      height: calc(100% - 2px);
+    }
     .monster-dex-grid.overview .monster-dex-unknown { font-size: 16px; }
 
     .monster-dex-tree {
@@ -5354,8 +5358,16 @@
     }
 
     .monster-dex-card.legendary .monster-dex-number { color: #ffe97d; }
-    .monster-dex-art { min-height: 0; display: grid; place-items: center; padding: 3px; overflow: hidden; }
-    .monster-dex-art .monster-sprite { width: auto; max-width: 88%; height: 88%; aspect-ratio: var(--monster-aspect, 1); scale: 1; }
+    .monster-dex-art { position: relative; min-height: 0; display: grid; place-items: center; padding: 3px; overflow: hidden; }
+    .monster-dex-art .monster-sprite {
+      position: absolute;
+      inset: 3px;
+      width: calc(100% - 6px);
+      max-width: none;
+      height: calc(100% - 6px);
+      aspect-ratio: auto;
+      scale: 1;
+    }
     .monster-dex-unknown { color: rgba(255,255,255,.22); font: 1000 34px/1 Impact, sans-serif; }
     .monster-dex-card strong {
       min-width: 0;
@@ -9602,14 +9614,19 @@
       });
     }
 
-    function monsterSpriteMarkup(node, extraClass = "") {
+    function monsterSpriteMarkup(node, extraClass = "", viewportPadding = 0) {
       if (!node?.sprite) return "";
       const guardedSize = spriteSheetSizeWithBleedGuard(node.sprite.size);
       const aspect = Math.max(.1, Number(node.sprite.aspect) || 1);
       const viewBoxWidth = Math.round(aspect * 1000);
+      const padding = Math.max(0, Math.min(250, Number(viewportPadding) || 0));
       const style = `--monster-image:url('${node.sprite.sheet}');--monster-size:${guardedSize};--monster-position:${node.sprite.position};--monster-aspect:${aspect};--monster-zoom:${node.sprite.zoom || 1}`;
       const facing = node.sprite.facing === "right" ? "right" : "left";
-      return `<svg class="monster-sprite${extraClass ? ` ${extraClass}` : ""}" data-monster-facing="${facing}" style="${style}" viewBox="0 0 ${viewBoxWidth} 1000" preserveAspectRatio="xMidYMid meet" aria-hidden="true" focusable="false"><foreignObject x="0" y="0" width="${viewBoxWidth}" height="1000"><div xmlns="http://www.w3.org/1999/xhtml" class="monster-sprite-surface"></div></foreignObject></svg>`;
+      return `<svg class="monster-sprite${extraClass ? ` ${extraClass}` : ""}" data-monster-facing="${facing}" style="${style}" viewBox="${-padding} ${-padding} ${viewBoxWidth + (padding * 2)} ${1000 + (padding * 2)}" preserveAspectRatio="xMidYMid meet" aria-hidden="true" focusable="false"><foreignObject x="0" y="0" width="${viewBoxWidth}" height="1000"><div xmlns="http://www.w3.org/1999/xhtml" class="monster-sprite-surface"></div></foreignObject></svg>`;
+    }
+
+    function monsterDexSpriteMarkup(node) {
+      return monsterSpriteMarkup(node, "monster-dex-sprite", 80);
     }
 
     const MONSTER_ATTACK_SHEETS = Object.freeze({
@@ -14757,7 +14774,7 @@
         const rank6Progress = node.rank6 ? (node.requirements || []).filter((id) => unlocked[id]).length : 0;
         return `<button type="button" class="monster-dex-card${found ? " discovered" : " locked"}${node.legendary ? " legendary" : ""}${node.rank6 ? " rank6" : ""}"${found ? ` data-dex-monster="${escapeHtml(node.id)}" data-dex-player="${escapeHtml(record.name)}"` : " disabled"} aria-label="${found ? `${escapeHtml(node.name)}を拡大` : "未発見のモンスター"}">
           <span class="monster-dex-number">${node.legendary ? "LEGEND" : (node.rank6 ? "FUSION ☆6" : `No.${String(index + 1).padStart(3, "0")}`)}</span>
-          <span class="monster-dex-art">${found ? monsterSpriteMarkup(node) : `<span class="monster-dex-unknown">?</span>`}</span>
+          <span class="monster-dex-art">${found ? monsterDexSpriteMarkup(node) : `<span class="monster-dex-unknown">?</span>`}</span>
           <strong style="${monsterNameFitStyle(found ? node.name : "？？？？")}" title="${found ? escapeHtml(node.name) : "未発見"}">${found ? escapeHtml(node.name) : (node.rank6 ? `融合条件 ${rank6Progress}/4` : "？？？？")}</strong>
           ${found && record.name !== "ADMIN FULL DEX" ? `<span class="monster-dex-mastery">絆 Lv.${MONSTER_SYSTEM.masteryLevel(Number(record.monsterMastery?.[node.id]) || 0)}</span>` : ""}
         </button>`;
