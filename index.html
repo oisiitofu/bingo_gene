@@ -7517,13 +7517,15 @@
     <div class="monster-zoom-card">
       <div class="monster-zoom-player" id="monsterZoomPlayer"></div>
       <div class="monster-zoom-art" id="monsterZoomArt"></div>
-      <div class="monster-zoom-name" id="monsterZoomName"></div>
-      <div class="monster-zoom-stage" id="monsterZoomStage"></div>
-      <div class="monster-zoom-animation-control">
-        <button type="button" class="simple-action-button" id="monsterZoomAnimationButton" aria-pressed="true">ANIMATION ON</button>
+      <div class="monster-zoom-details">
+        <div class="monster-zoom-name" id="monsterZoomName"></div>
+        <div class="monster-zoom-stage" id="monsterZoomStage"></div>
+        <div class="monster-zoom-animation-control">
+          <button type="button" class="simple-action-button" id="monsterZoomAnimationButton" aria-pressed="true">ANIMATION ON</button>
+        </div>
+        <div class="monster-zoom-stats" id="monsterZoomStats"></div>
+        <div class="monster-zoom-special" id="monsterZoomSpecial"></div>
       </div>
-      <div class="monster-zoom-stats" id="monsterZoomStats"></div>
-      <div class="monster-zoom-special" id="monsterZoomSpecial"></div>
     </div>
   </section>
 
@@ -9740,9 +9742,21 @@
       ), 0) || 1;
     }
 
-    function monsterNameFitStyle(name, availableWidth = 76, maxSize = 9, minSize = 5.5) {
+    function monsterNameFitStyle(name, availableWidth = 76, maxSize = 9, minSize = 4.25) {
       const size = Math.max(minSize, Math.min(maxSize, availableWidth / monsterNameUnits(name)));
       return `--monster-name-size:${size.toFixed(2)}px`;
+    }
+
+    function fitSingleLineText(element, maxSize, minSize) {
+      if (!element) return;
+      const maximum = Math.max(1, Number(maxSize) || 1);
+      const minimum = Math.min(maximum, Math.max(1, Number(minSize) || 1));
+      element.style.fontSize = `${maximum}px`;
+      const available = Math.max(0, element.clientWidth);
+      const required = Math.max(0, element.scrollWidth);
+      if (!available || !required || required <= available) return;
+      const fitted = Math.max(minimum, Math.min(maximum, maximum * available / required * .96));
+      element.style.fontSize = `${fitted.toFixed(2)}px`;
     }
 
     function showMonsterEvolution(team, previousId, nextId, playerName = "") {
@@ -9902,8 +9916,6 @@
         els.monsterZoomAnimationButton.setAttribute("aria-pressed", String(Boolean(attackMarkup)));
       }
       els.monsterZoomName.textContent = node.name;
-      const zoomNameVw = Math.max(2.5, Math.min(5, 55 / monsterNameUnits(node.name)));
-      els.monsterZoomName.style.setProperty("--monster-zoom-name-vw", `${zoomNameVw.toFixed(2)}vw`);
       els.monsterZoomStage.textContent = `${monsterRankLabel(node)} / ${element.name}属性 / ${role.name} / ${stats.attackType === "magic" ? "魔法" : "物理"}タイプ / 絆 Lv.${MONSTER_SYSTEM.masteryLevel(masteryXp)}${node.legendary ? " / 伝説のモンスター" : ""}${node.rank6 ? " / 4体融合モンスター" : ""}`;
       els.monsterZoomStats.innerHTML = [
         ["HP", stats.hp], ["攻撃", stats.attack], ["防御", stats.defense],
@@ -9921,6 +9933,7 @@
         ${equippedItems.length ? `<section class="monster-zoom-equipment"><h3>TERRITORY EQUIPMENT</h3>${equippedItems.map((item) => equipmentItemMarkup(item)).join("")}</section>` : ""}
       `);
       showOverlay(els.monsterZoomOverlay);
+      requestAnimationFrame(() => fitSingleLineText(els.monsterZoomName, 70, 14));
     }
 
     function showMonsterZoom(team, playerKey) {
@@ -11733,7 +11746,7 @@
         return `<article class="battle-fighter" data-battle-fighter="${fighter.id}">
           <div class="battle-fighter-art${attackMarkup ? " has-pose-animation" : ""}">${monsterSpriteMarkup(node, attackMarkup ? "monster-sprite-base" : "")}${attackMarkup}</div>
           <div class="battle-fighter-ui">
-            <b>${escapeHtml(fighter.name)}</b>
+            <b style="${monsterNameFitStyle(fighter.name, 190, 11, 6)}">${escapeHtml(fighter.name)}</b>
             <div class="battle-profile-row"><span class="battle-element element-${fighter.element.id}">${escapeHtml(fighter.element.icon)} ${escapeHtml(fighter.element.name)}</span><span class="battle-role role-${fighter.role.id}">${escapeHtml(fighter.role.short)}</span><span class="battle-mastery">絆 Lv.${MONSTER_SYSTEM.masteryLevel(fighter.masteryXp)}</span></div>
             <small>${escapeHtml(fighter.playerName)} / ${fighter.stats.attackType === "magic" ? "魔法" : "物理"} / HYPE ${fighter.hype}</small>
             <span class="battle-passive" title="${escapeHtml(fighter.passive.description)}">固有　${escapeHtml(fighter.passive.name)}</span>
@@ -11743,6 +11756,7 @@
           </div>
         </article>`;
       }).join("");
+      container.querySelectorAll(".battle-fighter-ui b").forEach((name) => fitSingleLineText(name, 11, 6));
     }
 
     function monsterBattleEntranceOrder(parties) {
@@ -11771,12 +11785,12 @@
         els.monsterBattleEntryArt.innerHTML = monsterSpriteMarkup(node);
         els.monsterBattleEntryTeam.textContent = `${fighter.teamTitle || state[fighter.team].teamTitle} / ${fighter.team.toUpperCase()} TEAM`;
         els.monsterBattleEntryIndex.textContent = `ENTRY ${index + 1} / ${entrants.length}`;
-        const entryNameLength = Array.from(String(fighter.name || "")).length;
-        els.monsterBattleEntryName.className = `monster-battle-entry-name${entryNameLength >= 14 ? " compact" : (entryNameLength >= 10 ? " long" : "")}`;
+        els.monsterBattleEntryName.className = "monster-battle-entry-name";
         els.monsterBattleEntryName.textContent = fighter.name;
         els.monsterBattleEntryPlayer.textContent = `TRAINER　${fighter.playerName}`;
         els.monsterBattleEntrySpecial.textContent = `${fighter.element.name}属性 / ${fighter.role.name}　｜　必殺技 ${fighter.stats.special}　｜　固有 ${fighter.passive.name}`;
         card.getBoundingClientRect();
+        fitSingleLineText(els.monsterBattleEntryName, 44, 14);
         card.classList.add("animate");
         await delay(900);
       }
@@ -12420,13 +12434,14 @@
                 const node = MONSTER_NODES[monster.nodeId] || MONSTER_NODES.egg;
                 return `<article class="victory-monster-entry">
                   <div class="victory-monster-art">${monsterSpriteMarkup(node)}</div>
-                  <b>${escapeHtml(node.name)} <em>${monsterRankLabel(node)}</em></b><span>${escapeHtml(monster.playerName)}</span>
+                  <b style="${monsterNameFitStyle(`${node.name} ${monsterRankLabel(node)}`, 118, 10, 6)}">${escapeHtml(node.name)} <em>${monsterRankLabel(node)}</em></b><span>${escapeHtml(monster.playerName)}</span>
                 </article>`;
               }).join("")}
             </div>
           </section>
         `;
       }).join("");
+      els.victoryMonsterLineups.querySelectorAll(".victory-monster-entry b").forEach((name) => fitSingleLineText(name, 10, 6));
       const masterOnly = Boolean(onlineCoordinator?.isOnline?.() && !onlineCoordinator.isMaster?.());
       const battleStatus = state.monsterBattle?.status || "";
       const battleWinner = state.monsterBattle?.result || "";

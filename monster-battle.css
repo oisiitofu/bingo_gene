@@ -385,30 +385,31 @@
 }
 
 .monster-zoom-card {
-  width: min(940px, 94vw);
-  max-height: 92vh;
+  width: min(1680px, 98vw);
+  height: 94vh;
+  max-height: 1040px;
   display: grid;
-  grid-template-columns: minmax(280px, 1.1fr) minmax(300px, .9fr);
+  grid-template-columns: minmax(0, 1.7fr) minmax(340px, .72fr);
+  grid-template-rows: auto minmax(0, 1fr);
   grid-template-areas:
     "player player"
-    "art name"
-    "art stage"
-    "art animation"
-    "art stats"
-    "art special";
+    "art details";
   align-items: center;
-  gap: 7px 26px;
-  padding: 22px;
+  gap: 10px clamp(18px, 2.2vw, 38px);
+  padding: clamp(16px, 2vw, 30px);
+  overflow: hidden;
   border-inline: 4px solid var(--zoom-team, #ff385d);
   background: linear-gradient(110deg, color-mix(in srgb, var(--zoom-team, #ff385d) 18%, #070a12), rgba(3,5,11,.92));
   box-shadow: 0 0 50px color-mix(in srgb, var(--zoom-team, #ff385d) 42%, transparent);
 }
 
 .monster-zoom-player { grid-area: player; color: #ffe96c; font-size: 16px; font-weight: 1000; }
-.monster-zoom-art { position:relative; grid-area: art; height: min(62vh, 560px); display: flex; align-items: center; justify-content: center; }
-.monster-zoom-name { min-width:0; grid-area:name; overflow:hidden; color:#fff; font-family:Impact,"Arial Black",sans-serif; font-size:clamp(22px,var(--monster-zoom-name-vw,5vw),70px); line-height:.95; letter-spacing:0; text-overflow:clip; white-space:nowrap; text-shadow:0 0 28px var(--zoom-team,#ff385d); }
-.monster-zoom-stage { grid-area: stage; color: #ced7e6; font-size: 18px; font-weight: 900; }
-.monster-zoom-animation-control { grid-area:animation; display:flex; align-items:center; }
+.monster-zoom-art { position:relative; grid-area:art; align-self:stretch; min-width:0; min-height:0; display:flex; align-items:center; justify-content:center; overflow:hidden; }
+.monster-zoom-art .monster-sprite { width:auto; max-width:100%; height:100%; scale:1; }
+.monster-zoom-details { grid-area:details; min-width:0; max-height:100%; display:grid; align-content:center; gap:10px; padding-right:4px; overflow-x:hidden; overflow-y:auto; }
+.monster-zoom-name { min-width:0; width:100%; overflow:hidden; color:#fff; font-family:Impact,"Arial Black",sans-serif; font-size:70px; line-height:.95; letter-spacing:0; text-overflow:clip; white-space:nowrap; text-shadow:0 0 28px var(--zoom-team,#ff385d); }
+.monster-zoom-stage { color: #ced7e6; font-size: 16px; line-height:1.35; font-weight: 900; }
+.monster-zoom-animation-control { display:flex; align-items:center; }
 .monster-zoom-animation-control .simple-action-button {
   min-width:150px;
   min-height:34px;
@@ -426,10 +427,10 @@
 }
 .monster-zoom-animation-control .simple-action-button[aria-pressed="false"] { color:#aeb9c8; border-color:rgba(174,185,200,.52); }
 .monster-zoom-animation-control .simple-action-button:disabled { opacity:.42; cursor:not-allowed; }
-.monster-zoom-stats { grid-area: stats; display: grid; grid-template-columns: repeat(2, minmax(0,1fr)); gap: 6px; }
+.monster-zoom-stats { display: grid; grid-template-columns: repeat(2, minmax(0,1fr)); gap: 6px; }
 .monster-stat-row { display: flex; justify-content: space-between; padding: 7px 9px; border-left: 2px solid var(--zoom-team, #ff385d); background: rgba(255,255,255,.07); color: #d6deea; font-size: 12px; font-weight: 900; }
 .monster-stat-row strong { color: #fff; }
-.monster-zoom-special { grid-area: special; padding: 12px; color: #fff36c; border: 1px solid color-mix(in srgb, var(--zoom-team, #ff385d) 55%, transparent); background: rgba(0,0,0,.35); font-family: Impact, "Arial Black", sans-serif; font-size: 22px; }
+.monster-zoom-special { padding: 12px; color: #fff36c; border: 1px solid color-mix(in srgb, var(--zoom-team, #ff385d) 55%, transparent); background: rgba(0,0,0,.35); font-family: Impact, "Arial Black", sans-serif; font-size: 22px; }
 
 .monster-zoom-art.has-pose-animation .monster-sprite {
   transform-origin:50% 78%;
@@ -437,66 +438,19 @@
 }
 
 .monster-zoom-art.has-pose-animation .monster-sprite-base {
-  animation:
-    monsterDexAction 5.6s ease-in-out infinite,
-    monsterBasePose 5.6s steps(1, end) infinite;
+  animation:monsterBasePose 5.6s steps(1, end) infinite;
 }
 
 .monster-zoom-art.has-pose-animation .monster-sprite-attack {
   position:absolute;
-  inset:-2% 0 auto;
+  inset:0;
   margin:auto;
   opacity:0;
   pointer-events:none;
-  animation:
-    monsterDexAction 5.6s ease-in-out infinite,
-    monsterAttackPose 5.6s steps(1, end) infinite;
-}
-
-.monster-zoom-art.has-pose-animation .monster-sprite[data-monster-facing="right"] {
-  --dex-x-a:16px;
-  --dex-x-b:34px;
-  --dex-x-c:52px;
-  --dex-x-d:20px;
-  --dex-x-windup:-12px;
-  --dex-x-strike:54px;
-  --dex-x-return:8px;
-  --dex-rotate-a:2deg;
-  --dex-rotate-b:-2deg;
-  --dex-rotate-c:3deg;
-  --dex-rotate-windup:-5deg;
-  --dex-rotate-strike:7deg;
-  --dex-rotate-return:-2deg;
-}
-
-.monster-zoom-art.has-pose-animation .monster-sprite[data-monster-facing="left"] {
-  --dex-x-a:-16px;
-  --dex-x-b:-34px;
-  --dex-x-c:-52px;
-  --dex-x-d:-20px;
-  --dex-x-windup:12px;
-  --dex-x-strike:-54px;
-  --dex-x-return:-8px;
-  --dex-rotate-a:-2deg;
-  --dex-rotate-b:2deg;
-  --dex-rotate-c:-3deg;
-  --dex-rotate-windup:5deg;
-  --dex-rotate-strike:-7deg;
-  --dex-rotate-return:2deg;
+  animation:monsterAttackPose 5.6s steps(1, end) infinite;
 }
 
 .monster-zoom-art.animation-paused .monster-sprite { animation-play-state:paused; }
-
-@keyframes monsterDexAction {
-  0%, 14%, 48%, 62%, 86%, 100% { transform:translate3d(0,0,0) rotate(0deg) scale(1); }
-  19% { transform:translate3d(var(--dex-x-a,16px),-8px,0) rotate(var(--dex-rotate-a,2deg)) scale(.98,1.04); }
-  25% { transform:translate3d(var(--dex-x-b,34px),3px,0) rotate(var(--dex-rotate-b,-2deg)) scale(1.05,.96); }
-  31% { transform:translate3d(var(--dex-x-c,52px),-7px,0) rotate(var(--dex-rotate-c,3deg)) scale(.98,1.05); }
-  39% { transform:translate3d(var(--dex-x-d,20px),2px,0) rotate(0deg) scale(1.02,.98); }
-  65% { transform:translate3d(var(--dex-x-windup,-12px),8px,0) rotate(var(--dex-rotate-windup,-5deg)) scale(1.08,.92); }
-  72% { transform:translate3d(var(--dex-x-strike,54px),-3px,0) rotate(var(--dex-rotate-strike,7deg)) scale(1.14,.91); }
-  80% { transform:translate3d(var(--dex-x-return,8px),-5px,0) rotate(var(--dex-rotate-return,-2deg)) scale(.99,1.04); }
-}
 
 @media (prefers-reduced-motion: reduce) {
   .monster-zoom-art.has-pose-animation .monster-sprite {
@@ -545,7 +499,7 @@
 .victory-monster-row { display: flex; align-items: end; justify-content: center; gap: 5px; min-height: 138px; }
 .victory-monster-entry { flex: 1 1 0; min-width: 0; text-align: center; }
 .victory-monster-art { height: 102px; display: flex; align-items: end; justify-content: center; }
-.victory-monster-entry b { display: block; overflow: hidden; color: #fff; font-size: 10px; text-overflow: ellipsis; white-space: nowrap; }
+.victory-monster-entry b { display: block; overflow: hidden; color: #fff; font-size: var(--monster-name-size, 10px); text-overflow: clip; white-space: nowrap; }
 .victory-monster-entry span { display: block; overflow: hidden; color: #c9d2df; font-size: 9px; text-overflow: ellipsis; white-space: nowrap; }
 .monster-battle-start {
   width: 100%;
@@ -708,7 +662,7 @@
 .monster-battle-entry-card.red .monster-battle-entry-art .monster-sprite[data-monster-facing="right"],
 .monster-battle-entry-card.blue .monster-battle-entry-art .monster-sprite[data-monster-facing="left"] { transform: scaleX(1); }
 .battle-fighter-ui { width: min(210px,100%); padding: 6px; background: rgba(2,4,10,.88); border-top: 3px solid var(--fighter-team); }
-.battle-fighter-ui b { display:block; min-height:1.2em; overflow:visible; color:#fff; font-size:clamp(8px,.72vw,11px); line-height:1.15; letter-spacing:0; overflow-wrap:normal; white-space:nowrap; }
+.battle-fighter-ui b { display:block; min-height:1.2em; overflow:visible; color:#fff; font-size:var(--monster-name-size,11px); line-height:1.15; letter-spacing:0; overflow-wrap:normal; white-space:nowrap; }
 .battle-fighter-ui small { color: #cbd5e1; font-size: 8px; }
 .battle-profile-row { display:flex; align-items:center; gap:3px; margin:3px 0; min-height:15px; overflow:hidden; }
 .battle-element,.battle-role,.battle-mastery { flex:0 1 auto; min-width:0; padding:2px 4px; border:1px solid currentColor; color:#fff; background:rgba(255,255,255,.08); font-size:8px; font-weight:1000; line-height:1; white-space:nowrap; }
@@ -903,10 +857,11 @@
   .monster-panel .monster-player-list { grid-template-columns:1fr; }
   .monster-player-card { grid-template-columns:1fr; grid-template-rows:140px auto; min-height:174px; }
   .monster-portrait-button { width:100%; height:140px; }
-  .monster-zoom-card { display:flex; flex-direction:column; gap:7px; overflow-y:auto; text-align:center; }
-  .monster-zoom-art { width:100%; height:42vh; }
+  .monster-zoom-card { width:96vw; height:94vh; display:grid; grid-template-columns:1fr; grid-template-rows:auto minmax(260px,42vh) minmax(0,1fr); grid-template-areas:"player" "art" "details"; gap:7px; text-align:center; }
+  .monster-zoom-art { width:100%; height:auto; }
+  .monster-zoom-details { align-content:start; }
   .monster-zoom-animation-control { justify-content:center; }
-  .monster-zoom-name { font-size:clamp(20px,var(--monster-zoom-name-vw,7vw),36px); }
+  .monster-zoom-name { font-size:36px; }
   .victory-monster-lineups { grid-template-columns:1fr; }
   .monster-battle-header { grid-template-columns:1fr auto 1fr; padding:7px; }
   .monster-battle-clock { min-width:96px; padding:3px; }

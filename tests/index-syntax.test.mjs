@@ -19,7 +19,7 @@ test("online lobby boot bypasses stale browser modules and retries once", () => 
 
   assert.match(html, /online-room\.js\?v=20260731-room-boot-1/);
   assert.match(html, /retry=\$\{Date\.now\(\)\}/);
-  assert.match(serviceWorker, /20260801-monster-aspect-fit-81/);
+  assert.match(serviceWorker, /20260801-monster-detail-fit-82/);
 });
 
 test("bingo cells are operated only through player-name buttons", () => {
@@ -231,7 +231,7 @@ test("oversized monster sheet entries use isolated artwork and fitted encycloped
   assert.match(monsterSystem, /singles\/fossil-triceratops\.png/);
   assert.match(html, /function monsterNameFitStyle\(/);
   assert.match(html, /--monster-name-size:/);
-  assert.match(styles, /--monster-zoom-name-vw/);
+  assert.match(html, /function fitSingleLineText\(/);
   assert.match(styles, /white-space:nowrap/);
 });
 
@@ -676,7 +676,8 @@ test("monster encyclopedia zoom previews available pose animations", () => {
   assert.match(html, /monsterAttackSpriteMarkup\(node\)/);
   assert.match(html, /has-pose-animation/);
   assert.match(html, /ANIMATION PREPARING/);
-  assert.match(battleCss, /@keyframes monsterDexAction/);
+  assert.doesNotMatch(battleCss, /@keyframes monsterDexAction/);
+  assert.match(battleCss, /\.monster-zoom-card[\s\S]*width: min\(1680px, 98vw\)/);
   assert.match(battleCss, /\.monster-zoom-art\.animation-paused/);
 });
 

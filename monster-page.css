@@ -17,7 +17,7 @@ body.territory-mode-open .monster-dex-modal {
 }
 
 .monster-zoom-card:has(.monster-zoom-equipment) {
-  overflow: auto;
+  overflow: hidden;
 }
 
 .monster-zoom-equipment h3 {
