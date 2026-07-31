@@ -19,7 +19,7 @@ test("online lobby boot bypasses stale browser modules and retries once", () => 
 
   assert.match(html, /online-room\.js\?v=20260731-room-boot-1/);
   assert.match(html, /retry=\$\{Date\.now\(\)\}/);
-  assert.match(serviceWorker, /20260801-sprite-crop-name-fit-80/);
+  assert.match(serviceWorker, /20260801-monster-aspect-fit-81/);
 });
 
 test("bingo cells are operated only through player-name buttons", () => {
@@ -201,9 +201,14 @@ test("モンスターバトル勝者へ一人一個の装備報酬を付与す�
 test("monster battles use pose artwork while attacks are active", () => {
   const html = readFileSync(new URL("../index.html", import.meta.url), "utf8");
   const styles = readFileSync(new URL("../monster-battle.css", import.meta.url), "utf8");
+  const monsterSystem = readFileSync(new URL("../monster-system.js", import.meta.url), "utf8");
 
   assert.match(html, /class="battle-fighter-art\$\{attackMarkup \? " has-pose-animation"/);
   assert.match(html, /monsterAttackSpriteMarkup\(node\)/);
+  assert.match(html, /preserveAspectRatio="xMidYMid meet"/);
+  assert.match(html, /class="monster-sprite-surface"/);
+  assert.match(html, /MONSTER_ATTACK_ASPECTS/);
+  assert.match(monsterSystem, /const aspect = lineage\.aspect \|\| 1/);
   assert.match(styles, /\.battle-fighter\.attacking \.battle-fighter-art\.has-pose-animation \.monster-sprite-attack/);
   assert.match(styles, /@keyframes battleAttackPoseSwap/);
 });

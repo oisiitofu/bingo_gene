@@ -377,10 +377,10 @@
     const add = (node) => { nodes[node.id] = Object.freeze(node); };
     const sprite = (sheet, size, position, aspect = 1, zoom = 1.12, facing = "left") => ({ sheet: `images/monsters/${sheet}`, size, position, aspect, zoom, facing });
     add({ id: "egg", name: "ふしぎタマゴ", stage: 0, lineage: "egg", sprite: sprite("egg.png", "contain", "center", 1, 1.16), next: ["child-ember", "child-odd", "child-frost", "child-shadow", "child-tide", "child-rune", "child-bloom", "child-scroll"] });
-    add({ id: "child-ember", name: "ヒノコロン", stage: 1, lineage: "beast", sprite: sprite("childhood.png", "200% 100%", "0% 50%", .75, 1.16), next: ["growth-flare", "growth-gear"] });
-    add({ id: "child-odd", name: "ぷるるん", stage: 1, lineage: "odd", sprite: sprite("childhood.png", "200% 100%", "100% 50%", .75, 1.16), next: ["growth-moss", "growth-bubble"] });
-    add({ id: "child-frost", name: "ユキマル", stage: 1, lineage: "glacier", sprite: sprite("childhood-extra.png", "200% 100%", "0% 50%", .75, 1.12), next: ["growth-frost", "growth-storm"] });
-    add({ id: "child-shadow", name: "ヨイフワ", stage: 1, lineage: "shadow", sprite: sprite("childhood-extra.png", "200% 100%", "100% 50%", .75, 1.12), next: ["growth-shadow", "growth-toy"] });
+    add({ id: "child-ember", name: "ヒノコロン", stage: 1, lineage: "beast", sprite: sprite("childhood.png", "200% 100%", "0% 50%", 1, 1.16), next: ["growth-flare", "growth-gear"] });
+    add({ id: "child-odd", name: "ぷるるん", stage: 1, lineage: "odd", sprite: sprite("childhood.png", "200% 100%", "100% 50%", 1, 1.16), next: ["growth-moss", "growth-bubble"] });
+    add({ id: "child-frost", name: "ユキマル", stage: 1, lineage: "glacier", sprite: sprite("childhood-extra.png", "200% 100%", "0% 50%", 1, 1.12), next: ["growth-frost", "growth-storm"] });
+    add({ id: "child-shadow", name: "ヨイフワ", stage: 1, lineage: "shadow", sprite: sprite("childhood-extra.png", "200% 100%", "100% 50%", 1, 1.12), next: ["growth-shadow", "growth-toy"] });
     add({ id: "child-tide", name: "しずくポヨ", stage: 1, lineage: "coral", sprite: sprite("childhood-new.png", "400% 100%", "0% 50%", .75, 1.13), next: ["growth-coral", "growth-dune"] });
     add({ id: "child-rune", name: "ルーンコ", stage: 1, lineage: "sonic", sprite: sprite("childhood-new.png", "400% 100%", "33.333% 50%", .75, 1.13), next: ["growth-blade", "growth-sonic"] });
     add({ id: "child-bloom", name: "はなピィ", stage: 1, lineage: "bloom", sprite: sprite("childhood-new.png", "400% 100%", "66.667% 50%", .75, 1.13), next: ["growth-bloom", "growth-slime"] });
@@ -422,7 +422,7 @@
       const matureId = `${lineage.id}-mature`;
       const perfectA = `${lineage.id}-perfect-a`;
       const perfectB = `${lineage.id}-perfect-b`;
-      const aspect = lineage.aspect || .75;
+      const aspect = lineage.aspect || 1;
       const facingFor = (slot) => lineage.rightFacing?.includes(slot) ? "right" : "left";
       const lineageSprite = (slot, position) => {
         const override = lineage.spriteOverrides?.[slot];
@@ -451,10 +451,10 @@
         next: []
       });
     });
-    add({ id: "legend-sun", name: "天照皇レイオーン", stage: 5, lineage: "legend-sun", legendary: true, sprite: sprite("legendary.png", "200% 100%", "0% 50%", .75, 1.16), next: [] });
-    add({ id: "legend-night", name: "冥星王ゼロノクス", stage: 5, lineage: "legend-night", legendary: true, sprite: sprite("legendary.png", "200% 100%", "100% 50%", .75, 1.16), next: [] });
-    add({ id: "legend-world", name: "翠環神ユグドラグーン", stage: 5, lineage: "legend-world", legendary: true, sprite: sprite("legendary-new.png", "200% 100%", "0% 50%", .875, 1.16), next: [] });
-    add({ id: "legend-time", name: "時焔皇クロノフェニクス", stage: 5, lineage: "legend-time", legendary: true, sprite: sprite("legendary-new.png", "200% 100%", "100% 50%", .875, 1.16), next: [] });
+    add({ id: "legend-sun", name: "天照皇レイオーン", stage: 5, lineage: "legend-sun", legendary: true, sprite: sprite("legendary.png", "200% 100%", "0% 50%", 1, 1.16), next: [] });
+    add({ id: "legend-night", name: "冥星王ゼロノクス", stage: 5, lineage: "legend-night", legendary: true, sprite: sprite("legendary.png", "200% 100%", "100% 50%", 1, 1.16), next: [] });
+    add({ id: "legend-world", name: "翠環神ユグドラグーン", stage: 5, lineage: "legend-world", legendary: true, sprite: sprite("legendary-new.png", "200% 100%", "0% 50%", 1, 1.16), next: [] });
+    add({ id: "legend-time", name: "時焔皇クロノフェニクス", stage: 5, lineage: "legend-time", legendary: true, sprite: sprite("legendary-new.png", "200% 100%", "100% 50%", 1, 1.16), next: [] });
     return Object.freeze(nodes);
   }
 
