@@ -19,7 +19,7 @@ test("online lobby boot bypasses stale browser modules and retries once", () => 
 
   assert.match(html, /online-room\.js\?v=20260731-room-boot-1/);
   assert.match(html, /retry=\$\{Date\.now\(\)\}/);
-  assert.match(serviceWorker, /20260731-monster-lineage-animation-77/);
+  assert.match(serviceWorker, /20260731-monster-lineage-animation-78/);
 });
 
 test("bingo cells are operated only through player-name buttons", () => {
@@ -550,6 +550,7 @@ test("monster battle audio is dedicated stereo material", () => {
 test("available monster pose sheets animate toward the opposing bingo card", () => {
   const html = readFileSync(new URL("../index.html", import.meta.url), "utf8");
   const battleCss = readFileSync(new URL("../monster-battle.css", import.meta.url), "utf8");
+  const monsterSystem = readFileSync(new URL("../monster-system.js", import.meta.url), "utf8");
 
   assert.match(html, /hasMonsterPoseAnimation\(node\)/);
   assert.match(html, /monster-pose-animated/);
@@ -599,6 +600,15 @@ test("available monster pose sheets animate toward the opposing bingo card", () 
   assert.match(html, /lineage-ninja-attack\.png/);
   assert.match(html, /lineage-rail-attack\.png/);
   assert.match(html, /lineage-ryu-attack\.png/);
+  assert.match(html, /rank6-a-v3-attack\.png/);
+  assert.match(html, /rank6-b-v3-attack\.png/);
+  assert.match(html, /legendary-attack\.png/);
+  assert.match(html, /legendary-new-attack\.png/);
+  assert.match(html, /egg-attack\.png/);
+  const declaredSheets = new Set([...monsterSystem.matchAll(/"([A-Za-z0-9-]+\.png)"/g)].map((match) => match[1]));
+  const animatedSheets = new Set([...html.matchAll(/"images\/monsters\/([A-Za-z0-9-]+\.png)"\s*:\s*"images\/monsters\/[A-Za-z0-9-]+-attack\.png"/g)].map((match) => match[1]));
+  assert.equal(declaredSheets.size, 44);
+  declaredSheets.forEach((sheet) => assert.ok(animatedSheets.has(sheet), `missing monster pose animation for ${sheet}`));
   assert.doesNotMatch(battleCss, /stageOneAttackEffect/);
   assert.doesNotMatch(battleCss, /stage-one-animated/);
   assert.doesNotMatch(battleCss, /effects\/physical-v2\.png/);
