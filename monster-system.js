@@ -455,6 +455,30 @@
     add({ id: "legend-night", name: "冥星王ゼロノクス", stage: 5, lineage: "legend-night", legendary: true, sprite: sprite("legendary.png", "200% 100%", "100% 50%", 1, 1.16), next: [] });
     add({ id: "legend-world", name: "翠環神ユグドラグーン", stage: 5, lineage: "legend-world", legendary: true, sprite: sprite("legendary-new.png", "200% 100%", "0% 50%", 1, 1.16), next: [] });
     add({ id: "legend-time", name: "時焔皇クロノフェニクス", stage: 5, lineage: "legend-time", legendary: true, sprite: sprite("legendary-new.png", "200% 100%", "100% 50%", 1, 1.16), next: [] });
+    const crowdedSheets = new Map();
+    Object.values(nodes).forEach((node) => {
+      const members = crowdedSheets.get(node.sprite.sheet) || [];
+      members.push(node);
+      crowdedSheets.set(node.sprite.sheet, members);
+    });
+    crowdedSheets.forEach((members, sourceSheet) => {
+      if (members.length <= 2) return;
+      const stem = sourceSheet.split("/").pop().replace(/\.png$/i, "");
+      members.forEach((node, index) => {
+        const pairStart = Math.floor(index / 2) * 2;
+        const pairCount = Math.min(2, members.length - pairStart);
+        const pairNumber = String(Math.floor(index / 2) + 1).padStart(2, "0");
+        const slot = index % 2;
+        Object.assign(node.sprite, {
+          sheet: `images/monsters/pairs/${stem}-${pairNumber}.png`,
+          attackSheet: `images/monsters/pairs/${stem}-${pairNumber}-attack.png`,
+          size: pairCount === 1 ? "contain" : "200% 100%",
+          position: pairCount === 1 ? "center" : `${slot * 100}% 50%`,
+          aspect: 1,
+          zoom: 1.06
+        });
+      });
+    });
     return Object.freeze(nodes);
   }
 

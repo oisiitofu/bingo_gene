@@ -1,11 +1,11 @@
 {
   "version": 1,
-  "generatedAt": "2026-07-31T16:40:49.928Z",
+  "generatedAt": "2026-08-01T02:07:46.680Z",
   "totals": {
-    "all": 495,
-    "images": 332,
+    "all": 715,
+    "images": 552,
     "audio": 163,
-    "bytes": 425354627
+    "bytes": 405937210
   },
   "assets": [
     {
@@ -1635,18 +1635,6 @@
       "bytes": 1262670
     },
     {
-      "path": "images/monsters/childhood-new-attack.png",
-      "type": "image",
-      "category": "images/monsters",
-      "bytes": 1200556
-    },
-    {
-      "path": "images/monsters/childhood-new.png",
-      "type": "image",
-      "category": "images/monsters",
-      "bytes": 1121678
-    },
-    {
       "path": "images/monsters/childhood.png",
       "type": "image",
       "category": "images/monsters",
@@ -1663,66 +1651,6 @@
       "type": "image",
       "category": "images/monsters",
       "bytes": 1225482
-    },
-    {
-      "path": "images/monsters/growth-extra-v2-attack.png",
-      "type": "image",
-      "category": "images/monsters",
-      "bytes": 1018165
-    },
-    {
-      "path": "images/monsters/growth-extra-v2.png",
-      "type": "image",
-      "category": "images/monsters",
-      "bytes": 1314084
-    },
-    {
-      "path": "images/monsters/growth-extra.png",
-      "type": "image",
-      "category": "images/monsters",
-      "bytes": 1345312
-    },
-    {
-      "path": "images/monsters/growth-new-a-attack.png",
-      "type": "image",
-      "category": "images/monsters",
-      "bytes": 1165669
-    },
-    {
-      "path": "images/monsters/growth-new-a.png",
-      "type": "image",
-      "category": "images/monsters",
-      "bytes": 1332756
-    },
-    {
-      "path": "images/monsters/growth-new-b-attack.png",
-      "type": "image",
-      "category": "images/monsters",
-      "bytes": 1345854
-    },
-    {
-      "path": "images/monsters/growth-new-b.png",
-      "type": "image",
-      "category": "images/monsters",
-      "bytes": 1475470
-    },
-    {
-      "path": "images/monsters/growth-v2-attack.png",
-      "type": "image",
-      "category": "images/monsters",
-      "bytes": 875138
-    },
-    {
-      "path": "images/monsters/growth-v2.png",
-      "type": "image",
-      "category": "images/monsters",
-      "bytes": 1100537
-    },
-    {
-      "path": "images/monsters/growth.png",
-      "type": "image",
-      "category": "images/monsters",
-      "bytes": 1140741
     },
     {
       "path": "images/monsters/legendary-attack.png",
@@ -1749,436 +1677,1828 @@
       "bytes": 3092289
     },
     {
-      "path": "images/monsters/lineage-abyss-attack.png",
+      "path": "images/monsters/pairs/childhood-new-01-attack.png",
       "type": "image",
-      "category": "images/monsters",
-      "bytes": 1783903
+      "category": "images/monsters/pairs",
+      "bytes": 572106
     },
     {
-      "path": "images/monsters/lineage-abyss.png",
+      "path": "images/monsters/pairs/childhood-new-01.png",
       "type": "image",
-      "category": "images/monsters",
-      "bytes": 1846909
+      "category": "images/monsters/pairs",
+      "bytes": 563820
     },
     {
-      "path": "images/monsters/lineage-beetle-attack.png",
+      "path": "images/monsters/pairs/childhood-new-02-attack.png",
       "type": "image",
-      "category": "images/monsters",
-      "bytes": 1544071
+      "category": "images/monsters/pairs",
+      "bytes": 659031
     },
     {
-      "path": "images/monsters/lineage-beetle.png",
+      "path": "images/monsters/pairs/childhood-new-02.png",
       "type": "image",
-      "category": "images/monsters",
-      "bytes": 1547900
+      "category": "images/monsters/pairs",
+      "bytes": 607824
     },
     {
-      "path": "images/monsters/lineage-bloom-attack.png",
+      "path": "images/monsters/pairs/growth-extra-v2-01-attack.png",
       "type": "image",
-      "category": "images/monsters",
-      "bytes": 1885855
+      "category": "images/monsters/pairs",
+      "bytes": 514385
     },
     {
-      "path": "images/monsters/lineage-bloom.png",
+      "path": "images/monsters/pairs/growth-extra-v2-01.png",
       "type": "image",
-      "category": "images/monsters",
-      "bytes": 3159829
+      "category": "images/monsters/pairs",
+      "bytes": 690422
     },
     {
-      "path": "images/monsters/lineage-candy-attack.png",
+      "path": "images/monsters/pairs/growth-extra-v2-02-attack.png",
       "type": "image",
-      "category": "images/monsters",
-      "bytes": 2329291
+      "category": "images/monsters/pairs",
+      "bytes": 471318
     },
     {
-      "path": "images/monsters/lineage-candy.png",
+      "path": "images/monsters/pairs/growth-extra-v2-02.png",
       "type": "image",
-      "category": "images/monsters",
-      "bytes": 2377160
+      "category": "images/monsters/pairs",
+      "bytes": 624129
     },
     {
-      "path": "images/monsters/lineage-coral-attack.png",
+      "path": "images/monsters/pairs/growth-new-a-01-attack.png",
       "type": "image",
-      "category": "images/monsters",
-      "bytes": 2044633
+      "category": "images/monsters/pairs",
+      "bytes": 663770
     },
     {
-      "path": "images/monsters/lineage-coral.png",
+      "path": "images/monsters/pairs/growth-new-a-01.png",
       "type": "image",
-      "category": "images/monsters",
-      "bytes": 2196500
+      "category": "images/monsters/pairs",
+      "bytes": 780185
     },
     {
-      "path": "images/monsters/lineage-corsair-attack.png",
+      "path": "images/monsters/pairs/growth-new-a-02-attack.png",
       "type": "image",
-      "category": "images/monsters",
-      "bytes": 1948968
+      "category": "images/monsters/pairs",
+      "bytes": 549793
     },
     {
-      "path": "images/monsters/lineage-corsair.png",
+      "path": "images/monsters/pairs/growth-new-a-02.png",
       "type": "image",
-      "category": "images/monsters",
-      "bytes": 1939059
+      "category": "images/monsters/pairs",
+      "bytes": 592397
     },
     {
-      "path": "images/monsters/lineage-cosmic-attack.png",
+      "path": "images/monsters/pairs/growth-new-b-01-attack.png",
       "type": "image",
-      "category": "images/monsters",
-      "bytes": 1562066
+      "category": "images/monsters/pairs",
+      "bytes": 607648
     },
     {
-      "path": "images/monsters/lineage-cosmic.png",
+      "path": "images/monsters/pairs/growth-new-b-01.png",
       "type": "image",
-      "category": "images/monsters",
-      "bytes": 1532875
+      "category": "images/monsters/pairs",
+      "bytes": 704389
     },
     {
-      "path": "images/monsters/lineage-crystal-attack.png",
+      "path": "images/monsters/pairs/growth-new-b-02-attack.png",
       "type": "image",
-      "category": "images/monsters",
-      "bytes": 2120169
+      "category": "images/monsters/pairs",
+      "bytes": 340973
     },
     {
-      "path": "images/monsters/lineage-crystal.png",
+      "path": "images/monsters/pairs/growth-new-b-02.png",
       "type": "image",
-      "category": "images/monsters",
-      "bytes": 2196762
+      "category": "images/monsters/pairs",
+      "bytes": 354114
     },
     {
-      "path": "images/monsters/lineage-dojo-attack.png",
+      "path": "images/monsters/pairs/growth-v2-01-attack.png",
       "type": "image",
-      "category": "images/monsters",
-      "bytes": 1701895
+      "category": "images/monsters/pairs",
+      "bytes": 470306
     },
     {
-      "path": "images/monsters/lineage-dojo.png",
+      "path": "images/monsters/pairs/growth-v2-01.png",
       "type": "image",
-      "category": "images/monsters",
-      "bytes": 1666602
+      "category": "images/monsters/pairs",
+      "bytes": 601023
     },
     {
-      "path": "images/monsters/lineage-dream-attack.png",
+      "path": "images/monsters/pairs/growth-v2-02-attack.png",
       "type": "image",
-      "category": "images/monsters",
-      "bytes": 1602037
+      "category": "images/monsters/pairs",
+      "bytes": 374589
     },
     {
-      "path": "images/monsters/lineage-dream.png",
+      "path": "images/monsters/pairs/growth-v2-02.png",
       "type": "image",
-      "category": "images/monsters",
-      "bytes": 1538106
+      "category": "images/monsters/pairs",
+      "bytes": 496369
     },
     {
-      "path": "images/monsters/lineage-dune-attack.png",
+      "path": "images/monsters/pairs/lineage-abyss-01-attack.png",
       "type": "image",
-      "category": "images/monsters",
-      "bytes": 1758489
+      "category": "images/monsters/pairs",
+      "bytes": 501320
     },
     {
-      "path": "images/monsters/lineage-dune.png",
+      "path": "images/monsters/pairs/lineage-abyss-01.png",
       "type": "image",
-      "category": "images/monsters",
-      "bytes": 1785211
+      "category": "images/monsters/pairs",
+      "bytes": 512377
     },
     {
-      "path": "images/monsters/lineage-festival-attack.png",
+      "path": "images/monsters/pairs/lineage-abyss-02-attack.png",
       "type": "image",
-      "category": "images/monsters",
-      "bytes": 1769518
+      "category": "images/monsters/pairs",
+      "bytes": 406378
     },
     {
-      "path": "images/monsters/lineage-festival.png",
+      "path": "images/monsters/pairs/lineage-abyss-02.png",
       "type": "image",
-      "category": "images/monsters",
-      "bytes": 1892393
+      "category": "images/monsters/pairs",
+      "bytes": 435553
     },
     {
-      "path": "images/monsters/lineage-fossil-attack.png",
+      "path": "images/monsters/pairs/lineage-abyss-03-attack.png",
       "type": "image",
-      "category": "images/monsters",
-      "bytes": 1709985
+      "category": "images/monsters/pairs",
+      "bytes": 474002
     },
     {
-      "path": "images/monsters/lineage-fossil.png",
+      "path": "images/monsters/pairs/lineage-abyss-03.png",
       "type": "image",
-      "category": "images/monsters",
-      "bytes": 1667136
+      "category": "images/monsters/pairs",
+      "bytes": 545666
     },
     {
-      "path": "images/monsters/lineage-glacier-attack.png",
+      "path": "images/monsters/pairs/lineage-abyss-04-attack.png",
       "type": "image",
-      "category": "images/monsters",
-      "bytes": 2202545
+      "category": "images/monsters/pairs",
+      "bytes": 223637
     },
     {
-      "path": "images/monsters/lineage-glacier.png",
+      "path": "images/monsters/pairs/lineage-abyss-04.png",
       "type": "image",
-      "category": "images/monsters",
-      "bytes": 2599993
+      "category": "images/monsters/pairs",
+      "bytes": 238646
     },
     {
-      "path": "images/monsters/lineage-gourmet-attack.png",
+      "path": "images/monsters/pairs/lineage-beetle-01-attack.png",
       "type": "image",
-      "category": "images/monsters",
-      "bytes": 1905299
+      "category": "images/monsters/pairs",
+      "bytes": 353826
     },
     {
-      "path": "images/monsters/lineage-gourmet.png",
+      "path": "images/monsters/pairs/lineage-beetle-01.png",
       "type": "image",
-      "category": "images/monsters",
-      "bytes": 1918649
+      "category": "images/monsters/pairs",
+      "bytes": 324113
     },
     {
-      "path": "images/monsters/lineage-grove-attack.png",
+      "path": "images/monsters/pairs/lineage-beetle-02-attack.png",
       "type": "image",
-      "category": "images/monsters",
-      "bytes": 2201993
+      "category": "images/monsters/pairs",
+      "bytes": 429171
     },
     {
-      "path": "images/monsters/lineage-grove.png",
+      "path": "images/monsters/pairs/lineage-beetle-02.png",
       "type": "image",
-      "category": "images/monsters",
-      "bytes": 2129900
+      "category": "images/monsters/pairs",
+      "bytes": 448202
     },
     {
-      "path": "images/monsters/lineage-inferno-attack.png",
+      "path": "images/monsters/pairs/lineage-beetle-03-attack.png",
       "type": "image",
-      "category": "images/monsters",
-      "bytes": 2088964
+      "category": "images/monsters/pairs",
+      "bytes": 493493
     },
     {
-      "path": "images/monsters/lineage-inferno.png",
+      "path": "images/monsters/pairs/lineage-beetle-03.png",
       "type": "image",
-      "category": "images/monsters",
-      "bytes": 2157193
+      "category": "images/monsters/pairs",
+      "bytes": 532538
     },
     {
-      "path": "images/monsters/lineage-ink-attack.png",
+      "path": "images/monsters/pairs/lineage-beetle-04-attack.png",
       "type": "image",
-      "category": "images/monsters",
-      "bytes": 2121212
+      "category": "images/monsters/pairs",
+      "bytes": 196942
     },
     {
-      "path": "images/monsters/lineage-ink.png",
+      "path": "images/monsters/pairs/lineage-beetle-04.png",
       "type": "image",
-      "category": "images/monsters",
-      "bytes": 2025204
+      "category": "images/monsters/pairs",
+      "bytes": 210499
     },
     {
-      "path": "images/monsters/lineage-junk-attack.png",
+      "path": "images/monsters/pairs/lineage-bloom-01-attack.png",
       "type": "image",
-      "category": "images/monsters",
-      "bytes": 2168582
+      "category": "images/monsters/pairs",
+      "bytes": 433957
     },
     {
-      "path": "images/monsters/lineage-junk.png",
+      "path": "images/monsters/pairs/lineage-bloom-01.png",
       "type": "image",
-      "category": "images/monsters",
-      "bytes": 2263994
+      "category": "images/monsters/pairs",
+      "bytes": 641951
     },
     {
-      "path": "images/monsters/lineage-mecha-attack.png",
+      "path": "images/monsters/pairs/lineage-bloom-02-attack.png",
       "type": "image",
-      "category": "images/monsters",
-      "bytes": 1869275
+      "category": "images/monsters/pairs",
+      "bytes": 534476
     },
     {
-      "path": "images/monsters/lineage-mecha.png",
+      "path": "images/monsters/pairs/lineage-bloom-02.png",
       "type": "image",
-      "category": "images/monsters",
-      "bytes": 2020228
+      "category": "images/monsters/pairs",
+      "bytes": 951134
     },
     {
-      "path": "images/monsters/lineage-ninja-attack.png",
+      "path": "images/monsters/pairs/lineage-bloom-03-attack.png",
       "type": "image",
-      "category": "images/monsters",
-      "bytes": 1729208
+      "category": "images/monsters/pairs",
+      "bytes": 569332
     },
     {
-      "path": "images/monsters/lineage-ninja.png",
+      "path": "images/monsters/pairs/lineage-bloom-03.png",
       "type": "image",
-      "category": "images/monsters",
-      "bytes": 1466536
+      "category": "images/monsters/pairs",
+      "bytes": 1038515
     },
     {
-      "path": "images/monsters/lineage-rail-attack.png",
+      "path": "images/monsters/pairs/lineage-bloom-04-attack.png",
       "type": "image",
-      "category": "images/monsters",
-      "bytes": 1760510
+      "category": "images/monsters/pairs",
+      "bytes": 248634
     },
     {
-      "path": "images/monsters/lineage-rail.png",
+      "path": "images/monsters/pairs/lineage-bloom-04.png",
       "type": "image",
-      "category": "images/monsters",
-      "bytes": 1738153
+      "category": "images/monsters/pairs",
+      "bytes": 481176
     },
     {
-      "path": "images/monsters/lineage-ryu-attack.png",
+      "path": "images/monsters/pairs/lineage-candy-01-attack.png",
       "type": "image",
-      "category": "images/monsters",
-      "bytes": 2374452
+      "category": "images/monsters/pairs",
+      "bytes": 535771
     },
     {
-      "path": "images/monsters/lineage-ryu.png",
+      "path": "images/monsters/pairs/lineage-candy-01.png",
       "type": "image",
-      "category": "images/monsters",
-      "bytes": 2355786
+      "category": "images/monsters/pairs",
+      "bytes": 521575
     },
     {
-      "path": "images/monsters/lineage-samurai-attack.png",
+      "path": "images/monsters/pairs/lineage-candy-02-attack.png",
       "type": "image",
-      "category": "images/monsters",
-      "bytes": 1801209
+      "category": "images/monsters/pairs",
+      "bytes": 631301
     },
     {
-      "path": "images/monsters/lineage-samurai.png",
+      "path": "images/monsters/pairs/lineage-candy-02.png",
       "type": "image",
-      "category": "images/monsters",
-      "bytes": 1716798
+      "category": "images/monsters/pairs",
+      "bytes": 645303
     },
     {
-      "path": "images/monsters/lineage-shadow-attack.png",
+      "path": "images/monsters/pairs/lineage-candy-03-attack.png",
       "type": "image",
-      "category": "images/monsters",
-      "bytes": 1989501
+      "category": "images/monsters/pairs",
+      "bytes": 627970
     },
     {
-      "path": "images/monsters/lineage-shadow.png",
+      "path": "images/monsters/pairs/lineage-candy-03.png",
       "type": "image",
-      "category": "images/monsters",
-      "bytes": 1814445
+      "category": "images/monsters/pairs",
+      "bytes": 700646
     },
     {
-      "path": "images/monsters/lineage-sky-attack.png",
+      "path": "images/monsters/pairs/lineage-candy-04-attack.png",
       "type": "image",
-      "category": "images/monsters",
-      "bytes": 2021035
+      "category": "images/monsters/pairs",
+      "bytes": 352067
     },
     {
-      "path": "images/monsters/lineage-sky.png",
+      "path": "images/monsters/pairs/lineage-candy-04.png",
       "type": "image",
-      "category": "images/monsters",
-      "bytes": 2346443
+      "category": "images/monsters/pairs",
+      "bytes": 404403
     },
     {
-      "path": "images/monsters/lineage-slime-attack.png",
+      "path": "images/monsters/pairs/lineage-coral-01-attack.png",
       "type": "image",
-      "category": "images/monsters",
-      "bytes": 1763487
+      "category": "images/monsters/pairs",
+      "bytes": 508523
     },
     {
-      "path": "images/monsters/lineage-slime.png",
+      "path": "images/monsters/pairs/lineage-coral-01.png",
       "type": "image",
-      "category": "images/monsters",
-      "bytes": 1720563
+      "category": "images/monsters/pairs",
+      "bytes": 559129
     },
     {
-      "path": "images/monsters/lineage-sonic-attack.png",
+      "path": "images/monsters/pairs/lineage-coral-02-attack.png",
       "type": "image",
-      "category": "images/monsters",
-      "bytes": 1810748
+      "category": "images/monsters/pairs",
+      "bytes": 581037
     },
     {
-      "path": "images/monsters/lineage-sonic.png",
+      "path": "images/monsters/pairs/lineage-coral-02.png",
       "type": "image",
-      "category": "images/monsters",
-      "bytes": 1908530
+      "category": "images/monsters/pairs",
+      "bytes": 687839
     },
     {
-      "path": "images/monsters/lineage-spirit-attack.png",
+      "path": "images/monsters/pairs/lineage-coral-03-attack.png",
       "type": "image",
-      "category": "images/monsters",
-      "bytes": 2309617
+      "category": "images/monsters/pairs",
+      "bytes": 612628
     },
     {
-      "path": "images/monsters/lineage-spirit.png",
+      "path": "images/monsters/pairs/lineage-coral-03.png",
       "type": "image",
-      "category": "images/monsters",
-      "bytes": 2332563
+      "category": "images/monsters/pairs",
+      "bytes": 647714
     },
     {
-      "path": "images/monsters/lineage-spore-attack.png",
+      "path": "images/monsters/pairs/lineage-coral-04-attack.png",
       "type": "image",
-      "category": "images/monsters",
-      "bytes": 2180070
+      "category": "images/monsters/pairs",
+      "bytes": 307683
     },
     {
-      "path": "images/monsters/lineage-spore.png",
+      "path": "images/monsters/pairs/lineage-coral-04.png",
       "type": "image",
-      "category": "images/monsters",
-      "bytes": 2176295
+      "category": "images/monsters/pairs",
+      "bytes": 359019
     },
     {
-      "path": "images/monsters/lineage-tempest-attack.png",
+      "path": "images/monsters/pairs/lineage-corsair-01-attack.png",
       "type": "image",
-      "category": "images/monsters",
-      "bytes": 2231231
+      "category": "images/monsters/pairs",
+      "bytes": 460312
     },
     {
-      "path": "images/monsters/lineage-tempest.png",
+      "path": "images/monsters/pairs/lineage-corsair-01.png",
       "type": "image",
-      "category": "images/monsters",
-      "bytes": 2414839
+      "category": "images/monsters/pairs",
+      "bytes": 453638
     },
     {
-      "path": "images/monsters/lineage-thunder-attack.png",
+      "path": "images/monsters/pairs/lineage-corsair-02-attack.png",
       "type": "image",
-      "category": "images/monsters",
-      "bytes": 1679101
+      "category": "images/monsters/pairs",
+      "bytes": 619652
     },
     {
-      "path": "images/monsters/lineage-thunder.png",
+      "path": "images/monsters/pairs/lineage-corsair-02.png",
       "type": "image",
-      "category": "images/monsters",
-      "bytes": 1742338
+      "category": "images/monsters/pairs",
+      "bytes": 603421
     },
     {
-      "path": "images/monsters/rank6-a-v2.png",
+      "path": "images/monsters/pairs/lineage-corsair-03-attack.png",
       "type": "image",
-      "category": "images/monsters",
-      "bytes": 2694715
+      "category": "images/monsters/pairs",
+      "bytes": 591461
     },
     {
-      "path": "images/monsters/rank6-a-v3-attack.png",
+      "path": "images/monsters/pairs/lineage-corsair-03.png",
       "type": "image",
-      "category": "images/monsters",
-      "bytes": 6375187
+      "category": "images/monsters/pairs",
+      "bytes": 604855
     },
     {
-      "path": "images/monsters/rank6-a-v3.png",
+      "path": "images/monsters/pairs/lineage-corsair-04-attack.png",
       "type": "image",
-      "category": "images/monsters",
-      "bytes": 6382249
+      "category": "images/monsters/pairs",
+      "bytes": 301595
     },
     {
-      "path": "images/monsters/rank6-a.png",
+      "path": "images/monsters/pairs/lineage-corsair-04.png",
       "type": "image",
-      "category": "images/monsters",
-      "bytes": 2665456
+      "category": "images/monsters/pairs",
+      "bytes": 335454
     },
     {
-      "path": "images/monsters/rank6-b-v2.png",
+      "path": "images/monsters/pairs/lineage-cosmic-01-attack.png",
       "type": "image",
-      "category": "images/monsters",
-      "bytes": 3110316
+      "category": "images/monsters/pairs",
+      "bytes": 416776
     },
     {
-      "path": "images/monsters/rank6-b-v3-attack.png",
+      "path": "images/monsters/pairs/lineage-cosmic-01.png",
       "type": "image",
-      "category": "images/monsters",
-      "bytes": 6821962
+      "category": "images/monsters/pairs",
+      "bytes": 421489
     },
     {
-      "path": "images/monsters/rank6-b-v3.png",
+      "path": "images/monsters/pairs/lineage-cosmic-02-attack.png",
       "type": "image",
-      "category": "images/monsters",
-      "bytes": 6702216
+      "category": "images/monsters/pairs",
+      "bytes": 372115
     },
     {
-      "path": "images/monsters/rank6-b.png",
+      "path": "images/monsters/pairs/lineage-cosmic-02.png",
       "type": "image",
-      "category": "images/monsters",
-      "bytes": 3061319
+      "category": "images/monsters/pairs",
+      "bytes": 415811
+    },
+    {
+      "path": "images/monsters/pairs/lineage-cosmic-03-attack.png",
+      "type": "image",
+      "category": "images/monsters/pairs",
+      "bytes": 383695
+    },
+    {
+      "path": "images/monsters/pairs/lineage-cosmic-03.png",
+      "type": "image",
+      "category": "images/monsters/pairs",
+      "bytes": 431972
+    },
+    {
+      "path": "images/monsters/pairs/lineage-cosmic-04-attack.png",
+      "type": "image",
+      "category": "images/monsters/pairs",
+      "bytes": 263125
+    },
+    {
+      "path": "images/monsters/pairs/lineage-cosmic-04.png",
+      "type": "image",
+      "category": "images/monsters/pairs",
+      "bytes": 271003
+    },
+    {
+      "path": "images/monsters/pairs/lineage-crystal-01-attack.png",
+      "type": "image",
+      "category": "images/monsters/pairs",
+      "bytes": 469251
+    },
+    {
+      "path": "images/monsters/pairs/lineage-crystal-01.png",
+      "type": "image",
+      "category": "images/monsters/pairs",
+      "bytes": 478764
+    },
+    {
+      "path": "images/monsters/pairs/lineage-crystal-02-attack.png",
+      "type": "image",
+      "category": "images/monsters/pairs",
+      "bytes": 580924
+    },
+    {
+      "path": "images/monsters/pairs/lineage-crystal-02.png",
+      "type": "image",
+      "category": "images/monsters/pairs",
+      "bytes": 626149
+    },
+    {
+      "path": "images/monsters/pairs/lineage-crystal-03-attack.png",
+      "type": "image",
+      "category": "images/monsters/pairs",
+      "bytes": 606083
+    },
+    {
+      "path": "images/monsters/pairs/lineage-crystal-03.png",
+      "type": "image",
+      "category": "images/monsters/pairs",
+      "bytes": 670809
+    },
+    {
+      "path": "images/monsters/pairs/lineage-crystal-04-attack.png",
+      "type": "image",
+      "category": "images/monsters/pairs",
+      "bytes": 292506
+    },
+    {
+      "path": "images/monsters/pairs/lineage-crystal-04.png",
+      "type": "image",
+      "category": "images/monsters/pairs",
+      "bytes": 292368
+    },
+    {
+      "path": "images/monsters/pairs/lineage-dojo-01-attack.png",
+      "type": "image",
+      "category": "images/monsters/pairs",
+      "bytes": 462130
+    },
+    {
+      "path": "images/monsters/pairs/lineage-dojo-01.png",
+      "type": "image",
+      "category": "images/monsters/pairs",
+      "bytes": 472577
+    },
+    {
+      "path": "images/monsters/pairs/lineage-dojo-02-attack.png",
+      "type": "image",
+      "category": "images/monsters/pairs",
+      "bytes": 427957
+    },
+    {
+      "path": "images/monsters/pairs/lineage-dojo-02.png",
+      "type": "image",
+      "category": "images/monsters/pairs",
+      "bytes": 435498
+    },
+    {
+      "path": "images/monsters/pairs/lineage-dojo-03-attack.png",
+      "type": "image",
+      "category": "images/monsters/pairs",
+      "bytes": 572704
+    },
+    {
+      "path": "images/monsters/pairs/lineage-dojo-03.png",
+      "type": "image",
+      "category": "images/monsters/pairs",
+      "bytes": 593332
+    },
+    {
+      "path": "images/monsters/pairs/lineage-dojo-04-attack.png",
+      "type": "image",
+      "category": "images/monsters/pairs",
+      "bytes": 252911
+    },
+    {
+      "path": "images/monsters/pairs/lineage-dojo-04.png",
+      "type": "image",
+      "category": "images/monsters/pairs",
+      "bytes": 249662
+    },
+    {
+      "path": "images/monsters/pairs/lineage-dream-01-attack.png",
+      "type": "image",
+      "category": "images/monsters/pairs",
+      "bytes": 404387
+    },
+    {
+      "path": "images/monsters/pairs/lineage-dream-01.png",
+      "type": "image",
+      "category": "images/monsters/pairs",
+      "bytes": 375140
+    },
+    {
+      "path": "images/monsters/pairs/lineage-dream-02-attack.png",
+      "type": "image",
+      "category": "images/monsters/pairs",
+      "bytes": 462133
+    },
+    {
+      "path": "images/monsters/pairs/lineage-dream-02.png",
+      "type": "image",
+      "category": "images/monsters/pairs",
+      "bytes": 479588
+    },
+    {
+      "path": "images/monsters/pairs/lineage-dream-03-attack.png",
+      "type": "image",
+      "category": "images/monsters/pairs",
+      "bytes": 499230
+    },
+    {
+      "path": "images/monsters/pairs/lineage-dream-03.png",
+      "type": "image",
+      "category": "images/monsters/pairs",
+      "bytes": 525656
+    },
+    {
+      "path": "images/monsters/pairs/lineage-dream-04-attack.png",
+      "type": "image",
+      "category": "images/monsters/pairs",
+      "bytes": 263070
+    },
+    {
+      "path": "images/monsters/pairs/lineage-dream-04.png",
+      "type": "image",
+      "category": "images/monsters/pairs",
+      "bytes": 257173
+    },
+    {
+      "path": "images/monsters/pairs/lineage-dune-01-attack.png",
+      "type": "image",
+      "category": "images/monsters/pairs",
+      "bytes": 425111
+    },
+    {
+      "path": "images/monsters/pairs/lineage-dune-01.png",
+      "type": "image",
+      "category": "images/monsters/pairs",
+      "bytes": 436809
+    },
+    {
+      "path": "images/monsters/pairs/lineage-dune-02-attack.png",
+      "type": "image",
+      "category": "images/monsters/pairs",
+      "bytes": 505030
+    },
+    {
+      "path": "images/monsters/pairs/lineage-dune-02.png",
+      "type": "image",
+      "category": "images/monsters/pairs",
+      "bytes": 537264
+    },
+    {
+      "path": "images/monsters/pairs/lineage-dune-03-attack.png",
+      "type": "image",
+      "category": "images/monsters/pairs",
+      "bytes": 558711
+    },
+    {
+      "path": "images/monsters/pairs/lineage-dune-03.png",
+      "type": "image",
+      "category": "images/monsters/pairs",
+      "bytes": 577662
+    },
+    {
+      "path": "images/monsters/pairs/lineage-dune-04-attack.png",
+      "type": "image",
+      "category": "images/monsters/pairs",
+      "bytes": 274519
+    },
+    {
+      "path": "images/monsters/pairs/lineage-dune-04.png",
+      "type": "image",
+      "category": "images/monsters/pairs",
+      "bytes": 297686
+    },
+    {
+      "path": "images/monsters/pairs/lineage-festival-01-attack.png",
+      "type": "image",
+      "category": "images/monsters/pairs",
+      "bytes": 484562
+    },
+    {
+      "path": "images/monsters/pairs/lineage-festival-01.png",
+      "type": "image",
+      "category": "images/monsters/pairs",
+      "bytes": 491825
+    },
+    {
+      "path": "images/monsters/pairs/lineage-festival-02-attack.png",
+      "type": "image",
+      "category": "images/monsters/pairs",
+      "bytes": 446375
+    },
+    {
+      "path": "images/monsters/pairs/lineage-festival-02.png",
+      "type": "image",
+      "category": "images/monsters/pairs",
+      "bytes": 502222
+    },
+    {
+      "path": "images/monsters/pairs/lineage-festival-03-attack.png",
+      "type": "image",
+      "category": "images/monsters/pairs",
+      "bytes": 575005
+    },
+    {
+      "path": "images/monsters/pairs/lineage-festival-03.png",
+      "type": "image",
+      "category": "images/monsters/pairs",
+      "bytes": 657695
+    },
+    {
+      "path": "images/monsters/pairs/lineage-festival-04-attack.png",
+      "type": "image",
+      "category": "images/monsters/pairs",
+      "bytes": 284585
+    },
+    {
+      "path": "images/monsters/pairs/lineage-festival-04.png",
+      "type": "image",
+      "category": "images/monsters/pairs",
+      "bytes": 320559
+    },
+    {
+      "path": "images/monsters/pairs/lineage-fossil-01-attack.png",
+      "type": "image",
+      "category": "images/monsters/pairs",
+      "bytes": 424765
+    },
+    {
+      "path": "images/monsters/pairs/lineage-fossil-01.png",
+      "type": "image",
+      "category": "images/monsters/pairs",
+      "bytes": 419159
+    },
+    {
+      "path": "images/monsters/pairs/lineage-fossil-02-attack.png",
+      "type": "image",
+      "category": "images/monsters/pairs",
+      "bytes": 461670
+    },
+    {
+      "path": "images/monsters/pairs/lineage-fossil-02.png",
+      "type": "image",
+      "category": "images/monsters/pairs",
+      "bytes": 490035
+    },
+    {
+      "path": "images/monsters/pairs/lineage-fossil-03-attack.png",
+      "type": "image",
+      "category": "images/monsters/pairs",
+      "bytes": 314818
+    },
+    {
+      "path": "images/monsters/pairs/lineage-fossil-03.png",
+      "type": "image",
+      "category": "images/monsters/pairs",
+      "bytes": 290204
+    },
+    {
+      "path": "images/monsters/pairs/lineage-glacier-01-attack.png",
+      "type": "image",
+      "category": "images/monsters/pairs",
+      "bytes": 528225
+    },
+    {
+      "path": "images/monsters/pairs/lineage-glacier-01.png",
+      "type": "image",
+      "category": "images/monsters/pairs",
+      "bytes": 547207
+    },
+    {
+      "path": "images/monsters/pairs/lineage-glacier-02-attack.png",
+      "type": "image",
+      "category": "images/monsters/pairs",
+      "bytes": 593408
+    },
+    {
+      "path": "images/monsters/pairs/lineage-glacier-02.png",
+      "type": "image",
+      "category": "images/monsters/pairs",
+      "bytes": 753519
+    },
+    {
+      "path": "images/monsters/pairs/lineage-glacier-03-attack.png",
+      "type": "image",
+      "category": "images/monsters/pairs",
+      "bytes": 617540
+    },
+    {
+      "path": "images/monsters/pairs/lineage-glacier-03.png",
+      "type": "image",
+      "category": "images/monsters/pairs",
+      "bytes": 782161
+    },
+    {
+      "path": "images/monsters/pairs/lineage-glacier-04-attack.png",
+      "type": "image",
+      "category": "images/monsters/pairs",
+      "bytes": 289148
+    },
+    {
+      "path": "images/monsters/pairs/lineage-glacier-04.png",
+      "type": "image",
+      "category": "images/monsters/pairs",
+      "bytes": 398533
+    },
+    {
+      "path": "images/monsters/pairs/lineage-gourmet-01-attack.png",
+      "type": "image",
+      "category": "images/monsters/pairs",
+      "bytes": 491003
+    },
+    {
+      "path": "images/monsters/pairs/lineage-gourmet-01.png",
+      "type": "image",
+      "category": "images/monsters/pairs",
+      "bytes": 516394
+    },
+    {
+      "path": "images/monsters/pairs/lineage-gourmet-02-attack.png",
+      "type": "image",
+      "category": "images/monsters/pairs",
+      "bytes": 576374
+    },
+    {
+      "path": "images/monsters/pairs/lineage-gourmet-02.png",
+      "type": "image",
+      "category": "images/monsters/pairs",
+      "bytes": 578298
+    },
+    {
+      "path": "images/monsters/pairs/lineage-gourmet-03-attack.png",
+      "type": "image",
+      "category": "images/monsters/pairs",
+      "bytes": 593730
+    },
+    {
+      "path": "images/monsters/pairs/lineage-gourmet-03.png",
+      "type": "image",
+      "category": "images/monsters/pairs",
+      "bytes": 637197
+    },
+    {
+      "path": "images/monsters/pairs/lineage-gourmet-04-attack.png",
+      "type": "image",
+      "category": "images/monsters/pairs",
+      "bytes": 210451
+    },
+    {
+      "path": "images/monsters/pairs/lineage-gourmet-04.png",
+      "type": "image",
+      "category": "images/monsters/pairs",
+      "bytes": 292463
+    },
+    {
+      "path": "images/monsters/pairs/lineage-grove-01-attack.png",
+      "type": "image",
+      "category": "images/monsters/pairs",
+      "bytes": 571146
+    },
+    {
+      "path": "images/monsters/pairs/lineage-grove-01.png",
+      "type": "image",
+      "category": "images/monsters/pairs",
+      "bytes": 523358
+    },
+    {
+      "path": "images/monsters/pairs/lineage-grove-02-attack.png",
+      "type": "image",
+      "category": "images/monsters/pairs",
+      "bytes": 624989
+    },
+    {
+      "path": "images/monsters/pairs/lineage-grove-02.png",
+      "type": "image",
+      "category": "images/monsters/pairs",
+      "bytes": 633826
+    },
+    {
+      "path": "images/monsters/pairs/lineage-grove-03-attack.png",
+      "type": "image",
+      "category": "images/monsters/pairs",
+      "bytes": 579602
+    },
+    {
+      "path": "images/monsters/pairs/lineage-grove-03.png",
+      "type": "image",
+      "category": "images/monsters/pairs",
+      "bytes": 573286
+    },
+    {
+      "path": "images/monsters/pairs/lineage-grove-04-attack.png",
+      "type": "image",
+      "category": "images/monsters/pairs",
+      "bytes": 291295
+    },
+    {
+      "path": "images/monsters/pairs/lineage-grove-04.png",
+      "type": "image",
+      "category": "images/monsters/pairs",
+      "bytes": 317933
+    },
+    {
+      "path": "images/monsters/pairs/lineage-inferno-01-attack.png",
+      "type": "image",
+      "category": "images/monsters/pairs",
+      "bytes": 512008
+    },
+    {
+      "path": "images/monsters/pairs/lineage-inferno-01.png",
+      "type": "image",
+      "category": "images/monsters/pairs",
+      "bytes": 507664
+    },
+    {
+      "path": "images/monsters/pairs/lineage-inferno-02-attack.png",
+      "type": "image",
+      "category": "images/monsters/pairs",
+      "bytes": 557129
+    },
+    {
+      "path": "images/monsters/pairs/lineage-inferno-02.png",
+      "type": "image",
+      "category": "images/monsters/pairs",
+      "bytes": 593302
+    },
+    {
+      "path": "images/monsters/pairs/lineage-inferno-03-attack.png",
+      "type": "image",
+      "category": "images/monsters/pairs",
+      "bytes": 607451
+    },
+    {
+      "path": "images/monsters/pairs/lineage-inferno-03.png",
+      "type": "image",
+      "category": "images/monsters/pairs",
+      "bytes": 651931
+    },
+    {
+      "path": "images/monsters/pairs/lineage-inferno-04-attack.png",
+      "type": "image",
+      "category": "images/monsters/pairs",
+      "bytes": 278185
+    },
+    {
+      "path": "images/monsters/pairs/lineage-inferno-04.png",
+      "type": "image",
+      "category": "images/monsters/pairs",
+      "bytes": 324414
+    },
+    {
+      "path": "images/monsters/pairs/lineage-ink-01-attack.png",
+      "type": "image",
+      "category": "images/monsters/pairs",
+      "bytes": 622321
+    },
+    {
+      "path": "images/monsters/pairs/lineage-ink-01.png",
+      "type": "image",
+      "category": "images/monsters/pairs",
+      "bytes": 550210
+    },
+    {
+      "path": "images/monsters/pairs/lineage-ink-02-attack.png",
+      "type": "image",
+      "category": "images/monsters/pairs",
+      "bytes": 538409
+    },
+    {
+      "path": "images/monsters/pairs/lineage-ink-02.png",
+      "type": "image",
+      "category": "images/monsters/pairs",
+      "bytes": 519681
+    },
+    {
+      "path": "images/monsters/pairs/lineage-ink-03-attack.png",
+      "type": "image",
+      "category": "images/monsters/pairs",
+      "bytes": 649367
+    },
+    {
+      "path": "images/monsters/pairs/lineage-ink-03.png",
+      "type": "image",
+      "category": "images/monsters/pairs",
+      "bytes": 674900
+    },
+    {
+      "path": "images/monsters/pairs/lineage-ink-04-attack.png",
+      "type": "image",
+      "category": "images/monsters/pairs",
+      "bytes": 287228
+    },
+    {
+      "path": "images/monsters/pairs/lineage-ink-04.png",
+      "type": "image",
+      "category": "images/monsters/pairs",
+      "bytes": 303079
+    },
+    {
+      "path": "images/monsters/pairs/lineage-junk-01-attack.png",
+      "type": "image",
+      "category": "images/monsters/pairs",
+      "bytes": 503946
+    },
+    {
+      "path": "images/monsters/pairs/lineage-junk-01.png",
+      "type": "image",
+      "category": "images/monsters/pairs",
+      "bytes": 501340
+    },
+    {
+      "path": "images/monsters/pairs/lineage-junk-02-attack.png",
+      "type": "image",
+      "category": "images/monsters/pairs",
+      "bytes": 540187
+    },
+    {
+      "path": "images/monsters/pairs/lineage-junk-02.png",
+      "type": "image",
+      "category": "images/monsters/pairs",
+      "bytes": 604480
+    },
+    {
+      "path": "images/monsters/pairs/lineage-junk-03-attack.png",
+      "type": "image",
+      "category": "images/monsters/pairs",
+      "bytes": 593476
+    },
+    {
+      "path": "images/monsters/pairs/lineage-junk-03.png",
+      "type": "image",
+      "category": "images/monsters/pairs",
+      "bytes": 669664
+    },
+    {
+      "path": "images/monsters/pairs/lineage-junk-04-attack.png",
+      "type": "image",
+      "category": "images/monsters/pairs",
+      "bytes": 347272
+    },
+    {
+      "path": "images/monsters/pairs/lineage-junk-04.png",
+      "type": "image",
+      "category": "images/monsters/pairs",
+      "bytes": 331342
+    },
+    {
+      "path": "images/monsters/pairs/lineage-mecha-01-attack.png",
+      "type": "image",
+      "category": "images/monsters/pairs",
+      "bytes": 428400
+    },
+    {
+      "path": "images/monsters/pairs/lineage-mecha-01.png",
+      "type": "image",
+      "category": "images/monsters/pairs",
+      "bytes": 427556
+    },
+    {
+      "path": "images/monsters/pairs/lineage-mecha-02-attack.png",
+      "type": "image",
+      "category": "images/monsters/pairs",
+      "bytes": 552289
+    },
+    {
+      "path": "images/monsters/pairs/lineage-mecha-02.png",
+      "type": "image",
+      "category": "images/monsters/pairs",
+      "bytes": 620805
+    },
+    {
+      "path": "images/monsters/pairs/lineage-mecha-03-attack.png",
+      "type": "image",
+      "category": "images/monsters/pairs",
+      "bytes": 534246
+    },
+    {
+      "path": "images/monsters/pairs/lineage-mecha-03.png",
+      "type": "image",
+      "category": "images/monsters/pairs",
+      "bytes": 594644
+    },
+    {
+      "path": "images/monsters/pairs/lineage-mecha-04-attack.png",
+      "type": "image",
+      "category": "images/monsters/pairs",
+      "bytes": 215531
+    },
+    {
+      "path": "images/monsters/pairs/lineage-mecha-04.png",
+      "type": "image",
+      "category": "images/monsters/pairs",
+      "bytes": 258184
+    },
+    {
+      "path": "images/monsters/pairs/lineage-ninja-01-attack.png",
+      "type": "image",
+      "category": "images/monsters/pairs",
+      "bytes": 442522
+    },
+    {
+      "path": "images/monsters/pairs/lineage-ninja-01.png",
+      "type": "image",
+      "category": "images/monsters/pairs",
+      "bytes": 403887
+    },
+    {
+      "path": "images/monsters/pairs/lineage-ninja-02-attack.png",
+      "type": "image",
+      "category": "images/monsters/pairs",
+      "bytes": 447863
+    },
+    {
+      "path": "images/monsters/pairs/lineage-ninja-02.png",
+      "type": "image",
+      "category": "images/monsters/pairs",
+      "bytes": 403180
+    },
+    {
+      "path": "images/monsters/pairs/lineage-ninja-03-attack.png",
+      "type": "image",
+      "category": "images/monsters/pairs",
+      "bytes": 544483
+    },
+    {
+      "path": "images/monsters/pairs/lineage-ninja-03.png",
+      "type": "image",
+      "category": "images/monsters/pairs",
+      "bytes": 489297
+    },
+    {
+      "path": "images/monsters/pairs/lineage-ninja-04-attack.png",
+      "type": "image",
+      "category": "images/monsters/pairs",
+      "bytes": 313204
+    },
+    {
+      "path": "images/monsters/pairs/lineage-ninja-04.png",
+      "type": "image",
+      "category": "images/monsters/pairs",
+      "bytes": 265336
+    },
+    {
+      "path": "images/monsters/pairs/lineage-rail-01-attack.png",
+      "type": "image",
+      "category": "images/monsters/pairs",
+      "bytes": 361955
+    },
+    {
+      "path": "images/monsters/pairs/lineage-rail-01.png",
+      "type": "image",
+      "category": "images/monsters/pairs",
+      "bytes": 360350
+    },
+    {
+      "path": "images/monsters/pairs/lineage-rail-02-attack.png",
+      "type": "image",
+      "category": "images/monsters/pairs",
+      "bytes": 481073
+    },
+    {
+      "path": "images/monsters/pairs/lineage-rail-02.png",
+      "type": "image",
+      "category": "images/monsters/pairs",
+      "bytes": 550703
+    },
+    {
+      "path": "images/monsters/pairs/lineage-rail-03-attack.png",
+      "type": "image",
+      "category": "images/monsters/pairs",
+      "bytes": 546436
+    },
+    {
+      "path": "images/monsters/pairs/lineage-rail-03.png",
+      "type": "image",
+      "category": "images/monsters/pairs",
+      "bytes": 595590
+    },
+    {
+      "path": "images/monsters/pairs/lineage-rail-04-attack.png",
+      "type": "image",
+      "category": "images/monsters/pairs",
+      "bytes": 317725
+    },
+    {
+      "path": "images/monsters/pairs/lineage-rail-04.png",
+      "type": "image",
+      "category": "images/monsters/pairs",
+      "bytes": 299345
+    },
+    {
+      "path": "images/monsters/pairs/lineage-ryu-01-attack.png",
+      "type": "image",
+      "category": "images/monsters/pairs",
+      "bytes": 617190
+    },
+    {
+      "path": "images/monsters/pairs/lineage-ryu-01.png",
+      "type": "image",
+      "category": "images/monsters/pairs",
+      "bytes": 606033
+    },
+    {
+      "path": "images/monsters/pairs/lineage-ryu-02-attack.png",
+      "type": "image",
+      "category": "images/monsters/pairs",
+      "bytes": 645591
+    },
+    {
+      "path": "images/monsters/pairs/lineage-ryu-02.png",
+      "type": "image",
+      "category": "images/monsters/pairs",
+      "bytes": 683214
+    },
+    {
+      "path": "images/monsters/pairs/lineage-ryu-03-attack.png",
+      "type": "image",
+      "category": "images/monsters/pairs",
+      "bytes": 714400
+    },
+    {
+      "path": "images/monsters/pairs/lineage-ryu-03.png",
+      "type": "image",
+      "category": "images/monsters/pairs",
+      "bytes": 701631
+    },
+    {
+      "path": "images/monsters/pairs/lineage-ryu-04-attack.png",
+      "type": "image",
+      "category": "images/monsters/pairs",
+      "bytes": 393508
+    },
+    {
+      "path": "images/monsters/pairs/lineage-ryu-04.png",
+      "type": "image",
+      "category": "images/monsters/pairs",
+      "bytes": 384160
+    },
+    {
+      "path": "images/monsters/pairs/lineage-samurai-01-attack.png",
+      "type": "image",
+      "category": "images/monsters/pairs",
+      "bytes": 381549
+    },
+    {
+      "path": "images/monsters/pairs/lineage-samurai-01.png",
+      "type": "image",
+      "category": "images/monsters/pairs",
+      "bytes": 378531
+    },
+    {
+      "path": "images/monsters/pairs/lineage-samurai-02-attack.png",
+      "type": "image",
+      "category": "images/monsters/pairs",
+      "bytes": 561060
+    },
+    {
+      "path": "images/monsters/pairs/lineage-samurai-02.png",
+      "type": "image",
+      "category": "images/monsters/pairs",
+      "bytes": 559665
+    },
+    {
+      "path": "images/monsters/pairs/lineage-samurai-03-attack.png",
+      "type": "image",
+      "category": "images/monsters/pairs",
+      "bytes": 524659
+    },
+    {
+      "path": "images/monsters/pairs/lineage-samurai-03.png",
+      "type": "image",
+      "category": "images/monsters/pairs",
+      "bytes": 518633
+    },
+    {
+      "path": "images/monsters/pairs/lineage-samurai-04-attack.png",
+      "type": "image",
+      "category": "images/monsters/pairs",
+      "bytes": 300533
+    },
+    {
+      "path": "images/monsters/pairs/lineage-samurai-04.png",
+      "type": "image",
+      "category": "images/monsters/pairs",
+      "bytes": 311147
+    },
+    {
+      "path": "images/monsters/pairs/lineage-shadow-01-attack.png",
+      "type": "image",
+      "category": "images/monsters/pairs",
+      "bytes": 423305
+    },
+    {
+      "path": "images/monsters/pairs/lineage-shadow-01.png",
+      "type": "image",
+      "category": "images/monsters/pairs",
+      "bytes": 406219
+    },
+    {
+      "path": "images/monsters/pairs/lineage-shadow-02-attack.png",
+      "type": "image",
+      "category": "images/monsters/pairs",
+      "bytes": 587302
+    },
+    {
+      "path": "images/monsters/pairs/lineage-shadow-02.png",
+      "type": "image",
+      "category": "images/monsters/pairs",
+      "bytes": 552995
+    },
+    {
+      "path": "images/monsters/pairs/lineage-shadow-03-attack.png",
+      "type": "image",
+      "category": "images/monsters/pairs",
+      "bytes": 526359
+    },
+    {
+      "path": "images/monsters/pairs/lineage-shadow-03.png",
+      "type": "image",
+      "category": "images/monsters/pairs",
+      "bytes": 529141
+    },
+    {
+      "path": "images/monsters/pairs/lineage-shadow-04-attack.png",
+      "type": "image",
+      "category": "images/monsters/pairs",
+      "bytes": 289536
+    },
+    {
+      "path": "images/monsters/pairs/lineage-shadow-04.png",
+      "type": "image",
+      "category": "images/monsters/pairs",
+      "bytes": 299169
+    },
+    {
+      "path": "images/monsters/pairs/lineage-sky-01-attack.png",
+      "type": "image",
+      "category": "images/monsters/pairs",
+      "bytes": 473334
+    },
+    {
+      "path": "images/monsters/pairs/lineage-sky-01.png",
+      "type": "image",
+      "category": "images/monsters/pairs",
+      "bytes": 549093
+    },
+    {
+      "path": "images/monsters/pairs/lineage-sky-02-attack.png",
+      "type": "image",
+      "category": "images/monsters/pairs",
+      "bytes": 514637
+    },
+    {
+      "path": "images/monsters/pairs/lineage-sky-02.png",
+      "type": "image",
+      "category": "images/monsters/pairs",
+      "bytes": 710342
+    },
+    {
+      "path": "images/monsters/pairs/lineage-sky-03-attack.png",
+      "type": "image",
+      "category": "images/monsters/pairs",
+      "bytes": 567791
+    },
+    {
+      "path": "images/monsters/pairs/lineage-sky-03.png",
+      "type": "image",
+      "category": "images/monsters/pairs",
+      "bytes": 715660
+    },
+    {
+      "path": "images/monsters/pairs/lineage-sky-04-attack.png",
+      "type": "image",
+      "category": "images/monsters/pairs",
+      "bytes": 294624
+    },
+    {
+      "path": "images/monsters/pairs/lineage-sky-04.png",
+      "type": "image",
+      "category": "images/monsters/pairs",
+      "bytes": 336999
+    },
+    {
+      "path": "images/monsters/pairs/lineage-slime-01-attack.png",
+      "type": "image",
+      "category": "images/monsters/pairs",
+      "bytes": 447048
+    },
+    {
+      "path": "images/monsters/pairs/lineage-slime-01.png",
+      "type": "image",
+      "category": "images/monsters/pairs",
+      "bytes": 445792
+    },
+    {
+      "path": "images/monsters/pairs/lineage-slime-02-attack.png",
+      "type": "image",
+      "category": "images/monsters/pairs",
+      "bytes": 507069
+    },
+    {
+      "path": "images/monsters/pairs/lineage-slime-02.png",
+      "type": "image",
+      "category": "images/monsters/pairs",
+      "bytes": 469731
+    },
+    {
+      "path": "images/monsters/pairs/lineage-slime-03-attack.png",
+      "type": "image",
+      "category": "images/monsters/pairs",
+      "bytes": 544120
+    },
+    {
+      "path": "images/monsters/pairs/lineage-slime-03.png",
+      "type": "image",
+      "category": "images/monsters/pairs",
+      "bytes": 607559
+    },
+    {
+      "path": "images/monsters/pairs/lineage-slime-04-attack.png",
+      "type": "image",
+      "category": "images/monsters/pairs",
+      "bytes": 268784
+    },
+    {
+      "path": "images/monsters/pairs/lineage-slime-04.png",
+      "type": "image",
+      "category": "images/monsters/pairs",
+      "bytes": 280600
+    },
+    {
+      "path": "images/monsters/pairs/lineage-sonic-01-attack.png",
+      "type": "image",
+      "category": "images/monsters/pairs",
+      "bytes": 413304
+    },
+    {
+      "path": "images/monsters/pairs/lineage-sonic-01.png",
+      "type": "image",
+      "category": "images/monsters/pairs",
+      "bytes": 409147
+    },
+    {
+      "path": "images/monsters/pairs/lineage-sonic-02-attack.png",
+      "type": "image",
+      "category": "images/monsters/pairs",
+      "bytes": 588538
+    },
+    {
+      "path": "images/monsters/pairs/lineage-sonic-02.png",
+      "type": "image",
+      "category": "images/monsters/pairs",
+      "bytes": 624208
+    },
+    {
+      "path": "images/monsters/pairs/lineage-sonic-03-attack.png",
+      "type": "image",
+      "category": "images/monsters/pairs",
+      "bytes": 483524
+    },
+    {
+      "path": "images/monsters/pairs/lineage-sonic-03.png",
+      "type": "image",
+      "category": "images/monsters/pairs",
+      "bytes": 584810
+    },
+    {
+      "path": "images/monsters/pairs/lineage-spirit-01-attack.png",
+      "type": "image",
+      "category": "images/monsters/pairs",
+      "bytes": 547942
+    },
+    {
+      "path": "images/monsters/pairs/lineage-spirit-01.png",
+      "type": "image",
+      "category": "images/monsters/pairs",
+      "bytes": 580601
+    },
+    {
+      "path": "images/monsters/pairs/lineage-spirit-02-attack.png",
+      "type": "image",
+      "category": "images/monsters/pairs",
+      "bytes": 561316
+    },
+    {
+      "path": "images/monsters/pairs/lineage-spirit-02.png",
+      "type": "image",
+      "category": "images/monsters/pairs",
+      "bytes": 618543
+    },
+    {
+      "path": "images/monsters/pairs/lineage-spirit-03-attack.png",
+      "type": "image",
+      "category": "images/monsters/pairs",
+      "bytes": 623148
+    },
+    {
+      "path": "images/monsters/pairs/lineage-spirit-03.png",
+      "type": "image",
+      "category": "images/monsters/pairs",
+      "bytes": 653780
+    },
+    {
+      "path": "images/monsters/pairs/lineage-spirit-04-attack.png",
+      "type": "image",
+      "category": "images/monsters/pairs",
+      "bytes": 388327
+    },
+    {
+      "path": "images/monsters/pairs/lineage-spirit-04.png",
+      "type": "image",
+      "category": "images/monsters/pairs",
+      "bytes": 393602
+    },
+    {
+      "path": "images/monsters/pairs/lineage-spore-01-attack.png",
+      "type": "image",
+      "category": "images/monsters/pairs",
+      "bytes": 478558
+    },
+    {
+      "path": "images/monsters/pairs/lineage-spore-01.png",
+      "type": "image",
+      "category": "images/monsters/pairs",
+      "bytes": 502176
+    },
+    {
+      "path": "images/monsters/pairs/lineage-spore-02-attack.png",
+      "type": "image",
+      "category": "images/monsters/pairs",
+      "bytes": 615268
+    },
+    {
+      "path": "images/monsters/pairs/lineage-spore-02.png",
+      "type": "image",
+      "category": "images/monsters/pairs",
+      "bytes": 607132
+    },
+    {
+      "path": "images/monsters/pairs/lineage-spore-03-attack.png",
+      "type": "image",
+      "category": "images/monsters/pairs",
+      "bytes": 702446
+    },
+    {
+      "path": "images/monsters/pairs/lineage-spore-03.png",
+      "type": "image",
+      "category": "images/monsters/pairs",
+      "bytes": 710254
+    },
+    {
+      "path": "images/monsters/pairs/lineage-spore-04-attack.png",
+      "type": "image",
+      "category": "images/monsters/pairs",
+      "bytes": 309079
+    },
+    {
+      "path": "images/monsters/pairs/lineage-spore-04.png",
+      "type": "image",
+      "category": "images/monsters/pairs",
+      "bytes": 341628
+    },
+    {
+      "path": "images/monsters/pairs/lineage-tempest-01-attack.png",
+      "type": "image",
+      "category": "images/monsters/pairs",
+      "bytes": 525962
+    },
+    {
+      "path": "images/monsters/pairs/lineage-tempest-01.png",
+      "type": "image",
+      "category": "images/monsters/pairs",
+      "bytes": 570788
+    },
+    {
+      "path": "images/monsters/pairs/lineage-tempest-02-attack.png",
+      "type": "image",
+      "category": "images/monsters/pairs",
+      "bytes": 544725
+    },
+    {
+      "path": "images/monsters/pairs/lineage-tempest-02.png",
+      "type": "image",
+      "category": "images/monsters/pairs",
+      "bytes": 635223
+    },
+    {
+      "path": "images/monsters/pairs/lineage-tempest-03-attack.png",
+      "type": "image",
+      "category": "images/monsters/pairs",
+      "bytes": 657876
+    },
+    {
+      "path": "images/monsters/pairs/lineage-tempest-03.png",
+      "type": "image",
+      "category": "images/monsters/pairs",
+      "bytes": 709112
+    },
+    {
+      "path": "images/monsters/pairs/lineage-tempest-04-attack.png",
+      "type": "image",
+      "category": "images/monsters/pairs",
+      "bytes": 308576
+    },
+    {
+      "path": "images/monsters/pairs/lineage-tempest-04.png",
+      "type": "image",
+      "category": "images/monsters/pairs",
+      "bytes": 359510
+    },
+    {
+      "path": "images/monsters/pairs/lineage-thunder-01-attack.png",
+      "type": "image",
+      "category": "images/monsters/pairs",
+      "bytes": 347294
+    },
+    {
+      "path": "images/monsters/pairs/lineage-thunder-01.png",
+      "type": "image",
+      "category": "images/monsters/pairs",
+      "bytes": 332007
+    },
+    {
+      "path": "images/monsters/pairs/lineage-thunder-02-attack.png",
+      "type": "image",
+      "category": "images/monsters/pairs",
+      "bytes": 446943
+    },
+    {
+      "path": "images/monsters/pairs/lineage-thunder-02.png",
+      "type": "image",
+      "category": "images/monsters/pairs",
+      "bytes": 489328
+    },
+    {
+      "path": "images/monsters/pairs/lineage-thunder-03-attack.png",
+      "type": "image",
+      "category": "images/monsters/pairs",
+      "bytes": 496673
+    },
+    {
+      "path": "images/monsters/pairs/lineage-thunder-03.png",
+      "type": "image",
+      "category": "images/monsters/pairs",
+      "bytes": 569598
+    },
+    {
+      "path": "images/monsters/pairs/lineage-thunder-04-attack.png",
+      "type": "image",
+      "category": "images/monsters/pairs",
+      "bytes": 288929
+    },
+    {
+      "path": "images/monsters/pairs/lineage-thunder-04.png",
+      "type": "image",
+      "category": "images/monsters/pairs",
+      "bytes": 322196
+    },
+    {
+      "path": "images/monsters/pairs/rank6-a-v3-01-attack.png",
+      "type": "image",
+      "category": "images/monsters/pairs",
+      "bytes": 798556
+    },
+    {
+      "path": "images/monsters/pairs/rank6-a-v3-01.png",
+      "type": "image",
+      "category": "images/monsters/pairs",
+      "bytes": 730948
+    },
+    {
+      "path": "images/monsters/pairs/rank6-a-v3-02-attack.png",
+      "type": "image",
+      "category": "images/monsters/pairs",
+      "bytes": 727708
+    },
+    {
+      "path": "images/monsters/pairs/rank6-a-v3-02.png",
+      "type": "image",
+      "category": "images/monsters/pairs",
+      "bytes": 684503
+    },
+    {
+      "path": "images/monsters/pairs/rank6-a-v3-03-attack.png",
+      "type": "image",
+      "category": "images/monsters/pairs",
+      "bytes": 863656
+    },
+    {
+      "path": "images/monsters/pairs/rank6-a-v3-03.png",
+      "type": "image",
+      "category": "images/monsters/pairs",
+      "bytes": 866594
+    },
+    {
+      "path": "images/monsters/pairs/rank6-a-v3-04-attack.png",
+      "type": "image",
+      "category": "images/monsters/pairs",
+      "bytes": 781144
+    },
+    {
+      "path": "images/monsters/pairs/rank6-a-v3-04.png",
+      "type": "image",
+      "category": "images/monsters/pairs",
+      "bytes": 733802
+    },
+    {
+      "path": "images/monsters/pairs/rank6-a-v3-05-attack.png",
+      "type": "image",
+      "category": "images/monsters/pairs",
+      "bytes": 729816
+    },
+    {
+      "path": "images/monsters/pairs/rank6-a-v3-05.png",
+      "type": "image",
+      "category": "images/monsters/pairs",
+      "bytes": 744351
+    },
+    {
+      "path": "images/monsters/pairs/rank6-a-v3-06-attack.png",
+      "type": "image",
+      "category": "images/monsters/pairs",
+      "bytes": 826230
+    },
+    {
+      "path": "images/monsters/pairs/rank6-a-v3-06.png",
+      "type": "image",
+      "category": "images/monsters/pairs",
+      "bytes": 857292
+    },
+    {
+      "path": "images/monsters/pairs/rank6-a-v3-07-attack.png",
+      "type": "image",
+      "category": "images/monsters/pairs",
+      "bytes": 751090
+    },
+    {
+      "path": "images/monsters/pairs/rank6-a-v3-07.png",
+      "type": "image",
+      "category": "images/monsters/pairs",
+      "bytes": 815521
+    },
+    {
+      "path": "images/monsters/pairs/rank6-a-v3-08-attack.png",
+      "type": "image",
+      "category": "images/monsters/pairs",
+      "bytes": 847050
+    },
+    {
+      "path": "images/monsters/pairs/rank6-a-v3-08.png",
+      "type": "image",
+      "category": "images/monsters/pairs",
+      "bytes": 895381
+    },
+    {
+      "path": "images/monsters/pairs/rank6-b-v3-01-attack.png",
+      "type": "image",
+      "category": "images/monsters/pairs",
+      "bytes": 927099
+    },
+    {
+      "path": "images/monsters/pairs/rank6-b-v3-01.png",
+      "type": "image",
+      "category": "images/monsters/pairs",
+      "bytes": 892091
+    },
+    {
+      "path": "images/monsters/pairs/rank6-b-v3-02-attack.png",
+      "type": "image",
+      "category": "images/monsters/pairs",
+      "bytes": 796275
+    },
+    {
+      "path": "images/monsters/pairs/rank6-b-v3-02.png",
+      "type": "image",
+      "category": "images/monsters/pairs",
+      "bytes": 827608
+    },
+    {
+      "path": "images/monsters/pairs/rank6-b-v3-03-attack.png",
+      "type": "image",
+      "category": "images/monsters/pairs",
+      "bytes": 828474
+    },
+    {
+      "path": "images/monsters/pairs/rank6-b-v3-03.png",
+      "type": "image",
+      "category": "images/monsters/pairs",
+      "bytes": 802321
+    },
+    {
+      "path": "images/monsters/pairs/rank6-b-v3-04-attack.png",
+      "type": "image",
+      "category": "images/monsters/pairs",
+      "bytes": 807213
+    },
+    {
+      "path": "images/monsters/pairs/rank6-b-v3-04.png",
+      "type": "image",
+      "category": "images/monsters/pairs",
+      "bytes": 896396
+    },
+    {
+      "path": "images/monsters/pairs/rank6-b-v3-05-attack.png",
+      "type": "image",
+      "category": "images/monsters/pairs",
+      "bytes": 830020
+    },
+    {
+      "path": "images/monsters/pairs/rank6-b-v3-05.png",
+      "type": "image",
+      "category": "images/monsters/pairs",
+      "bytes": 853753
+    },
+    {
+      "path": "images/monsters/pairs/rank6-b-v3-06-attack.png",
+      "type": "image",
+      "category": "images/monsters/pairs",
+      "bytes": 855463
+    },
+    {
+      "path": "images/monsters/pairs/rank6-b-v3-06.png",
+      "type": "image",
+      "category": "images/monsters/pairs",
+      "bytes": 813810
+    },
+    {
+      "path": "images/monsters/pairs/rank6-b-v3-07-attack.png",
+      "type": "image",
+      "category": "images/monsters/pairs",
+      "bytes": 810728
+    },
+    {
+      "path": "images/monsters/pairs/rank6-b-v3-07.png",
+      "type": "image",
+      "category": "images/monsters/pairs",
+      "bytes": 771681
+    },
+    {
+      "path": "images/monsters/pairs/rank6-b-v3-08-attack.png",
+      "type": "image",
+      "category": "images/monsters/pairs",
+      "bytes": 929025
+    },
+    {
+      "path": "images/monsters/pairs/rank6-b-v3-08.png",
+      "type": "image",
+      "category": "images/monsters/pairs",
+      "bytes": 865331
     },
     {
       "path": "images/monsters/singles/bone-raptor-attack.png",

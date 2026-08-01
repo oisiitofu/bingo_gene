@@ -1,0 +1,5152 @@
+{
+  "version": 1,
+  "cellSize": 768,
+  "sheets": [
+    {
+      "source": "images/monsters/childhood-new.png",
+      "sheet": "images/monsters/pairs/childhood-new-01.png",
+      "attackSheet": "images/monsters/pairs/childhood-new-01-attack.png",
+      "nodes": [
+        "child-tide",
+        "child-rune"
+      ]
+    },
+    {
+      "source": "images/monsters/childhood-new.png",
+      "sheet": "images/monsters/pairs/childhood-new-02.png",
+      "attackSheet": "images/monsters/pairs/childhood-new-02-attack.png",
+      "nodes": [
+        "child-bloom",
+        "child-scroll"
+      ]
+    },
+    {
+      "source": "images/monsters/growth-extra-v2.png",
+      "sheet": "images/monsters/pairs/growth-extra-v2-01.png",
+      "attackSheet": "images/monsters/pairs/growth-extra-v2-01-attack.png",
+      "nodes": [
+        "growth-frost",
+        "growth-storm"
+      ]
+    },
+    {
+      "source": "images/monsters/growth-extra-v2.png",
+      "sheet": "images/monsters/pairs/growth-extra-v2-02.png",
+      "attackSheet": "images/monsters/pairs/growth-extra-v2-02-attack.png",
+      "nodes": [
+        "growth-shadow",
+        "growth-toy"
+      ]
+    },
+    {
+      "source": "images/monsters/growth-new-a.png",
+      "sheet": "images/monsters/pairs/growth-new-a-01.png",
+      "attackSheet": "images/monsters/pairs/growth-new-a-01-attack.png",
+      "nodes": [
+        "growth-coral",
+        "growth-dune"
+      ]
+    },
+    {
+      "source": "images/monsters/growth-new-a.png",
+      "sheet": "images/monsters/pairs/growth-new-a-02.png",
+      "attackSheet": "images/monsters/pairs/growth-new-a-02-attack.png",
+      "nodes": [
+        "growth-blade",
+        "growth-sonic"
+      ]
+    },
+    {
+      "source": "images/monsters/growth-new-b.png",
+      "sheet": "images/monsters/pairs/growth-new-b-01.png",
+      "attackSheet": "images/monsters/pairs/growth-new-b-01-attack.png",
+      "nodes": [
+        "growth-bloom",
+        "growth-slime"
+      ]
+    },
+    {
+      "source": "images/monsters/growth-new-b.png",
+      "sheet": "images/monsters/pairs/growth-new-b-02.png",
+      "attackSheet": "images/monsters/pairs/growth-new-b-02-attack.png",
+      "nodes": [
+        "growth-ink"
+      ]
+    },
+    {
+      "source": "images/monsters/growth-v2.png",
+      "sheet": "images/monsters/pairs/growth-v2-01.png",
+      "attackSheet": "images/monsters/pairs/growth-v2-01-attack.png",
+      "nodes": [
+        "growth-flare",
+        "growth-gear"
+      ]
+    },
+    {
+      "source": "images/monsters/growth-v2.png",
+      "sheet": "images/monsters/pairs/growth-v2-02.png",
+      "attackSheet": "images/monsters/pairs/growth-v2-02-attack.png",
+      "nodes": [
+        "growth-moss",
+        "growth-bubble"
+      ]
+    },
+    {
+      "source": "images/monsters/lineage-abyss.png",
+      "sheet": "images/monsters/pairs/lineage-abyss-01.png",
+      "attackSheet": "images/monsters/pairs/lineage-abyss-01-attack.png",
+      "nodes": [
+        "abyss-mature",
+        "abyss-perfect-a"
+      ]
+    },
+    {
+      "source": "images/monsters/lineage-abyss.png",
+      "sheet": "images/monsters/pairs/lineage-abyss-02.png",
+      "attackSheet": "images/monsters/pairs/lineage-abyss-02-attack.png",
+      "nodes": [
+        "abyss-perfect-b",
+        "abyss-ultimate-0"
+      ]
+    },
+    {
+      "source": "images/monsters/lineage-abyss.png",
+      "sheet": "images/monsters/pairs/lineage-abyss-03.png",
+      "attackSheet": "images/monsters/pairs/lineage-abyss-03-attack.png",
+      "nodes": [
+        "abyss-ultimate-1",
+        "abyss-ultimate-2"
+      ]
+    },
+    {
+      "source": "images/monsters/lineage-abyss.png",
+      "sheet": "images/monsters/pairs/lineage-abyss-04.png",
+      "attackSheet": "images/monsters/pairs/lineage-abyss-04-attack.png",
+      "nodes": [
+        "abyss-ultimate-3"
+      ]
+    },
+    {
+      "source": "images/monsters/lineage-beetle.png",
+      "sheet": "images/monsters/pairs/lineage-beetle-01.png",
+      "attackSheet": "images/monsters/pairs/lineage-beetle-01-attack.png",
+      "nodes": [
+        "beetle-mature",
+        "beetle-perfect-a"
+      ]
+    },
+    {
+      "source": "images/monsters/lineage-beetle.png",
+      "sheet": "images/monsters/pairs/lineage-beetle-02.png",
+      "attackSheet": "images/monsters/pairs/lineage-beetle-02-attack.png",
+      "nodes": [
+        "beetle-perfect-b",
+        "beetle-ultimate-0"
+      ]
+    },
+    {
+      "source": "images/monsters/lineage-beetle.png",
+      "sheet": "images/monsters/pairs/lineage-beetle-03.png",
+      "attackSheet": "images/monsters/pairs/lineage-beetle-03-attack.png",
+      "nodes": [
+        "beetle-ultimate-1",
+        "beetle-ultimate-2"
+      ]
+    },
+    {
+      "source": "images/monsters/lineage-beetle.png",
+      "sheet": "images/monsters/pairs/lineage-beetle-04.png",
+      "attackSheet": "images/monsters/pairs/lineage-beetle-04-attack.png",
+      "nodes": [
+        "beetle-ultimate-3"
+      ]
+    },
+    {
+      "source": "images/monsters/lineage-bloom.png",
+      "sheet": "images/monsters/pairs/lineage-bloom-01.png",
+      "attackSheet": "images/monsters/pairs/lineage-bloom-01-attack.png",
+      "nodes": [
+        "bloom-mature",
+        "bloom-perfect-a"
+      ]
+    },
+    {
+      "source": "images/monsters/lineage-bloom.png",
+      "sheet": "images/monsters/pairs/lineage-bloom-02.png",
+      "attackSheet": "images/monsters/pairs/lineage-bloom-02-attack.png",
+      "nodes": [
+        "bloom-perfect-b",
+        "bloom-ultimate-0"
+      ]
+    },
+    {
+      "source": "images/monsters/lineage-bloom.png",
+      "sheet": "images/monsters/pairs/lineage-bloom-03.png",
+      "attackSheet": "images/monsters/pairs/lineage-bloom-03-attack.png",
+      "nodes": [
+        "bloom-ultimate-1",
+        "bloom-ultimate-2"
+      ]
+    },
+    {
+      "source": "images/monsters/lineage-bloom.png",
+      "sheet": "images/monsters/pairs/lineage-bloom-04.png",
+      "attackSheet": "images/monsters/pairs/lineage-bloom-04-attack.png",
+      "nodes": [
+        "bloom-ultimate-3"
+      ]
+    },
+    {
+      "source": "images/monsters/lineage-candy.png",
+      "sheet": "images/monsters/pairs/lineage-candy-01.png",
+      "attackSheet": "images/monsters/pairs/lineage-candy-01-attack.png",
+      "nodes": [
+        "candy-mature",
+        "candy-perfect-a"
+      ]
+    },
+    {
+      "source": "images/monsters/lineage-candy.png",
+      "sheet": "images/monsters/pairs/lineage-candy-02.png",
+      "attackSheet": "images/monsters/pairs/lineage-candy-02-attack.png",
+      "nodes": [
+        "candy-perfect-b",
+        "candy-ultimate-0"
+      ]
+    },
+    {
+      "source": "images/monsters/lineage-candy.png",
+      "sheet": "images/monsters/pairs/lineage-candy-03.png",
+      "attackSheet": "images/monsters/pairs/lineage-candy-03-attack.png",
+      "nodes": [
+        "candy-ultimate-1",
+        "candy-ultimate-2"
+      ]
+    },
+    {
+      "source": "images/monsters/lineage-candy.png",
+      "sheet": "images/monsters/pairs/lineage-candy-04.png",
+      "attackSheet": "images/monsters/pairs/lineage-candy-04-attack.png",
+      "nodes": [
+        "candy-ultimate-3"
+      ]
+    },
+    {
+      "source": "images/monsters/lineage-coral.png",
+      "sheet": "images/monsters/pairs/lineage-coral-01.png",
+      "attackSheet": "images/monsters/pairs/lineage-coral-01-attack.png",
+      "nodes": [
+        "coral-mature",
+        "coral-perfect-a"
+      ]
+    },
+    {
+      "source": "images/monsters/lineage-coral.png",
+      "sheet": "images/monsters/pairs/lineage-coral-02.png",
+      "attackSheet": "images/monsters/pairs/lineage-coral-02-attack.png",
+      "nodes": [
+        "coral-perfect-b",
+        "coral-ultimate-0"
+      ]
+    },
+    {
+      "source": "images/monsters/lineage-coral.png",
+      "sheet": "images/monsters/pairs/lineage-coral-03.png",
+      "attackSheet": "images/monsters/pairs/lineage-coral-03-attack.png",
+      "nodes": [
+        "coral-ultimate-1",
+        "coral-ultimate-2"
+      ]
+    },
+    {
+      "source": "images/monsters/lineage-coral.png",
+      "sheet": "images/monsters/pairs/lineage-coral-04.png",
+      "attackSheet": "images/monsters/pairs/lineage-coral-04-attack.png",
+      "nodes": [
+        "coral-ultimate-3"
+      ]
+    },
+    {
+      "source": "images/monsters/lineage-corsair.png",
+      "sheet": "images/monsters/pairs/lineage-corsair-01.png",
+      "attackSheet": "images/monsters/pairs/lineage-corsair-01-attack.png",
+      "nodes": [
+        "corsair-mature",
+        "corsair-perfect-a"
+      ]
+    },
+    {
+      "source": "images/monsters/lineage-corsair.png",
+      "sheet": "images/monsters/pairs/lineage-corsair-02.png",
+      "attackSheet": "images/monsters/pairs/lineage-corsair-02-attack.png",
+      "nodes": [
+        "corsair-perfect-b",
+        "corsair-ultimate-0"
+      ]
+    },
+    {
+      "source": "images/monsters/lineage-corsair.png",
+      "sheet": "images/monsters/pairs/lineage-corsair-03.png",
+      "attackSheet": "images/monsters/pairs/lineage-corsair-03-attack.png",
+      "nodes": [
+        "corsair-ultimate-1",
+        "corsair-ultimate-2"
+      ]
+    },
+    {
+      "source": "images/monsters/lineage-corsair.png",
+      "sheet": "images/monsters/pairs/lineage-corsair-04.png",
+      "attackSheet": "images/monsters/pairs/lineage-corsair-04-attack.png",
+      "nodes": [
+        "corsair-ultimate-3"
+      ]
+    },
+    {
+      "source": "images/monsters/lineage-cosmic.png",
+      "sheet": "images/monsters/pairs/lineage-cosmic-01.png",
+      "attackSheet": "images/monsters/pairs/lineage-cosmic-01-attack.png",
+      "nodes": [
+        "cosmic-mature",
+        "cosmic-perfect-a"
+      ]
+    },
+    {
+      "source": "images/monsters/lineage-cosmic.png",
+      "sheet": "images/monsters/pairs/lineage-cosmic-02.png",
+      "attackSheet": "images/monsters/pairs/lineage-cosmic-02-attack.png",
+      "nodes": [
+        "cosmic-perfect-b",
+        "cosmic-ultimate-0"
+      ]
+    },
+    {
+      "source": "images/monsters/lineage-cosmic.png",
+      "sheet": "images/monsters/pairs/lineage-cosmic-03.png",
+      "attackSheet": "images/monsters/pairs/lineage-cosmic-03-attack.png",
+      "nodes": [
+        "cosmic-ultimate-1",
+        "cosmic-ultimate-2"
+      ]
+    },
+    {
+      "source": "images/monsters/lineage-cosmic.png",
+      "sheet": "images/monsters/pairs/lineage-cosmic-04.png",
+      "attackSheet": "images/monsters/pairs/lineage-cosmic-04-attack.png",
+      "nodes": [
+        "cosmic-ultimate-3"
+      ]
+    },
+    {
+      "source": "images/monsters/lineage-crystal.png",
+      "sheet": "images/monsters/pairs/lineage-crystal-01.png",
+      "attackSheet": "images/monsters/pairs/lineage-crystal-01-attack.png",
+      "nodes": [
+        "crystal-mature",
+        "crystal-perfect-a"
+      ]
+    },
+    {
+      "source": "images/monsters/lineage-crystal.png",
+      "sheet": "images/monsters/pairs/lineage-crystal-02.png",
+      "attackSheet": "images/monsters/pairs/lineage-crystal-02-attack.png",
+      "nodes": [
+        "crystal-perfect-b",
+        "crystal-ultimate-0"
+      ]
+    },
+    {
+      "source": "images/monsters/lineage-crystal.png",
+      "sheet": "images/monsters/pairs/lineage-crystal-03.png",
+      "attackSheet": "images/monsters/pairs/lineage-crystal-03-attack.png",
+      "nodes": [
+        "crystal-ultimate-1",
+        "crystal-ultimate-2"
+      ]
+    },
+    {
+      "source": "images/monsters/lineage-crystal.png",
+      "sheet": "images/monsters/pairs/lineage-crystal-04.png",
+      "attackSheet": "images/monsters/pairs/lineage-crystal-04-attack.png",
+      "nodes": [
+        "crystal-ultimate-3"
+      ]
+    },
+    {
+      "source": "images/monsters/lineage-dojo.png",
+      "sheet": "images/monsters/pairs/lineage-dojo-01.png",
+      "attackSheet": "images/monsters/pairs/lineage-dojo-01-attack.png",
+      "nodes": [
+        "dojo-mature",
+        "dojo-perfect-a"
+      ]
+    },
+    {
+      "source": "images/monsters/lineage-dojo.png",
+      "sheet": "images/monsters/pairs/lineage-dojo-02.png",
+      "attackSheet": "images/monsters/pairs/lineage-dojo-02-attack.png",
+      "nodes": [
+        "dojo-perfect-b",
+        "dojo-ultimate-0"
+      ]
+    },
+    {
+      "source": "images/monsters/lineage-dojo.png",
+      "sheet": "images/monsters/pairs/lineage-dojo-03.png",
+      "attackSheet": "images/monsters/pairs/lineage-dojo-03-attack.png",
+      "nodes": [
+        "dojo-ultimate-1",
+        "dojo-ultimate-2"
+      ]
+    },
+    {
+      "source": "images/monsters/lineage-dojo.png",
+      "sheet": "images/monsters/pairs/lineage-dojo-04.png",
+      "attackSheet": "images/monsters/pairs/lineage-dojo-04-attack.png",
+      "nodes": [
+        "dojo-ultimate-3"
+      ]
+    },
+    {
+      "source": "images/monsters/lineage-dream.png",
+      "sheet": "images/monsters/pairs/lineage-dream-01.png",
+      "attackSheet": "images/monsters/pairs/lineage-dream-01-attack.png",
+      "nodes": [
+        "dream-mature",
+        "dream-perfect-a"
+      ]
+    },
+    {
+      "source": "images/monsters/lineage-dream.png",
+      "sheet": "images/monsters/pairs/lineage-dream-02.png",
+      "attackSheet": "images/monsters/pairs/lineage-dream-02-attack.png",
+      "nodes": [
+        "dream-perfect-b",
+        "dream-ultimate-0"
+      ]
+    },
+    {
+      "source": "images/monsters/lineage-dream.png",
+      "sheet": "images/monsters/pairs/lineage-dream-03.png",
+      "attackSheet": "images/monsters/pairs/lineage-dream-03-attack.png",
+      "nodes": [
+        "dream-ultimate-1",
+        "dream-ultimate-2"
+      ]
+    },
+    {
+      "source": "images/monsters/lineage-dream.png",
+      "sheet": "images/monsters/pairs/lineage-dream-04.png",
+      "attackSheet": "images/monsters/pairs/lineage-dream-04-attack.png",
+      "nodes": [
+        "dream-ultimate-3"
+      ]
+    },
+    {
+      "source": "images/monsters/lineage-dune.png",
+      "sheet": "images/monsters/pairs/lineage-dune-01.png",
+      "attackSheet": "images/monsters/pairs/lineage-dune-01-attack.png",
+      "nodes": [
+        "dune-mature",
+        "dune-perfect-a"
+      ]
+    },
+    {
+      "source": "images/monsters/lineage-dune.png",
+      "sheet": "images/monsters/pairs/lineage-dune-02.png",
+      "attackSheet": "images/monsters/pairs/lineage-dune-02-attack.png",
+      "nodes": [
+        "dune-perfect-b",
+        "dune-ultimate-0"
+      ]
+    },
+    {
+      "source": "images/monsters/lineage-dune.png",
+      "sheet": "images/monsters/pairs/lineage-dune-03.png",
+      "attackSheet": "images/monsters/pairs/lineage-dune-03-attack.png",
+      "nodes": [
+        "dune-ultimate-1",
+        "dune-ultimate-2"
+      ]
+    },
+    {
+      "source": "images/monsters/lineage-dune.png",
+      "sheet": "images/monsters/pairs/lineage-dune-04.png",
+      "attackSheet": "images/monsters/pairs/lineage-dune-04-attack.png",
+      "nodes": [
+        "dune-ultimate-3"
+      ]
+    },
+    {
+      "source": "images/monsters/lineage-festival.png",
+      "sheet": "images/monsters/pairs/lineage-festival-01.png",
+      "attackSheet": "images/monsters/pairs/lineage-festival-01-attack.png",
+      "nodes": [
+        "festival-mature",
+        "festival-perfect-a"
+      ]
+    },
+    {
+      "source": "images/monsters/lineage-festival.png",
+      "sheet": "images/monsters/pairs/lineage-festival-02.png",
+      "attackSheet": "images/monsters/pairs/lineage-festival-02-attack.png",
+      "nodes": [
+        "festival-perfect-b",
+        "festival-ultimate-0"
+      ]
+    },
+    {
+      "source": "images/monsters/lineage-festival.png",
+      "sheet": "images/monsters/pairs/lineage-festival-03.png",
+      "attackSheet": "images/monsters/pairs/lineage-festival-03-attack.png",
+      "nodes": [
+        "festival-ultimate-1",
+        "festival-ultimate-2"
+      ]
+    },
+    {
+      "source": "images/monsters/lineage-festival.png",
+      "sheet": "images/monsters/pairs/lineage-festival-04.png",
+      "attackSheet": "images/monsters/pairs/lineage-festival-04-attack.png",
+      "nodes": [
+        "festival-ultimate-3"
+      ]
+    },
+    {
+      "source": "images/monsters/lineage-fossil.png",
+      "sheet": "images/monsters/pairs/lineage-fossil-01.png",
+      "attackSheet": "images/monsters/pairs/lineage-fossil-01-attack.png",
+      "nodes": [
+        "fossil-perfect-b",
+        "fossil-ultimate-0"
+      ]
+    },
+    {
+      "source": "images/monsters/lineage-fossil.png",
+      "sheet": "images/monsters/pairs/lineage-fossil-02.png",
+      "attackSheet": "images/monsters/pairs/lineage-fossil-02-attack.png",
+      "nodes": [
+        "fossil-ultimate-1",
+        "fossil-ultimate-2"
+      ]
+    },
+    {
+      "source": "images/monsters/lineage-fossil.png",
+      "sheet": "images/monsters/pairs/lineage-fossil-03.png",
+      "attackSheet": "images/monsters/pairs/lineage-fossil-03-attack.png",
+      "nodes": [
+        "fossil-ultimate-3"
+      ]
+    },
+    {
+      "source": "images/monsters/lineage-glacier.png",
+      "sheet": "images/monsters/pairs/lineage-glacier-01.png",
+      "attackSheet": "images/monsters/pairs/lineage-glacier-01-attack.png",
+      "nodes": [
+        "glacier-mature",
+        "glacier-perfect-a"
+      ]
+    },
+    {
+      "source": "images/monsters/lineage-glacier.png",
+      "sheet": "images/monsters/pairs/lineage-glacier-02.png",
+      "attackSheet": "images/monsters/pairs/lineage-glacier-02-attack.png",
+      "nodes": [
+        "glacier-perfect-b",
+        "glacier-ultimate-0"
+      ]
+    },
+    {
+      "source": "images/monsters/lineage-glacier.png",
+      "sheet": "images/monsters/pairs/lineage-glacier-03.png",
+      "attackSheet": "images/monsters/pairs/lineage-glacier-03-attack.png",
+      "nodes": [
+        "glacier-ultimate-1",
+        "glacier-ultimate-2"
+      ]
+    },
+    {
+      "source": "images/monsters/lineage-glacier.png",
+      "sheet": "images/monsters/pairs/lineage-glacier-04.png",
+      "attackSheet": "images/monsters/pairs/lineage-glacier-04-attack.png",
+      "nodes": [
+        "glacier-ultimate-3"
+      ]
+    },
+    {
+      "source": "images/monsters/lineage-gourmet.png",
+      "sheet": "images/monsters/pairs/lineage-gourmet-01.png",
+      "attackSheet": "images/monsters/pairs/lineage-gourmet-01-attack.png",
+      "nodes": [
+        "gourmet-mature",
+        "gourmet-perfect-a"
+      ]
+    },
+    {
+      "source": "images/monsters/lineage-gourmet.png",
+      "sheet": "images/monsters/pairs/lineage-gourmet-02.png",
+      "attackSheet": "images/monsters/pairs/lineage-gourmet-02-attack.png",
+      "nodes": [
+        "gourmet-perfect-b",
+        "gourmet-ultimate-0"
+      ]
+    },
+    {
+      "source": "images/monsters/lineage-gourmet.png",
+      "sheet": "images/monsters/pairs/lineage-gourmet-03.png",
+      "attackSheet": "images/monsters/pairs/lineage-gourmet-03-attack.png",
+      "nodes": [
+        "gourmet-ultimate-1",
+        "gourmet-ultimate-2"
+      ]
+    },
+    {
+      "source": "images/monsters/lineage-gourmet.png",
+      "sheet": "images/monsters/pairs/lineage-gourmet-04.png",
+      "attackSheet": "images/monsters/pairs/lineage-gourmet-04-attack.png",
+      "nodes": [
+        "gourmet-ultimate-3"
+      ]
+    },
+    {
+      "source": "images/monsters/lineage-grove.png",
+      "sheet": "images/monsters/pairs/lineage-grove-01.png",
+      "attackSheet": "images/monsters/pairs/lineage-grove-01-attack.png",
+      "nodes": [
+        "grove-mature",
+        "grove-perfect-a"
+      ]
+    },
+    {
+      "source": "images/monsters/lineage-grove.png",
+      "sheet": "images/monsters/pairs/lineage-grove-02.png",
+      "attackSheet": "images/monsters/pairs/lineage-grove-02-attack.png",
+      "nodes": [
+        "grove-perfect-b",
+        "grove-ultimate-0"
+      ]
+    },
+    {
+      "source": "images/monsters/lineage-grove.png",
+      "sheet": "images/monsters/pairs/lineage-grove-03.png",
+      "attackSheet": "images/monsters/pairs/lineage-grove-03-attack.png",
+      "nodes": [
+        "grove-ultimate-1",
+        "grove-ultimate-2"
+      ]
+    },
+    {
+      "source": "images/monsters/lineage-grove.png",
+      "sheet": "images/monsters/pairs/lineage-grove-04.png",
+      "attackSheet": "images/monsters/pairs/lineage-grove-04-attack.png",
+      "nodes": [
+        "grove-ultimate-3"
+      ]
+    },
+    {
+      "source": "images/monsters/lineage-inferno.png",
+      "sheet": "images/monsters/pairs/lineage-inferno-01.png",
+      "attackSheet": "images/monsters/pairs/lineage-inferno-01-attack.png",
+      "nodes": [
+        "inferno-mature",
+        "inferno-perfect-a"
+      ]
+    },
+    {
+      "source": "images/monsters/lineage-inferno.png",
+      "sheet": "images/monsters/pairs/lineage-inferno-02.png",
+      "attackSheet": "images/monsters/pairs/lineage-inferno-02-attack.png",
+      "nodes": [
+        "inferno-perfect-b",
+        "inferno-ultimate-0"
+      ]
+    },
+    {
+      "source": "images/monsters/lineage-inferno.png",
+      "sheet": "images/monsters/pairs/lineage-inferno-03.png",
+      "attackSheet": "images/monsters/pairs/lineage-inferno-03-attack.png",
+      "nodes": [
+        "inferno-ultimate-1",
+        "inferno-ultimate-2"
+      ]
+    },
+    {
+      "source": "images/monsters/lineage-inferno.png",
+      "sheet": "images/monsters/pairs/lineage-inferno-04.png",
+      "attackSheet": "images/monsters/pairs/lineage-inferno-04-attack.png",
+      "nodes": [
+        "inferno-ultimate-3"
+      ]
+    },
+    {
+      "source": "images/monsters/lineage-ink.png",
+      "sheet": "images/monsters/pairs/lineage-ink-01.png",
+      "attackSheet": "images/monsters/pairs/lineage-ink-01-attack.png",
+      "nodes": [
+        "ink-mature",
+        "ink-perfect-a"
+      ]
+    },
+    {
+      "source": "images/monsters/lineage-ink.png",
+      "sheet": "images/monsters/pairs/lineage-ink-02.png",
+      "attackSheet": "images/monsters/pairs/lineage-ink-02-attack.png",
+      "nodes": [
+        "ink-perfect-b",
+        "ink-ultimate-0"
+      ]
+    },
+    {
+      "source": "images/monsters/lineage-ink.png",
+      "sheet": "images/monsters/pairs/lineage-ink-03.png",
+      "attackSheet": "images/monsters/pairs/lineage-ink-03-attack.png",
+      "nodes": [
+        "ink-ultimate-1",
+        "ink-ultimate-2"
+      ]
+    },
+    {
+      "source": "images/monsters/lineage-ink.png",
+      "sheet": "images/monsters/pairs/lineage-ink-04.png",
+      "attackSheet": "images/monsters/pairs/lineage-ink-04-attack.png",
+      "nodes": [
+        "ink-ultimate-3"
+      ]
+    },
+    {
+      "source": "images/monsters/lineage-junk.png",
+      "sheet": "images/monsters/pairs/lineage-junk-01.png",
+      "attackSheet": "images/monsters/pairs/lineage-junk-01-attack.png",
+      "nodes": [
+        "junk-mature",
+        "junk-perfect-a"
+      ]
+    },
+    {
+      "source": "images/monsters/lineage-junk.png",
+      "sheet": "images/monsters/pairs/lineage-junk-02.png",
+      "attackSheet": "images/monsters/pairs/lineage-junk-02-attack.png",
+      "nodes": [
+        "junk-perfect-b",
+        "junk-ultimate-0"
+      ]
+    },
+    {
+      "source": "images/monsters/lineage-junk.png",
+      "sheet": "images/monsters/pairs/lineage-junk-03.png",
+      "attackSheet": "images/monsters/pairs/lineage-junk-03-attack.png",
+      "nodes": [
+        "junk-ultimate-1",
+        "junk-ultimate-2"
+      ]
+    },
+    {
+      "source": "images/monsters/lineage-junk.png",
+      "sheet": "images/monsters/pairs/lineage-junk-04.png",
+      "attackSheet": "images/monsters/pairs/lineage-junk-04-attack.png",
+      "nodes": [
+        "junk-ultimate-3"
+      ]
+    },
+    {
+      "source": "images/monsters/lineage-mecha.png",
+      "sheet": "images/monsters/pairs/lineage-mecha-01.png",
+      "attackSheet": "images/monsters/pairs/lineage-mecha-01-attack.png",
+      "nodes": [
+        "mecha-mature",
+        "mecha-perfect-a"
+      ]
+    },
+    {
+      "source": "images/monsters/lineage-mecha.png",
+      "sheet": "images/monsters/pairs/lineage-mecha-02.png",
+      "attackSheet": "images/monsters/pairs/lineage-mecha-02-attack.png",
+      "nodes": [
+        "mecha-perfect-b",
+        "mecha-ultimate-0"
+      ]
+    },
+    {
+      "source": "images/monsters/lineage-mecha.png",
+      "sheet": "images/monsters/pairs/lineage-mecha-03.png",
+      "attackSheet": "images/monsters/pairs/lineage-mecha-03-attack.png",
+      "nodes": [
+        "mecha-ultimate-1",
+        "mecha-ultimate-2"
+      ]
+    },
+    {
+      "source": "images/monsters/lineage-mecha.png",
+      "sheet": "images/monsters/pairs/lineage-mecha-04.png",
+      "attackSheet": "images/monsters/pairs/lineage-mecha-04-attack.png",
+      "nodes": [
+        "mecha-ultimate-3"
+      ]
+    },
+    {
+      "source": "images/monsters/lineage-ninja.png",
+      "sheet": "images/monsters/pairs/lineage-ninja-01.png",
+      "attackSheet": "images/monsters/pairs/lineage-ninja-01-attack.png",
+      "nodes": [
+        "ninja-mature",
+        "ninja-perfect-a"
+      ]
+    },
+    {
+      "source": "images/monsters/lineage-ninja.png",
+      "sheet": "images/monsters/pairs/lineage-ninja-02.png",
+      "attackSheet": "images/monsters/pairs/lineage-ninja-02-attack.png",
+      "nodes": [
+        "ninja-perfect-b",
+        "ninja-ultimate-0"
+      ]
+    },
+    {
+      "source": "images/monsters/lineage-ninja.png",
+      "sheet": "images/monsters/pairs/lineage-ninja-03.png",
+      "attackSheet": "images/monsters/pairs/lineage-ninja-03-attack.png",
+      "nodes": [
+        "ninja-ultimate-1",
+        "ninja-ultimate-2"
+      ]
+    },
+    {
+      "source": "images/monsters/lineage-ninja.png",
+      "sheet": "images/monsters/pairs/lineage-ninja-04.png",
+      "attackSheet": "images/monsters/pairs/lineage-ninja-04-attack.png",
+      "nodes": [
+        "ninja-ultimate-3"
+      ]
+    },
+    {
+      "source": "images/monsters/lineage-rail.png",
+      "sheet": "images/monsters/pairs/lineage-rail-01.png",
+      "attackSheet": "images/monsters/pairs/lineage-rail-01-attack.png",
+      "nodes": [
+        "rail-mature",
+        "rail-perfect-a"
+      ]
+    },
+    {
+      "source": "images/monsters/lineage-rail.png",
+      "sheet": "images/monsters/pairs/lineage-rail-02.png",
+      "attackSheet": "images/monsters/pairs/lineage-rail-02-attack.png",
+      "nodes": [
+        "rail-perfect-b",
+        "rail-ultimate-0"
+      ]
+    },
+    {
+      "source": "images/monsters/lineage-rail.png",
+      "sheet": "images/monsters/pairs/lineage-rail-03.png",
+      "attackSheet": "images/monsters/pairs/lineage-rail-03-attack.png",
+      "nodes": [
+        "rail-ultimate-1",
+        "rail-ultimate-2"
+      ]
+    },
+    {
+      "source": "images/monsters/lineage-rail.png",
+      "sheet": "images/monsters/pairs/lineage-rail-04.png",
+      "attackSheet": "images/monsters/pairs/lineage-rail-04-attack.png",
+      "nodes": [
+        "rail-ultimate-3"
+      ]
+    },
+    {
+      "source": "images/monsters/lineage-ryu.png",
+      "sheet": "images/monsters/pairs/lineage-ryu-01.png",
+      "attackSheet": "images/monsters/pairs/lineage-ryu-01-attack.png",
+      "nodes": [
+        "ryu-mature",
+        "ryu-perfect-a"
+      ]
+    },
+    {
+      "source": "images/monsters/lineage-ryu.png",
+      "sheet": "images/monsters/pairs/lineage-ryu-02.png",
+      "attackSheet": "images/monsters/pairs/lineage-ryu-02-attack.png",
+      "nodes": [
+        "ryu-perfect-b",
+        "ryu-ultimate-0"
+      ]
+    },
+    {
+      "source": "images/monsters/lineage-ryu.png",
+      "sheet": "images/monsters/pairs/lineage-ryu-03.png",
+      "attackSheet": "images/monsters/pairs/lineage-ryu-03-attack.png",
+      "nodes": [
+        "ryu-ultimate-1",
+        "ryu-ultimate-2"
+      ]
+    },
+    {
+      "source": "images/monsters/lineage-ryu.png",
+      "sheet": "images/monsters/pairs/lineage-ryu-04.png",
+      "attackSheet": "images/monsters/pairs/lineage-ryu-04-attack.png",
+      "nodes": [
+        "ryu-ultimate-3"
+      ]
+    },
+    {
+      "source": "images/monsters/lineage-samurai.png",
+      "sheet": "images/monsters/pairs/lineage-samurai-01.png",
+      "attackSheet": "images/monsters/pairs/lineage-samurai-01-attack.png",
+      "nodes": [
+        "samurai-mature",
+        "samurai-perfect-a"
+      ]
+    },
+    {
+      "source": "images/monsters/lineage-samurai.png",
+      "sheet": "images/monsters/pairs/lineage-samurai-02.png",
+      "attackSheet": "images/monsters/pairs/lineage-samurai-02-attack.png",
+      "nodes": [
+        "samurai-perfect-b",
+        "samurai-ultimate-0"
+      ]
+    },
+    {
+      "source": "images/monsters/lineage-samurai.png",
+      "sheet": "images/monsters/pairs/lineage-samurai-03.png",
+      "attackSheet": "images/monsters/pairs/lineage-samurai-03-attack.png",
+      "nodes": [
+        "samurai-ultimate-1",
+        "samurai-ultimate-2"
+      ]
+    },
+    {
+      "source": "images/monsters/lineage-samurai.png",
+      "sheet": "images/monsters/pairs/lineage-samurai-04.png",
+      "attackSheet": "images/monsters/pairs/lineage-samurai-04-attack.png",
+      "nodes": [
+        "samurai-ultimate-3"
+      ]
+    },
+    {
+      "source": "images/monsters/lineage-shadow.png",
+      "sheet": "images/monsters/pairs/lineage-shadow-01.png",
+      "attackSheet": "images/monsters/pairs/lineage-shadow-01-attack.png",
+      "nodes": [
+        "shadow-mature",
+        "shadow-perfect-a"
+      ]
+    },
+    {
+      "source": "images/monsters/lineage-shadow.png",
+      "sheet": "images/monsters/pairs/lineage-shadow-02.png",
+      "attackSheet": "images/monsters/pairs/lineage-shadow-02-attack.png",
+      "nodes": [
+        "shadow-perfect-b",
+        "shadow-ultimate-0"
+      ]
+    },
+    {
+      "source": "images/monsters/lineage-shadow.png",
+      "sheet": "images/monsters/pairs/lineage-shadow-03.png",
+      "attackSheet": "images/monsters/pairs/lineage-shadow-03-attack.png",
+      "nodes": [
+        "shadow-ultimate-1",
+        "shadow-ultimate-2"
+      ]
+    },
+    {
+      "source": "images/monsters/lineage-shadow.png",
+      "sheet": "images/monsters/pairs/lineage-shadow-04.png",
+      "attackSheet": "images/monsters/pairs/lineage-shadow-04-attack.png",
+      "nodes": [
+        "shadow-ultimate-3"
+      ]
+    },
+    {
+      "source": "images/monsters/lineage-sky.png",
+      "sheet": "images/monsters/pairs/lineage-sky-01.png",
+      "attackSheet": "images/monsters/pairs/lineage-sky-01-attack.png",
+      "nodes": [
+        "sky-mature",
+        "sky-perfect-a"
+      ]
+    },
+    {
+      "source": "images/monsters/lineage-sky.png",
+      "sheet": "images/monsters/pairs/lineage-sky-02.png",
+      "attackSheet": "images/monsters/pairs/lineage-sky-02-attack.png",
+      "nodes": [
+        "sky-perfect-b",
+        "sky-ultimate-0"
+      ]
+    },
+    {
+      "source": "images/monsters/lineage-sky.png",
+      "sheet": "images/monsters/pairs/lineage-sky-03.png",
+      "attackSheet": "images/monsters/pairs/lineage-sky-03-attack.png",
+      "nodes": [
+        "sky-ultimate-1",
+        "sky-ultimate-2"
+      ]
+    },
+    {
+      "source": "images/monsters/lineage-sky.png",
+      "sheet": "images/monsters/pairs/lineage-sky-04.png",
+      "attackSheet": "images/monsters/pairs/lineage-sky-04-attack.png",
+      "nodes": [
+        "sky-ultimate-3"
+      ]
+    },
+    {
+      "source": "images/monsters/lineage-slime.png",
+      "sheet": "images/monsters/pairs/lineage-slime-01.png",
+      "attackSheet": "images/monsters/pairs/lineage-slime-01-attack.png",
+      "nodes": [
+        "slime-mature",
+        "slime-perfect-a"
+      ]
+    },
+    {
+      "source": "images/monsters/lineage-slime.png",
+      "sheet": "images/monsters/pairs/lineage-slime-02.png",
+      "attackSheet": "images/monsters/pairs/lineage-slime-02-attack.png",
+      "nodes": [
+        "slime-perfect-b",
+        "slime-ultimate-0"
+      ]
+    },
+    {
+      "source": "images/monsters/lineage-slime.png",
+      "sheet": "images/monsters/pairs/lineage-slime-03.png",
+      "attackSheet": "images/monsters/pairs/lineage-slime-03-attack.png",
+      "nodes": [
+        "slime-ultimate-1",
+        "slime-ultimate-2"
+      ]
+    },
+    {
+      "source": "images/monsters/lineage-slime.png",
+      "sheet": "images/monsters/pairs/lineage-slime-04.png",
+      "attackSheet": "images/monsters/pairs/lineage-slime-04-attack.png",
+      "nodes": [
+        "slime-ultimate-3"
+      ]
+    },
+    {
+      "source": "images/monsters/lineage-sonic.png",
+      "sheet": "images/monsters/pairs/lineage-sonic-01.png",
+      "attackSheet": "images/monsters/pairs/lineage-sonic-01-attack.png",
+      "nodes": [
+        "sonic-mature",
+        "sonic-perfect-a"
+      ]
+    },
+    {
+      "source": "images/monsters/lineage-sonic.png",
+      "sheet": "images/monsters/pairs/lineage-sonic-02.png",
+      "attackSheet": "images/monsters/pairs/lineage-sonic-02-attack.png",
+      "nodes": [
+        "sonic-ultimate-0",
+        "sonic-ultimate-1"
+      ]
+    },
+    {
+      "source": "images/monsters/lineage-sonic.png",
+      "sheet": "images/monsters/pairs/lineage-sonic-03.png",
+      "attackSheet": "images/monsters/pairs/lineage-sonic-03-attack.png",
+      "nodes": [
+        "sonic-ultimate-2",
+        "sonic-ultimate-3"
+      ]
+    },
+    {
+      "source": "images/monsters/lineage-spirit.png",
+      "sheet": "images/monsters/pairs/lineage-spirit-01.png",
+      "attackSheet": "images/monsters/pairs/lineage-spirit-01-attack.png",
+      "nodes": [
+        "spirit-mature",
+        "spirit-perfect-a"
+      ]
+    },
+    {
+      "source": "images/monsters/lineage-spirit.png",
+      "sheet": "images/monsters/pairs/lineage-spirit-02.png",
+      "attackSheet": "images/monsters/pairs/lineage-spirit-02-attack.png",
+      "nodes": [
+        "spirit-perfect-b",
+        "spirit-ultimate-0"
+      ]
+    },
+    {
+      "source": "images/monsters/lineage-spirit.png",
+      "sheet": "images/monsters/pairs/lineage-spirit-03.png",
+      "attackSheet": "images/monsters/pairs/lineage-spirit-03-attack.png",
+      "nodes": [
+        "spirit-ultimate-1",
+        "spirit-ultimate-2"
+      ]
+    },
+    {
+      "source": "images/monsters/lineage-spirit.png",
+      "sheet": "images/monsters/pairs/lineage-spirit-04.png",
+      "attackSheet": "images/monsters/pairs/lineage-spirit-04-attack.png",
+      "nodes": [
+        "spirit-ultimate-3"
+      ]
+    },
+    {
+      "source": "images/monsters/lineage-spore.png",
+      "sheet": "images/monsters/pairs/lineage-spore-01.png",
+      "attackSheet": "images/monsters/pairs/lineage-spore-01-attack.png",
+      "nodes": [
+        "spore-mature",
+        "spore-perfect-a"
+      ]
+    },
+    {
+      "source": "images/monsters/lineage-spore.png",
+      "sheet": "images/monsters/pairs/lineage-spore-02.png",
+      "attackSheet": "images/monsters/pairs/lineage-spore-02-attack.png",
+      "nodes": [
+        "spore-perfect-b",
+        "spore-ultimate-0"
+      ]
+    },
+    {
+      "source": "images/monsters/lineage-spore.png",
+      "sheet": "images/monsters/pairs/lineage-spore-03.png",
+      "attackSheet": "images/monsters/pairs/lineage-spore-03-attack.png",
+      "nodes": [
+        "spore-ultimate-1",
+        "spore-ultimate-2"
+      ]
+    },
+    {
+      "source": "images/monsters/lineage-spore.png",
+      "sheet": "images/monsters/pairs/lineage-spore-04.png",
+      "attackSheet": "images/monsters/pairs/lineage-spore-04-attack.png",
+      "nodes": [
+        "spore-ultimate-3"
+      ]
+    },
+    {
+      "source": "images/monsters/lineage-tempest.png",
+      "sheet": "images/monsters/pairs/lineage-tempest-01.png",
+      "attackSheet": "images/monsters/pairs/lineage-tempest-01-attack.png",
+      "nodes": [
+        "tempest-mature",
+        "tempest-perfect-a"
+      ]
+    },
+    {
+      "source": "images/monsters/lineage-tempest.png",
+      "sheet": "images/monsters/pairs/lineage-tempest-02.png",
+      "attackSheet": "images/monsters/pairs/lineage-tempest-02-attack.png",
+      "nodes": [
+        "tempest-perfect-b",
+        "tempest-ultimate-0"
+      ]
+    },
+    {
+      "source": "images/monsters/lineage-tempest.png",
+      "sheet": "images/monsters/pairs/lineage-tempest-03.png",
+      "attackSheet": "images/monsters/pairs/lineage-tempest-03-attack.png",
+      "nodes": [
+        "tempest-ultimate-1",
+        "tempest-ultimate-2"
+      ]
+    },
+    {
+      "source": "images/monsters/lineage-tempest.png",
+      "sheet": "images/monsters/pairs/lineage-tempest-04.png",
+      "attackSheet": "images/monsters/pairs/lineage-tempest-04-attack.png",
+      "nodes": [
+        "tempest-ultimate-3"
+      ]
+    },
+    {
+      "source": "images/monsters/lineage-thunder.png",
+      "sheet": "images/monsters/pairs/lineage-thunder-01.png",
+      "attackSheet": "images/monsters/pairs/lineage-thunder-01-attack.png",
+      "nodes": [
+        "thunder-mature",
+        "thunder-perfect-a"
+      ]
+    },
+    {
+      "source": "images/monsters/lineage-thunder.png",
+      "sheet": "images/monsters/pairs/lineage-thunder-02.png",
+      "attackSheet": "images/monsters/pairs/lineage-thunder-02-attack.png",
+      "nodes": [
+        "thunder-perfect-b",
+        "thunder-ultimate-0"
+      ]
+    },
+    {
+      "source": "images/monsters/lineage-thunder.png",
+      "sheet": "images/monsters/pairs/lineage-thunder-03.png",
+      "attackSheet": "images/monsters/pairs/lineage-thunder-03-attack.png",
+      "nodes": [
+        "thunder-ultimate-1",
+        "thunder-ultimate-2"
+      ]
+    },
+    {
+      "source": "images/monsters/lineage-thunder.png",
+      "sheet": "images/monsters/pairs/lineage-thunder-04.png",
+      "attackSheet": "images/monsters/pairs/lineage-thunder-04-attack.png",
+      "nodes": [
+        "thunder-ultimate-3"
+      ]
+    },
+    {
+      "source": "images/monsters/rank6-a-v3.png",
+      "sheet": "images/monsters/pairs/rank6-a-v3-01.png",
+      "attackSheet": "images/monsters/pairs/rank6-a-v3-01-attack.png",
+      "nodes": [
+        "inferno-rank6",
+        "thunder-rank6"
+      ]
+    },
+    {
+      "source": "images/monsters/rank6-a-v3.png",
+      "sheet": "images/monsters/pairs/rank6-a-v3-02.png",
+      "attackSheet": "images/monsters/pairs/rank6-a-v3-02-attack.png",
+      "nodes": [
+        "mecha-rank6",
+        "beetle-rank6"
+      ]
+    },
+    {
+      "source": "images/monsters/rank6-a-v3.png",
+      "sheet": "images/monsters/pairs/rank6-a-v3-03.png",
+      "attackSheet": "images/monsters/pairs/rank6-a-v3-03-attack.png",
+      "nodes": [
+        "grove-rank6",
+        "spore-rank6"
+      ]
+    },
+    {
+      "source": "images/monsters/rank6-a-v3.png",
+      "sheet": "images/monsters/pairs/rank6-a-v3-04.png",
+      "attackSheet": "images/monsters/pairs/rank6-a-v3-04-attack.png",
+      "nodes": [
+        "abyss-rank6",
+        "cosmic-rank6"
+      ]
+    },
+    {
+      "source": "images/monsters/rank6-a-v3.png",
+      "sheet": "images/monsters/pairs/rank6-a-v3-05.png",
+      "attackSheet": "images/monsters/pairs/rank6-a-v3-05-attack.png",
+      "nodes": [
+        "glacier-rank6",
+        "crystal-rank6"
+      ]
+    },
+    {
+      "source": "images/monsters/rank6-a-v3.png",
+      "sheet": "images/monsters/pairs/rank6-a-v3-06.png",
+      "attackSheet": "images/monsters/pairs/rank6-a-v3-06-attack.png",
+      "nodes": [
+        "sky-rank6",
+        "tempest-rank6"
+      ]
+    },
+    {
+      "source": "images/monsters/rank6-a-v3.png",
+      "sheet": "images/monsters/pairs/rank6-a-v3-07.png",
+      "attackSheet": "images/monsters/pairs/rank6-a-v3-07-attack.png",
+      "nodes": [
+        "shadow-rank6",
+        "spirit-rank6"
+      ]
+    },
+    {
+      "source": "images/monsters/rank6-a-v3.png",
+      "sheet": "images/monsters/pairs/rank6-a-v3-08.png",
+      "attackSheet": "images/monsters/pairs/rank6-a-v3-08-attack.png",
+      "nodes": [
+        "candy-rank6",
+        "junk-rank6"
+      ]
+    },
+    {
+      "source": "images/monsters/rank6-b-v3.png",
+      "sheet": "images/monsters/pairs/rank6-b-v3-01.png",
+      "attackSheet": "images/monsters/pairs/rank6-b-v3-01-attack.png",
+      "nodes": [
+        "coral-rank6",
+        "corsair-rank6"
+      ]
+    },
+    {
+      "source": "images/monsters/rank6-b-v3.png",
+      "sheet": "images/monsters/pairs/rank6-b-v3-02.png",
+      "attackSheet": "images/monsters/pairs/rank6-b-v3-02-attack.png",
+      "nodes": [
+        "dune-rank6",
+        "fossil-rank6"
+      ]
+    },
+    {
+      "source": "images/monsters/rank6-b-v3.png",
+      "sheet": "images/monsters/pairs/rank6-b-v3-03.png",
+      "attackSheet": "images/monsters/pairs/rank6-b-v3-03-attack.png",
+      "nodes": [
+        "samurai-rank6",
+        "dojo-rank6"
+      ]
+    },
+    {
+      "source": "images/monsters/rank6-b-v3.png",
+      "sheet": "images/monsters/pairs/rank6-b-v3-04.png",
+      "attackSheet": "images/monsters/pairs/rank6-b-v3-04-attack.png",
+      "nodes": [
+        "sonic-rank6",
+        "festival-rank6"
+      ]
+    },
+    {
+      "source": "images/monsters/rank6-b-v3.png",
+      "sheet": "images/monsters/pairs/rank6-b-v3-05.png",
+      "attackSheet": "images/monsters/pairs/rank6-b-v3-05-attack.png",
+      "nodes": [
+        "bloom-rank6",
+        "dream-rank6"
+      ]
+    },
+    {
+      "source": "images/monsters/rank6-b-v3.png",
+      "sheet": "images/monsters/pairs/rank6-b-v3-06.png",
+      "attackSheet": "images/monsters/pairs/rank6-b-v3-06-attack.png",
+      "nodes": [
+        "slime-rank6",
+        "gourmet-rank6"
+      ]
+    },
+    {
+      "source": "images/monsters/rank6-b-v3.png",
+      "sheet": "images/monsters/pairs/rank6-b-v3-07.png",
+      "attackSheet": "images/monsters/pairs/rank6-b-v3-07-attack.png",
+      "nodes": [
+        "ink-rank6",
+        "ninja-rank6"
+      ]
+    },
+    {
+      "source": "images/monsters/rank6-b-v3.png",
+      "sheet": "images/monsters/pairs/rank6-b-v3-08.png",
+      "attackSheet": "images/monsters/pairs/rank6-b-v3-08-attack.png",
+      "nodes": [
+        "rail-rank6",
+        "ryu-rank6"
+      ]
+    }
+  ],
+  "nodes": {
+    "child-tide": {
+      "sheet": "images/monsters/pairs/childhood-new-01.png",
+      "attackSheet": "images/monsters/pairs/childhood-new-01-attack.png",
+      "slot": 0,
+      "count": 2,
+      "sourceSprite": {
+        "sheet": "images/monsters/childhood-new.png",
+        "size": "400% 100%",
+        "position": "0% 50%",
+        "aspect": 0.75,
+        "zoom": 1.13,
+        "facing": "left"
+      }
+    },
+    "child-rune": {
+      "sheet": "images/monsters/pairs/childhood-new-01.png",
+      "attackSheet": "images/monsters/pairs/childhood-new-01-attack.png",
+      "slot": 1,
+      "count": 2,
+      "sourceSprite": {
+        "sheet": "images/monsters/childhood-new.png",
+        "size": "400% 100%",
+        "position": "33.333% 50%",
+        "aspect": 0.75,
+        "zoom": 1.13,
+        "facing": "left"
+      }
+    },
+    "child-bloom": {
+      "sheet": "images/monsters/pairs/childhood-new-02.png",
+      "attackSheet": "images/monsters/pairs/childhood-new-02-attack.png",
+      "slot": 0,
+      "count": 2,
+      "sourceSprite": {
+        "sheet": "images/monsters/childhood-new.png",
+        "size": "400% 100%",
+        "position": "66.667% 50%",
+        "aspect": 0.75,
+        "zoom": 1.13,
+        "facing": "left"
+      }
+    },
+    "child-scroll": {
+      "sheet": "images/monsters/pairs/childhood-new-02.png",
+      "attackSheet": "images/monsters/pairs/childhood-new-02-attack.png",
+      "slot": 1,
+      "count": 2,
+      "sourceSprite": {
+        "sheet": "images/monsters/childhood-new.png",
+        "size": "400% 100%",
+        "position": "100% 50%",
+        "aspect": 0.75,
+        "zoom": 1.13,
+        "facing": "left"
+      }
+    },
+    "growth-frost": {
+      "sheet": "images/monsters/pairs/growth-extra-v2-01.png",
+      "attackSheet": "images/monsters/pairs/growth-extra-v2-01-attack.png",
+      "slot": 0,
+      "count": 2,
+      "sourceSprite": {
+        "sheet": "images/monsters/growth-extra-v2.png",
+        "size": "400% 100%",
+        "position": "0% 50%",
+        "aspect": 1,
+        "zoom": 1.15,
+        "facing": "left"
+      }
+    },
+    "growth-storm": {
+      "sheet": "images/monsters/pairs/growth-extra-v2-01.png",
+      "attackSheet": "images/monsters/pairs/growth-extra-v2-01-attack.png",
+      "slot": 1,
+      "count": 2,
+      "sourceSprite": {
+        "sheet": "images/monsters/growth-extra-v2.png",
+        "size": "400% 100%",
+        "position": "33.333% 50%",
+        "aspect": 1,
+        "zoom": 1.15,
+        "facing": "left"
+      }
+    },
+    "growth-shadow": {
+      "sheet": "images/monsters/pairs/growth-extra-v2-02.png",
+      "attackSheet": "images/monsters/pairs/growth-extra-v2-02-attack.png",
+      "slot": 0,
+      "count": 2,
+      "sourceSprite": {
+        "sheet": "images/monsters/growth-extra-v2.png",
+        "size": "400% 100%",
+        "position": "66.666% 50%",
+        "aspect": 1,
+        "zoom": 1.15,
+        "facing": "left"
+      }
+    },
+    "growth-toy": {
+      "sheet": "images/monsters/pairs/growth-extra-v2-02.png",
+      "attackSheet": "images/monsters/pairs/growth-extra-v2-02-attack.png",
+      "slot": 1,
+      "count": 2,
+      "sourceSprite": {
+        "sheet": "images/monsters/growth-extra-v2.png",
+        "size": "400% 100%",
+        "position": "99.999% 50%",
+        "aspect": 1,
+        "zoom": 1.15,
+        "facing": "left"
+      }
+    },
+    "growth-coral": {
+      "sheet": "images/monsters/pairs/growth-new-a-01.png",
+      "attackSheet": "images/monsters/pairs/growth-new-a-01-attack.png",
+      "slot": 0,
+      "count": 2,
+      "sourceSprite": {
+        "sheet": "images/monsters/growth-new-a.png",
+        "size": "400% 100%",
+        "position": "0% 50%",
+        "aspect": 0.625,
+        "zoom": 1.15,
+        "facing": "right"
+      }
+    },
+    "growth-dune": {
+      "sheet": "images/monsters/pairs/growth-new-a-01.png",
+      "attackSheet": "images/monsters/pairs/growth-new-a-01-attack.png",
+      "slot": 1,
+      "count": 2,
+      "sourceSprite": {
+        "sheet": "images/monsters/growth-new-a.png",
+        "size": "400% 100%",
+        "position": "33.333% 50%",
+        "aspect": 0.625,
+        "zoom": 1.15,
+        "facing": "right"
+      }
+    },
+    "growth-blade": {
+      "sheet": "images/monsters/pairs/growth-new-a-02.png",
+      "attackSheet": "images/monsters/pairs/growth-new-a-02-attack.png",
+      "slot": 0,
+      "count": 2,
+      "sourceSprite": {
+        "sheet": "images/monsters/growth-new-a.png",
+        "size": "400% 100%",
+        "position": "66.666% 50%",
+        "aspect": 0.625,
+        "zoom": 1.15,
+        "facing": "left"
+      }
+    },
+    "growth-sonic": {
+      "sheet": "images/monsters/pairs/growth-new-a-02.png",
+      "attackSheet": "images/monsters/pairs/growth-new-a-02-attack.png",
+      "slot": 1,
+      "count": 2,
+      "sourceSprite": {
+        "sheet": "images/monsters/growth-new-a.png",
+        "size": "400% 100%",
+        "position": "99.999% 50%",
+        "aspect": 0.625,
+        "zoom": 1.15,
+        "facing": "left"
+      }
+    },
+    "growth-bloom": {
+      "sheet": "images/monsters/pairs/growth-new-b-01.png",
+      "attackSheet": "images/monsters/pairs/growth-new-b-01-attack.png",
+      "slot": 0,
+      "count": 2,
+      "sourceSprite": {
+        "sheet": "images/monsters/growth-new-b.png",
+        "size": "400% 100%",
+        "position": "0% 50%",
+        "aspect": 0.75,
+        "zoom": 1.15,
+        "facing": "left"
+      }
+    },
+    "growth-slime": {
+      "sheet": "images/monsters/pairs/growth-new-b-01.png",
+      "attackSheet": "images/monsters/pairs/growth-new-b-01-attack.png",
+      "slot": 1,
+      "count": 2,
+      "sourceSprite": {
+        "sheet": "images/monsters/growth-new-b.png",
+        "size": "400% 100%",
+        "position": "33.333% 50%",
+        "aspect": 0.75,
+        "zoom": 1.15,
+        "facing": "left"
+      }
+    },
+    "growth-ink": {
+      "sheet": "images/monsters/pairs/growth-new-b-02.png",
+      "attackSheet": "images/monsters/pairs/growth-new-b-02-attack.png",
+      "slot": 0,
+      "count": 1,
+      "sourceSprite": {
+        "sheet": "images/monsters/growth-new-b.png",
+        "size": "400% 100%",
+        "position": "66.666% 50%",
+        "aspect": 0.75,
+        "zoom": 1.15,
+        "facing": "left"
+      }
+    },
+    "growth-flare": {
+      "sheet": "images/monsters/pairs/growth-v2-01.png",
+      "attackSheet": "images/monsters/pairs/growth-v2-01-attack.png",
+      "slot": 0,
+      "count": 2,
+      "sourceSprite": {
+        "sheet": "images/monsters/growth-v2.png",
+        "size": "400% 100%",
+        "position": "0% 50%",
+        "aspect": 1,
+        "zoom": 1.18,
+        "facing": "left"
+      }
+    },
+    "growth-gear": {
+      "sheet": "images/monsters/pairs/growth-v2-01.png",
+      "attackSheet": "images/monsters/pairs/growth-v2-01-attack.png",
+      "slot": 1,
+      "count": 2,
+      "sourceSprite": {
+        "sheet": "images/monsters/growth-v2.png",
+        "size": "400% 100%",
+        "position": "33.333% 50%",
+        "aspect": 1,
+        "zoom": 1.18,
+        "facing": "left"
+      }
+    },
+    "growth-moss": {
+      "sheet": "images/monsters/pairs/growth-v2-02.png",
+      "attackSheet": "images/monsters/pairs/growth-v2-02-attack.png",
+      "slot": 0,
+      "count": 2,
+      "sourceSprite": {
+        "sheet": "images/monsters/growth-v2.png",
+        "size": "400% 100%",
+        "position": "66.666% 50%",
+        "aspect": 1,
+        "zoom": 1.18,
+        "facing": "left"
+      }
+    },
+    "growth-bubble": {
+      "sheet": "images/monsters/pairs/growth-v2-02.png",
+      "attackSheet": "images/monsters/pairs/growth-v2-02-attack.png",
+      "slot": 1,
+      "count": 2,
+      "sourceSprite": {
+        "sheet": "images/monsters/growth-v2.png",
+        "size": "400% 100%",
+        "position": "99.999% 50%",
+        "aspect": 1,
+        "zoom": 1.18,
+        "facing": "left"
+      }
+    },
+    "abyss-mature": {
+      "sheet": "images/monsters/pairs/lineage-abyss-01.png",
+      "attackSheet": "images/monsters/pairs/lineage-abyss-01-attack.png",
+      "slot": 0,
+      "count": 2,
+      "sourceSprite": {
+        "sheet": "images/monsters/lineage-abyss.png",
+        "size": "400% 200%",
+        "position": "0% 0%",
+        "aspect": 1,
+        "zoom": 1.16,
+        "facing": "left"
+      }
+    },
+    "abyss-perfect-a": {
+      "sheet": "images/monsters/pairs/lineage-abyss-01.png",
+      "attackSheet": "images/monsters/pairs/lineage-abyss-01-attack.png",
+      "slot": 1,
+      "count": 2,
+      "sourceSprite": {
+        "sheet": "images/monsters/lineage-abyss.png",
+        "size": "400% 200%",
+        "position": "33.333% 0%",
+        "aspect": 1,
+        "zoom": 1.16,
+        "facing": "left"
+      }
+    },
+    "abyss-perfect-b": {
+      "sheet": "images/monsters/pairs/lineage-abyss-02.png",
+      "attackSheet": "images/monsters/pairs/lineage-abyss-02-attack.png",
+      "slot": 0,
+      "count": 2,
+      "sourceSprite": {
+        "sheet": "images/monsters/lineage-abyss.png",
+        "size": "400% 200%",
+        "position": "66.667% 0%",
+        "aspect": 1,
+        "zoom": 1.16,
+        "facing": "left"
+      }
+    },
+    "abyss-ultimate-0": {
+      "sheet": "images/monsters/pairs/lineage-abyss-02.png",
+      "attackSheet": "images/monsters/pairs/lineage-abyss-02-attack.png",
+      "slot": 1,
+      "count": 2,
+      "sourceSprite": {
+        "sheet": "images/monsters/lineage-abyss.png",
+        "size": "400% 200%",
+        "position": "0% 100%",
+        "aspect": 1,
+        "zoom": 1.14,
+        "facing": "left"
+      }
+    },
+    "abyss-ultimate-1": {
+      "sheet": "images/monsters/pairs/lineage-abyss-03.png",
+      "attackSheet": "images/monsters/pairs/lineage-abyss-03-attack.png",
+      "slot": 0,
+      "count": 2,
+      "sourceSprite": {
+        "sheet": "images/monsters/lineage-abyss.png",
+        "size": "400% 200%",
+        "position": "33.333% 100%",
+        "aspect": 1,
+        "zoom": 1.14,
+        "facing": "left"
+      }
+    },
+    "abyss-ultimate-2": {
+      "sheet": "images/monsters/pairs/lineage-abyss-03.png",
+      "attackSheet": "images/monsters/pairs/lineage-abyss-03-attack.png",
+      "slot": 1,
+      "count": 2,
+      "sourceSprite": {
+        "sheet": "images/monsters/lineage-abyss.png",
+        "size": "400% 200%",
+        "position": "66.666% 100%",
+        "aspect": 1,
+        "zoom": 1.14,
+        "facing": "left"
+      }
+    },
+    "abyss-ultimate-3": {
+      "sheet": "images/monsters/pairs/lineage-abyss-04.png",
+      "attackSheet": "images/monsters/pairs/lineage-abyss-04-attack.png",
+      "slot": 0,
+      "count": 1,
+      "sourceSprite": {
+        "sheet": "images/monsters/lineage-abyss.png",
+        "size": "400% 200%",
+        "position": "99.999% 100%",
+        "aspect": 1,
+        "zoom": 1.14,
+        "facing": "left"
+      }
+    },
+    "beetle-mature": {
+      "sheet": "images/monsters/pairs/lineage-beetle-01.png",
+      "attackSheet": "images/monsters/pairs/lineage-beetle-01-attack.png",
+      "slot": 0,
+      "count": 2,
+      "sourceSprite": {
+        "sheet": "images/monsters/lineage-beetle.png",
+        "size": "400% 200%",
+        "position": "0% 0%",
+        "aspect": 1,
+        "zoom": 1.16,
+        "facing": "left"
+      }
+    },
+    "beetle-perfect-a": {
+      "sheet": "images/monsters/pairs/lineage-beetle-01.png",
+      "attackSheet": "images/monsters/pairs/lineage-beetle-01-attack.png",
+      "slot": 1,
+      "count": 2,
+      "sourceSprite": {
+        "sheet": "images/monsters/lineage-beetle.png",
+        "size": "400% 200%",
+        "position": "33.333% 0%",
+        "aspect": 1,
+        "zoom": 1.16,
+        "facing": "left"
+      }
+    },
+    "beetle-perfect-b": {
+      "sheet": "images/monsters/pairs/lineage-beetle-02.png",
+      "attackSheet": "images/monsters/pairs/lineage-beetle-02-attack.png",
+      "slot": 0,
+      "count": 2,
+      "sourceSprite": {
+        "sheet": "images/monsters/lineage-beetle.png",
+        "size": "400% 200%",
+        "position": "66.667% 0%",
+        "aspect": 1,
+        "zoom": 1.16,
+        "facing": "left"
+      }
+    },
+    "beetle-ultimate-0": {
+      "sheet": "images/monsters/pairs/lineage-beetle-02.png",
+      "attackSheet": "images/monsters/pairs/lineage-beetle-02-attack.png",
+      "slot": 1,
+      "count": 2,
+      "sourceSprite": {
+        "sheet": "images/monsters/lineage-beetle.png",
+        "size": "400% 200%",
+        "position": "0% 100%",
+        "aspect": 1,
+        "zoom": 1.14,
+        "facing": "left"
+      }
+    },
+    "beetle-ultimate-1": {
+      "sheet": "images/monsters/pairs/lineage-beetle-03.png",
+      "attackSheet": "images/monsters/pairs/lineage-beetle-03-attack.png",
+      "slot": 0,
+      "count": 2,
+      "sourceSprite": {
+        "sheet": "images/monsters/lineage-beetle.png",
+        "size": "400% 200%",
+        "position": "33.333% 100%",
+        "aspect": 1,
+        "zoom": 1.14,
+        "facing": "left"
+      }
+    },
+    "beetle-ultimate-2": {
+      "sheet": "images/monsters/pairs/lineage-beetle-03.png",
+      "attackSheet": "images/monsters/pairs/lineage-beetle-03-attack.png",
+      "slot": 1,
+      "count": 2,
+      "sourceSprite": {
+        "sheet": "images/monsters/lineage-beetle.png",
+        "size": "400% 200%",
+        "position": "66.666% 100%",
+        "aspect": 1,
+        "zoom": 1.14,
+        "facing": "left"
+      }
+    },
+    "beetle-ultimate-3": {
+      "sheet": "images/monsters/pairs/lineage-beetle-04.png",
+      "attackSheet": "images/monsters/pairs/lineage-beetle-04-attack.png",
+      "slot": 0,
+      "count": 1,
+      "sourceSprite": {
+        "sheet": "images/monsters/lineage-beetle.png",
+        "size": "400% 200%",
+        "position": "99.999% 100%",
+        "aspect": 1,
+        "zoom": 1.14,
+        "facing": "left"
+      }
+    },
+    "bloom-mature": {
+      "sheet": "images/monsters/pairs/lineage-bloom-01.png",
+      "attackSheet": "images/monsters/pairs/lineage-bloom-01-attack.png",
+      "slot": 0,
+      "count": 2,
+      "sourceSprite": {
+        "sheet": "images/monsters/lineage-bloom.png",
+        "size": "400% 200%",
+        "position": "0% 0%",
+        "aspect": 0.75,
+        "zoom": 1.16,
+        "facing": "left"
+      }
+    },
+    "bloom-perfect-a": {
+      "sheet": "images/monsters/pairs/lineage-bloom-01.png",
+      "attackSheet": "images/monsters/pairs/lineage-bloom-01-attack.png",
+      "slot": 1,
+      "count": 2,
+      "sourceSprite": {
+        "sheet": "images/monsters/lineage-bloom.png",
+        "size": "400% 200%",
+        "position": "33.333% 0%",
+        "aspect": 0.75,
+        "zoom": 1.16,
+        "facing": "left"
+      }
+    },
+    "bloom-perfect-b": {
+      "sheet": "images/monsters/pairs/lineage-bloom-02.png",
+      "attackSheet": "images/monsters/pairs/lineage-bloom-02-attack.png",
+      "slot": 0,
+      "count": 2,
+      "sourceSprite": {
+        "sheet": "images/monsters/lineage-bloom.png",
+        "size": "400% 200%",
+        "position": "66.667% 0%",
+        "aspect": 0.75,
+        "zoom": 1.16,
+        "facing": "left"
+      }
+    },
+    "bloom-ultimate-0": {
+      "sheet": "images/monsters/pairs/lineage-bloom-02.png",
+      "attackSheet": "images/monsters/pairs/lineage-bloom-02-attack.png",
+      "slot": 1,
+      "count": 2,
+      "sourceSprite": {
+        "sheet": "images/monsters/lineage-bloom.png",
+        "size": "400% 200%",
+        "position": "0% 100%",
+        "aspect": 0.75,
+        "zoom": 1.14,
+        "facing": "left"
+      }
+    },
+    "bloom-ultimate-1": {
+      "sheet": "images/monsters/pairs/lineage-bloom-03.png",
+      "attackSheet": "images/monsters/pairs/lineage-bloom-03-attack.png",
+      "slot": 0,
+      "count": 2,
+      "sourceSprite": {
+        "sheet": "images/monsters/lineage-bloom.png",
+        "size": "400% 200%",
+        "position": "33.333% 100%",
+        "aspect": 0.75,
+        "zoom": 1.14,
+        "facing": "left"
+      }
+    },
+    "bloom-ultimate-2": {
+      "sheet": "images/monsters/pairs/lineage-bloom-03.png",
+      "attackSheet": "images/monsters/pairs/lineage-bloom-03-attack.png",
+      "slot": 1,
+      "count": 2,
+      "sourceSprite": {
+        "sheet": "images/monsters/lineage-bloom.png",
+        "size": "400% 200%",
+        "position": "66.666% 100%",
+        "aspect": 0.75,
+        "zoom": 1.14,
+        "facing": "left"
+      }
+    },
+    "bloom-ultimate-3": {
+      "sheet": "images/monsters/pairs/lineage-bloom-04.png",
+      "attackSheet": "images/monsters/pairs/lineage-bloom-04-attack.png",
+      "slot": 0,
+      "count": 1,
+      "sourceSprite": {
+        "sheet": "images/monsters/lineage-bloom.png",
+        "size": "400% 200%",
+        "position": "99.999% 100%",
+        "aspect": 0.75,
+        "zoom": 1.14,
+        "facing": "left"
+      }
+    },
+    "candy-mature": {
+      "sheet": "images/monsters/pairs/lineage-candy-01.png",
+      "attackSheet": "images/monsters/pairs/lineage-candy-01-attack.png",
+      "slot": 0,
+      "count": 2,
+      "sourceSprite": {
+        "sheet": "images/monsters/lineage-candy.png",
+        "size": "400% 200%",
+        "position": "0% 0%",
+        "aspect": 1,
+        "zoom": 1.16,
+        "facing": "left"
+      }
+    },
+    "candy-perfect-a": {
+      "sheet": "images/monsters/pairs/lineage-candy-01.png",
+      "attackSheet": "images/monsters/pairs/lineage-candy-01-attack.png",
+      "slot": 1,
+      "count": 2,
+      "sourceSprite": {
+        "sheet": "images/monsters/lineage-candy.png",
+        "size": "400% 200%",
+        "position": "33.333% 0%",
+        "aspect": 1,
+        "zoom": 1.16,
+        "facing": "left"
+      }
+    },
+    "candy-perfect-b": {
+      "sheet": "images/monsters/pairs/lineage-candy-02.png",
+      "attackSheet": "images/monsters/pairs/lineage-candy-02-attack.png",
+      "slot": 0,
+      "count": 2,
+      "sourceSprite": {
+        "sheet": "images/monsters/lineage-candy.png",
+        "size": "400% 200%",
+        "position": "66.667% 0%",
+        "aspect": 1,
+        "zoom": 1.16,
+        "facing": "left"
+      }
+    },
+    "candy-ultimate-0": {
+      "sheet": "images/monsters/pairs/lineage-candy-02.png",
+      "attackSheet": "images/monsters/pairs/lineage-candy-02-attack.png",
+      "slot": 1,
+      "count": 2,
+      "sourceSprite": {
+        "sheet": "images/monsters/lineage-candy.png",
+        "size": "400% 200%",
+        "position": "0% 100%",
+        "aspect": 1,
+        "zoom": 1.14,
+        "facing": "left"
+      }
+    },
+    "candy-ultimate-1": {
+      "sheet": "images/monsters/pairs/lineage-candy-03.png",
+      "attackSheet": "images/monsters/pairs/lineage-candy-03-attack.png",
+      "slot": 0,
+      "count": 2,
+      "sourceSprite": {
+        "sheet": "images/monsters/lineage-candy.png",
+        "size": "400% 200%",
+        "position": "33.333% 100%",
+        "aspect": 1,
+        "zoom": 1.14,
+        "facing": "left"
+      }
+    },
+    "candy-ultimate-2": {
+      "sheet": "images/monsters/pairs/lineage-candy-03.png",
+      "attackSheet": "images/monsters/pairs/lineage-candy-03-attack.png",
+      "slot": 1,
+      "count": 2,
+      "sourceSprite": {
+        "sheet": "images/monsters/lineage-candy.png",
+        "size": "400% 200%",
+        "position": "66.666% 100%",
+        "aspect": 1,
+        "zoom": 1.14,
+        "facing": "left"
+      }
+    },
+    "candy-ultimate-3": {
+      "sheet": "images/monsters/pairs/lineage-candy-04.png",
+      "attackSheet": "images/monsters/pairs/lineage-candy-04-attack.png",
+      "slot": 0,
+      "count": 1,
+      "sourceSprite": {
+        "sheet": "images/monsters/lineage-candy.png",
+        "size": "400% 200%",
+        "position": "99.999% 100%",
+        "aspect": 1,
+        "zoom": 1.14,
+        "facing": "left"
+      }
+    },
+    "coral-mature": {
+      "sheet": "images/monsters/pairs/lineage-coral-01.png",
+      "attackSheet": "images/monsters/pairs/lineage-coral-01-attack.png",
+      "slot": 0,
+      "count": 2,
+      "sourceSprite": {
+        "sheet": "images/monsters/lineage-coral.png",
+        "size": "400% 200%",
+        "position": "0% 0%",
+        "aspect": 1,
+        "zoom": 1.16,
+        "facing": "left"
+      }
+    },
+    "coral-perfect-a": {
+      "sheet": "images/monsters/pairs/lineage-coral-01.png",
+      "attackSheet": "images/monsters/pairs/lineage-coral-01-attack.png",
+      "slot": 1,
+      "count": 2,
+      "sourceSprite": {
+        "sheet": "images/monsters/lineage-coral.png",
+        "size": "400% 200%",
+        "position": "33.333% 0%",
+        "aspect": 1,
+        "zoom": 1.16,
+        "facing": "left"
+      }
+    },
+    "coral-perfect-b": {
+      "sheet": "images/monsters/pairs/lineage-coral-02.png",
+      "attackSheet": "images/monsters/pairs/lineage-coral-02-attack.png",
+      "slot": 0,
+      "count": 2,
+      "sourceSprite": {
+        "sheet": "images/monsters/lineage-coral.png",
+        "size": "400% 200%",
+        "position": "66.667% 0%",
+        "aspect": 1,
+        "zoom": 1.16,
+        "facing": "left"
+      }
+    },
+    "coral-ultimate-0": {
+      "sheet": "images/monsters/pairs/lineage-coral-02.png",
+      "attackSheet": "images/monsters/pairs/lineage-coral-02-attack.png",
+      "slot": 1,
+      "count": 2,
+      "sourceSprite": {
+        "sheet": "images/monsters/lineage-coral.png",
+        "size": "400% 200%",
+        "position": "0% 100%",
+        "aspect": 1,
+        "zoom": 1.14,
+        "facing": "left"
+      }
+    },
+    "coral-ultimate-1": {
+      "sheet": "images/monsters/pairs/lineage-coral-03.png",
+      "attackSheet": "images/monsters/pairs/lineage-coral-03-attack.png",
+      "slot": 0,
+      "count": 2,
+      "sourceSprite": {
+        "sheet": "images/monsters/lineage-coral.png",
+        "size": "400% 200%",
+        "position": "33.333% 100%",
+        "aspect": 1,
+        "zoom": 1.14,
+        "facing": "left"
+      }
+    },
+    "coral-ultimate-2": {
+      "sheet": "images/monsters/pairs/lineage-coral-03.png",
+      "attackSheet": "images/monsters/pairs/lineage-coral-03-attack.png",
+      "slot": 1,
+      "count": 2,
+      "sourceSprite": {
+        "sheet": "images/monsters/lineage-coral.png",
+        "size": "400% 200%",
+        "position": "66.666% 100%",
+        "aspect": 1,
+        "zoom": 1.14,
+        "facing": "left"
+      }
+    },
+    "coral-ultimate-3": {
+      "sheet": "images/monsters/pairs/lineage-coral-04.png",
+      "attackSheet": "images/monsters/pairs/lineage-coral-04-attack.png",
+      "slot": 0,
+      "count": 1,
+      "sourceSprite": {
+        "sheet": "images/monsters/lineage-coral.png",
+        "size": "400% 200%",
+        "position": "99.999% 100%",
+        "aspect": 1,
+        "zoom": 1.14,
+        "facing": "left"
+      }
+    },
+    "corsair-mature": {
+      "sheet": "images/monsters/pairs/lineage-corsair-01.png",
+      "attackSheet": "images/monsters/pairs/lineage-corsair-01-attack.png",
+      "slot": 0,
+      "count": 2,
+      "sourceSprite": {
+        "sheet": "images/monsters/lineage-corsair.png",
+        "size": "400% 200%",
+        "position": "0% 0%",
+        "aspect": 1,
+        "zoom": 1.16,
+        "facing": "left"
+      }
+    },
+    "corsair-perfect-a": {
+      "sheet": "images/monsters/pairs/lineage-corsair-01.png",
+      "attackSheet": "images/monsters/pairs/lineage-corsair-01-attack.png",
+      "slot": 1,
+      "count": 2,
+      "sourceSprite": {
+        "sheet": "images/monsters/lineage-corsair.png",
+        "size": "400% 200%",
+        "position": "33.333% 0%",
+        "aspect": 1,
+        "zoom": 1.16,
+        "facing": "left"
+      }
+    },
+    "corsair-perfect-b": {
+      "sheet": "images/monsters/pairs/lineage-corsair-02.png",
+      "attackSheet": "images/monsters/pairs/lineage-corsair-02-attack.png",
+      "slot": 0,
+      "count": 2,
+      "sourceSprite": {
+        "sheet": "images/monsters/lineage-corsair.png",
+        "size": "400% 200%",
+        "position": "66.667% 0%",
+        "aspect": 1,
+        "zoom": 1.16,
+        "facing": "left"
+      }
+    },
+    "corsair-ultimate-0": {
+      "sheet": "images/monsters/pairs/lineage-corsair-02.png",
+      "attackSheet": "images/monsters/pairs/lineage-corsair-02-attack.png",
+      "slot": 1,
+      "count": 2,
+      "sourceSprite": {
+        "sheet": "images/monsters/lineage-corsair.png",
+        "size": "400% 200%",
+        "position": "0% 100%",
+        "aspect": 1,
+        "zoom": 1.14,
+        "facing": "left"
+      }
+    },
+    "corsair-ultimate-1": {
+      "sheet": "images/monsters/pairs/lineage-corsair-03.png",
+      "attackSheet": "images/monsters/pairs/lineage-corsair-03-attack.png",
+      "slot": 0,
+      "count": 2,
+      "sourceSprite": {
+        "sheet": "images/monsters/lineage-corsair.png",
+        "size": "400% 200%",
+        "position": "33.333% 100%",
+        "aspect": 1,
+        "zoom": 1.14,
+        "facing": "left"
+      }
+    },
+    "corsair-ultimate-2": {
+      "sheet": "images/monsters/pairs/lineage-corsair-03.png",
+      "attackSheet": "images/monsters/pairs/lineage-corsair-03-attack.png",
+      "slot": 1,
+      "count": 2,
+      "sourceSprite": {
+        "sheet": "images/monsters/lineage-corsair.png",
+        "size": "400% 200%",
+        "position": "66.666% 100%",
+        "aspect": 1,
+        "zoom": 1.14,
+        "facing": "left"
+      }
+    },
+    "corsair-ultimate-3": {
+      "sheet": "images/monsters/pairs/lineage-corsair-04.png",
+      "attackSheet": "images/monsters/pairs/lineage-corsair-04-attack.png",
+      "slot": 0,
+      "count": 1,
+      "sourceSprite": {
+        "sheet": "images/monsters/lineage-corsair.png",
+        "size": "400% 200%",
+        "position": "99.999% 100%",
+        "aspect": 1,
+        "zoom": 1.14,
+        "facing": "left"
+      }
+    },
+    "cosmic-mature": {
+      "sheet": "images/monsters/pairs/lineage-cosmic-01.png",
+      "attackSheet": "images/monsters/pairs/lineage-cosmic-01-attack.png",
+      "slot": 0,
+      "count": 2,
+      "sourceSprite": {
+        "sheet": "images/monsters/lineage-cosmic.png",
+        "size": "400% 200%",
+        "position": "0% 0%",
+        "aspect": 1,
+        "zoom": 1.16,
+        "facing": "left"
+      }
+    },
+    "cosmic-perfect-a": {
+      "sheet": "images/monsters/pairs/lineage-cosmic-01.png",
+      "attackSheet": "images/monsters/pairs/lineage-cosmic-01-attack.png",
+      "slot": 1,
+      "count": 2,
+      "sourceSprite": {
+        "sheet": "images/monsters/lineage-cosmic.png",
+        "size": "400% 200%",
+        "position": "33.333% 0%",
+        "aspect": 1,
+        "zoom": 1.16,
+        "facing": "left"
+      }
+    },
+    "cosmic-perfect-b": {
+      "sheet": "images/monsters/pairs/lineage-cosmic-02.png",
+      "attackSheet": "images/monsters/pairs/lineage-cosmic-02-attack.png",
+      "slot": 0,
+      "count": 2,
+      "sourceSprite": {
+        "sheet": "images/monsters/lineage-cosmic.png",
+        "size": "400% 200%",
+        "position": "66.667% 0%",
+        "aspect": 1,
+        "zoom": 1.16,
+        "facing": "left"
+      }
+    },
+    "cosmic-ultimate-0": {
+      "sheet": "images/monsters/pairs/lineage-cosmic-02.png",
+      "attackSheet": "images/monsters/pairs/lineage-cosmic-02-attack.png",
+      "slot": 1,
+      "count": 2,
+      "sourceSprite": {
+        "sheet": "images/monsters/lineage-cosmic.png",
+        "size": "400% 200%",
+        "position": "0% 100%",
+        "aspect": 1,
+        "zoom": 1.14,
+        "facing": "left"
+      }
+    },
+    "cosmic-ultimate-1": {
+      "sheet": "images/monsters/pairs/lineage-cosmic-03.png",
+      "attackSheet": "images/monsters/pairs/lineage-cosmic-03-attack.png",
+      "slot": 0,
+      "count": 2,
+      "sourceSprite": {
+        "sheet": "images/monsters/lineage-cosmic.png",
+        "size": "400% 200%",
+        "position": "33.333% 100%",
+        "aspect": 1,
+        "zoom": 1.14,
+        "facing": "left"
+      }
+    },
+    "cosmic-ultimate-2": {
+      "sheet": "images/monsters/pairs/lineage-cosmic-03.png",
+      "attackSheet": "images/monsters/pairs/lineage-cosmic-03-attack.png",
+      "slot": 1,
+      "count": 2,
+      "sourceSprite": {
+        "sheet": "images/monsters/lineage-cosmic.png",
+        "size": "400% 200%",
+        "position": "66.666% 100%",
+        "aspect": 1,
+        "zoom": 1.14,
+        "facing": "left"
+      }
+    },
+    "cosmic-ultimate-3": {
+      "sheet": "images/monsters/pairs/lineage-cosmic-04.png",
+      "attackSheet": "images/monsters/pairs/lineage-cosmic-04-attack.png",
+      "slot": 0,
+      "count": 1,
+      "sourceSprite": {
+        "sheet": "images/monsters/lineage-cosmic.png",
+        "size": "400% 200%",
+        "position": "99.999% 100%",
+        "aspect": 1,
+        "zoom": 1.14,
+        "facing": "left"
+      }
+    },
+    "crystal-mature": {
+      "sheet": "images/monsters/pairs/lineage-crystal-01.png",
+      "attackSheet": "images/monsters/pairs/lineage-crystal-01-attack.png",
+      "slot": 0,
+      "count": 2,
+      "sourceSprite": {
+        "sheet": "images/monsters/lineage-crystal.png",
+        "size": "400% 200%",
+        "position": "0% 0%",
+        "aspect": 1,
+        "zoom": 1.16,
+        "facing": "left"
+      }
+    },
+    "crystal-perfect-a": {
+      "sheet": "images/monsters/pairs/lineage-crystal-01.png",
+      "attackSheet": "images/monsters/pairs/lineage-crystal-01-attack.png",
+      "slot": 1,
+      "count": 2,
+      "sourceSprite": {
+        "sheet": "images/monsters/lineage-crystal.png",
+        "size": "400% 200%",
+        "position": "33.333% 0%",
+        "aspect": 1,
+        "zoom": 1.16,
+        "facing": "left"
+      }
+    },
+    "crystal-perfect-b": {
+      "sheet": "images/monsters/pairs/lineage-crystal-02.png",
+      "attackSheet": "images/monsters/pairs/lineage-crystal-02-attack.png",
+      "slot": 0,
+      "count": 2,
+      "sourceSprite": {
+        "sheet": "images/monsters/lineage-crystal.png",
+        "size": "400% 200%",
+        "position": "66.667% 0%",
+        "aspect": 1,
+        "zoom": 1.16,
+        "facing": "left"
+      }
+    },
+    "crystal-ultimate-0": {
+      "sheet": "images/monsters/pairs/lineage-crystal-02.png",
+      "attackSheet": "images/monsters/pairs/lineage-crystal-02-attack.png",
+      "slot": 1,
+      "count": 2,
+      "sourceSprite": {
+        "sheet": "images/monsters/lineage-crystal.png",
+        "size": "400% 200%",
+        "position": "0% 100%",
+        "aspect": 1,
+        "zoom": 1.14,
+        "facing": "left"
+      }
+    },
+    "crystal-ultimate-1": {
+      "sheet": "images/monsters/pairs/lineage-crystal-03.png",
+      "attackSheet": "images/monsters/pairs/lineage-crystal-03-attack.png",
+      "slot": 0,
+      "count": 2,
+      "sourceSprite": {
+        "sheet": "images/monsters/lineage-crystal.png",
+        "size": "400% 200%",
+        "position": "33.333% 100%",
+        "aspect": 1,
+        "zoom": 1.14,
+        "facing": "left"
+      }
+    },
+    "crystal-ultimate-2": {
+      "sheet": "images/monsters/pairs/lineage-crystal-03.png",
+      "attackSheet": "images/monsters/pairs/lineage-crystal-03-attack.png",
+      "slot": 1,
+      "count": 2,
+      "sourceSprite": {
+        "sheet": "images/monsters/lineage-crystal.png",
+        "size": "400% 200%",
+        "position": "66.666% 100%",
+        "aspect": 1,
+        "zoom": 1.14,
+        "facing": "left"
+      }
+    },
+    "crystal-ultimate-3": {
+      "sheet": "images/monsters/pairs/lineage-crystal-04.png",
+      "attackSheet": "images/monsters/pairs/lineage-crystal-04-attack.png",
+      "slot": 0,
+      "count": 1,
+      "sourceSprite": {
+        "sheet": "images/monsters/lineage-crystal.png",
+        "size": "400% 200%",
+        "position": "99.999% 100%",
+        "aspect": 1,
+        "zoom": 1.14,
+        "facing": "left"
+      }
+    },
+    "dojo-mature": {
+      "sheet": "images/monsters/pairs/lineage-dojo-01.png",
+      "attackSheet": "images/monsters/pairs/lineage-dojo-01-attack.png",
+      "slot": 0,
+      "count": 2,
+      "sourceSprite": {
+        "sheet": "images/monsters/lineage-dojo.png",
+        "size": "400% 200%",
+        "position": "0% 0%",
+        "aspect": 1,
+        "zoom": 1.16,
+        "facing": "left"
+      }
+    },
+    "dojo-perfect-a": {
+      "sheet": "images/monsters/pairs/lineage-dojo-01.png",
+      "attackSheet": "images/monsters/pairs/lineage-dojo-01-attack.png",
+      "slot": 1,
+      "count": 2,
+      "sourceSprite": {
+        "sheet": "images/monsters/lineage-dojo.png",
+        "size": "400% 200%",
+        "position": "33.333% 0%",
+        "aspect": 1,
+        "zoom": 1.16,
+        "facing": "left"
+      }
+    },
+    "dojo-perfect-b": {
+      "sheet": "images/monsters/pairs/lineage-dojo-02.png",
+      "attackSheet": "images/monsters/pairs/lineage-dojo-02-attack.png",
+      "slot": 0,
+      "count": 2,
+      "sourceSprite": {
+        "sheet": "images/monsters/lineage-dojo.png",
+        "size": "400% 200%",
+        "position": "66.667% 0%",
+        "aspect": 1,
+        "zoom": 1.16,
+        "facing": "left"
+      }
+    },
+    "dojo-ultimate-0": {
+      "sheet": "images/monsters/pairs/lineage-dojo-02.png",
+      "attackSheet": "images/monsters/pairs/lineage-dojo-02-attack.png",
+      "slot": 1,
+      "count": 2,
+      "sourceSprite": {
+        "sheet": "images/monsters/lineage-dojo.png",
+        "size": "400% 200%",
+        "position": "0% 100%",
+        "aspect": 1,
+        "zoom": 1.14,
+        "facing": "left"
+      }
+    },
+    "dojo-ultimate-1": {
+      "sheet": "images/monsters/pairs/lineage-dojo-03.png",
+      "attackSheet": "images/monsters/pairs/lineage-dojo-03-attack.png",
+      "slot": 0,
+      "count": 2,
+      "sourceSprite": {
+        "sheet": "images/monsters/lineage-dojo.png",
+        "size": "400% 200%",
+        "position": "33.333% 100%",
+        "aspect": 1,
+        "zoom": 1.14,
+        "facing": "left"
+      }
+    },
+    "dojo-ultimate-2": {
+      "sheet": "images/monsters/pairs/lineage-dojo-03.png",
+      "attackSheet": "images/monsters/pairs/lineage-dojo-03-attack.png",
+      "slot": 1,
+      "count": 2,
+      "sourceSprite": {
+        "sheet": "images/monsters/lineage-dojo.png",
+        "size": "400% 200%",
+        "position": "66.666% 100%",
+        "aspect": 1,
+        "zoom": 1.14,
+        "facing": "left"
+      }
+    },
+    "dojo-ultimate-3": {
+      "sheet": "images/monsters/pairs/lineage-dojo-04.png",
+      "attackSheet": "images/monsters/pairs/lineage-dojo-04-attack.png",
+      "slot": 0,
+      "count": 1,
+      "sourceSprite": {
+        "sheet": "images/monsters/lineage-dojo.png",
+        "size": "400% 200%",
+        "position": "99.999% 100%",
+        "aspect": 1,
+        "zoom": 1.14,
+        "facing": "left"
+      }
+    },
+    "dream-mature": {
+      "sheet": "images/monsters/pairs/lineage-dream-01.png",
+      "attackSheet": "images/monsters/pairs/lineage-dream-01-attack.png",
+      "slot": 0,
+      "count": 2,
+      "sourceSprite": {
+        "sheet": "images/monsters/lineage-dream.png",
+        "size": "400% 200%",
+        "position": "0% 0%",
+        "aspect": 1,
+        "zoom": 1.16,
+        "facing": "left"
+      }
+    },
+    "dream-perfect-a": {
+      "sheet": "images/monsters/pairs/lineage-dream-01.png",
+      "attackSheet": "images/monsters/pairs/lineage-dream-01-attack.png",
+      "slot": 1,
+      "count": 2,
+      "sourceSprite": {
+        "sheet": "images/monsters/lineage-dream.png",
+        "size": "400% 200%",
+        "position": "33.333% 0%",
+        "aspect": 1,
+        "zoom": 1.16,
+        "facing": "left"
+      }
+    },
+    "dream-perfect-b": {
+      "sheet": "images/monsters/pairs/lineage-dream-02.png",
+      "attackSheet": "images/monsters/pairs/lineage-dream-02-attack.png",
+      "slot": 0,
+      "count": 2,
+      "sourceSprite": {
+        "sheet": "images/monsters/lineage-dream.png",
+        "size": "400% 200%",
+        "position": "66.667% 0%",
+        "aspect": 1,
+        "zoom": 1.16,
+        "facing": "left"
+      }
+    },
+    "dream-ultimate-0": {
+      "sheet": "images/monsters/pairs/lineage-dream-02.png",
+      "attackSheet": "images/monsters/pairs/lineage-dream-02-attack.png",
+      "slot": 1,
+      "count": 2,
+      "sourceSprite": {
+        "sheet": "images/monsters/lineage-dream.png",
+        "size": "400% 200%",
+        "position": "0% 100%",
+        "aspect": 1,
+        "zoom": 1.14,
+        "facing": "left"
+      }
+    },
+    "dream-ultimate-1": {
+      "sheet": "images/monsters/pairs/lineage-dream-03.png",
+      "attackSheet": "images/monsters/pairs/lineage-dream-03-attack.png",
+      "slot": 0,
+      "count": 2,
+      "sourceSprite": {
+        "sheet": "images/monsters/lineage-dream.png",
+        "size": "400% 200%",
+        "position": "33.333% 100%",
+        "aspect": 1,
+        "zoom": 1.14,
+        "facing": "left"
+      }
+    },
+    "dream-ultimate-2": {
+      "sheet": "images/monsters/pairs/lineage-dream-03.png",
+      "attackSheet": "images/monsters/pairs/lineage-dream-03-attack.png",
+      "slot": 1,
+      "count": 2,
+      "sourceSprite": {
+        "sheet": "images/monsters/lineage-dream.png",
+        "size": "400% 200%",
+        "position": "66.666% 100%",
+        "aspect": 1,
+        "zoom": 1.14,
+        "facing": "left"
+      }
+    },
+    "dream-ultimate-3": {
+      "sheet": "images/monsters/pairs/lineage-dream-04.png",
+      "attackSheet": "images/monsters/pairs/lineage-dream-04-attack.png",
+      "slot": 0,
+      "count": 1,
+      "sourceSprite": {
+        "sheet": "images/monsters/lineage-dream.png",
+        "size": "400% 200%",
+        "position": "99.999% 100%",
+        "aspect": 1,
+        "zoom": 1.14,
+        "facing": "left"
+      }
+    },
+    "dune-mature": {
+      "sheet": "images/monsters/pairs/lineage-dune-01.png",
+      "attackSheet": "images/monsters/pairs/lineage-dune-01-attack.png",
+      "slot": 0,
+      "count": 2,
+      "sourceSprite": {
+        "sheet": "images/monsters/lineage-dune.png",
+        "size": "400% 200%",
+        "position": "0% 0%",
+        "aspect": 1,
+        "zoom": 1.16,
+        "facing": "left"
+      }
+    },
+    "dune-perfect-a": {
+      "sheet": "images/monsters/pairs/lineage-dune-01.png",
+      "attackSheet": "images/monsters/pairs/lineage-dune-01-attack.png",
+      "slot": 1,
+      "count": 2,
+      "sourceSprite": {
+        "sheet": "images/monsters/lineage-dune.png",
+        "size": "400% 200%",
+        "position": "33.333% 0%",
+        "aspect": 1,
+        "zoom": 1.16,
+        "facing": "left"
+      }
+    },
+    "dune-perfect-b": {
+      "sheet": "images/monsters/pairs/lineage-dune-02.png",
+      "attackSheet": "images/monsters/pairs/lineage-dune-02-attack.png",
+      "slot": 0,
+      "count": 2,
+      "sourceSprite": {
+        "sheet": "images/monsters/lineage-dune.png",
+        "size": "400% 200%",
+        "position": "66.667% 0%",
+        "aspect": 1,
+        "zoom": 1.16,
+        "facing": "left"
+      }
+    },
+    "dune-ultimate-0": {
+      "sheet": "images/monsters/pairs/lineage-dune-02.png",
+      "attackSheet": "images/monsters/pairs/lineage-dune-02-attack.png",
+      "slot": 1,
+      "count": 2,
+      "sourceSprite": {
+        "sheet": "images/monsters/lineage-dune.png",
+        "size": "400% 200%",
+        "position": "0% 100%",
+        "aspect": 1,
+        "zoom": 1.14,
+        "facing": "left"
+      }
+    },
+    "dune-ultimate-1": {
+      "sheet": "images/monsters/pairs/lineage-dune-03.png",
+      "attackSheet": "images/monsters/pairs/lineage-dune-03-attack.png",
+      "slot": 0,
+      "count": 2,
+      "sourceSprite": {
+        "sheet": "images/monsters/lineage-dune.png",
+        "size": "400% 200%",
+        "position": "33.333% 100%",
+        "aspect": 1,
+        "zoom": 1.14,
+        "facing": "left"
+      }
+    },
+    "dune-ultimate-2": {
+      "sheet": "images/monsters/pairs/lineage-dune-03.png",
+      "attackSheet": "images/monsters/pairs/lineage-dune-03-attack.png",
+      "slot": 1,
+      "count": 2,
+      "sourceSprite": {
+        "sheet": "images/monsters/lineage-dune.png",
+        "size": "400% 200%",
+        "position": "66.666% 100%",
+        "aspect": 1,
+        "zoom": 1.14,
+        "facing": "left"
+      }
+    },
+    "dune-ultimate-3": {
+      "sheet": "images/monsters/pairs/lineage-dune-04.png",
+      "attackSheet": "images/monsters/pairs/lineage-dune-04-attack.png",
+      "slot": 0,
+      "count": 1,
+      "sourceSprite": {
+        "sheet": "images/monsters/lineage-dune.png",
+        "size": "400% 200%",
+        "position": "99.999% 100%",
+        "aspect": 1,
+        "zoom": 1.14,
+        "facing": "left"
+      }
+    },
+    "festival-mature": {
+      "sheet": "images/monsters/pairs/lineage-festival-01.png",
+      "attackSheet": "images/monsters/pairs/lineage-festival-01-attack.png",
+      "slot": 0,
+      "count": 2,
+      "sourceSprite": {
+        "sheet": "images/monsters/lineage-festival.png",
+        "size": "400% 200%",
+        "position": "0% 0%",
+        "aspect": 1,
+        "zoom": 1.16,
+        "facing": "left"
+      }
+    },
+    "festival-perfect-a": {
+      "sheet": "images/monsters/pairs/lineage-festival-01.png",
+      "attackSheet": "images/monsters/pairs/lineage-festival-01-attack.png",
+      "slot": 1,
+      "count": 2,
+      "sourceSprite": {
+        "sheet": "images/monsters/lineage-festival.png",
+        "size": "400% 200%",
+        "position": "33.333% 0%",
+        "aspect": 1,
+        "zoom": 1.16,
+        "facing": "left"
+      }
+    },
+    "festival-perfect-b": {
+      "sheet": "images/monsters/pairs/lineage-festival-02.png",
+      "attackSheet": "images/monsters/pairs/lineage-festival-02-attack.png",
+      "slot": 0,
+      "count": 2,
+      "sourceSprite": {
+        "sheet": "images/monsters/lineage-festival.png",
+        "size": "400% 200%",
+        "position": "66.667% 0%",
+        "aspect": 1,
+        "zoom": 1.16,
+        "facing": "left"
+      }
+    },
+    "festival-ultimate-0": {
+      "sheet": "images/monsters/pairs/lineage-festival-02.png",
+      "attackSheet": "images/monsters/pairs/lineage-festival-02-attack.png",
+      "slot": 1,
+      "count": 2,
+      "sourceSprite": {
+        "sheet": "images/monsters/lineage-festival.png",
+        "size": "400% 200%",
+        "position": "0% 100%",
+        "aspect": 1,
+        "zoom": 1.14,
+        "facing": "left"
+      }
+    },
+    "festival-ultimate-1": {
+      "sheet": "images/monsters/pairs/lineage-festival-03.png",
+      "attackSheet": "images/monsters/pairs/lineage-festival-03-attack.png",
+      "slot": 0,
+      "count": 2,
+      "sourceSprite": {
+        "sheet": "images/monsters/lineage-festival.png",
+        "size": "400% 200%",
+        "position": "33.333% 100%",
+        "aspect": 1,
+        "zoom": 1.14,
+        "facing": "left"
+      }
+    },
+    "festival-ultimate-2": {
+      "sheet": "images/monsters/pairs/lineage-festival-03.png",
+      "attackSheet": "images/monsters/pairs/lineage-festival-03-attack.png",
+      "slot": 1,
+      "count": 2,
+      "sourceSprite": {
+        "sheet": "images/monsters/lineage-festival.png",
+        "size": "400% 200%",
+        "position": "66.666% 100%",
+        "aspect": 1,
+        "zoom": 1.14,
+        "facing": "left"
+      }
+    },
+    "festival-ultimate-3": {
+      "sheet": "images/monsters/pairs/lineage-festival-04.png",
+      "attackSheet": "images/monsters/pairs/lineage-festival-04-attack.png",
+      "slot": 0,
+      "count": 1,
+      "sourceSprite": {
+        "sheet": "images/monsters/lineage-festival.png",
+        "size": "400% 200%",
+        "position": "99.999% 100%",
+        "aspect": 1,
+        "zoom": 1.14,
+        "facing": "left"
+      }
+    },
+    "fossil-perfect-b": {
+      "sheet": "images/monsters/pairs/lineage-fossil-01.png",
+      "attackSheet": "images/monsters/pairs/lineage-fossil-01-attack.png",
+      "slot": 0,
+      "count": 2,
+      "sourceSprite": {
+        "sheet": "images/monsters/lineage-fossil.png",
+        "size": "400% 200%",
+        "position": "66.667% 0%",
+        "aspect": 1,
+        "zoom": 1.16,
+        "facing": "left"
+      }
+    },
+    "fossil-ultimate-0": {
+      "sheet": "images/monsters/pairs/lineage-fossil-01.png",
+      "attackSheet": "images/monsters/pairs/lineage-fossil-01-attack.png",
+      "slot": 1,
+      "count": 2,
+      "sourceSprite": {
+        "sheet": "images/monsters/lineage-fossil.png",
+        "size": "400% 200%",
+        "position": "0% 100%",
+        "aspect": 1,
+        "zoom": 1.14,
+        "facing": "left"
+      }
+    },
+    "fossil-ultimate-1": {
+      "sheet": "images/monsters/pairs/lineage-fossil-02.png",
+      "attackSheet": "images/monsters/pairs/lineage-fossil-02-attack.png",
+      "slot": 0,
+      "count": 2,
+      "sourceSprite": {
+        "sheet": "images/monsters/lineage-fossil.png",
+        "size": "400% 200%",
+        "position": "33.333% 100%",
+        "aspect": 1,
+        "zoom": 1.14,
+        "facing": "left"
+      }
+    },
+    "fossil-ultimate-2": {
+      "sheet": "images/monsters/pairs/lineage-fossil-02.png",
+      "attackSheet": "images/monsters/pairs/lineage-fossil-02-attack.png",
+      "slot": 1,
+      "count": 2,
+      "sourceSprite": {
+        "sheet": "images/monsters/lineage-fossil.png",
+        "size": "400% 200%",
+        "position": "66.666% 100%",
+        "aspect": 1,
+        "zoom": 1.14,
+        "facing": "left"
+      }
+    },
+    "fossil-ultimate-3": {
+      "sheet": "images/monsters/pairs/lineage-fossil-03.png",
+      "attackSheet": "images/monsters/pairs/lineage-fossil-03-attack.png",
+      "slot": 0,
+      "count": 1,
+      "sourceSprite": {
+        "sheet": "images/monsters/lineage-fossil.png",
+        "size": "400% 200%",
+        "position": "99.999% 100%",
+        "aspect": 1,
+        "zoom": 1.14,
+        "facing": "left"
+      }
+    },
+    "glacier-mature": {
+      "sheet": "images/monsters/pairs/lineage-glacier-01.png",
+      "attackSheet": "images/monsters/pairs/lineage-glacier-01-attack.png",
+      "slot": 0,
+      "count": 2,
+      "sourceSprite": {
+        "sheet": "images/monsters/lineage-glacier.png",
+        "size": "400% 200%",
+        "position": "0% 0%",
+        "aspect": 1,
+        "zoom": 1.16,
+        "facing": "left"
+      }
+    },
+    "glacier-perfect-a": {
+      "sheet": "images/monsters/pairs/lineage-glacier-01.png",
+      "attackSheet": "images/monsters/pairs/lineage-glacier-01-attack.png",
+      "slot": 1,
+      "count": 2,
+      "sourceSprite": {
+        "sheet": "images/monsters/lineage-glacier.png",
+        "size": "400% 200%",
+        "position": "33.333% 0%",
+        "aspect": 1,
+        "zoom": 1.16,
+        "facing": "left"
+      }
+    },
+    "glacier-perfect-b": {
+      "sheet": "images/monsters/pairs/lineage-glacier-02.png",
+      "attackSheet": "images/monsters/pairs/lineage-glacier-02-attack.png",
+      "slot": 0,
+      "count": 2,
+      "sourceSprite": {
+        "sheet": "images/monsters/lineage-glacier.png",
+        "size": "400% 200%",
+        "position": "66.667% 0%",
+        "aspect": 1,
+        "zoom": 1.16,
+        "facing": "left"
+      }
+    },
+    "glacier-ultimate-0": {
+      "sheet": "images/monsters/pairs/lineage-glacier-02.png",
+      "attackSheet": "images/monsters/pairs/lineage-glacier-02-attack.png",
+      "slot": 1,
+      "count": 2,
+      "sourceSprite": {
+        "sheet": "images/monsters/lineage-glacier.png",
+        "size": "400% 200%",
+        "position": "0% 100%",
+        "aspect": 1,
+        "zoom": 1.14,
+        "facing": "left"
+      }
+    },
+    "glacier-ultimate-1": {
+      "sheet": "images/monsters/pairs/lineage-glacier-03.png",
+      "attackSheet": "images/monsters/pairs/lineage-glacier-03-attack.png",
+      "slot": 0,
+      "count": 2,
+      "sourceSprite": {
+        "sheet": "images/monsters/lineage-glacier.png",
+        "size": "400% 200%",
+        "position": "33.333% 100%",
+        "aspect": 1,
+        "zoom": 1.14,
+        "facing": "left"
+      }
+    },
+    "glacier-ultimate-2": {
+      "sheet": "images/monsters/pairs/lineage-glacier-03.png",
+      "attackSheet": "images/monsters/pairs/lineage-glacier-03-attack.png",
+      "slot": 1,
+      "count": 2,
+      "sourceSprite": {
+        "sheet": "images/monsters/lineage-glacier.png",
+        "size": "400% 200%",
+        "position": "66.666% 100%",
+        "aspect": 1,
+        "zoom": 1.14,
+        "facing": "left"
+      }
+    },
+    "glacier-ultimate-3": {
+      "sheet": "images/monsters/pairs/lineage-glacier-04.png",
+      "attackSheet": "images/monsters/pairs/lineage-glacier-04-attack.png",
+      "slot": 0,
+      "count": 1,
+      "sourceSprite": {
+        "sheet": "images/monsters/lineage-glacier.png",
+        "size": "400% 200%",
+        "position": "99.999% 100%",
+        "aspect": 1,
+        "zoom": 1.14,
+        "facing": "left"
+      }
+    },
+    "gourmet-mature": {
+      "sheet": "images/monsters/pairs/lineage-gourmet-01.png",
+      "attackSheet": "images/monsters/pairs/lineage-gourmet-01-attack.png",
+      "slot": 0,
+      "count": 2,
+      "sourceSprite": {
+        "sheet": "images/monsters/lineage-gourmet.png",
+        "size": "400% 200%",
+        "position": "0% 0%",
+        "aspect": 1,
+        "zoom": 1.16,
+        "facing": "left"
+      }
+    },
+    "gourmet-perfect-a": {
+      "sheet": "images/monsters/pairs/lineage-gourmet-01.png",
+      "attackSheet": "images/monsters/pairs/lineage-gourmet-01-attack.png",
+      "slot": 1,
+      "count": 2,
+      "sourceSprite": {
+        "sheet": "images/monsters/lineage-gourmet.png",
+        "size": "400% 200%",
+        "position": "33.333% 0%",
+        "aspect": 1,
+        "zoom": 1.16,
+        "facing": "left"
+      }
+    },
+    "gourmet-perfect-b": {
+      "sheet": "images/monsters/pairs/lineage-gourmet-02.png",
+      "attackSheet": "images/monsters/pairs/lineage-gourmet-02-attack.png",
+      "slot": 0,
+      "count": 2,
+      "sourceSprite": {
+        "sheet": "images/monsters/lineage-gourmet.png",
+        "size": "400% 200%",
+        "position": "66.667% 0%",
+        "aspect": 1,
+        "zoom": 1.16,
+        "facing": "left"
+      }
+    },
+    "gourmet-ultimate-0": {
+      "sheet": "images/monsters/pairs/lineage-gourmet-02.png",
+      "attackSheet": "images/monsters/pairs/lineage-gourmet-02-attack.png",
+      "slot": 1,
+      "count": 2,
+      "sourceSprite": {
+        "sheet": "images/monsters/lineage-gourmet.png",
+        "size": "400% 200%",
+        "position": "0% 100%",
+        "aspect": 1,
+        "zoom": 1.14,
+        "facing": "left"
+      }
+    },
+    "gourmet-ultimate-1": {
+      "sheet": "images/monsters/pairs/lineage-gourmet-03.png",
+      "attackSheet": "images/monsters/pairs/lineage-gourmet-03-attack.png",
+      "slot": 0,
+      "count": 2,
+      "sourceSprite": {
+        "sheet": "images/monsters/lineage-gourmet.png",
+        "size": "400% 200%",
+        "position": "33.333% 100%",
+        "aspect": 1,
+        "zoom": 1.14,
+        "facing": "left"
+      }
+    },
+    "gourmet-ultimate-2": {
+      "sheet": "images/monsters/pairs/lineage-gourmet-03.png",
+      "attackSheet": "images/monsters/pairs/lineage-gourmet-03-attack.png",
+      "slot": 1,
+      "count": 2,
+      "sourceSprite": {
+        "sheet": "images/monsters/lineage-gourmet.png",
+        "size": "400% 200%",
+        "position": "66.666% 100%",
+        "aspect": 1,
+        "zoom": 1.14,
+        "facing": "left"
+      }
+    },
+    "gourmet-ultimate-3": {
+      "sheet": "images/monsters/pairs/lineage-gourmet-04.png",
+      "attackSheet": "images/monsters/pairs/lineage-gourmet-04-attack.png",
+      "slot": 0,
+      "count": 1,
+      "sourceSprite": {
+        "sheet": "images/monsters/lineage-gourmet.png",
+        "size": "400% 200%",
+        "position": "99.999% 100%",
+        "aspect": 1,
+        "zoom": 1.14,
+        "facing": "left"
+      }
+    },
+    "grove-mature": {
+      "sheet": "images/monsters/pairs/lineage-grove-01.png",
+      "attackSheet": "images/monsters/pairs/lineage-grove-01-attack.png",
+      "slot": 0,
+      "count": 2,
+      "sourceSprite": {
+        "sheet": "images/monsters/lineage-grove.png",
+        "size": "400% 200%",
+        "position": "0% 0%",
+        "aspect": 1,
+        "zoom": 1.16,
+        "facing": "left"
+      }
+    },
+    "grove-perfect-a": {
+      "sheet": "images/monsters/pairs/lineage-grove-01.png",
+      "attackSheet": "images/monsters/pairs/lineage-grove-01-attack.png",
+      "slot": 1,
+      "count": 2,
+      "sourceSprite": {
+        "sheet": "images/monsters/lineage-grove.png",
+        "size": "400% 200%",
+        "position": "33.333% 0%",
+        "aspect": 1,
+        "zoom": 1.16,
+        "facing": "left"
+      }
+    },
+    "grove-perfect-b": {
+      "sheet": "images/monsters/pairs/lineage-grove-02.png",
+      "attackSheet": "images/monsters/pairs/lineage-grove-02-attack.png",
+      "slot": 0,
+      "count": 2,
+      "sourceSprite": {
+        "sheet": "images/monsters/lineage-grove.png",
+        "size": "400% 200%",
+        "position": "66.667% 0%",
+        "aspect": 1,
+        "zoom": 1.16,
+        "facing": "left"
+      }
+    },
+    "grove-ultimate-0": {
+      "sheet": "images/monsters/pairs/lineage-grove-02.png",
+      "attackSheet": "images/monsters/pairs/lineage-grove-02-attack.png",
+      "slot": 1,
+      "count": 2,
+      "sourceSprite": {
+        "sheet": "images/monsters/lineage-grove.png",
+        "size": "400% 200%",
+        "position": "0% 100%",
+        "aspect": 1,
+        "zoom": 1.14,
+        "facing": "left"
+      }
+    },
+    "grove-ultimate-1": {
+      "sheet": "images/monsters/pairs/lineage-grove-03.png",
+      "attackSheet": "images/monsters/pairs/lineage-grove-03-attack.png",
+      "slot": 0,
+      "count": 2,
+      "sourceSprite": {
+        "sheet": "images/monsters/lineage-grove.png",
+        "size": "400% 200%",
+        "position": "33.333% 100%",
+        "aspect": 1,
+        "zoom": 1.14,
+        "facing": "left"
+      }
+    },
+    "grove-ultimate-2": {
+      "sheet": "images/monsters/pairs/lineage-grove-03.png",
+      "attackSheet": "images/monsters/pairs/lineage-grove-03-attack.png",
+      "slot": 1,
+      "count": 2,
+      "sourceSprite": {
+        "sheet": "images/monsters/lineage-grove.png",
+        "size": "400% 200%",
+        "position": "66.666% 100%",
+        "aspect": 1,
+        "zoom": 1.14,
+        "facing": "left"
+      }
+    },
+    "grove-ultimate-3": {
+      "sheet": "images/monsters/pairs/lineage-grove-04.png",
+      "attackSheet": "images/monsters/pairs/lineage-grove-04-attack.png",
+      "slot": 0,
+      "count": 1,
+      "sourceSprite": {
+        "sheet": "images/monsters/lineage-grove.png",
+        "size": "400% 200%",
+        "position": "99.999% 100%",
+        "aspect": 1,
+        "zoom": 1.14,
+        "facing": "left"
+      }
+    },
+    "inferno-mature": {
+      "sheet": "images/monsters/pairs/lineage-inferno-01.png",
+      "attackSheet": "images/monsters/pairs/lineage-inferno-01-attack.png",
+      "slot": 0,
+      "count": 2,
+      "sourceSprite": {
+        "sheet": "images/monsters/lineage-inferno.png",
+        "size": "400% 200%",
+        "position": "0% 0%",
+        "aspect": 1,
+        "zoom": 1.16,
+        "facing": "left"
+      }
+    },
+    "inferno-perfect-a": {
+      "sheet": "images/monsters/pairs/lineage-inferno-01.png",
+      "attackSheet": "images/monsters/pairs/lineage-inferno-01-attack.png",
+      "slot": 1,
+      "count": 2,
+      "sourceSprite": {
+        "sheet": "images/monsters/lineage-inferno.png",
+        "size": "400% 200%",
+        "position": "33.333% 0%",
+        "aspect": 1,
+        "zoom": 1.16,
+        "facing": "left"
+      }
+    },
+    "inferno-perfect-b": {
+      "sheet": "images/monsters/pairs/lineage-inferno-02.png",
+      "attackSheet": "images/monsters/pairs/lineage-inferno-02-attack.png",
+      "slot": 0,
+      "count": 2,
+      "sourceSprite": {
+        "sheet": "images/monsters/lineage-inferno.png",
+        "size": "400% 200%",
+        "position": "66.667% 0%",
+        "aspect": 1,
+        "zoom": 1.16,
+        "facing": "left"
+      }
+    },
+    "inferno-ultimate-0": {
+      "sheet": "images/monsters/pairs/lineage-inferno-02.png",
+      "attackSheet": "images/monsters/pairs/lineage-inferno-02-attack.png",
+      "slot": 1,
+      "count": 2,
+      "sourceSprite": {
+        "sheet": "images/monsters/lineage-inferno.png",
+        "size": "400% 200%",
+        "position": "0% 100%",
+        "aspect": 1,
+        "zoom": 1.14,
+        "facing": "left"
+      }
+    },
+    "inferno-ultimate-1": {
+      "sheet": "images/monsters/pairs/lineage-inferno-03.png",
+      "attackSheet": "images/monsters/pairs/lineage-inferno-03-attack.png",
+      "slot": 0,
+      "count": 2,
+      "sourceSprite": {
+        "sheet": "images/monsters/lineage-inferno.png",
+        "size": "400% 200%",
+        "position": "33.333% 100%",
+        "aspect": 1,
+        "zoom": 1.14,
+        "facing": "left"
+      }
+    },
+    "inferno-ultimate-2": {
+      "sheet": "images/monsters/pairs/lineage-inferno-03.png",
+      "attackSheet": "images/monsters/pairs/lineage-inferno-03-attack.png",
+      "slot": 1,
+      "count": 2,
+      "sourceSprite": {
+        "sheet": "images/monsters/lineage-inferno.png",
+        "size": "400% 200%",
+        "position": "66.666% 100%",
+        "aspect": 1,
+        "zoom": 1.14,
+        "facing": "left"
+      }
+    },
+    "inferno-ultimate-3": {
+      "sheet": "images/monsters/pairs/lineage-inferno-04.png",
+      "attackSheet": "images/monsters/pairs/lineage-inferno-04-attack.png",
+      "slot": 0,
+      "count": 1,
+      "sourceSprite": {
+        "sheet": "images/monsters/lineage-inferno.png",
+        "size": "400% 200%",
+        "position": "99.999% 100%",
+        "aspect": 1,
+        "zoom": 1.14,
+        "facing": "left"
+      }
+    },
+    "ink-mature": {
+      "sheet": "images/monsters/pairs/lineage-ink-01.png",
+      "attackSheet": "images/monsters/pairs/lineage-ink-01-attack.png",
+      "slot": 0,
+      "count": 2,
+      "sourceSprite": {
+        "sheet": "images/monsters/lineage-ink.png",
+        "size": "400% 200%",
+        "position": "0% 0%",
+        "aspect": 1,
+        "zoom": 1.16,
+        "facing": "left"
+      }
+    },
+    "ink-perfect-a": {
+      "sheet": "images/monsters/pairs/lineage-ink-01.png",
+      "attackSheet": "images/monsters/pairs/lineage-ink-01-attack.png",
+      "slot": 1,
+      "count": 2,
+      "sourceSprite": {
+        "sheet": "images/monsters/lineage-ink.png",
+        "size": "400% 200%",
+        "position": "33.333% 0%",
+        "aspect": 1,
+        "zoom": 1.16,
+        "facing": "left"
+      }
+    },
+    "ink-perfect-b": {
+      "sheet": "images/monsters/pairs/lineage-ink-02.png",
+      "attackSheet": "images/monsters/pairs/lineage-ink-02-attack.png",
+      "slot": 0,
+      "count": 2,
+      "sourceSprite": {
+        "sheet": "images/monsters/lineage-ink.png",
+        "size": "400% 200%",
+        "position": "66.667% 0%",
+        "aspect": 1,
+        "zoom": 1.16,
+        "facing": "left"
+      }
+    },
+    "ink-ultimate-0": {
+      "sheet": "images/monsters/pairs/lineage-ink-02.png",
+      "attackSheet": "images/monsters/pairs/lineage-ink-02-attack.png",
+      "slot": 1,
+      "count": 2,
+      "sourceSprite": {
+        "sheet": "images/monsters/lineage-ink.png",
+        "size": "400% 200%",
+        "position": "0% 100%",
+        "aspect": 1,
+        "zoom": 1.14,
+        "facing": "left"
+      }
+    },
+    "ink-ultimate-1": {
+      "sheet": "images/monsters/pairs/lineage-ink-03.png",
+      "attackSheet": "images/monsters/pairs/lineage-ink-03-attack.png",
+      "slot": 0,
+      "count": 2,
+      "sourceSprite": {
+        "sheet": "images/monsters/lineage-ink.png",
+        "size": "400% 200%",
+        "position": "33.333% 100%",
+        "aspect": 1,
+        "zoom": 1.14,
+        "facing": "left"
+      }
+    },
+    "ink-ultimate-2": {
+      "sheet": "images/monsters/pairs/lineage-ink-03.png",
+      "attackSheet": "images/monsters/pairs/lineage-ink-03-attack.png",
+      "slot": 1,
+      "count": 2,
+      "sourceSprite": {
+        "sheet": "images/monsters/lineage-ink.png",
+        "size": "400% 200%",
+        "position": "66.666% 100%",
+        "aspect": 1,
+        "zoom": 1.14,
+        "facing": "left"
+      }
+    },
+    "ink-ultimate-3": {
+      "sheet": "images/monsters/pairs/lineage-ink-04.png",
+      "attackSheet": "images/monsters/pairs/lineage-ink-04-attack.png",
+      "slot": 0,
+      "count": 1,
+      "sourceSprite": {
+        "sheet": "images/monsters/lineage-ink.png",
+        "size": "400% 200%",
+        "position": "99.999% 100%",
+        "aspect": 1,
+        "zoom": 1.14,
+        "facing": "left"
+      }
+    },
+    "junk-mature": {
+      "sheet": "images/monsters/pairs/lineage-junk-01.png",
+      "attackSheet": "images/monsters/pairs/lineage-junk-01-attack.png",
+      "slot": 0,
+      "count": 2,
+      "sourceSprite": {
+        "sheet": "images/monsters/lineage-junk.png",
+        "size": "400% 200%",
+        "position": "0% 0%",
+        "aspect": 1,
+        "zoom": 1.16,
+        "facing": "left"
+      }
+    },
+    "junk-perfect-a": {
+      "sheet": "images/monsters/pairs/lineage-junk-01.png",
+      "attackSheet": "images/monsters/pairs/lineage-junk-01-attack.png",
+      "slot": 1,
+      "count": 2,
+      "sourceSprite": {
+        "sheet": "images/monsters/lineage-junk.png",
+        "size": "400% 200%",
+        "position": "33.333% 0%",
+        "aspect": 1,
+        "zoom": 1.16,
+        "facing": "left"
+      }
+    },
+    "junk-perfect-b": {
+      "sheet": "images/monsters/pairs/lineage-junk-02.png",
+      "attackSheet": "images/monsters/pairs/lineage-junk-02-attack.png",
+      "slot": 0,
+      "count": 2,
+      "sourceSprite": {
+        "sheet": "images/monsters/lineage-junk.png",
+        "size": "400% 200%",
+        "position": "66.667% 0%",
+        "aspect": 1,
+        "zoom": 1.16,
+        "facing": "left"
+      }
+    },
+    "junk-ultimate-0": {
+      "sheet": "images/monsters/pairs/lineage-junk-02.png",
+      "attackSheet": "images/monsters/pairs/lineage-junk-02-attack.png",
+      "slot": 1,
+      "count": 2,
+      "sourceSprite": {
+        "sheet": "images/monsters/lineage-junk.png",
+        "size": "400% 200%",
+        "position": "0% 100%",
+        "aspect": 1,
+        "zoom": 1.14,
+        "facing": "left"
+      }
+    },
+    "junk-ultimate-1": {
+      "sheet": "images/monsters/pairs/lineage-junk-03.png",
+      "attackSheet": "images/monsters/pairs/lineage-junk-03-attack.png",
+      "slot": 0,
+      "count": 2,
+      "sourceSprite": {
+        "sheet": "images/monsters/lineage-junk.png",
+        "size": "400% 200%",
+        "position": "33.333% 100%",
+        "aspect": 1,
+        "zoom": 1.14,
+        "facing": "left"
+      }
+    },
+    "junk-ultimate-2": {
+      "sheet": "images/monsters/pairs/lineage-junk-03.png",
+      "attackSheet": "images/monsters/pairs/lineage-junk-03-attack.png",
+      "slot": 1,
+      "count": 2,
+      "sourceSprite": {
+        "sheet": "images/monsters/lineage-junk.png",
+        "size": "400% 200%",
+        "position": "66.666% 100%",
+        "aspect": 1,
+        "zoom": 1.14,
+        "facing": "left"
+      }
+    },
+    "junk-ultimate-3": {
+      "sheet": "images/monsters/pairs/lineage-junk-04.png",
+      "attackSheet": "images/monsters/pairs/lineage-junk-04-attack.png",
+      "slot": 0,
+      "count": 1,
+      "sourceSprite": {
+        "sheet": "images/monsters/lineage-junk.png",
+        "size": "400% 200%",
+        "position": "99.999% 100%",
+        "aspect": 1,
+        "zoom": 1.14,
+        "facing": "left"
+      }
+    },
+    "mecha-mature": {
+      "sheet": "images/monsters/pairs/lineage-mecha-01.png",
+      "attackSheet": "images/monsters/pairs/lineage-mecha-01-attack.png",
+      "slot": 0,
+      "count": 2,
+      "sourceSprite": {
+        "sheet": "images/monsters/lineage-mecha.png",
+        "size": "400% 200%",
+        "position": "0% 0%",
+        "aspect": 1,
+        "zoom": 1.16,
+        "facing": "left"
+      }
+    },
+    "mecha-perfect-a": {
+      "sheet": "images/monsters/pairs/lineage-mecha-01.png",
+      "attackSheet": "images/monsters/pairs/lineage-mecha-01-attack.png",
+      "slot": 1,
+      "count": 2,
+      "sourceSprite": {
+        "sheet": "images/monsters/lineage-mecha.png",
+        "size": "400% 200%",
+        "position": "33.333% 0%",
+        "aspect": 1,
+        "zoom": 1.16,
+        "facing": "left"
+      }
+    },
+    "mecha-perfect-b": {
+      "sheet": "images/monsters/pairs/lineage-mecha-02.png",
+      "attackSheet": "images/monsters/pairs/lineage-mecha-02-attack.png",
+      "slot": 0,
+      "count": 2,
+      "sourceSprite": {
+        "sheet": "images/monsters/lineage-mecha.png",
+        "size": "400% 200%",
+        "position": "66.667% 0%",
+        "aspect": 1,
+        "zoom": 1.16,
+        "facing": "left"
+      }
+    },
+    "mecha-ultimate-0": {
+      "sheet": "images/monsters/pairs/lineage-mecha-02.png",
+      "attackSheet": "images/monsters/pairs/lineage-mecha-02-attack.png",
+      "slot": 1,
+      "count": 2,
+      "sourceSprite": {
+        "sheet": "images/monsters/lineage-mecha.png",
+        "size": "400% 200%",
+        "position": "0% 100%",
+        "aspect": 1,
+        "zoom": 1.14,
+        "facing": "left"
+      }
+    },
+    "mecha-ultimate-1": {
+      "sheet": "images/monsters/pairs/lineage-mecha-03.png",
+      "attackSheet": "images/monsters/pairs/lineage-mecha-03-attack.png",
+      "slot": 0,
+      "count": 2,
+      "sourceSprite": {
+        "sheet": "images/monsters/lineage-mecha.png",
+        "size": "400% 200%",
+        "position": "33.333% 100%",
+        "aspect": 1,
+        "zoom": 1.14,
+        "facing": "left"
+      }
+    },
+    "mecha-ultimate-2": {
+      "sheet": "images/monsters/pairs/lineage-mecha-03.png",
+      "attackSheet": "images/monsters/pairs/lineage-mecha-03-attack.png",
+      "slot": 1,
+      "count": 2,
+      "sourceSprite": {
+        "sheet": "images/monsters/lineage-mecha.png",
+        "size": "400% 200%",
+        "position": "66.666% 100%",
+        "aspect": 1,
+        "zoom": 1.14,
+        "facing": "left"
+      }
+    },
+    "mecha-ultimate-3": {
+      "sheet": "images/monsters/pairs/lineage-mecha-04.png",
+      "attackSheet": "images/monsters/pairs/lineage-mecha-04-attack.png",
+      "slot": 0,
+      "count": 1,
+      "sourceSprite": {
+        "sheet": "images/monsters/lineage-mecha.png",
+        "size": "400% 200%",
+        "position": "99.999% 100%",
+        "aspect": 1,
+        "zoom": 1.14,
+        "facing": "left"
+      }
+    },
+    "ninja-mature": {
+      "sheet": "images/monsters/pairs/lineage-ninja-01.png",
+      "attackSheet": "images/monsters/pairs/lineage-ninja-01-attack.png",
+      "slot": 0,
+      "count": 2,
+      "sourceSprite": {
+        "sheet": "images/monsters/lineage-ninja.png",
+        "size": "400% 200%",
+        "position": "0% 0%",
+        "aspect": 1,
+        "zoom": 1.16,
+        "facing": "left"
+      }
+    },
+    "ninja-perfect-a": {
+      "sheet": "images/monsters/pairs/lineage-ninja-01.png",
+      "attackSheet": "images/monsters/pairs/lineage-ninja-01-attack.png",
+      "slot": 1,
+      "count": 2,
+      "sourceSprite": {
+        "sheet": "images/monsters/lineage-ninja.png",
+        "size": "400% 200%",
+        "position": "33.333% 0%",
+        "aspect": 1,
+        "zoom": 1.16,
+        "facing": "left"
+      }
+    },
+    "ninja-perfect-b": {
+      "sheet": "images/monsters/pairs/lineage-ninja-02.png",
+      "attackSheet": "images/monsters/pairs/lineage-ninja-02-attack.png",
+      "slot": 0,
+      "count": 2,
+      "sourceSprite": {
+        "sheet": "images/monsters/lineage-ninja.png",
+        "size": "400% 200%",
+        "position": "66.667% 0%",
+        "aspect": 1,
+        "zoom": 1.16,
+        "facing": "left"
+      }
+    },
+    "ninja-ultimate-0": {
+      "sheet": "images/monsters/pairs/lineage-ninja-02.png",
+      "attackSheet": "images/monsters/pairs/lineage-ninja-02-attack.png",
+      "slot": 1,
+      "count": 2,
+      "sourceSprite": {
+        "sheet": "images/monsters/lineage-ninja.png",
+        "size": "400% 200%",
+        "position": "0% 100%",
+        "aspect": 1,
+        "zoom": 1.14,
+        "facing": "left"
+      }
+    },
+    "ninja-ultimate-1": {
+      "sheet": "images/monsters/pairs/lineage-ninja-03.png",
+      "attackSheet": "images/monsters/pairs/lineage-ninja-03-attack.png",
+      "slot": 0,
+      "count": 2,
+      "sourceSprite": {
+        "sheet": "images/monsters/lineage-ninja.png",
+        "size": "400% 200%",
+        "position": "33.333% 100%",
+        "aspect": 1,
+        "zoom": 1.14,
+        "facing": "left"
+      }
+    },
+    "ninja-ultimate-2": {
+      "sheet": "images/monsters/pairs/lineage-ninja-03.png",
+      "attackSheet": "images/monsters/pairs/lineage-ninja-03-attack.png",
+      "slot": 1,
+      "count": 2,
+      "sourceSprite": {
+        "sheet": "images/monsters/lineage-ninja.png",
+        "size": "400% 200%",
+        "position": "66.666% 100%",
+        "aspect": 1,
+        "zoom": 1.14,
+        "facing": "left"
+      }
+    },
+    "ninja-ultimate-3": {
+      "sheet": "images/monsters/pairs/lineage-ninja-04.png",
+      "attackSheet": "images/monsters/pairs/lineage-ninja-04-attack.png",
+      "slot": 0,
+      "count": 1,
+      "sourceSprite": {
+        "sheet": "images/monsters/lineage-ninja.png",
+        "size": "400% 200%",
+        "position": "99.999% 100%",
+        "aspect": 1,
+        "zoom": 1.14,
+        "facing": "left"
+      }
+    },
+    "rail-mature": {
+      "sheet": "images/monsters/pairs/lineage-rail-01.png",
+      "attackSheet": "images/monsters/pairs/lineage-rail-01-attack.png",
+      "slot": 0,
+      "count": 2,
+      "sourceSprite": {
+        "sheet": "images/monsters/lineage-rail.png",
+        "size": "400% 200%",
+        "position": "0% 0%",
+        "aspect": 1,
+        "zoom": 1.16,
+        "facing": "left"
+      }
+    },
+    "rail-perfect-a": {
+      "sheet": "images/monsters/pairs/lineage-rail-01.png",
+      "attackSheet": "images/monsters/pairs/lineage-rail-01-attack.png",
+      "slot": 1,
+      "count": 2,
+      "sourceSprite": {
+        "sheet": "images/monsters/lineage-rail.png",
+        "size": "400% 200%",
+        "position": "33.333% 0%",
+        "aspect": 1,
+        "zoom": 1.16,
+        "facing": "left"
+      }
+    },
+    "rail-perfect-b": {
+      "sheet": "images/monsters/pairs/lineage-rail-02.png",
+      "attackSheet": "images/monsters/pairs/lineage-rail-02-attack.png",
+      "slot": 0,
+      "count": 2,
+      "sourceSprite": {
+        "sheet": "images/monsters/lineage-rail.png",
+        "size": "400% 200%",
+        "position": "66.667% 0%",
+        "aspect": 1,
+        "zoom": 1.16,
+        "facing": "left"
+      }
+    },
+    "rail-ultimate-0": {
+      "sheet": "images/monsters/pairs/lineage-rail-02.png",
+      "attackSheet": "images/monsters/pairs/lineage-rail-02-attack.png",
+      "slot": 1,
+      "count": 2,
+      "sourceSprite": {
+        "sheet": "images/monsters/lineage-rail.png",
+        "size": "400% 200%",
+        "position": "0% 100%",
+        "aspect": 1,
+        "zoom": 1.14,
+        "facing": "left"
+      }
+    },
+    "rail-ultimate-1": {
+      "sheet": "images/monsters/pairs/lineage-rail-03.png",
+      "attackSheet": "images/monsters/pairs/lineage-rail-03-attack.png",
+      "slot": 0,
+      "count": 2,
+      "sourceSprite": {
+        "sheet": "images/monsters/lineage-rail.png",
+        "size": "400% 200%",
+        "position": "33.333% 100%",
+        "aspect": 1,
+        "zoom": 1.14,
+        "facing": "left"
+      }
+    },
+    "rail-ultimate-2": {
+      "sheet": "images/monsters/pairs/lineage-rail-03.png",
+      "attackSheet": "images/monsters/pairs/lineage-rail-03-attack.png",
+      "slot": 1,
+      "count": 2,
+      "sourceSprite": {
+        "sheet": "images/monsters/lineage-rail.png",
+        "size": "400% 200%",
+        "position": "66.666% 100%",
+        "aspect": 1,
+        "zoom": 1.14,
+        "facing": "left"
+      }
+    },
+    "rail-ultimate-3": {
+      "sheet": "images/monsters/pairs/lineage-rail-04.png",
+      "attackSheet": "images/monsters/pairs/lineage-rail-04-attack.png",
+      "slot": 0,
+      "count": 1,
+      "sourceSprite": {
+        "sheet": "images/monsters/lineage-rail.png",
+        "size": "400% 200%",
+        "position": "99.999% 100%",
+        "aspect": 1,
+        "zoom": 1.14,
+        "facing": "left"
+      }
+    },
+    "ryu-mature": {
+      "sheet": "images/monsters/pairs/lineage-ryu-01.png",
+      "attackSheet": "images/monsters/pairs/lineage-ryu-01-attack.png",
+      "slot": 0,
+      "count": 2,
+      "sourceSprite": {
+        "sheet": "images/monsters/lineage-ryu.png",
+        "size": "400% 200%",
+        "position": "0% 0%",
+        "aspect": 1,
+        "zoom": 1.16,
+        "facing": "left"
+      }
+    },
+    "ryu-perfect-a": {
+      "sheet": "images/monsters/pairs/lineage-ryu-01.png",
+      "attackSheet": "images/monsters/pairs/lineage-ryu-01-attack.png",
+      "slot": 1,
+      "count": 2,
+      "sourceSprite": {
+        "sheet": "images/monsters/lineage-ryu.png",
+        "size": "400% 200%",
+        "position": "33.333% 0%",
+        "aspect": 1,
+        "zoom": 1.16,
+        "facing": "left"
+      }
+    },
+    "ryu-perfect-b": {
+      "sheet": "images/monsters/pairs/lineage-ryu-02.png",
+      "attackSheet": "images/monsters/pairs/lineage-ryu-02-attack.png",
+      "slot": 0,
+      "count": 2,
+      "sourceSprite": {
+        "sheet": "images/monsters/lineage-ryu.png",
+        "size": "400% 200%",
+        "position": "66.667% 0%",
+        "aspect": 1,
+        "zoom": 1.16,
+        "facing": "left"
+      }
+    },
+    "ryu-ultimate-0": {
+      "sheet": "images/monsters/pairs/lineage-ryu-02.png",
+      "attackSheet": "images/monsters/pairs/lineage-ryu-02-attack.png",
+      "slot": 1,
+      "count": 2,
+      "sourceSprite": {
+        "sheet": "images/monsters/lineage-ryu.png",
+        "size": "400% 200%",
+        "position": "0% 100%",
+        "aspect": 1,
+        "zoom": 1.14,
+        "facing": "left"
+      }
+    },
+    "ryu-ultimate-1": {
+      "sheet": "images/monsters/pairs/lineage-ryu-03.png",
+      "attackSheet": "images/monsters/pairs/lineage-ryu-03-attack.png",
+      "slot": 0,
+      "count": 2,
+      "sourceSprite": {
+        "sheet": "images/monsters/lineage-ryu.png",
+        "size": "400% 200%",
+        "position": "33.333% 100%",
+        "aspect": 1,
+        "zoom": 1.14,
+        "facing": "left"
+      }
+    },
+    "ryu-ultimate-2": {
+      "sheet": "images/monsters/pairs/lineage-ryu-03.png",
+      "attackSheet": "images/monsters/pairs/lineage-ryu-03-attack.png",
+      "slot": 1,
+      "count": 2,
+      "sourceSprite": {
+        "sheet": "images/monsters/lineage-ryu.png",
+        "size": "400% 200%",
+        "position": "66.666% 100%",
+        "aspect": 1,
+        "zoom": 1.14,
+        "facing": "left"
+      }
+    },
+    "ryu-ultimate-3": {
+      "sheet": "images/monsters/pairs/lineage-ryu-04.png",
+      "attackSheet": "images/monsters/pairs/lineage-ryu-04-attack.png",
+      "slot": 0,
+      "count": 1,
+      "sourceSprite": {
+        "sheet": "images/monsters/lineage-ryu.png",
+        "size": "400% 200%",
+        "position": "99.999% 100%",
+        "aspect": 1,
+        "zoom": 1.14,
+        "facing": "left"
+      }
+    },
+    "samurai-mature": {
+      "sheet": "images/monsters/pairs/lineage-samurai-01.png",
+      "attackSheet": "images/monsters/pairs/lineage-samurai-01-attack.png",
+      "slot": 0,
+      "count": 2,
+      "sourceSprite": {
+        "sheet": "images/monsters/lineage-samurai.png",
+        "size": "400% 200%",
+        "position": "0% 0%",
+        "aspect": 0.937,
+        "zoom": 1.16,
+        "facing": "left"
+      }
+    },
+    "samurai-perfect-a": {
+      "sheet": "images/monsters/pairs/lineage-samurai-01.png",
+      "attackSheet": "images/monsters/pairs/lineage-samurai-01-attack.png",
+      "slot": 1,
+      "count": 2,
+      "sourceSprite": {
+        "sheet": "images/monsters/lineage-samurai.png",
+        "size": "400% 200%",
+        "position": "33.333% 0%",
+        "aspect": 0.937,
+        "zoom": 1.16,
+        "facing": "left"
+      }
+    },
+    "samurai-perfect-b": {
+      "sheet": "images/monsters/pairs/lineage-samurai-02.png",
+      "attackSheet": "images/monsters/pairs/lineage-samurai-02-attack.png",
+      "slot": 0,
+      "count": 2,
+      "sourceSprite": {
+        "sheet": "images/monsters/lineage-samurai.png",
+        "size": "400% 200%",
+        "position": "66.667% 0%",
+        "aspect": 0.937,
+        "zoom": 1.16,
+        "facing": "right"
+      }
+    },
+    "samurai-ultimate-0": {
+      "sheet": "images/monsters/pairs/lineage-samurai-02.png",
+      "attackSheet": "images/monsters/pairs/lineage-samurai-02-attack.png",
+      "slot": 1,
+      "count": 2,
+      "sourceSprite": {
+        "sheet": "images/monsters/lineage-samurai.png",
+        "size": "400% 200%",
+        "position": "0% 100%",
+        "aspect": 0.937,
+        "zoom": 1.14,
+        "facing": "left"
+      }
+    },
+    "samurai-ultimate-1": {
+      "sheet": "images/monsters/pairs/lineage-samurai-03.png",
+      "attackSheet": "images/monsters/pairs/lineage-samurai-03-attack.png",
+      "slot": 0,
+      "count": 2,
+      "sourceSprite": {
+        "sheet": "images/monsters/lineage-samurai.png",
+        "size": "400% 200%",
+        "position": "33.333% 100%",
+        "aspect": 0.937,
+        "zoom": 1.14,
+        "facing": "left"
+      }
+    },
+    "samurai-ultimate-2": {
+      "sheet": "images/monsters/pairs/lineage-samurai-03.png",
+      "attackSheet": "images/monsters/pairs/lineage-samurai-03-attack.png",
+      "slot": 1,
+      "count": 2,
+      "sourceSprite": {
+        "sheet": "images/monsters/lineage-samurai.png",
+        "size": "400% 200%",
+        "position": "66.666% 100%",
+        "aspect": 0.937,
+        "zoom": 1.14,
+        "facing": "right"
+      }
+    },
+    "samurai-ultimate-3": {
+      "sheet": "images/monsters/pairs/lineage-samurai-04.png",
+      "attackSheet": "images/monsters/pairs/lineage-samurai-04-attack.png",
+      "slot": 0,
+      "count": 1,
+      "sourceSprite": {
+        "sheet": "images/monsters/lineage-samurai.png",
+        "size": "400% 200%",
+        "position": "99.999% 100%",
+        "aspect": 0.937,
+        "zoom": 1.14,
+        "facing": "left"
+      }
+    },
+    "shadow-mature": {
+      "sheet": "images/monsters/pairs/lineage-shadow-01.png",
+      "attackSheet": "images/monsters/pairs/lineage-shadow-01-attack.png",
+      "slot": 0,
+      "count": 2,
+      "sourceSprite": {
+        "sheet": "images/monsters/lineage-shadow.png",
+        "size": "400% 200%",
+        "position": "0% 0%",
+        "aspect": 1,
+        "zoom": 1.16,
+        "facing": "left"
+      }
+    },
+    "shadow-perfect-a": {
+      "sheet": "images/monsters/pairs/lineage-shadow-01.png",
+      "attackSheet": "images/monsters/pairs/lineage-shadow-01-attack.png",
+      "slot": 1,
+      "count": 2,
+      "sourceSprite": {
+        "sheet": "images/monsters/lineage-shadow.png",
+        "size": "400% 200%",
+        "position": "33.333% 0%",
+        "aspect": 1,
+        "zoom": 1.16,
+        "facing": "left"
+      }
+    },
+    "shadow-perfect-b": {
+      "sheet": "images/monsters/pairs/lineage-shadow-02.png",
+      "attackSheet": "images/monsters/pairs/lineage-shadow-02-attack.png",
+      "slot": 0,
+      "count": 2,
+      "sourceSprite": {
+        "sheet": "images/monsters/lineage-shadow.png",
+        "size": "400% 200%",
+        "position": "66.667% 0%",
+        "aspect": 1,
+        "zoom": 1.16,
+        "facing": "left"
+      }
+    },
+    "shadow-ultimate-0": {
+      "sheet": "images/monsters/pairs/lineage-shadow-02.png",
+      "attackSheet": "images/monsters/pairs/lineage-shadow-02-attack.png",
+      "slot": 1,
+      "count": 2,
+      "sourceSprite": {
+        "sheet": "images/monsters/lineage-shadow.png",
+        "size": "400% 200%",
+        "position": "0% 100%",
+        "aspect": 1,
+        "zoom": 1.14,
+        "facing": "left"
+      }
+    },
+    "shadow-ultimate-1": {
+      "sheet": "images/monsters/pairs/lineage-shadow-03.png",
+      "attackSheet": "images/monsters/pairs/lineage-shadow-03-attack.png",
+      "slot": 0,
+      "count": 2,
+      "sourceSprite": {
+        "sheet": "images/monsters/lineage-shadow.png",
+        "size": "400% 200%",
+        "position": "33.333% 100%",
+        "aspect": 1,
+        "zoom": 1.14,
+        "facing": "left"
+      }
+    },
+    "shadow-ultimate-2": {
+      "sheet": "images/monsters/pairs/lineage-shadow-03.png",
+      "attackSheet": "images/monsters/pairs/lineage-shadow-03-attack.png",
+      "slot": 1,
+      "count": 2,
+      "sourceSprite": {
+        "sheet": "images/monsters/lineage-shadow.png",
+        "size": "400% 200%",
+        "position": "66.666% 100%",
+        "aspect": 1,
+        "zoom": 1.14,
+        "facing": "left"
+      }
+    },
+    "shadow-ultimate-3": {
+      "sheet": "images/monsters/pairs/lineage-shadow-04.png",
+      "attackSheet": "images/monsters/pairs/lineage-shadow-04-attack.png",
+      "slot": 0,
+      "count": 1,
+      "sourceSprite": {
+        "sheet": "images/monsters/lineage-shadow.png",
+        "size": "400% 200%",
+        "position": "99.999% 100%",
+        "aspect": 1,
+        "zoom": 1.14,
+        "facing": "left"
+      }
+    },
+    "sky-mature": {
+      "sheet": "images/monsters/pairs/lineage-sky-01.png",
+      "attackSheet": "images/monsters/pairs/lineage-sky-01-attack.png",
+      "slot": 0,
+      "count": 2,
+      "sourceSprite": {
+        "sheet": "images/monsters/lineage-sky.png",
+        "size": "400% 200%",
+        "position": "0% 0%",
+        "aspect": 1,
+        "zoom": 1.16,
+        "facing": "left"
+      }
+    },
+    "sky-perfect-a": {
+      "sheet": "images/monsters/pairs/lineage-sky-01.png",
+      "attackSheet": "images/monsters/pairs/lineage-sky-01-attack.png",
+      "slot": 1,
+      "count": 2,
+      "sourceSprite": {
+        "sheet": "images/monsters/lineage-sky.png",
+        "size": "400% 200%",
+        "position": "33.333% 0%",
+        "aspect": 1,
+        "zoom": 1.16,
+        "facing": "left"
+      }
+    },
+    "sky-perfect-b": {
+      "sheet": "images/monsters/pairs/lineage-sky-02.png",
+      "attackSheet": "images/monsters/pairs/lineage-sky-02-attack.png",
+      "slot": 0,
+      "count": 2,
+      "sourceSprite": {
+        "sheet": "images/monsters/lineage-sky.png",
+        "size": "400% 200%",
+        "position": "66.667% 0%",
+        "aspect": 1,
+        "zoom": 1.16,
+        "facing": "left"
+      }
+    },
+    "sky-ultimate-0": {
+      "sheet": "images/monsters/pairs/lineage-sky-02.png",
+      "attackSheet": "images/monsters/pairs/lineage-sky-02-attack.png",
+      "slot": 1,
+      "count": 2,
+      "sourceSprite": {
+        "sheet": "images/monsters/lineage-sky.png",
+        "size": "400% 200%",
+        "position": "0% 100%",
+        "aspect": 1,
+        "zoom": 1.14,
+        "facing": "left"
+      }
+    },
+    "sky-ultimate-1": {
+      "sheet": "images/monsters/pairs/lineage-sky-03.png",
+      "attackSheet": "images/monsters/pairs/lineage-sky-03-attack.png",
+      "slot": 0,
+      "count": 2,
+      "sourceSprite": {
+        "sheet": "images/monsters/lineage-sky.png",
+        "size": "400% 200%",
+        "position": "33.333% 100%",
+        "aspect": 1,
+        "zoom": 1.14,
+        "facing": "left"
+      }
+    },
+    "sky-ultimate-2": {
+      "sheet": "images/monsters/pairs/lineage-sky-03.png",
+      "attackSheet": "images/monsters/pairs/lineage-sky-03-attack.png",
+      "slot": 1,
+      "count": 2,
+      "sourceSprite": {
+        "sheet": "images/monsters/lineage-sky.png",
+        "size": "400% 200%",
+        "position": "66.666% 100%",
+        "aspect": 1,
+        "zoom": 1.14,
+        "facing": "left"
+      }
+    },
+    "sky-ultimate-3": {
+      "sheet": "images/monsters/pairs/lineage-sky-04.png",
+      "attackSheet": "images/monsters/pairs/lineage-sky-04-attack.png",
+      "slot": 0,
+      "count": 1,
+      "sourceSprite": {
+        "sheet": "images/monsters/lineage-sky.png",
+        "size": "400% 200%",
+        "position": "99.999% 100%",
+        "aspect": 1,
+        "zoom": 1.14,
+        "facing": "left"
+      }
+    },
+    "slime-mature": {
+      "sheet": "images/monsters/pairs/lineage-slime-01.png",
+      "attackSheet": "images/monsters/pairs/lineage-slime-01-attack.png",
+      "slot": 0,
+      "count": 2,
+      "sourceSprite": {
+        "sheet": "images/monsters/lineage-slime.png",
+        "size": "400% 200%",
+        "position": "0% 0%",
+        "aspect": 0.889,
+        "zoom": 1.16,
+        "facing": "left"
+      }
+    },
+    "slime-perfect-a": {
+      "sheet": "images/monsters/pairs/lineage-slime-01.png",
+      "attackSheet": "images/monsters/pairs/lineage-slime-01-attack.png",
+      "slot": 1,
+      "count": 2,
+      "sourceSprite": {
+        "sheet": "images/monsters/lineage-slime.png",
+        "size": "400% 200%",
+        "position": "33.333% 0%",
+        "aspect": 0.889,
+        "zoom": 1.16,
+        "facing": "left"
+      }
+    },
+    "slime-perfect-b": {
+      "sheet": "images/monsters/pairs/lineage-slime-02.png",
+      "attackSheet": "images/monsters/pairs/lineage-slime-02-attack.png",
+      "slot": 0,
+      "count": 2,
+      "sourceSprite": {
+        "sheet": "images/monsters/lineage-slime.png",
+        "size": "400% 200%",
+        "position": "66.667% 0%",
+        "aspect": 0.889,
+        "zoom": 1.16,
+        "facing": "left"
+      }
+    },
+    "slime-ultimate-0": {
+      "sheet": "images/monsters/pairs/lineage-slime-02.png",
+      "attackSheet": "images/monsters/pairs/lineage-slime-02-attack.png",
+      "slot": 1,
+      "count": 2,
+      "sourceSprite": {
+        "sheet": "images/monsters/lineage-slime.png",
+        "size": "400% 200%",
+        "position": "0% 100%",
+        "aspect": 0.889,
+        "zoom": 1.14,
+        "facing": "left"
+      }
+    },
+    "slime-ultimate-1": {
+      "sheet": "images/monsters/pairs/lineage-slime-03.png",
+      "attackSheet": "images/monsters/pairs/lineage-slime-03-attack.png",
+      "slot": 0,
+      "count": 2,
+      "sourceSprite": {
+        "sheet": "images/monsters/lineage-slime.png",
+        "size": "400% 200%",
+        "position": "33.333% 100%",
+        "aspect": 0.889,
+        "zoom": 1.14,
+        "facing": "left"
+      }
+    },
+    "slime-ultimate-2": {
+      "sheet": "images/monsters/pairs/lineage-slime-03.png",
+      "attackSheet": "images/monsters/pairs/lineage-slime-03-attack.png",
+      "slot": 1,
+      "count": 2,
+      "sourceSprite": {
+        "sheet": "images/monsters/lineage-slime.png",
+        "size": "400% 200%",
+        "position": "66.666% 100%",
+        "aspect": 0.889,
+        "zoom": 1.14,
+        "facing": "left"
+      }
+    },
+    "slime-ultimate-3": {
+      "sheet": "images/monsters/pairs/lineage-slime-04.png",
+      "attackSheet": "images/monsters/pairs/lineage-slime-04-attack.png",
+      "slot": 0,
+      "count": 1,
+      "sourceSprite": {
+        "sheet": "images/monsters/lineage-slime.png",
+        "size": "400% 200%",
+        "position": "99.999% 100%",
+        "aspect": 0.889,
+        "zoom": 1.14,
+        "facing": "left"
+      }
+    },
+    "sonic-mature": {
+      "sheet": "images/monsters/pairs/lineage-sonic-01.png",
+      "attackSheet": "images/monsters/pairs/lineage-sonic-01-attack.png",
+      "slot": 0,
+      "count": 2,
+      "sourceSprite": {
+        "sheet": "images/monsters/lineage-sonic.png",
+        "size": "400% 200%",
+        "position": "0% 0%",
+        "aspect": 1,
+        "zoom": 1.16,
+        "facing": "left"
+      }
+    },
+    "sonic-perfect-a": {
+      "sheet": "images/monsters/pairs/lineage-sonic-01.png",
+      "attackSheet": "images/monsters/pairs/lineage-sonic-01-attack.png",
+      "slot": 1,
+      "count": 2,
+      "sourceSprite": {
+        "sheet": "images/monsters/lineage-sonic.png",
+        "size": "400% 200%",
+        "position": "33.333% 0%",
+        "aspect": 1,
+        "zoom": 1.16,
+        "facing": "right"
+      }
+    },
+    "sonic-ultimate-0": {
+      "sheet": "images/monsters/pairs/lineage-sonic-02.png",
+      "attackSheet": "images/monsters/pairs/lineage-sonic-02-attack.png",
+      "slot": 0,
+      "count": 2,
+      "sourceSprite": {
+        "sheet": "images/monsters/lineage-sonic.png",
+        "size": "400% 200%",
+        "position": "0% 100%",
+        "aspect": 1,
+        "zoom": 1.14,
+        "facing": "left"
+      }
+    },
+    "sonic-ultimate-1": {
+      "sheet": "images/monsters/pairs/lineage-sonic-02.png",
+      "attackSheet": "images/monsters/pairs/lineage-sonic-02-attack.png",
+      "slot": 1,
+      "count": 2,
+      "sourceSprite": {
+        "sheet": "images/monsters/lineage-sonic.png",
+        "size": "400% 200%",
+        "position": "33.333% 100%",
+        "aspect": 1,
+        "zoom": 1.14,
+        "facing": "left"
+      }
+    },
+    "sonic-ultimate-2": {
+      "sheet": "images/monsters/pairs/lineage-sonic-03.png",
+      "attackSheet": "images/monsters/pairs/lineage-sonic-03-attack.png",
+      "slot": 0,
+      "count": 2,
+      "sourceSprite": {
+        "sheet": "images/monsters/lineage-sonic.png",
+        "size": "400% 200%",
+        "position": "66.666% 100%",
+        "aspect": 1,
+        "zoom": 1.14,
+        "facing": "left"
+      }
+    },
+    "sonic-ultimate-3": {
+      "sheet": "images/monsters/pairs/lineage-sonic-03.png",
+      "attackSheet": "images/monsters/pairs/lineage-sonic-03-attack.png",
+      "slot": 1,
+      "count": 2,
+      "sourceSprite": {
+        "sheet": "images/monsters/lineage-sonic.png",
+        "size": "400% 200%",
+        "position": "99.999% 100%",
+        "aspect": 1,
+        "zoom": 1.14,
+        "facing": "left"
+      }
+    },
+    "spirit-mature": {
+      "sheet": "images/monsters/pairs/lineage-spirit-01.png",
+      "attackSheet": "images/monsters/pairs/lineage-spirit-01-attack.png",
+      "slot": 0,
+      "count": 2,
+      "sourceSprite": {
+        "sheet": "images/monsters/lineage-spirit.png",
+        "size": "400% 200%",
+        "position": "0% 0%",
+        "aspect": 1,
+        "zoom": 1.16,
+        "facing": "left"
+      }
+    },
+    "spirit-perfect-a": {
+      "sheet": "images/monsters/pairs/lineage-spirit-01.png",
+      "attackSheet": "images/monsters/pairs/lineage-spirit-01-attack.png",
+      "slot": 1,
+      "count": 2,
+      "sourceSprite": {
+        "sheet": "images/monsters/lineage-spirit.png",
+        "size": "400% 200%",
+        "position": "33.333% 0%",
+        "aspect": 1,
+        "zoom": 1.16,
+        "facing": "left"
+      }
+    },
+    "spirit-perfect-b": {
+      "sheet": "images/monsters/pairs/lineage-spirit-02.png",
+      "attackSheet": "images/monsters/pairs/lineage-spirit-02-attack.png",
+      "slot": 0,
+      "count": 2,
+      "sourceSprite": {
+        "sheet": "images/monsters/lineage-spirit.png",
+        "size": "400% 200%",
+        "position": "66.667% 0%",
+        "aspect": 1,
+        "zoom": 1.16,
+        "facing": "left"
+      }
+    },
+    "spirit-ultimate-0": {
+      "sheet": "images/monsters/pairs/lineage-spirit-02.png",
+      "attackSheet": "images/monsters/pairs/lineage-spirit-02-attack.png",
+      "slot": 1,
+      "count": 2,
+      "sourceSprite": {
+        "sheet": "images/monsters/lineage-spirit.png",
+        "size": "400% 200%",
+        "position": "0% 100%",
+        "aspect": 1,
+        "zoom": 1.14,
+        "facing": "left"
+      }
+    },
+    "spirit-ultimate-1": {
+      "sheet": "images/monsters/pairs/lineage-spirit-03.png",
+      "attackSheet": "images/monsters/pairs/lineage-spirit-03-attack.png",
+      "slot": 0,
+      "count": 2,
+      "sourceSprite": {
+        "sheet": "images/monsters/lineage-spirit.png",
+        "size": "400% 200%",
+        "position": "33.333% 100%",
+        "aspect": 1,
+        "zoom": 1.14,
+        "facing": "left"
+      }
+    },
+    "spirit-ultimate-2": {
+      "sheet": "images/monsters/pairs/lineage-spirit-03.png",
+      "attackSheet": "images/monsters/pairs/lineage-spirit-03-attack.png",
+      "slot": 1,
+      "count": 2,
+      "sourceSprite": {
+        "sheet": "images/monsters/lineage-spirit.png",
+        "size": "400% 200%",
+        "position": "66.666% 100%",
+        "aspect": 1,
+        "zoom": 1.14,
+        "facing": "left"
+      }
+    },
+    "spirit-ultimate-3": {
+      "sheet": "images/monsters/pairs/lineage-spirit-04.png",
+      "attackSheet": "images/monsters/pairs/lineage-spirit-04-attack.png",
+      "slot": 0,
+      "count": 1,
+      "sourceSprite": {
+        "sheet": "images/monsters/lineage-spirit.png",
+        "size": "400% 200%",
+        "position": "99.999% 100%",
+        "aspect": 1,
+        "zoom": 1.14,
+        "facing": "left"
+      }
+    },
+    "spore-mature": {
+      "sheet": "images/monsters/pairs/lineage-spore-01.png",
+      "attackSheet": "images/monsters/pairs/lineage-spore-01-attack.png",
+      "slot": 0,
+      "count": 2,
+      "sourceSprite": {
+        "sheet": "images/monsters/lineage-spore.png",
+        "size": "400% 200%",
+        "position": "0% 0%",
+        "aspect": 1,
+        "zoom": 1.16,
+        "facing": "left"
+      }
+    },
+    "spore-perfect-a": {
+      "sheet": "images/monsters/pairs/lineage-spore-01.png",
+      "attackSheet": "images/monsters/pairs/lineage-spore-01-attack.png",
+      "slot": 1,
+      "count": 2,
+      "sourceSprite": {
+        "sheet": "images/monsters/lineage-spore.png",
+        "size": "400% 200%",
+        "position": "33.333% 0%",
+        "aspect": 1,
+        "zoom": 1.16,
+        "facing": "left"
+      }
+    },
+    "spore-perfect-b": {
+      "sheet": "images/monsters/pairs/lineage-spore-02.png",
+      "attackSheet": "images/monsters/pairs/lineage-spore-02-attack.png",
+      "slot": 0,
+      "count": 2,
+      "sourceSprite": {
+        "sheet": "images/monsters/lineage-spore.png",
+        "size": "400% 200%",
+        "position": "66.667% 0%",
+        "aspect": 1,
+        "zoom": 1.16,
+        "facing": "left"
+      }
+    },
+    "spore-ultimate-0": {
+      "sheet": "images/monsters/pairs/lineage-spore-02.png",
+      "attackSheet": "images/monsters/pairs/lineage-spore-02-attack.png",
+      "slot": 1,
+      "count": 2,
+      "sourceSprite": {
+        "sheet": "images/monsters/lineage-spore.png",
+        "size": "400% 200%",
+        "position": "0% 100%",
+        "aspect": 1,
+        "zoom": 1.14,
+        "facing": "left"
+      }
+    },
+    "spore-ultimate-1": {
+      "sheet": "images/monsters/pairs/lineage-spore-03.png",
+      "attackSheet": "images/monsters/pairs/lineage-spore-03-attack.png",
+      "slot": 0,
+      "count": 2,
+      "sourceSprite": {
+        "sheet": "images/monsters/lineage-spore.png",
+        "size": "400% 200%",
+        "position": "33.333% 100%",
+        "aspect": 1,
+        "zoom": 1.14,
+        "facing": "left"
+      }
+    },
+    "spore-ultimate-2": {
+      "sheet": "images/monsters/pairs/lineage-spore-03.png",
+      "attackSheet": "images/monsters/pairs/lineage-spore-03-attack.png",
+      "slot": 1,
+      "count": 2,
+      "sourceSprite": {
+        "sheet": "images/monsters/lineage-spore.png",
+        "size": "400% 200%",
+        "position": "66.666% 100%",
+        "aspect": 1,
+        "zoom": 1.14,
+        "facing": "left"
+      }
+    },
+    "spore-ultimate-3": {
+      "sheet": "images/monsters/pairs/lineage-spore-04.png",
+      "attackSheet": "images/monsters/pairs/lineage-spore-04-attack.png",
+      "slot": 0,
+      "count": 1,
+      "sourceSprite": {
+        "sheet": "images/monsters/lineage-spore.png",
+        "size": "400% 200%",
+        "position": "99.999% 100%",
+        "aspect": 1,
+        "zoom": 1.14,
+        "facing": "left"
+      }
+    },
+    "tempest-mature": {
+      "sheet": "images/monsters/pairs/lineage-tempest-01.png",
+      "attackSheet": "images/monsters/pairs/lineage-tempest-01-attack.png",
+      "slot": 0,
+      "count": 2,
+      "sourceSprite": {
+        "sheet": "images/monsters/lineage-tempest.png",
+        "size": "400% 200%",
+        "position": "0% 0%",
+        "aspect": 1,
+        "zoom": 1.16,
+        "facing": "left"
+      }
+    },
+    "tempest-perfect-a": {
+      "sheet": "images/monsters/pairs/lineage-tempest-01.png",
+      "attackSheet": "images/monsters/pairs/lineage-tempest-01-attack.png",
+      "slot": 1,
+      "count": 2,
+      "sourceSprite": {
+        "sheet": "images/monsters/lineage-tempest.png",
+        "size": "400% 200%",
+        "position": "33.333% 0%",
+        "aspect": 1,
+        "zoom": 1.16,
+        "facing": "left"
+      }
+    },
+    "tempest-perfect-b": {
+      "sheet": "images/monsters/pairs/lineage-tempest-02.png",
+      "attackSheet": "images/monsters/pairs/lineage-tempest-02-attack.png",
+      "slot": 0,
+      "count": 2,
+      "sourceSprite": {
+        "sheet": "images/monsters/lineage-tempest.png",
+        "size": "400% 200%",
+        "position": "66.667% 0%",
+        "aspect": 1,
+        "zoom": 1.16,
+        "facing": "left"
+      }
+    },
+    "tempest-ultimate-0": {
+      "sheet": "images/monsters/pairs/lineage-tempest-02.png",
+      "attackSheet": "images/monsters/pairs/lineage-tempest-02-attack.png",
+      "slot": 1,
+      "count": 2,
+      "sourceSprite": {
+        "sheet": "images/monsters/lineage-tempest.png",
+        "size": "400% 200%",
+        "position": "0% 100%",
+        "aspect": 1,
+        "zoom": 1.14,
+        "facing": "left"
+      }
+    },
+    "tempest-ultimate-1": {
+      "sheet": "images/monsters/pairs/lineage-tempest-03.png",
+      "attackSheet": "images/monsters/pairs/lineage-tempest-03-attack.png",
+      "slot": 0,
+      "count": 2,
+      "sourceSprite": {
+        "sheet": "images/monsters/lineage-tempest.png",
+        "size": "400% 200%",
+        "position": "33.333% 100%",
+        "aspect": 1,
+        "zoom": 1.14,
+        "facing": "left"
+      }
+    },
+    "tempest-ultimate-2": {
+      "sheet": "images/monsters/pairs/lineage-tempest-03.png",
+      "attackSheet": "images/monsters/pairs/lineage-tempest-03-attack.png",
+      "slot": 1,
+      "count": 2,
+      "sourceSprite": {
+        "sheet": "images/monsters/lineage-tempest.png",
+        "size": "400% 200%",
+        "position": "66.666% 100%",
+        "aspect": 1,
+        "zoom": 1.14,
+        "facing": "left"
+      }
+    },
+    "tempest-ultimate-3": {
+      "sheet": "images/monsters/pairs/lineage-tempest-04.png",
+      "attackSheet": "images/monsters/pairs/lineage-tempest-04-attack.png",
+      "slot": 0,
+      "count": 1,
+      "sourceSprite": {
+        "sheet": "images/monsters/lineage-tempest.png",
+        "size": "400% 200%",
+        "position": "99.999% 100%",
+        "aspect": 1,
+        "zoom": 1.14,
+        "facing": "left"
+      }
+    },
+    "thunder-mature": {
+      "sheet": "images/monsters/pairs/lineage-thunder-01.png",
+      "attackSheet": "images/monsters/pairs/lineage-thunder-01-attack.png",
+      "slot": 0,
+      "count": 2,
+      "sourceSprite": {
+        "sheet": "images/monsters/lineage-thunder.png",
+        "size": "400% 200%",
+        "position": "0% 0%",
+        "aspect": 1,
+        "zoom": 1.16,
+        "facing": "left"
+      }
+    },
+    "thunder-perfect-a": {
+      "sheet": "images/monsters/pairs/lineage-thunder-01.png",
+      "attackSheet": "images/monsters/pairs/lineage-thunder-01-attack.png",
+      "slot": 1,
+      "count": 2,
+      "sourceSprite": {
+        "sheet": "images/monsters/lineage-thunder.png",
+        "size": "400% 200%",
+        "position": "33.333% 0%",
+        "aspect": 1,
+        "zoom": 1.16,
+        "facing": "left"
+      }
+    },
+    "thunder-perfect-b": {
+      "sheet": "images/monsters/pairs/lineage-thunder-02.png",
+      "attackSheet": "images/monsters/pairs/lineage-thunder-02-attack.png",
+      "slot": 0,
+      "count": 2,
+      "sourceSprite": {
+        "sheet": "images/monsters/lineage-thunder.png",
+        "size": "400% 200%",
+        "position": "66.667% 0%",
+        "aspect": 1,
+        "zoom": 1.16,
+        "facing": "left"
+      }
+    },
+    "thunder-ultimate-0": {
+      "sheet": "images/monsters/pairs/lineage-thunder-02.png",
+      "attackSheet": "images/monsters/pairs/lineage-thunder-02-attack.png",
+      "slot": 1,
+      "count": 2,
+      "sourceSprite": {
+        "sheet": "images/monsters/lineage-thunder.png",
+        "size": "400% 200%",
+        "position": "0% 100%",
+        "aspect": 1,
+        "zoom": 1.14,
+        "facing": "left"
+      }
+    },
+    "thunder-ultimate-1": {
+      "sheet": "images/monsters/pairs/lineage-thunder-03.png",
+      "attackSheet": "images/monsters/pairs/lineage-thunder-03-attack.png",
+      "slot": 0,
+      "count": 2,
+      "sourceSprite": {
+        "sheet": "images/monsters/lineage-thunder.png",
+        "size": "400% 200%",
+        "position": "33.333% 100%",
+        "aspect": 1,
+        "zoom": 1.14,
+        "facing": "left"
+      }
+    },
+    "thunder-ultimate-2": {
+      "sheet": "images/monsters/pairs/lineage-thunder-03.png",
+      "attackSheet": "images/monsters/pairs/lineage-thunder-03-attack.png",
+      "slot": 1,
+      "count": 2,
+      "sourceSprite": {
+        "sheet": "images/monsters/lineage-thunder.png",
+        "size": "400% 200%",
+        "position": "66.666% 100%",
+        "aspect": 1,
+        "zoom": 1.14,
+        "facing": "left"
+      }
+    },
+    "thunder-ultimate-3": {
+      "sheet": "images/monsters/pairs/lineage-thunder-04.png",
+      "attackSheet": "images/monsters/pairs/lineage-thunder-04-attack.png",
+      "slot": 0,
+      "count": 1,
+      "sourceSprite": {
+        "sheet": "images/monsters/lineage-thunder.png",
+        "size": "400% 200%",
+        "position": "99.999% 100%",
+        "aspect": 1,
+        "zoom": 1.14,
+        "facing": "left"
+      }
+    },
+    "inferno-rank6": {
+      "sheet": "images/monsters/pairs/rank6-a-v3-01.png",
+      "attackSheet": "images/monsters/pairs/rank6-a-v3-01-attack.png",
+      "slot": 0,
+      "count": 2,
+      "sourceSprite": {
+        "sheet": "images/monsters/rank6-a-v3.png",
+        "size": "400% 400%",
+        "position": "0% 0%",
+        "aspect": 1,
+        "zoom": 1.08,
+        "facing": "left"
+      }
+    },
+    "thunder-rank6": {
+      "sheet": "images/monsters/pairs/rank6-a-v3-01.png",
+      "attackSheet": "images/monsters/pairs/rank6-a-v3-01-attack.png",
+      "slot": 1,
+      "count": 2,
+      "sourceSprite": {
+        "sheet": "images/monsters/rank6-a-v3.png",
+        "size": "400% 400%",
+        "position": "33.333% 0%",
+        "aspect": 1,
+        "zoom": 1.08,
+        "facing": "left"
+      }
+    },
+    "mecha-rank6": {
+      "sheet": "images/monsters/pairs/rank6-a-v3-02.png",
+      "attackSheet": "images/monsters/pairs/rank6-a-v3-02-attack.png",
+      "slot": 0,
+      "count": 2,
+      "sourceSprite": {
+        "sheet": "images/monsters/rank6-a-v3.png",
+        "size": "400% 400%",
+        "position": "66.666% 0%",
+        "aspect": 1,
+        "zoom": 1.08,
+        "facing": "left"
+      }
+    },
+    "beetle-rank6": {
+      "sheet": "images/monsters/pairs/rank6-a-v3-02.png",
+      "attackSheet": "images/monsters/pairs/rank6-a-v3-02-attack.png",
+      "slot": 1,
+      "count": 2,
+      "sourceSprite": {
+        "sheet": "images/monsters/rank6-a-v3.png",
+        "size": "400% 400%",
+        "position": "99.999% 0%",
+        "aspect": 1,
+        "zoom": 1.08,
+        "facing": "left"
+      }
+    },
+    "grove-rank6": {
+      "sheet": "images/monsters/pairs/rank6-a-v3-03.png",
+      "attackSheet": "images/monsters/pairs/rank6-a-v3-03-attack.png",
+      "slot": 0,
+      "count": 2,
+      "sourceSprite": {
+        "sheet": "images/monsters/rank6-a-v3.png",
+        "size": "400% 400%",
+        "position": "0% 33.333%",
+        "aspect": 1,
+        "zoom": 1.08,
+        "facing": "left"
+      }
+    },
+    "spore-rank6": {
+      "sheet": "images/monsters/pairs/rank6-a-v3-03.png",
+      "attackSheet": "images/monsters/pairs/rank6-a-v3-03-attack.png",
+      "slot": 1,
+      "count": 2,
+      "sourceSprite": {
+        "sheet": "images/monsters/rank6-a-v3.png",
+        "size": "400% 400%",
+        "position": "33.333% 33.333%",
+        "aspect": 1,
+        "zoom": 1.08,
+        "facing": "left"
+      }
+    },
+    "abyss-rank6": {
+      "sheet": "images/monsters/pairs/rank6-a-v3-04.png",
+      "attackSheet": "images/monsters/pairs/rank6-a-v3-04-attack.png",
+      "slot": 0,
+      "count": 2,
+      "sourceSprite": {
+        "sheet": "images/monsters/rank6-a-v3.png",
+        "size": "400% 400%",
+        "position": "66.666% 33.333%",
+        "aspect": 1,
+        "zoom": 1.08,
+        "facing": "right"
+      }
+    },
+    "cosmic-rank6": {
+      "sheet": "images/monsters/pairs/rank6-a-v3-04.png",
+      "attackSheet": "images/monsters/pairs/rank6-a-v3-04-attack.png",
+      "slot": 1,
+      "count": 2,
+      "sourceSprite": {
+        "sheet": "images/monsters/rank6-a-v3.png",
+        "size": "400% 400%",
+        "position": "99.999% 33.333%",
+        "aspect": 1,
+        "zoom": 1.08,
+        "facing": "right"
+      }
+    },
+    "glacier-rank6": {
+      "sheet": "images/monsters/pairs/rank6-a-v3-05.png",
+      "attackSheet": "images/monsters/pairs/rank6-a-v3-05-attack.png",
+      "slot": 0,
+      "count": 2,
+      "sourceSprite": {
+        "sheet": "images/monsters/rank6-a-v3.png",
+        "size": "400% 400%",
+        "position": "0% 66.666%",
+        "aspect": 1,
+        "zoom": 1.08,
+        "facing": "left"
+      }
+    },
+    "crystal-rank6": {
+      "sheet": "images/monsters/pairs/rank6-a-v3-05.png",
+      "attackSheet": "images/monsters/pairs/rank6-a-v3-05-attack.png",
+      "slot": 1,
+      "count": 2,
+      "sourceSprite": {
+        "sheet": "images/monsters/rank6-a-v3.png",
+        "size": "400% 400%",
+        "position": "33.333% 66.666%",
+        "aspect": 1,
+        "zoom": 1.08,
+        "facing": "left"
+      }
+    },
+    "sky-rank6": {
+      "sheet": "images/monsters/pairs/rank6-a-v3-06.png",
+      "attackSheet": "images/monsters/pairs/rank6-a-v3-06-attack.png",
+      "slot": 0,
+      "count": 2,
+      "sourceSprite": {
+        "sheet": "images/monsters/rank6-a-v3.png",
+        "size": "400% 400%",
+        "position": "66.666% 66.666%",
+        "aspect": 1,
+        "zoom": 1.08,
+        "facing": "left"
+      }
+    },
+    "tempest-rank6": {
+      "sheet": "images/monsters/pairs/rank6-a-v3-06.png",
+      "attackSheet": "images/monsters/pairs/rank6-a-v3-06-attack.png",
+      "slot": 1,
+      "count": 2,
+      "sourceSprite": {
+        "sheet": "images/monsters/rank6-a-v3.png",
+        "size": "400% 400%",
+        "position": "99.999% 66.666%",
+        "aspect": 1,
+        "zoom": 1.08,
+        "facing": "left"
+      }
+    },
+    "shadow-rank6": {
+      "sheet": "images/monsters/pairs/rank6-a-v3-07.png",
+      "attackSheet": "images/monsters/pairs/rank6-a-v3-07-attack.png",
+      "slot": 0,
+      "count": 2,
+      "sourceSprite": {
+        "sheet": "images/monsters/rank6-a-v3.png",
+        "size": "400% 400%",
+        "position": "0% 99.999%",
+        "aspect": 1,
+        "zoom": 1.08,
+        "facing": "left"
+      }
+    },
+    "spirit-rank6": {
+      "sheet": "images/monsters/pairs/rank6-a-v3-07.png",
+      "attackSheet": "images/monsters/pairs/rank6-a-v3-07-attack.png",
+      "slot": 1,
+      "count": 2,
+      "sourceSprite": {
+        "sheet": "images/monsters/rank6-a-v3.png",
+        "size": "400% 400%",
+        "position": "33.333% 99.999%",
+        "aspect": 1,
+        "zoom": 1.08,
+        "facing": "left"
+      }
+    },
+    "candy-rank6": {
+      "sheet": "images/monsters/pairs/rank6-a-v3-08.png",
+      "attackSheet": "images/monsters/pairs/rank6-a-v3-08-attack.png",
+      "slot": 0,
+      "count": 2,
+      "sourceSprite": {
+        "sheet": "images/monsters/rank6-a-v3.png",
+        "size": "400% 400%",
+        "position": "66.666% 99.999%",
+        "aspect": 1,
+        "zoom": 1.08,
+        "facing": "left"
+      }
+    },
+    "junk-rank6": {
+      "sheet": "images/monsters/pairs/rank6-a-v3-08.png",
+      "attackSheet": "images/monsters/pairs/rank6-a-v3-08-attack.png",
+      "slot": 1,
+      "count": 2,
+      "sourceSprite": {
+        "sheet": "images/monsters/rank6-a-v3.png",
+        "size": "400% 400%",
+        "position": "99.999% 99.999%",
+        "aspect": 1,
+        "zoom": 1.08,
+        "facing": "left"
+      }
+    },
+    "coral-rank6": {
+      "sheet": "images/monsters/pairs/rank6-b-v3-01.png",
+      "attackSheet": "images/monsters/pairs/rank6-b-v3-01-attack.png",
+      "slot": 0,
+      "count": 2,
+      "sourceSprite": {
+        "sheet": "images/monsters/rank6-b-v3.png",
+        "size": "400% 400%",
+        "position": "0% 0%",
+        "aspect": 1,
+        "zoom": 1.08,
+        "facing": "left"
+      }
+    },
+    "corsair-rank6": {
+      "sheet": "images/monsters/pairs/rank6-b-v3-01.png",
+      "attackSheet": "images/monsters/pairs/rank6-b-v3-01-attack.png",
+      "slot": 1,
+      "count": 2,
+      "sourceSprite": {
+        "sheet": "images/monsters/rank6-b-v3.png",
+        "size": "400% 400%",
+        "position": "33.333% 0%",
+        "aspect": 1,
+        "zoom": 1.08,
+        "facing": "left"
+      }
+    },
+    "dune-rank6": {
+      "sheet": "images/monsters/pairs/rank6-b-v3-02.png",
+      "attackSheet": "images/monsters/pairs/rank6-b-v3-02-attack.png",
+      "slot": 0,
+      "count": 2,
+      "sourceSprite": {
+        "sheet": "images/monsters/rank6-b-v3.png",
+        "size": "400% 400%",
+        "position": "66.666% 0%",
+        "aspect": 1,
+        "zoom": 1.08,
+        "facing": "left"
+      }
+    },
+    "fossil-rank6": {
+      "sheet": "images/monsters/pairs/rank6-b-v3-02.png",
+      "attackSheet": "images/monsters/pairs/rank6-b-v3-02-attack.png",
+      "slot": 1,
+      "count": 2,
+      "sourceSprite": {
+        "sheet": "images/monsters/rank6-b-v3.png",
+        "size": "400% 400%",
+        "position": "99.999% 0%",
+        "aspect": 1,
+        "zoom": 1.08,
+        "facing": "left"
+      }
+    },
+    "samurai-rank6": {
+      "sheet": "images/monsters/pairs/rank6-b-v3-03.png",
+      "attackSheet": "images/monsters/pairs/rank6-b-v3-03-attack.png",
+      "slot": 0,
+      "count": 2,
+      "sourceSprite": {
+        "sheet": "images/monsters/rank6-b-v3.png",
+        "size": "400% 400%",
+        "position": "0% 33.333%",
+        "aspect": 1,
+        "zoom": 1.08,
+        "facing": "left"
+      }
+    },
+    "dojo-rank6": {
+      "sheet": "images/monsters/pairs/rank6-b-v3-03.png",
+      "attackSheet": "images/monsters/pairs/rank6-b-v3-03-attack.png",
+      "slot": 1,
+      "count": 2,
+      "sourceSprite": {
+        "sheet": "images/monsters/rank6-b-v3.png",
+        "size": "400% 400%",
+        "position": "33.333% 33.333%",
+        "aspect": 1,
+        "zoom": 1.08,
+        "facing": "left"
+      }
+    },
+    "sonic-rank6": {
+      "sheet": "images/monsters/pairs/rank6-b-v3-04.png",
+      "attackSheet": "images/monsters/pairs/rank6-b-v3-04-attack.png",
+      "slot": 0,
+      "count": 2,
+      "sourceSprite": {
+        "sheet": "images/monsters/rank6-b-v3.png",
+        "size": "400% 400%",
+        "position": "66.666% 33.333%",
+        "aspect": 1,
+        "zoom": 1.08,
+        "facing": "left"
+      }
+    },
+    "festival-rank6": {
+      "sheet": "images/monsters/pairs/rank6-b-v3-04.png",
+      "attackSheet": "images/monsters/pairs/rank6-b-v3-04-attack.png",
+      "slot": 1,
+      "count": 2,
+      "sourceSprite": {
+        "sheet": "images/monsters/rank6-b-v3.png",
+        "size": "400% 400%",
+        "position": "99.999% 33.333%",
+        "aspect": 1,
+        "zoom": 1.08,
+        "facing": "left"
+      }
+    },
+    "bloom-rank6": {
+      "sheet": "images/monsters/pairs/rank6-b-v3-05.png",
+      "attackSheet": "images/monsters/pairs/rank6-b-v3-05-attack.png",
+      "slot": 0,
+      "count": 2,
+      "sourceSprite": {
+        "sheet": "images/monsters/rank6-b-v3.png",
+        "size": "400% 400%",
+        "position": "0% 66.666%",
+        "aspect": 1,
+        "zoom": 1.08,
+        "facing": "left"
+      }
+    },
+    "dream-rank6": {
+      "sheet": "images/monsters/pairs/rank6-b-v3-05.png",
+      "attackSheet": "images/monsters/pairs/rank6-b-v3-05-attack.png",
+      "slot": 1,
+      "count": 2,
+      "sourceSprite": {
+        "sheet": "images/monsters/rank6-b-v3.png",
+        "size": "400% 400%",
+        "position": "33.333% 66.666%",
+        "aspect": 1,
+        "zoom": 1.08,
+        "facing": "left"
+      }
+    },
+    "slime-rank6": {
+      "sheet": "images/monsters/pairs/rank6-b-v3-06.png",
+      "attackSheet": "images/monsters/pairs/rank6-b-v3-06-attack.png",
+      "slot": 0,
+      "count": 2,
+      "sourceSprite": {
+        "sheet": "images/monsters/rank6-b-v3.png",
+        "size": "400% 400%",
+        "position": "66.666% 66.666%",
+        "aspect": 1,
+        "zoom": 1.08,
+        "facing": "left"
+      }
+    },
+    "gourmet-rank6": {
+      "sheet": "images/monsters/pairs/rank6-b-v3-06.png",
+      "attackSheet": "images/monsters/pairs/rank6-b-v3-06-attack.png",
+      "slot": 1,
+      "count": 2,
+      "sourceSprite": {
+        "sheet": "images/monsters/rank6-b-v3.png",
+        "size": "400% 400%",
+        "position": "99.999% 66.666%",
+        "aspect": 1,
+        "zoom": 1.08,
+        "facing": "left"
+      }
+    },
+    "ink-rank6": {
+      "sheet": "images/monsters/pairs/rank6-b-v3-07.png",
+      "attackSheet": "images/monsters/pairs/rank6-b-v3-07-attack.png",
+      "slot": 0,
+      "count": 2,
+      "sourceSprite": {
+        "sheet": "images/monsters/rank6-b-v3.png",
+        "size": "400% 400%",
+        "position": "0% 99.999%",
+        "aspect": 1,
+        "zoom": 1.08,
+        "facing": "left"
+      }
+    },
+    "ninja-rank6": {
+      "sheet": "images/monsters/pairs/rank6-b-v3-07.png",
+      "attackSheet": "images/monsters/pairs/rank6-b-v3-07-attack.png",
+      "slot": 1,
+      "count": 2,
+      "sourceSprite": {
+        "sheet": "images/monsters/rank6-b-v3.png",
+        "size": "400% 400%",
+        "position": "33.333% 99.999%",
+        "aspect": 1,
+        "zoom": 1.08,
+        "facing": "left"
+      }
+    },
+    "rail-rank6": {
+      "sheet": "images/monsters/pairs/rank6-b-v3-08.png",
+      "attackSheet": "images/monsters/pairs/rank6-b-v3-08-attack.png",
+      "slot": 0,
+      "count": 2,
+      "sourceSprite": {
+        "sheet": "images/monsters/rank6-b-v3.png",
+        "size": "400% 400%",
+        "position": "66.666% 99.999%",
+        "aspect": 1,
+        "zoom": 1.08,
+        "facing": "left"
+      }
+    },
+    "ryu-rank6": {
+      "sheet": "images/monsters/pairs/rank6-b-v3-08.png",
+      "attackSheet": "images/monsters/pairs/rank6-b-v3-08-attack.png",
+      "slot": 1,
+      "count": 2,
+      "sourceSprite": {
+        "sheet": "images/monsters/rank6-b-v3.png",
+        "size": "400% 400%",
+        "position": "99.999% 99.999%",
+        "aspect": 1,
+        "zoom": 1.08,
+        "facing": "left"
+      }
+    }
+  }
+}

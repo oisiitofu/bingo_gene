@@ -19,7 +19,7 @@ test("online lobby boot bypasses stale browser modules and retries once", () => 
 
   assert.match(html, /online-room\.js\?v=20260731-room-boot-1/);
   assert.match(html, /retry=\$\{Date\.now\(\)\}/);
-  assert.match(serviceWorker, /20260801-monster-dex-fullbody-83/);
+  assert.match(serviceWorker, /20260801-monster-pairs-84/);
 });
 
 test("bingo cells are operated only through player-name buttons", () => {
@@ -328,7 +328,8 @@ test("monster evolution has eight childhood entries, rank six fusions, passives,
       assert.equal(node.sprite.size, "contain", "growth-rail must use isolated artwork without the adjacent sprite");
       assert.match(node.sprite.sheet, /singles\/chibi-dragon\.png$/);
     } else {
-      assert.match(node.sprite.size, /^400% (?:100|200)%$/, `${node.id} must use a four-column growth sheet`);
+      assert.match(node.sprite.sheet, /images\/monsters\/pairs\//, `${node.id} must use repacked artwork`);
+      assert.match(node.sprite.size, /^(?:200% 100%|contain)$/, `${node.id} must use no more than a two-column sheet`);
     }
     assert.ok(node.sprite.aspect > 0, `${node.id} must preserve its source cell aspect ratio`);
   });
@@ -465,22 +466,24 @@ test("monster evolution has eight childhood entries, rank six fusions, passives,
   assert.equal(unlockedRank6.monster.stage, 6);
   assert.equal(result.rank6Requirements("inferno-ultimate-0").length, 4);
 
-  const monsterAssets = [
-    "egg.png", "childhood.png", "growth.png", "lineage-inferno.png", "lineage-thunder.png",
-    "lineage-mecha.png", "lineage-beetle.png", "lineage-grove.png", "lineage-spore.png",
-    "lineage-abyss.png", "lineage-cosmic.png", "childhood-extra.png", "growth-extra.png",
-    "lineage-glacier.png", "lineage-crystal.png", "lineage-sky.png", "lineage-tempest.png",
-    "lineage-shadow.png", "lineage-spirit.png", "lineage-candy.png", "lineage-junk.png",
-    "childhood-new.png", "growth-new-a.png", "growth-new-b.png", "growth-v2.png", "growth-extra-v2.png",
-    "lineage-coral.png", "lineage-corsair.png", "lineage-dune.png", "lineage-fossil.png",
-    "lineage-samurai.png", "lineage-dojo.png", "lineage-sonic.png", "lineage-festival.png",
-    "lineage-bloom.png", "lineage-dream.png", "lineage-slime.png", "lineage-gourmet.png",
-    "lineage-ink.png", "lineage-ninja.png", "lineage-rail.png", "lineage-ryu.png",
-    "legendary.png", "legendary-new.png", "rank6-a.png", "rank6-b.png", "rank6-a-v2.png", "rank6-b-v2.png",
-    "rank6-a-v3.png", "rank6-b-v3.png"
-  ];
-  monsterAssets.forEach((file) => {
-    assert.ok(existsSync(new URL(`../images/monsters/${file}`, import.meta.url)), `Missing monster artwork: ${file}`);
+  const monsterSheets = new Map();
+  Object.values(result.NODES).forEach((node) => {
+    const members = monsterSheets.get(node.sprite.sheet) || [];
+    members.push(node.id);
+    monsterSheets.set(node.sprite.sheet, members);
+    assert.ok(existsSync(new URL(`../${node.sprite.sheet}`, import.meta.url)), `Missing monster artwork: ${node.sprite.sheet}`);
+    const attackSheet = node.sprite.attackSheet || node.sprite.sheet.replace(/\.png$/, "-attack.png");
+    assert.ok(existsSync(new URL(`../${attackSheet}`, import.meta.url)), `Missing monster attack artwork: ${attackSheet}`);
+  });
+  monsterSheets.forEach((members, sheet) => {
+    assert.ok(members.length <= 2, `${sheet} contains ${members.length} monsters: ${members.join(", ")}`);
+  });
+  const pairManifest = JSON.parse(readFileSync(new URL("../assets/monster-pair-manifest.json", import.meta.url), "utf8"));
+  assert.equal(Object.keys(pairManifest.nodes).length, 272);
+  pairManifest.sheets.forEach((entry) => {
+    assert.ok(entry.nodes.length >= 1 && entry.nodes.length <= 2, `${entry.sheet} must contain one or two monsters`);
+    assert.ok(existsSync(new URL(`../${entry.sheet}`, import.meta.url)), `Missing repacked sheet: ${entry.sheet}`);
+    assert.ok(existsSync(new URL(`../${entry.attackSheet}`, import.meta.url)), `Missing repacked attack sheet: ${entry.attackSheet}`);
   });
   assert.match(html, /monsters: cloneOnlineValue\(MONSTER_SYSTEM\.syncPlayerMonsters/);
   assert.match(html, /monsterBattleMode: state\.monsterBattleMode/);

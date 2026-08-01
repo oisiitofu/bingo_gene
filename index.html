@@ -9687,11 +9687,11 @@
     });
 
     function hasMonsterPoseAnimation(node) {
-      return Boolean(MONSTER_ATTACK_SHEETS[node?.sprite?.sheet]);
+      return Boolean(node?.sprite?.attackSheet || MONSTER_ATTACK_SHEETS[node?.sprite?.sheet]);
     }
 
     function monsterAttackSpriteMarkup(node) {
-      const attackSheet = MONSTER_ATTACK_SHEETS[node?.sprite?.sheet];
+      const attackSheet = node?.sprite?.attackSheet || MONSTER_ATTACK_SHEETS[node?.sprite?.sheet];
       if (!attackSheet) return "";
       return monsterSpriteMarkup({
         ...node,
