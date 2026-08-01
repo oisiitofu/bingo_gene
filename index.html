@@ -8507,6 +8507,7 @@
         tofuCellSkinTeam: "",
         lickeyHypeTeam: "",
         lickeyCastleTeam: "",
+        lickeyTofuCastleTeam: "",
         lickeyRubbleTeam: "",
         kentoAura: null,
         rimaAim: null
@@ -9080,6 +9081,7 @@
     function applyLickeyHypeSkill(team, skill) {
       state.skillEffects.lickeyHypeTeam = team;
       state.skillEffects.lickeyCastleTeam = team;
+      state.skillEffects.lickeyTofuCastleTeam = Object.values(state.skillEffects.poopCenter || {}).some(Boolean) ? team : "";
       state.skillEffects.lickeyRubbleTeam = "";
       state[team].hype = HYPE_RULES.feverMax;
       addMatchHighlight("skill", `${skill.member} HYPE MAX`, `${getTeamLabel(team)} HYPE MAX`, team);
@@ -10511,12 +10513,13 @@
       const isPoopCell = Boolean(state.skillEffects?.poopCenter?.[team] && index === getFreeIndex());
       const useTofuCellSkin = Boolean((state.tofuCopyrightMode || state.skillEffects?.tofuCellSkinTeam === team) && !cell.free);
       const isLickeyCastleCell = Boolean(state.skillEffects?.lickeyCastleTeam === team && index === getFreeIndex());
+      const isLickeyTofuCastleCell = Boolean(state.skillEffects?.lickeyTofuCastleTeam === team && index === getFreeIndex());
       const isLickeyRubbleCell = Boolean(state.skillEffects?.lickeyRubbleTeam === team && index === getFreeIndex());
       const isRimaAimCell = Boolean(state.skillEffects?.rimaAim?.owner === team && !cell.free && !side.marked[index]);
       if (cell.free) classes.push("free", "open", team);
       if (isRimaAimCell) classes.push("rima-aim-cell");
       if (isLickeyCastleCell) classes.push("lickey-castle-cell");
-      if (isLickeyCastleCell && isPoopCell) classes.push("lickey-tofu-castle-cell");
+      if (isLickeyTofuCastleCell) classes.push("lickey-tofu-castle-cell");
       if (isLickeyRubbleCell) classes.push("lickey-rubble-cell");
       if (isPoopCell) classes.push("poop-cell");
       if (useTofuCellSkin) classes.push("tofu-cell-skin");
@@ -10543,7 +10546,7 @@
         : "";
       const content = cell.free
         ? (isLickeyCastleCell
-          ? `<img class="lickey-castle-art${isPoopCell ? " lickey-tofu-castle-art" : ""}" src="${skillAssetUrl("lickey", isPoopCell ? "tofuCastle" : "castle")}" alt="" />`
+          ? `<img class="lickey-castle-art${isLickeyTofuCastleCell ? " lickey-tofu-castle-art" : ""}" src="${skillAssetUrl("lickey", isLickeyTofuCastleCell ? "tofuCastle" : "castle")}" alt="" />`
           : (isLickeyRubbleCell
             ? `<img class="lickey-rubble-art" src="${skillAssetUrl("lickey", "rubble")}" alt="" />`
             : (isPoopCell ? `<img class="poop-cell-art" src="${skillAssetUrl("tofu", "poop")}" alt="" />` : `<span class="free-hole" aria-hidden="true"></span>`)))
@@ -11051,6 +11054,7 @@
       if (lickeyTeam && openingTeam !== lickeyTeam) {
         effects.lickeyHypeTeam = "";
         effects.lickeyCastleTeam = "";
+        effects.lickeyTofuCastleTeam = "";
         effects.lickeyRubbleTeam = lickeyTeam;
         state[lickeyTeam].hype = 0;
       }

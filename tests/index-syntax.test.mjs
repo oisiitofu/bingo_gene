@@ -514,7 +514,8 @@ test("monster evolution has eight childhood entries, rank six fusions, passives,
   assert.match(html, /effects\.push\("intro", "monster-hatch", "ready"\)/, "Online hatch presentation must be part of the shared start sequence");
   assert.match(html, /function preloadMonsterNodes\(/, "Visible monster pose assets must be warmed before animation");
   assert.ok(existsSync(new URL("../skill-assets/Lickey/castle-tofu-curse.png", import.meta.url)), "Missing tofu-cursed Likecy castle artwork");
-  assert.match(html, /isPoopCell \? "tofuCastle" : "castle"/, "The tofu and Likecy skill combo must use its dedicated castle");
+  assert.match(html, /lickeyTofuCastleTeam = Object\.values\(state\.skillEffects\.poopCenter/, "The tofu and Likecy combo must follow skill activation order");
+  assert.match(html, /isLickeyTofuCastleCell \? "tofuCastle" : "castle"/, "The tofu and Likecy skill combo must use its dedicated castle");
   assert.match(html, /kind: "monster-speech"/);
   assert.ok(existsSync(new URL("../images/monster-battle/arena.png", import.meta.url)));
   assert.ok(existsSync(new URL("../monster-battle.css", import.meta.url)));
