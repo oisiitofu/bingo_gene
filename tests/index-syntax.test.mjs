@@ -19,7 +19,7 @@ test("online lobby boot bypasses stale browser modules and retries once", () => 
 
   assert.match(html, /online-room\.js\?v=20260801-hatch-sync-1/);
   assert.match(html, /retry=\$\{Date\.now\(\)\}/);
-  assert.match(serviceWorker, /20260802-monster-navigation-95/);
+  assert.match(serviceWorker, /20260802-monster-navigation-96/);
 });
 
 test("consecutive skills cancel stale audio and setup snapshots clear persistent effects", () => {
@@ -378,6 +378,7 @@ test("every random event has dedicated artwork and valid stereo audio", () => {
 
 test("monster evolution has eight childhood entries, rank six fusions, passives, artwork, and online sync", () => {
   const html = readFileSync(new URL("../index.html", import.meta.url), "utf8");
+  const monsterBattleCss = readFileSync(new URL("../monster-battle.css", import.meta.url), "utf8");
   const monsterSource = readFileSync(new URL("../monster-system.js", import.meta.url), "utf8");
   const browserGlobal = {};
   new Function("window", monsterSource)(browserGlobal);
@@ -605,6 +606,8 @@ test("monster evolution has eight childhood entries, rank six fusions, passives,
   assert.match(html, /id="monsterZoomNextButton"/);
   assert.match(html, /function navigateMonsterZoom\(/);
   assert.match(html, /record\?\.monsterDex\?\.\[item\.id\]/);
+  assert.match(monsterBattleCss, /\.monster-zoom-nav[\s\S]*?transform:translate3d\(0,-50%,0\) !important/);
+  assert.match(monsterBattleCss, /\.monster-zoom-art\.has-pose-animation \.monster-sprite \{[\s\S]*?transform-origin:50% 50%/);
   assert.match(html, /function showMonsterBattleEntrances\(/);
   assert.match(html, /remotePresentation: true/);
   assert.match(html, /state\.monsterBattle\?\.status/);
