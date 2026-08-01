@@ -7707,6 +7707,8 @@
 
   <section class="overlay monster-zoom-overlay" id="monsterZoomOverlay" aria-hidden="true">
     <button type="button" class="monster-overlay-close" id="monsterZoomCloseButton" aria-label="閉じる">×</button>
+    <button type="button" class="monster-zoom-nav previous" id="monsterZoomPreviousButton" aria-label="前のモンスター" hidden>‹</button>
+    <button type="button" class="monster-zoom-nav next" id="monsterZoomNextButton" aria-label="次のモンスター" hidden>›</button>
     <div class="monster-zoom-card">
       <div class="monster-zoom-player" id="monsterZoomPlayer"></div>
       <div class="monster-zoom-art" id="monsterZoomArt"></div>
@@ -8552,6 +8554,7 @@
       monsterBattleRunId: 0,
       monsterBattlePresentationSeed: 0,
       monsterBattleSpeed: 1,
+      monsterZoomNavigation: null,
       monsterHatches: [],
       winner: null,
       readyShown: false,
@@ -8745,7 +8748,7 @@
         "feverAura", "fxLayer", "openedByPopover", "victoryParticles", "setupThemePlayer", "copyrightToggle",
         "monsterEvolutionOverlay", "monsterEvolutionStage", "monsterEvolutionBefore", "monsterEvolutionAfter", "monsterEvolutionName", "monsterHatchOverlay", "monsterHatchGrid", "victoryEvolutionOverlay", "victoryEvolutionTeam", "victoryEvolutionGrid",
         "victoryMonsterSection", "victoryMonsterLineups", "monsterBattleStartButton",
-        "monsterZoomOverlay", "monsterZoomCloseButton", "monsterZoomPlayer", "monsterZoomArt", "monsterZoomName", "monsterZoomStage", "monsterZoomAnimationButton", "monsterZoomStats", "monsterZoomSpecial",
+        "monsterZoomOverlay", "monsterZoomCloseButton", "monsterZoomPreviousButton", "monsterZoomNextButton", "monsterZoomPlayer", "monsterZoomArt", "monsterZoomName", "monsterZoomStage", "monsterZoomAnimationButton", "monsterZoomStats", "monsterZoomSpecial",
         "monsterBattleOverlay", "monsterBattleEntrance", "monsterBattleEntryCard", "monsterBattleEntryArt", "monsterBattleEntryTeam", "monsterBattleEntryIndex", "monsterBattleEntryName", "monsterBattleEntryPlayer", "monsterBattleEntrySpecial", "monsterBattleEntryStart", "monsterBattleRedLabel", "monsterBattleBlueLabel", "monsterBattleClock", "monsterBattleSpeedButton", "monsterBattleRedParty", "monsterBattleBlueParty", "monsterBattleTimeline", "monsterBattleMatchup", "monsterBattleCall", "monsterBattleLog", "monsterBattleFinish", "monsterBattleResult", "monsterBattleCloseButton"
       ].forEach((id) => { els[id] = document.getElementById(id); });
       els.players = Array.from(document.querySelectorAll("#playerInputs input"));
@@ -8803,6 +8806,8 @@
         });
       });
       els.monsterZoomCloseButton?.addEventListener("click", closeMonsterZoom);
+      els.monsterZoomPreviousButton?.addEventListener("click", () => navigateMonsterZoom(-1));
+      els.monsterZoomNextButton?.addEventListener("click", () => navigateMonsterZoom(1));
       els.monsterZoomAnimationButton?.addEventListener("click", () => {
         if (!els.monsterZoomArt?.classList.contains("has-pose-animation")) return;
         const paused = els.monsterZoomArt.classList.toggle("animation-paused");
@@ -8861,17 +8866,17 @@
       els.statsMonsterDexGrid?.addEventListener("click", (event) => {
         const button = event.target.closest("[data-dex-monster]");
         if (!button || !els.statsMonsterDexGrid.contains(button)) return;
-        showMonsterNodeZoom(button.dataset.dexMonster, button.dataset.dexPlayer || "MONSTER ENCYCLOPEDIA", "#f7c64a");
+        showMonsterNodeZoom(button.dataset.dexMonster, button.dataset.dexPlayer || "MONSTER ENCYCLOPEDIA", "#f7c64a", { dexNavigation: true });
       });
       els.statsMonsterDexTree?.addEventListener("click", (event) => {
         const button = event.target.closest("[data-dex-monster]");
         if (!button || !els.statsMonsterDexTree.contains(button)) return;
-        showMonsterNodeZoom(button.dataset.dexMonster, button.dataset.dexPlayer || "MONSTER ENCYCLOPEDIA", "#f7c64a");
+        showMonsterNodeZoom(button.dataset.dexMonster, button.dataset.dexPlayer || "MONSTER ENCYCLOPEDIA", "#f7c64a", { dexNavigation: true });
       });
       els.statsMonsterMasteryPage?.addEventListener("click", (event) => {
         const button = event.target.closest("[data-dex-monster]");
         if (!button || !els.statsMonsterMasteryPage.contains(button)) return;
-        showMonsterNodeZoom(button.dataset.dexMonster, button.dataset.dexPlayer || "MONSTER ENCYCLOPEDIA", "#f7c64a");
+        showMonsterNodeZoom(button.dataset.dexMonster, button.dataset.dexPlayer || "MONSTER ENCYCLOPEDIA", "#f7c64a", { dexNavigation: true });
       });
       els.monsterEquipmentPage?.addEventListener("click", onMonsterEquipmentClick);
       els.itemDexPage?.addEventListener("change", (event) => {
@@ -9834,7 +9839,7 @@
       const aspect = Math.max(.1, Number(node.sprite.aspect) || 1);
       const viewBoxWidth = Math.round(aspect * 1000);
       const padding = Math.max(0, Math.min(250, Number(viewportPadding) || 0));
-      const displayBoost = Number(node.stage) > 1 && !node.legendary ? 1.16 : 1;
+      const displayBoost = node.legendary ? 1 : (Number(node.stage) >= 3 ? 1.52 : (Number(node.stage) > 1 ? 1.16 : 1));
       const style = `--monster-image:url('${node.sprite.sheet}');--monster-size:${guardedSize};--monster-position:${node.sprite.position};--monster-aspect:${aspect};--monster-zoom:${node.sprite.zoom || 1};--monster-display-boost:${displayBoost}`;
       const facing = node.sprite.facing === "right" ? "right" : "left";
       return `<svg class="monster-sprite${extraClass ? ` ${extraClass}` : ""}" data-monster-facing="${facing}" style="${style}" viewBox="${-padding} ${-padding} ${viewBoxWidth + (padding * 2)} ${1000 + (padding * 2)}" preserveAspectRatio="xMidYMid meet" aria-hidden="true" focusable="false"><foreignObject x="0" y="0" width="${viewBoxWidth}" height="1000"><div xmlns="http://www.w3.org/1999/xhtml" class="monster-sprite-surface"></div></foreignObject></svg>`;
@@ -10296,6 +10301,21 @@
     function showMonsterNodeZoom(nodeId, playerLabel = "MONSTER ENCYCLOPEDIA", accent = "#f7c64a", options = {}) {
       if (!els.monsterZoomOverlay) return;
       const node = MONSTER_NODES[nodeId] || MONSTER_NODES.egg;
+      if (options.dexNavigation) {
+        const allNodes = getMonsterDexNodes();
+        const record = playerLabel === "ADMIN FULL DEX"
+          ? { monsterDex: Object.fromEntries(allNodes.map((item) => [item.id, 1])) }
+          : state.playerStats.players[playerStatsKey(playerLabel)];
+        const nodeIds = allNodes.filter((item) => record?.monsterDex?.[item.id]).map((item) => item.id);
+        state.monsterZoomNavigation = {
+          nodeIds,
+          index: Math.max(0, nodeIds.indexOf(node.id)),
+          playerLabel,
+          accent
+        };
+      } else {
+        state.monsterZoomNavigation = null;
+      }
       const passive = MONSTER_SYSTEM.passiveSkill(node.id);
       const role = MONSTER_SYSTEM.combatRole(node.id);
       const element = MONSTER_SYSTEM.combatElement(node.id);
@@ -10338,8 +10358,39 @@
         </div>
         ${equippedItems.length ? `<section class="monster-zoom-equipment"><h3>TERRITORY EQUIPMENT</h3>${equippedItems.map((item) => equipmentItemMarkup(item)).join("")}</section>` : ""}
       `);
+      updateMonsterZoomNavigation();
       showOverlay(els.monsterZoomOverlay);
       requestAnimationFrame(() => fitSingleLineText(els.monsterZoomName, 70, 14));
+    }
+
+    function updateMonsterZoomNavigation() {
+      const navigation = state.monsterZoomNavigation;
+      const visible = Boolean(navigation?.nodeIds?.length > 1);
+      [els.monsterZoomPreviousButton, els.monsterZoomNextButton].forEach((button) => {
+        if (button) button.hidden = !visible;
+      });
+      if (!visible) return;
+      els.monsterZoomPreviousButton.disabled = navigation.index <= 0;
+      els.monsterZoomNextButton.disabled = navigation.index >= navigation.nodeIds.length - 1;
+      els.monsterZoomPreviousButton.title = navigation.index > 0
+        ? MONSTER_NODES[navigation.nodeIds[navigation.index - 1]]?.name || "前のモンスター"
+        : "先頭のモンスター";
+      els.monsterZoomNextButton.title = navigation.index < navigation.nodeIds.length - 1
+        ? MONSTER_NODES[navigation.nodeIds[navigation.index + 1]]?.name || "次のモンスター"
+        : "最後のモンスター";
+    }
+
+    function navigateMonsterZoom(direction) {
+      const navigation = state.monsterZoomNavigation;
+      if (!navigation?.nodeIds?.length) return;
+      const nextIndex = Math.max(0, Math.min(navigation.nodeIds.length - 1, navigation.index + Math.sign(Number(direction) || 0)));
+      if (nextIndex === navigation.index) return;
+      showMonsterNodeZoom(
+        navigation.nodeIds[nextIndex],
+        navigation.playerLabel,
+        navigation.accent,
+        { dexNavigation: true }
+      );
     }
 
     function showMonsterZoom(team, playerKey) {
@@ -10352,6 +10403,8 @@
 
     function closeMonsterZoom() {
       hideOverlay(els.monsterZoomOverlay);
+      state.monsterZoomNavigation = null;
+      updateMonsterZoomNavigation();
     }
 
     function renderBoard(team) {
