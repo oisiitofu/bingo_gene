@@ -112,7 +112,7 @@
 .monster-portrait-button .monster-sprite {
   max-width: 104%;
   height: 104%;
-  scale: clamp(1.08, var(--monster-zoom, 1.12), 1.24);
+  scale: clamp(1.08, calc(var(--monster-zoom, 1.12) * var(--monster-display-boost, 1)), 1.38);
 }
 
 .monster-player-card.monster-pose-animated .monster-portrait-button::before {
@@ -255,7 +255,7 @@
 .monster-battle-entry-art .monster-sprite {
   max-width: 104%;
   height: 104%;
-  scale: clamp(1.08, var(--monster-zoom, 1.12), 1.24);
+  scale: clamp(1.08, calc(var(--monster-zoom, 1.12) * var(--monster-display-boost, 1)), 1.38);
 }
 
 .monster-player-info { min-width: 0; text-align: center; }
@@ -832,7 +832,7 @@ body.monster-battle-speed-2 .monster-battle-finish.result { animation-duration:.
 .monster-mastery-strip { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:6px; margin-bottom:10px; }
 .monster-mastery-entry { min-width:0; display:grid; grid-template-columns:54px minmax(0,1fr); align-items:center; gap:7px; padding:5px 7px; border-left:3px solid #f7c64a; background:rgba(0,0,0,.22); }
 .monster-mastery-art { width:54px; height:48px; display:grid; place-items:center; overflow:hidden; }
-.monster-mastery-art .monster-sprite { width:auto; max-width:96%; height:96%; aspect-ratio:var(--monster-aspect,1); scale:1; }
+.monster-mastery-art .monster-sprite { width:auto; max-width:96%; height:96%; aspect-ratio:var(--monster-aspect,1); scale:var(--monster-display-boost,1); }
 .monster-mastery-entry strong,.monster-mastery-entry span,.monster-mastery-entry small { display:block; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
 .monster-mastery-entry strong { color:#fff; font-size:10px; } .monster-mastery-entry span { margin-top:2px; color:#ffe47d; font-size:9px; font-weight:1000; } .monster-mastery-entry small { margin-top:2px; color:#aeb9ca; font-size:7px; }
 .monster-mastery-empty { padding:9px; color:rgba(255,255,255,.55); border-left:3px solid rgba(255,255,255,.2); font-size:9px; }

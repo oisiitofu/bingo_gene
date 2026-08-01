@@ -1667,7 +1667,7 @@
       display: block;
       width: 100%;
       height: 100%;
-      scale: var(--monster-zoom, 1);
+      scale: calc(var(--monster-zoom, 1) * var(--monster-display-boost, 1));
       transform-origin: center;
       overflow: visible;
       flex: 0 0 auto;
@@ -5360,7 +5360,7 @@
       max-width: none;
       height: calc(100% - 6px);
       aspect-ratio: auto;
-      scale: 1;
+      scale: var(--monster-display-boost, 1);
     }
     .monster-dex-unknown { color: rgba(255,255,255,.22); font: 1000 34px/1 Impact, sans-serif; }
     .monster-dex-card strong {
@@ -9834,7 +9834,8 @@
       const aspect = Math.max(.1, Number(node.sprite.aspect) || 1);
       const viewBoxWidth = Math.round(aspect * 1000);
       const padding = Math.max(0, Math.min(250, Number(viewportPadding) || 0));
-      const style = `--monster-image:url('${node.sprite.sheet}');--monster-size:${guardedSize};--monster-position:${node.sprite.position};--monster-aspect:${aspect};--monster-zoom:${node.sprite.zoom || 1}`;
+      const displayBoost = Number(node.stage) > 1 && !node.legendary ? 1.16 : 1;
+      const style = `--monster-image:url('${node.sprite.sheet}');--monster-size:${guardedSize};--monster-position:${node.sprite.position};--monster-aspect:${aspect};--monster-zoom:${node.sprite.zoom || 1};--monster-display-boost:${displayBoost}`;
       const facing = node.sprite.facing === "right" ? "right" : "left";
       return `<svg class="monster-sprite${extraClass ? ` ${extraClass}` : ""}" data-monster-facing="${facing}" style="${style}" viewBox="${-padding} ${-padding} ${viewBoxWidth + (padding * 2)} ${1000 + (padding * 2)}" preserveAspectRatio="xMidYMid meet" aria-hidden="true" focusable="false"><foreignObject x="0" y="0" width="${viewBoxWidth}" height="1000"><div xmlns="http://www.w3.org/1999/xhtml" class="monster-sprite-surface"></div></foreignObject></svg>`;
     }
@@ -10071,6 +10072,7 @@
       if (!state.monsterBattleMode) return [];
       const side = state[team];
       side.monsters = syncTeamMonsters(team);
+      const hasFinalMonster = side.monsters.some((monster) => Number(MONSTER_NODES[monster.nodeId]?.stage) >= 5);
       let dexChanged = false;
       const results = side.monsters.map((source, index) => {
         const playerDex = getPlayerStat(source.playerName).monsterDex || {};
@@ -10097,7 +10099,8 @@
           previousId: result.previousId,
           nextId: result.monster.nodeId,
           evolved: result.evolved,
-          steps: result.steps
+          steps: result.steps,
+          combinedPresentation: !hasFinalMonster
         };
       });
       if (dexChanged) savePlayerStats();
@@ -10105,9 +10108,14 @@
       return results;
     }
 
+    function shouldShowVictoryFinalEvolution(evolutions = []) {
+      const entries = Array.isArray(evolutions) ? evolutions : [];
+      return entries.some((entry) => entry?.evolved) && entries.every((entry) => entry?.combinedPresentation !== false);
+    }
+
     async function showVictoryFinalEvolution(team, evolutions = []) {
       const entries = Array.isArray(evolutions) ? evolutions.filter((entry) => entry?.nextId) : [];
-      if (!entries.length || !els.victoryEvolutionOverlay || !els.victoryEvolutionGrid) return false;
+      if (!shouldShowVictoryFinalEvolution(entries) || !els.victoryEvolutionOverlay || !els.victoryEvolutionGrid) return false;
       const finalNodes = entries.map((entry) => MONSTER_NODES[entry.nextId] || MONSTER_NODES.egg);
       await Promise.race([preloadMonsterNodes(finalNodes), delay(2200)]);
       const overlay = els.victoryEvolutionOverlay;
@@ -11031,7 +11039,7 @@
         };
         addMatchHighlight("victory", `${getTeamLabel(team)} VICTORY`, `${preparedMvp.name} がMVP`, team, preparedMvp.imageId);
         recordVictory(team, victoryKind, preparedMvp.name);
-        if (finalEvolutions.length) enqueueEffect(() => showVictoryFinalEvolution(team, finalEvolutions));
+        if (shouldShowVictoryFinalEvolution(finalEvolutions)) enqueueEffect(() => showVictoryFinalEvolution(team, finalEvolutions));
         enqueueEffect(() => finishGame(team, victoryKind, victoryMvpHint));
         return;
       }
@@ -12027,7 +12035,7 @@
       const special = getVictorySpecial(victoryKind);
       showCommentary(special.commentTitle || "VICTORY！", special.commentSub || `${state[team].teamTitle} が2ライン達成。`, 12000);
       await showFinishFlashBridge(() => {
-        if (!finalEvolutions.length) playAudio("victory");
+        if (!shouldShowVictoryFinalEvolution(finalEvolutions)) playAudio("victory");
         renderVictory(team, victoryKind, mvp, victoryPresentation);
         els.victoryOverlay.classList.remove("victory-comeback", "victory-straight");
         if (victoryKind === "comeback") els.victoryOverlay.classList.add("victory-comeback");
@@ -17383,11 +17391,11 @@
       const presentation = victory?.presentation || createVictoryPresentation(team, kind, mvp);
       const finalEvolutions = cloneOnlineValue(victory?.finalEvolutions || []);
       onlineLastVictory = { team, victoryKind: kind, mvp, presentation, finalEvolutions };
-      if (finalEvolutions.length) await showVictoryFinalEvolution(team, finalEvolutions);
+      if (shouldShowVictoryFinalEvolution(finalEvolutions)) await showVictoryFinalEvolution(team, finalEvolutions);
       const special = getVictorySpecial(kind);
       showCommentary(special.commentTitle || "VICTORY！", special.commentSub || `${state[team].teamTitle} が2ライン達成。`, 12000);
       await showFinishFlashBridge(() => {
-        if (!finalEvolutions.length) playAudio("victory");
+        if (!shouldShowVictoryFinalEvolution(finalEvolutions)) playAudio("victory");
         renderVictory(team, kind, mvp, presentation);
         els.victoryOverlay.classList.remove("victory-comeback", "victory-straight");
         if (kind === "comeback") els.victoryOverlay.classList.add("victory-comeback");

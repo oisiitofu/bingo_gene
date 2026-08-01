@@ -19,7 +19,7 @@ test("online lobby boot bypasses stale browser modules and retries once", () => 
 
   assert.match(html, /online-room\.js\?v=20260801-hatch-sync-1/);
   assert.match(html, /retry=\$\{Date\.now\(\)\}/);
-  assert.match(serviceWorker, /20260801-final-evolution-92/);
+  assert.match(serviceWorker, /20260801-monster-scale-93/);
 });
 
 test("consecutive skills cancel stale audio and setup snapshots clear persistent effects", () => {
@@ -596,6 +596,11 @@ test("monster evolution has eight childhood entries, rank six fusions, passives,
   assert.match(html, /id="victoryEvolutionOverlay"/);
   assert.match(html, /function evolveWinningTeamMonstersToFinal\(/);
   assert.match(html, /finalEvolutions/);
+  assert.match(html, /const hasFinalMonster = side\.monsters\.some\(\(monster\) => Number\(MONSTER_NODES\[monster\.nodeId\]\?\.stage\) >= 5\)/);
+  assert.match(html, /combinedPresentation: !hasFinalMonster/);
+  assert.match(html, /function shouldShowVictoryFinalEvolution\(/);
+  assert.match(html, /Number\(node\.stage\) > 1 && !node\.legendary \? 1\.16 : 1/);
+  assert.match(html, /--monster-display-boost:\$\{displayBoost\}/);
   assert.match(html, /function showMonsterBattleEntrances\(/);
   assert.match(html, /remotePresentation: true/);
   assert.match(html, /state\.monsterBattle\?\.status/);
