@@ -19,7 +19,7 @@ test("online lobby boot bypasses stale browser modules and retries once", () => 
 
   assert.match(html, /online-room\.js\?v=20260801-hatch-sync-1/);
   assert.match(html, /retry=\$\{Date\.now\(\)\}/);
-  assert.match(serviceWorker, /20260801-mobile-sound-87/);
+  assert.match(serviceWorker, /20260801-mobile-theme-88/);
 });
 
 test("consecutive skills cancel stale audio and setup snapshots clear persistent effects", () => {
@@ -47,7 +47,17 @@ test("sound toggle mutes live HTML audio for mobile browsers", () => {
   assert.match(html, /activeOpenSoundNodes\.forEach\(\(node\) => \{[\s\S]*?applyTrackedOpenSoundVolume\(node\)/);
   assert.match(html, /if \(!state\.soundEnabled\) pendingAudioRetries\.clear\(\)/);
   assert.match(html, /playAttempt\.catch\(\(\) => \{\s*if \(!state\.soundEnabled\) return/);
-  assert.match(html, /\.catch\(\(\) => \{\s*if \(!state\.soundEnabled \|\| !els\.setupScreen\.classList\.contains\("active"\)\) return/);
+  assert.match(html, /\.catch\(\(\) => \{\s*if \(!isSetupThemePlaybackAllowed\(\)\) return/);
+});
+
+test("setup theme cannot resume after a mobile transition into a match", () => {
+  const html = readFileSync(new URL("../index.html", import.meta.url), "utf8");
+
+  assert.match(html, /function isSetupThemePlaybackAllowed\(\) \{[\s\S]*?!state\.gameStarted[\s\S]*?!els\.playScreen\?\.classList\.contains\("active"\)/);
+  assert.match(html, /function syncSetupTheme\(\) \{\s*if \(!isSetupThemePlaybackAllowed\(\)\) \{\s*stopSetupTheme\(\)/);
+  assert.match(html, /function promoteSetupThemeAudio\(audio\) \{\s*if \(!isSetupThemePlaybackAllowed\(\)\) return/);
+  assert.match(html, /function stopSetupTheme\(\) \{[\s\S]*?audio\.autoplay = false;[\s\S]*?audio\.pause\(\);[\s\S]*?audio\.muted = true/);
+  assert.match(html, /if \(isManagedBgmKey\(key\)\) \{\s*stopSetupTheme\(\);\s*stopManagedBgm\(\)/);
 });
 
 test("bingo cells are operated only through player-name buttons", () => {

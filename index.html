@@ -15990,7 +15990,10 @@
     function playAudio(key) {
       if (!state.soundEnabled) return null;
       ensureAudioReady();
-      if (isManagedBgmKey(key)) stopManagedBgm();
+      if (isManagedBgmKey(key)) {
+        stopSetupTheme();
+        stopManagedBgm();
+      }
       const audio = createAudioPlayback(key);
       if (!audio) return null;
       try {
@@ -16049,7 +16052,10 @@
     function playManagedAudioUrl(src, key, volumeKey = "skillBgm", onFail = null) {
       if (!state.soundEnabled || !src || !key) return null;
       ensureAudioReady();
-      if (isManagedBgmKey(key)) stopManagedBgm();
+      if (isManagedBgmKey(key)) {
+        stopSetupTheme();
+        stopManagedBgm();
+      }
       try {
         const audio = new Audio(src);
         audio.preload = "auto";
@@ -16184,11 +16190,20 @@
       return tryNext();
     }
 
-    function syncSetupTheme() {
-      if (!els.setupScreen) return;
+    function isSetupThemePlaybackAllowed() {
+      if (!els.setupScreen) return false;
       const territoryOpen = window.TeamBingoTerritoryMode?.isOpen?.() === true;
-      const shouldPlay = state.soundEnabled && els.setupScreen.classList.contains("active") && !territoryOpen;
-      if (!shouldPlay) {
+      return Boolean(
+        state.soundEnabled &&
+        !state.gameStarted &&
+        els.setupScreen.classList.contains("active") &&
+        !els.playScreen?.classList.contains("active") &&
+        !territoryOpen
+      );
+    }
+
+    function syncSetupTheme() {
+      if (!isSetupThemePlaybackAllowed()) {
         stopSetupTheme();
         return;
       }
@@ -16214,7 +16229,7 @@
       playAttempt
         .then(() => promoteSetupThemeAudio(audio))
         .catch(() => {
-          if (!state.soundEnabled || !els.setupScreen.classList.contains("active")) return;
+          if (!isSetupThemePlaybackAllowed()) return;
           audio.muted = false;
           audio.volume = getAudioVolume("setupTheme");
           audio.play()
@@ -16227,9 +16242,9 @@
     }
 
     function promoteSetupThemeAudio(audio) {
-      if (!state.soundEnabled || !els.setupScreen.classList.contains("active")) return;
+      if (!isSetupThemePlaybackAllowed()) return;
       const makeAudible = () => {
-        if (!state.soundEnabled || !els.setupScreen.classList.contains("active")) return;
+        if (!isSetupThemePlaybackAllowed()) return;
         audio.volume = getAudioVolume("setupTheme");
         audio.muted = false;
         if (!audio.paused) setupThemeAudible = true;
@@ -16242,8 +16257,10 @@
     function stopSetupTheme() {
       const audio = setupThemeAudio || audioCache.get("setupTheme");
       if (!audio) return;
+      audio.autoplay = false;
       audio.pause();
-      audio.muted = false;
+      audio.muted = true;
+      setupThemeAudible = false;
       try { audio.currentTime = 0; } catch {}
     }
 
