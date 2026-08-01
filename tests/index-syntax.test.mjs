@@ -1,6 +1,6 @@
 import test from "node:test";
 import assert from "node:assert/strict";
-import { existsSync, readFileSync, readdirSync } from "node:fs";
+import { existsSync, readFileSync, readdirSync, statSync } from "node:fs";
 
 test("all inline index scripts compile", () => {
   const html = readFileSync(new URL("../index.html", import.meta.url), "utf8");
@@ -19,7 +19,7 @@ test("online lobby boot bypasses stale browser modules and retries once", () => 
 
   assert.match(html, /online-room\.js\?v=20260801-hatch-sync-1/);
   assert.match(html, /retry=\$\{Date\.now\(\)\}/);
-  assert.match(serviceWorker, /20260801-mobile-scroll-audio-89/);
+  assert.match(serviceWorker, /20260801-skill-memory-90/);
 });
 
 test("consecutive skills cancel stale audio and setup snapshots clear persistent effects", () => {
@@ -30,12 +30,32 @@ test("consecutive skills cancel stale audio and setup snapshots clear persistent
   assert.match(html, /function cancelPendingSkillAudioStart\(\)/);
   assert.match(html, /if \(audioGeneration !== skillAudioGeneration\) return/);
   assert.match(html, /const MAX_TRANSIENT_AUDIO = 12/);
+  assert.match(html, /let activeSkillSeAudio = null/);
+  assert.match(html, /function stopActiveSkillSeAudio\(\)/);
+  assert.match(html, /cancelPendingSkillAudioStart\(\);\s*stopActiveSkillSeAudio\(\)/);
   assert.match(html, /releaseTransientAudio\(audio, \{ unload: true \}\)/);
   assert.match(html, /const hasActiveMatch = state\.gameStarted && !state\.winner/);
   assert.match(html, /state\.skillEffects = hasActiveMatch[\s\S]*?createSkillEffects\(\)/);
   assert.match(html, /if \(!state\.gameStarted\) \{[\s\S]*?stopAllTransientAudio\(\{ keepSetupTheme: true \}\)/);
   assert.match(html, /function startKentoLiveChat\(team\) \{[\s\S]*?if \(!state\.gameStarted \|\| state\.winner\) return/);
   assert.doesNotMatch(html, /\.cell:not\(\.free\):not\(\.open\)[\s\S]{0,800}url\("skill-assets\/Kento\/aura\.png"\)/);
+});
+
+test("mobile skill presentations use bounded assets and compositor layers", () => {
+  const html = readFileSync(new URL("../index.html", import.meta.url), "utf8");
+  const profiles = ["Kento", "Lickey", "えだ", "おいしいとうふ", "ジャン", "リーマ"];
+
+  profiles.forEach((folder) => {
+    const asset = new URL(`../skill-assets/${folder}/logo-mobile.webp`, import.meta.url);
+    assert.ok(existsSync(asset), `${folder} mobile logo is missing`);
+    assert.ok(statSync(asset).size < 500_000, `${folder} mobile logo exceeds the memory budget`);
+  });
+  assert.match(html, /mobileLogo: \["logo-mobile\.webp"\]/);
+  assert.match(html, /window\.innerWidth <= 820/);
+  assert.match(html, /const candidates = \[\.\.\.new Set\(\[\.\.\.mobileUrls, \.\.\.urls\]\)\]/);
+  assert.doesNotMatch(html, /\.skill-title-art \{\s*width: 210vw/);
+  assert.match(html, /#skillOverlay\.show \{ contain: layout paint style; \}/);
+  assert.match(html, /\.board-card\.kento-ally \.board-body::after,[\s\S]*?\.special-cell-art \{\s*animation: none/);
 });
 
 test("sound toggle mutes live HTML audio for mobile browsers", () => {

@@ -7187,8 +7187,21 @@
         max-height: 82vh;
       }
       .skill-title-art {
-        width: 210vw;
-        max-height: 165vh;
+        width: 138vw;
+        max-height: 108dvh;
+        filter:
+          saturate(1.08)
+          contrast(1.04)
+          drop-shadow(0 8px 0 rgba(0,0,0,.48));
+      }
+      .skill-card { width: 120vw; }
+      #skillOverlay.show { contain: layout paint style; }
+      .board-card.kento-ally .board-body::after,
+      .board-card.kento-ally .cell:not(.free):not(.open):not(.victory-reach-cell):not(.winning)::after,
+      .lickey-castle-art,
+      .cell.special-cell,
+      .special-cell-art {
+        animation: none;
       }
       #victoryOverlay .overlay-title-art {
         width: min(94vw, 900px);
@@ -7989,12 +8002,12 @@
 
     const SKILL_ASSET_BASE = "skill-assets/";
     const SKILL_ASSETS = {
-      jan: { folder: "\u30b8\u30e3\u30f3", logo: ["logo.png", "logo.svg"], se: ["se.mp3", "se.wav"], bgm: ["bgm.mp3", "bgm.wav"], bgmDelay: 1200, selectCell: true },
-      eda: { folder: "\u3048\u3060", logo: ["logo.png", "logo.svg"], se: ["se.mp3", "se.wav"], bgm: ["bgm.mp3", "bgm.wav"], bgmDelay: 1800, selectCell: true },
-      kento: { folder: "Kento", logo: ["logo.png", "logo.svg"], se: ["se.mp3", "se.wav"], bgm: ["bgm.mp3", "bgm.wav"], bgmDelay: 420, aura: "aura.png" },
-      lickey: { folder: "Lickey", logo: ["logo.png", "logo.svg"], se: ["se.mp3", "se.wav"], bgm: ["bgm.mp3", "bgm.wav"], bgmDelay: 420, castle: "castle.png", tofuCastle: "castle-tofu-curse.png", rubble: "castle-rubble.png" },
-      tofu: { folder: "\u304a\u3044\u3057\u3044\u3068\u3046\u3075", logo: ["logo-generated.png", "logo.png", "logo.svg"], se: ["se.mp3", "se.wav"], bgm: ["bgm.mp3", "bgm.wav"], bgmDelay: 420, poop: "poop.png", openOverride: ["unpi.mp3", "unpi.wav"] },
-      rima: { folder: "\u30ea\u30fc\u30de", logo: ["logo.png", "logo.svg"], se: ["se.mp3", "se.wav"], bgm: ["bgm.mp3", "bgm.wav"], bgmDelay: 420, openOverride: ["ngo.mp3", "ngo.wav"] },
+      jan: { folder: "\u30b8\u30e3\u30f3", logo: ["logo.png", "logo.svg"], mobileLogo: ["logo-mobile.webp"], se: ["se.mp3", "se.wav"], bgm: ["bgm.mp3", "bgm.wav"], bgmDelay: 1200, selectCell: true },
+      eda: { folder: "\u3048\u3060", logo: ["logo.png", "logo.svg"], mobileLogo: ["logo-mobile.webp"], se: ["se.mp3", "se.wav"], bgm: ["bgm.mp3", "bgm.wav"], bgmDelay: 1800, selectCell: true },
+      kento: { folder: "Kento", logo: ["logo.png", "logo.svg"], mobileLogo: ["logo-mobile.webp"], se: ["se.mp3", "se.wav"], bgm: ["bgm.mp3", "bgm.wav"], bgmDelay: 420, aura: "aura.png" },
+      lickey: { folder: "Lickey", logo: ["logo.png", "logo.svg"], mobileLogo: ["logo-mobile.webp"], se: ["se.mp3", "se.wav"], bgm: ["bgm.mp3", "bgm.wav"], bgmDelay: 420, castle: "castle.png", tofuCastle: "castle-tofu-curse.png", rubble: "castle-rubble.png" },
+      tofu: { folder: "\u304a\u3044\u3057\u3044\u3068\u3046\u3075", logo: ["logo-generated.png", "logo.png", "logo.svg"], mobileLogo: ["logo-mobile.webp"], se: ["se.mp3", "se.wav"], bgm: ["bgm.mp3", "bgm.wav"], bgmDelay: 420, poop: "poop.png", openOverride: ["unpi.mp3", "unpi.wav"] },
+      rima: { folder: "\u30ea\u30fc\u30de", logo: ["logo.png", "logo.svg"], mobileLogo: ["logo-mobile.webp"], se: ["se.mp3", "se.wav"], bgm: ["bgm.mp3", "bgm.wav"], bgmDelay: 420, openOverride: ["ngo.mp3", "ngo.wav"] },
       default: { folder: "", logo: ["images/ui/title-skill-activation.png"], se: ["audio/hype-voice.wav"], bgm: [] }
     };
     const TOFU_CELL_SKIN_FOLDER = "cell-skins";
@@ -9508,6 +9521,7 @@
       skipAllTimedOverlays();
       window.clearTimeout(state.commentaryTimer);
       state.commentaryTimer = null;
+      stopActiveSkillSeAudio();
       stopSkillKaraoke(false);
       stopKentoLiveChat();
       clearVoiceLogs();
@@ -10363,7 +10377,11 @@
     function getSkillLogoImageCandidates(skill) {
       const id = skill?.profile?.id || "default";
       const urls = skillAssetUrls(id, "logo");
-      if (urls.length) return urls;
+      const deviceMemory = Number(navigator.deviceMemory);
+      const prefersCompactAsset = window.innerWidth <= 820 || (Number.isFinite(deviceMemory) && deviceMemory <= 4);
+      const mobileUrls = prefersCompactAsset ? skillAssetUrls(id, "mobileLogo") : [];
+      const candidates = [...new Set([...mobileUrls, ...urls])];
+      if (candidates.length) return candidates;
       return [SKILL_LOGO_IMAGES.default];
     }
 
@@ -11757,6 +11775,7 @@
       const bgmKey = getSkillBgmKey(skill);
       const activationStartedAt = performance.now();
       cancelPendingSkillAudioStart();
+      stopActiveSkillSeAudio();
       stopSkillKaraoke(false);
       if (bgmCandidates.length) stopManagedBgm();
       const audioGeneration = skillAudioGeneration;
@@ -11770,9 +11789,9 @@
         if (audio) scheduleSkillBgmStop(skill, performance.now() - activationStartedAt);
       };
       if (seCandidates.length) {
-        playAudioUrlSequence(seCandidates, "skillSe", 1, "");
+        registerActiveSkillSeAudio(playAudioUrlSequence(seCandidates, "skillSe", 1, ""));
       } else {
-        playAudio("hype");
+        registerActiveSkillSeAudio(playAudio("hype"));
       }
       pendingSkillBgmStartTimer = window.setTimeout(startBgm, Math.max(0, Number(asset.bgmDelay) || 0));
     }
@@ -11803,6 +11822,7 @@
     }
 
     async function finishGame(team, victoryKind = "normal", mvpHint = null) {
+      stopActiveSkillSeAudio();
       stopSkillKaraoke();
       stopKentoLiveChat();
       state.winner = team;
@@ -15688,6 +15708,7 @@
     let pendingSkillBgmStartTimer = 0;
     let pendingSkillKaraokeStopTimer = 0;
     let skillAudioGeneration = 0;
+    let activeSkillSeAudio = null;
     let lastAudioReadyAt = 0;
     const activeTransientAudios = new Set();
     const activeAudioVolumeMeta = new WeakMap();
@@ -15705,6 +15726,28 @@
         window.clearTimeout(pendingSkillKaraokeStopTimer);
         pendingSkillKaraokeStopTimer = 0;
       }
+    }
+
+    function registerActiveSkillSeAudio(audio) {
+      activeSkillSeAudio = audio || null;
+      if (!audio) return null;
+      const clear = () => {
+        if (activeSkillSeAudio === audio) activeSkillSeAudio = null;
+      };
+      audio.addEventListener("ended", clear, { once: true });
+      audio.addEventListener("error", clear, { once: true });
+      return audio;
+    }
+
+    function stopActiveSkillSeAudio() {
+      const audio = activeSkillSeAudio;
+      activeSkillSeAudio = null;
+      if (!audio) return;
+      try {
+        audio.pause();
+        audio.currentTime = 0;
+      } catch {}
+      releaseTransientAudio(audio, { unload: true });
     }
 
     function isCachedAudioElement(audio) {
