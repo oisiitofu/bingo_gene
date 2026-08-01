@@ -19,7 +19,23 @@ test("online lobby boot bypasses stale browser modules and retries once", () => 
 
   assert.match(html, /online-room\.js\?v=20260731-room-boot-1/);
   assert.match(html, /retry=\$\{Date\.now\(\)\}/);
-  assert.match(serviceWorker, /20260801-monster-pairs-84/);
+  assert.match(serviceWorker, /20260801-skill-runtime-85/);
+});
+
+test("consecutive skills cancel stale audio and setup snapshots clear persistent effects", () => {
+  const html = readFileSync(new URL("../index.html", import.meta.url), "utf8");
+
+  assert.match(html, /let pendingSkillBgmStartTimer = 0/);
+  assert.match(html, /let skillAudioGeneration = 0/);
+  assert.match(html, /function cancelPendingSkillAudioStart\(\)/);
+  assert.match(html, /if \(audioGeneration !== skillAudioGeneration\) return/);
+  assert.match(html, /const MAX_TRANSIENT_AUDIO = 12/);
+  assert.match(html, /releaseTransientAudio\(audio, \{ unload: true \}\)/);
+  assert.match(html, /const hasActiveMatch = state\.gameStarted && !state\.winner/);
+  assert.match(html, /state\.skillEffects = hasActiveMatch[\s\S]*?createSkillEffects\(\)/);
+  assert.match(html, /if \(!state\.gameStarted\) \{[\s\S]*?stopAllTransientAudio\(\{ keepSetupTheme: true \}\)/);
+  assert.match(html, /function startKentoLiveChat\(team\) \{[\s\S]*?if \(!state\.gameStarted \|\| state\.winner\) return/);
+  assert.doesNotMatch(html, /\.cell:not\(\.free\):not\(\.open\)[\s\S]{0,800}url\("skill-assets\/Kento\/aura\.png"\)/);
 });
 
 test("bingo cells are operated only through player-name buttons", () => {
