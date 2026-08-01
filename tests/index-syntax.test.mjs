@@ -19,7 +19,7 @@ test("online lobby boot bypasses stale browser modules and retries once", () => 
 
   assert.match(html, /online-room\.js\?v=20260801-hatch-sync-1/);
   assert.match(html, /retry=\$\{Date\.now\(\)\}/);
-  assert.match(serviceWorker, /20260801-territory-kick-91/);
+  assert.match(serviceWorker, /20260801-final-evolution-92/);
 });
 
 test("consecutive skills cancel stale audio and setup snapshots clear persistent effects", () => {
@@ -428,6 +428,14 @@ test("monster evolution has eight childhood entries, rank six fusions, passives,
   assert.equal(duplicateOpen.monster.stage, 1, "The same player and cell must not evolve twice");
   assert.equal(party[1].stage, 0, "A teammate's monster must remain independent");
 
+  const finalEvolution = result.evolvePlayerMonsterToFinal(party[1], "victory:blue:24", () => .2, {});
+  assert.equal(finalEvolution.monster.stage, 5, "Victory must evolve every winning egg to its highest currently reachable form");
+  assert.ok(finalEvolution.steps.length >= 5, "Victory evolution must retain the complete evolution path for presentation and dex updates");
+  assert.equal(finalEvolution.rank6Locked, true, "Rank six must still respect its four-monster dex requirement during victory evolution");
+  const finalRank6Dex = Object.fromEntries(result.rank6Requirements(finalEvolution.monster.nodeId).map((nodeId) => [nodeId, 1]));
+  const rank6FinalEvolution = result.evolvePlayerMonsterToFinal(finalEvolution.monster, "victory:blue:24:rank6", () => .2, finalRank6Dex);
+  assert.equal(rank6FinalEvolution.monster.stage, 6, "Victory must continue to rank six when its dex requirement is already unlocked");
+
   const rank4Source = result.createPlayerMonster("DEX PRIORITY", "red");
   rank4Source.nodeId = "inferno-perfect-a";
   rank4Source.stage = 4;
@@ -581,6 +589,13 @@ test("monster evolution has eight childhood entries, rank six fusions, passives,
   assert.match(html, /function monsterDexSpriteMarkup\(node\)[\s\S]*monsterSpriteMarkup\(node, "monster-dex-sprite", 80\)/);
   assert.match(html, /monster-dex-art">\$\{found \? monsterDexSpriteMarkup\(node\)/);
   assert.match(html, /id="monsterBattleEntrance"/);
+  assert.match(html, /id="monsterBattleSpeedButton"/);
+  assert.match(html, /function battleDelay\(/);
+  assert.match(html, /const readBattleElapsed = \(\) =>/);
+  assert.match(html, /state\.monsterBattleSpeed === 2/);
+  assert.match(html, /id="victoryEvolutionOverlay"/);
+  assert.match(html, /function evolveWinningTeamMonstersToFinal\(/);
+  assert.match(html, /finalEvolutions/);
   assert.match(html, /function showMonsterBattleEntrances\(/);
   assert.match(html, /remotePresentation: true/);
   assert.match(html, /state\.monsterBattle\?\.status/);

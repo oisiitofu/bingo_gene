@@ -626,9 +626,12 @@
 }
 .monster-battle-team-label { padding: 9px 14px; color: #fff; font-family: Impact, "Arial Black", sans-serif; font-size: clamp(18px,2vw,30px); }
 .monster-battle-team-label.blue { text-align: right; }
-.monster-battle-clock { min-width: 180px; display: grid; place-items: center; padding: 5px 18px; color: #fff; background: rgba(0,0,0,.72); border-inline: 2px solid #fff36c; }
+.monster-battle-clock { min-width: 204px; display: grid; grid-template-columns:1fr auto; place-items: center; gap:2px 10px; padding: 5px 12px; color: #fff; background: rgba(0,0,0,.72); border-inline: 2px solid #fff36c; }
 .monster-battle-clock span { color: #fff36c; font-size: 11px; font-weight: 1000; }
-.monster-battle-clock strong { font-family: Impact, sans-serif; font-size: 32px; }
+.monster-battle-clock strong { grid-row:2; font-family: Impact, sans-serif; font-size: 32px; }
+.monster-battle-clock button { grid-column:2; grid-row:1 / span 2; min-width:58px; height:30px; padding:0 8px; border:1px solid rgba(255,255,255,.46); border-radius:3px; color:#dce5ef; background:#111923; font:1000 10px/1 Arial,sans-serif; cursor:pointer; }
+.monster-battle-clock button:hover { border-color:#fff36c; color:#fff; }
+.monster-battle-clock button.active { border-color:#fff; color:#111; background:#fff36c; box-shadow:0 0 15px rgba(255,243,108,.58); }
 .monster-battle-field {
   position: absolute;
   inset: 76px 0 0;
@@ -726,6 +729,24 @@
 .battle-projectile { position: fixed; z-index: 299; width: 50px; height: 14px; border-radius: 50%; background: linear-gradient(90deg,#fff,#ffca38,#ff304d); box-shadow:0 0 18px #fff36c; transform-origin:center; pointer-events:none; transition:transform .35s linear; }
 .battle-projectile.magic { width:34px; height:34px; background:radial-gradient(circle,#fff,#38bdf8 38%,#7c3aed 70%,transparent 72%); box-shadow:0 0 28px #38bdf8; }
 .battle-projectile.link { width:64px; height:32px; border-radius:2px 50% 50% 2px; filter:brightness(1.4); box-shadow:0 0 34px #fff,0 0 65px currentColor; }
+body.monster-battle-speed-2 .battle-projectile { transition-duration:.175s; }
+body.monster-battle-speed-2 .battle-damage { animation-duration:.5s; }
+body.monster-battle-speed-2 .battle-impact-effect { animation-duration:.47s; }
+body.monster-battle-speed-2 .battle-target-line { animation-duration:.3s; }
+body.monster-battle-speed-2 .monster-special-cutin { animation-duration:.59s; }
+body.monster-battle-speed-2 .monster-link-cutin { animation-duration:.725s; }
+body.monster-battle-speed-2 .monster-revive-burst { animation-duration:.625s; }
+body.monster-battle-speed-2 .monster-battle-entry-card.animate { animation-duration:.39s; }
+body.monster-battle-speed-2 .monster-battle-entry-start { animation-duration:.575s; }
+body.monster-battle-speed-2 .battle-fighter.attacking,
+body.monster-battle-speed-2 .battle-fighter.attacking .monster-sprite-base,
+body.monster-battle-speed-2 .battle-fighter.attacking .monster-sprite-attack { animation-duration:.25s; }
+body.monster-battle-speed-2 .battle-fighter.hit,
+body.monster-battle-speed-2 .battle-fighter.evade { animation-duration:.21s; }
+body.monster-battle-speed-2 .battle-fighter.ko-impact { animation-duration:.275s; }
+body.monster-battle-speed-2 .battle-fighter.reviving { animation-duration:.6s; }
+body.monster-battle-speed-2 .monster-battle-finish.prelude { animation-duration:.38s; }
+body.monster-battle-speed-2 .monster-battle-finish.result { animation-duration:.725s; }
 .battle-target-line { position:fixed; z-index:298; height:2px; transform-origin:left center; background:linear-gradient(90deg,transparent,#fff36c 20%,#ff385d 80%,transparent); box-shadow:0 0 10px #fff36c; pointer-events:none; animation:battleTargetLine .6s ease both; }
 @keyframes battleTargetLine { 0% { opacity:0; scale:.1 1; } 35% { opacity:1; scale:1 1; } 100% { opacity:0; } }
 .battle-impact-effect {
@@ -875,8 +896,9 @@
   .monster-zoom-name { font-size:36px; }
   .victory-monster-lineups { grid-template-columns:1fr; }
   .monster-battle-header { grid-template-columns:1fr auto 1fr; padding:7px; }
-  .monster-battle-clock { min-width:96px; padding:3px; }
+  .monster-battle-clock { min-width:142px; padding:3px 5px; gap:1px 5px; }
   .monster-battle-clock strong { font-size:24px; }
+  .monster-battle-clock button { min-width:48px; height:26px; padding:0 5px; font-size:9px; }
   .monster-battle-team-label { font-size:14px; padding:6px 2px; }
   .monster-battle-field { inset:58px 0 0; grid-template-columns:1fr 1fr; gap:46px; padding:0 4px 5vh; }
   .monster-battle-party { flex-direction:column-reverse; justify-content:end; height:85%; }

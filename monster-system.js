@@ -601,6 +601,27 @@
     return { monster, evolved: true, previousId };
   }
 
+  function evolvePlayerMonsterToFinal(value, tokenPrefix = "final", random = Math.random, monsterDex = {}) {
+    let monster = normalizePlayerMonster(value, value?.playerName, value?.team, value?.slot);
+    const previousId = monster.nodeId;
+    const steps = [];
+    const evolvingDex = { ...(monsterDex || {}) };
+    let rank6Locked = false;
+    for (let step = 0; step < 8; step += 1) {
+      const current = NODES[monster.nodeId] || NODES.egg;
+      if (!current.next?.length) break;
+      const result = evolvePlayerMonster(monster, `${tokenPrefix}:${step}`, random, evolvingDex);
+      if (!result.evolved) {
+        rank6Locked = Boolean(result.rank6Locked);
+        break;
+      }
+      monster = result.monster;
+      evolvingDex[monster.nodeId] = 1;
+      steps.push({ previousId: result.previousId, nextId: monster.nodeId });
+    }
+    return { monster, evolved: steps.length > 0, previousId, steps, rank6Locked };
+  }
+
   function hashText(value) {
     let hash = 2166136261;
     for (const character of String(value || "")) {
@@ -775,7 +796,7 @@
 
   global.TeamBingoMonsterSystem = Object.freeze({
     STAGES, LINEAGES, LEGENDARY_IDS, LEGENDARY_CHANCE, RANK6_NAMES, PASSIVE_SKILLS, ELEMENTS, ROLES, STATUS_EFFECTS, NODES,
-    createPlayerMonster, normalizePlayerMonster, syncPlayerMonsters, distributedEvolutionRandom, evolvePlayerMonster,
+    createPlayerMonster, normalizePlayerMonster, syncPlayerMonsters, distributedEvolutionRandom, evolvePlayerMonster, evolvePlayerMonsterToFinal,
     rank6Requirements, canEvolveRank6, passiveSkill, combatElement, combatRole, elementMultiplier, statusForElement, linkTechnique,
     masteryLevel, masteryTitle, applyMasteryStats, masteryInheritanceRate, masteryExperienceDistribution,
     battleEffect, combatStats, specialChanceForHype, dialogue, playerKey, monsterKey, seededRandom

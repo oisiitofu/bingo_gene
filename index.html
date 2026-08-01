@@ -6921,6 +6921,91 @@
       to { opacity: 1; transform: none; }
     }
 
+    .victory-evolution-overlay {
+      --victory-evolution-team: #ff3158;
+      overflow: hidden;
+      background:
+        radial-gradient(circle at 50% 52%, color-mix(in srgb, var(--victory-evolution-team) 44%, white), transparent 16%),
+        linear-gradient(112deg, rgba(20, 2, 8, .97), color-mix(in srgb, var(--victory-evolution-team) 28%, #030711) 48%, rgba(3, 7, 17, .98));
+    }
+    .victory-evolution-overlay.blue { --victory-evolution-team: #1687ff; }
+    .victory-evolution-overlay::before,
+    .victory-evolution-overlay::after {
+      content: "";
+      position: absolute;
+      inset: -35%;
+      pointer-events: none;
+    }
+    .victory-evolution-overlay::before {
+      background: repeating-conic-gradient(from 0deg, color-mix(in srgb, var(--victory-evolution-team) 30%, transparent) 0deg 1.4deg, transparent 1.4deg 9deg);
+      animation: victoryEvolutionSpin 7s linear infinite;
+    }
+    .victory-evolution-overlay::after {
+      background: linear-gradient(100deg, transparent 15%, rgba(255,255,255,.08) 48%, transparent 75%);
+      animation: victoryEvolutionSweep 1.4s ease-in-out infinite;
+    }
+    .victory-evolution-content {
+      position: relative;
+      z-index: 2;
+      width: min(1540px, 96vw);
+      height: min(900px, 96vh);
+      display: grid;
+      grid-template-rows: auto auto minmax(0, 1fr);
+      justify-items: center;
+      gap: 4px;
+      padding: clamp(12px, 2vh, 24px);
+    }
+    .victory-evolution-title {
+      display: grid;
+      place-items: center;
+      width: min(900px, 82vw);
+      min-height: 92px;
+    }
+    .victory-evolution-title img { grid-area: 1 / 1; width: 100%; max-height: 150px; object-fit: contain; filter: drop-shadow(0 0 28px var(--victory-evolution-team)); }
+    .victory-evolution-title strong {
+      grid-area: 1 / 1;
+      margin-top: 58px;
+      color: #fff;
+      font-family: Impact, "Arial Black", sans-serif;
+      font-size: clamp(18px, 2.2vw, 34px);
+      letter-spacing: 0;
+      text-shadow: 0 3px 0 #000, 0 0 18px var(--victory-evolution-team);
+    }
+    .victory-evolution-team-name { color: #fff; font-size: clamp(13px, 1.35vw, 21px); font-weight: 1000; text-shadow: 0 2px 0 #000; }
+    .victory-evolution-grid {
+      width: 100%;
+      min-height: 0;
+      display: grid;
+      grid-template-columns: repeat(var(--victory-evolution-columns, 2), minmax(0, 1fr));
+      align-items: stretch;
+      gap: clamp(8px, 1.1vw, 18px);
+    }
+    .victory-evolution-unit {
+      position: relative;
+      min-width: 0;
+      min-height: 0;
+      overflow: hidden;
+      display: grid;
+      grid-template-rows: minmax(0, 1fr) auto auto;
+      justify-items: center;
+      padding: 8px;
+      border: 1px solid color-mix(in srgb, var(--victory-evolution-team) 66%, white);
+      border-radius: 4px;
+      background: linear-gradient(180deg, color-mix(in srgb, var(--victory-evolution-team) 18%, rgba(4,7,15,.72)), rgba(2,5,12,.9));
+      box-shadow: inset 0 0 30px color-mix(in srgb, var(--victory-evolution-team) 24%, transparent);
+      animation: victoryEvolutionUnitIn .65s cubic-bezier(.16,.82,.18,1) both;
+    }
+    .victory-evolution-art { position: relative; width: 100%; min-height: 0; display: grid; place-items: center; }
+    .victory-evolution-art .monster-sprite { width: auto; max-width: 100%; height: 100%; aspect-ratio: var(--monster-aspect, 1); }
+    .victory-evolution-previous { position: absolute; inset: 15% 54% 15% 2%; opacity: .28; filter: grayscale(1) brightness(1.7); transform: translateX(-18px) scale(.76); }
+    .victory-evolution-final { position: absolute; inset: 0; display: grid; place-items: center; animation: victoryEvolutionFinalIn 1.35s cubic-bezier(.14,.82,.2,1) both; }
+    .victory-evolution-unit b { max-width: 100%; overflow: hidden; color: #fff; font-size: clamp(13px, 1.45vw, 22px); text-overflow: ellipsis; text-shadow: 0 2px 0 #000, 0 0 12px var(--victory-evolution-team); white-space: nowrap; }
+    .victory-evolution-unit small { color: color-mix(in srgb, var(--victory-evolution-team) 34%, white); font-size: clamp(9px, .8vw, 12px); font-weight: 1000; white-space: nowrap; }
+    @keyframes victoryEvolutionSpin { to { transform: rotate(360deg); } }
+    @keyframes victoryEvolutionSweep { 0%, 100% { opacity: 0; transform: translateX(-28%); } 45% { opacity: 1; } 70% { opacity: 0; transform: translateX(28%); } }
+    @keyframes victoryEvolutionUnitIn { from { opacity: 0; transform: translateY(32px) scale(.88); } to { opacity: 1; transform: none; } }
+    @keyframes victoryEvolutionFinalIn { 0% { opacity: 0; transform: scale(.35); filter: brightness(6) blur(7px); } 58% { opacity: 1; transform: scale(1.12); filter: brightness(1.7); } 100% { opacity: 1; transform: scale(1); filter: none; } }
+
     .monster-hatch-overlay {
       flex-direction: column;
       gap: 16px;
@@ -7105,6 +7190,12 @@
 
     @media (max-width: 720px) {
       .app { padding: 10px; }
+      .victory-evolution-content { width: 100vw; height: 100vh; padding: 7px; }
+      .victory-evolution-title { width: 92vw; min-height: 70px; }
+      .victory-evolution-title strong { margin-top: 42px; }
+      .victory-evolution-grid { grid-template-columns: repeat(2, minmax(0, 1fr)) !important; gap: 5px; }
+      .victory-evolution-unit { padding: 4px; }
+      .victory-evolution-art .monster-sprite { max-height: 100%; }
       .brand { padding: 10px 4px 4px; margin-bottom: 14px; }
       .setup-logo-image { width: min(100%, 94vw); max-height: 150px; }
       h1 { font-size: 38px; }
@@ -7532,6 +7623,17 @@
     <div class="monster-hatch-grid" id="monsterHatchGrid"></div>
   </section>
 
+  <section class="overlay victory-evolution-overlay" id="victoryEvolutionOverlay" aria-hidden="true">
+    <div class="victory-evolution-content">
+      <div class="victory-evolution-title">
+        <img src="images/ui/title-victory.png" alt="VICTORY" />
+        <strong>FINAL EVOLUTION</strong>
+      </div>
+      <div class="victory-evolution-team-name" id="victoryEvolutionTeam"></div>
+      <div class="victory-evolution-grid" id="victoryEvolutionGrid"></div>
+    </div>
+  </section>
+
   <section class="overlay" id="firstBingoOverlay" aria-hidden="true">
     <img class="overlay-fg" src="images/ui/fg-bingo.png" alt="" aria-hidden="true" />
     <div class="first-bingo-card">
@@ -7637,7 +7739,7 @@
       </div>
       <header class="monster-battle-header">
         <div class="monster-battle-team-label red" id="monsterBattleRedLabel">RED TEAM</div>
-        <div class="monster-battle-clock"><span>MONSTER BATTLE</span><strong id="monsterBattleClock">30.0</strong></div>
+        <div class="monster-battle-clock"><span>MONSTER BATTLE</span><strong id="monsterBattleClock">30.0</strong><button type="button" id="monsterBattleSpeedButton" aria-pressed="false">2x</button></div>
         <div class="monster-battle-team-label blue" id="monsterBattleBlueLabel">BLUE TEAM</div>
       </header>
       <div class="monster-battle-field">
@@ -8449,6 +8551,7 @@
       monsterBattle: null,
       monsterBattleRunId: 0,
       monsterBattlePresentationSeed: 0,
+      monsterBattleSpeed: 1,
       monsterHatches: [],
       winner: null,
       readyShown: false,
@@ -8640,10 +8743,10 @@
         "matchReplayModal", "replayMatchMeta", "replaySummary", "replayBoards", "replayTimeline", "replayCloseButton",
         "replayPrevButton", "replayPlayButton", "replayRange", "replayStepLabel",
         "feverAura", "fxLayer", "openedByPopover", "victoryParticles", "setupThemePlayer", "copyrightToggle",
-        "monsterEvolutionOverlay", "monsterEvolutionStage", "monsterEvolutionBefore", "monsterEvolutionAfter", "monsterEvolutionName", "monsterHatchOverlay", "monsterHatchGrid",
+        "monsterEvolutionOverlay", "monsterEvolutionStage", "monsterEvolutionBefore", "monsterEvolutionAfter", "monsterEvolutionName", "monsterHatchOverlay", "monsterHatchGrid", "victoryEvolutionOverlay", "victoryEvolutionTeam", "victoryEvolutionGrid",
         "victoryMonsterSection", "victoryMonsterLineups", "monsterBattleStartButton",
         "monsterZoomOverlay", "monsterZoomCloseButton", "monsterZoomPlayer", "monsterZoomArt", "monsterZoomName", "monsterZoomStage", "monsterZoomAnimationButton", "monsterZoomStats", "monsterZoomSpecial",
-        "monsterBattleOverlay", "monsterBattleEntrance", "monsterBattleEntryCard", "monsterBattleEntryArt", "monsterBattleEntryTeam", "monsterBattleEntryIndex", "monsterBattleEntryName", "monsterBattleEntryPlayer", "monsterBattleEntrySpecial", "monsterBattleEntryStart", "monsterBattleRedLabel", "monsterBattleBlueLabel", "monsterBattleClock", "monsterBattleRedParty", "monsterBattleBlueParty", "monsterBattleTimeline", "monsterBattleMatchup", "monsterBattleCall", "monsterBattleLog", "monsterBattleFinish", "monsterBattleResult", "monsterBattleCloseButton"
+        "monsterBattleOverlay", "monsterBattleEntrance", "monsterBattleEntryCard", "monsterBattleEntryArt", "monsterBattleEntryTeam", "monsterBattleEntryIndex", "monsterBattleEntryName", "monsterBattleEntryPlayer", "monsterBattleEntrySpecial", "monsterBattleEntryStart", "monsterBattleRedLabel", "monsterBattleBlueLabel", "monsterBattleClock", "monsterBattleSpeedButton", "monsterBattleRedParty", "monsterBattleBlueParty", "monsterBattleTimeline", "monsterBattleMatchup", "monsterBattleCall", "monsterBattleLog", "monsterBattleFinish", "monsterBattleResult", "monsterBattleCloseButton"
       ].forEach((id) => { els[id] = document.getElementById(id); });
       els.players = Array.from(document.querySelectorAll("#playerInputs input"));
     }
@@ -8710,6 +8813,7 @@
         if (event.target === els.monsterZoomOverlay) closeMonsterZoom();
       });
       els.monsterBattleStartButton?.addEventListener("click", startMonsterBattle);
+      els.monsterBattleSpeedButton?.addEventListener("click", toggleMonsterBattleSpeed);
       els.monsterBattleCloseButton?.addEventListener("click", closeMonsterBattle);
       if (els.monsterBattleCloseButton?.parentElement !== document.body) {
         document.body.appendChild(els.monsterBattleCloseButton);
@@ -9537,6 +9641,7 @@
         els.startBlackoutOverlay,
         els.finishFlashOverlay,
         els.monsterEvolutionOverlay,
+        els.victoryEvolutionOverlay,
         els.monsterHatchOverlay,
         els.monsterZoomOverlay,
         els.monsterBattleOverlay
@@ -9685,6 +9790,7 @@
       hideOverlay(els.startBlackoutOverlay);
       hideOverlay(els.finishFlashOverlay);
       hideOverlay(els.monsterEvolutionOverlay);
+      hideOverlay(els.victoryEvolutionOverlay);
       hideOverlay(els.monsterZoomOverlay);
       hideOverlay(els.monsterBattleOverlay);
       clearVoiceLogs();
@@ -9959,6 +10065,73 @@
       els.monsterEvolutionName.textContent = evolutions.map((result) => MONSTER_NODES[result.monster.nodeId]?.name || "").join(" ＋ ");
       screenShake();
       return showTimedOverlay(overlay, 3900).finally(() => overlay.classList.remove("double-evolution"));
+    }
+
+    function evolveWinningTeamMonstersToFinal(team, victoryToken = "victory") {
+      if (!state.monsterBattleMode) return [];
+      const side = state[team];
+      side.monsters = syncTeamMonsters(team);
+      let dexChanged = false;
+      const results = side.monsters.map((source, index) => {
+        const playerDex = getPlayerStat(source.playerName).monsterDex || {};
+        const result = MONSTER_SYSTEM.evolvePlayerMonsterToFinal(
+          source,
+          `${victoryToken}:${team}:${source.playerKey}:${source.slot}:${index}`,
+          getDistributedEvolutionRandom(source),
+          playerDex
+        );
+        side.monsters[index] = result.monster;
+        result.steps.forEach((step) => {
+          dexChanged = unlockPlayerMonster(source.playerName, step.nextId, team, false) || dexChanged;
+        });
+        if (result.evolved) {
+          const previous = MONSTER_NODES[result.previousId] || MONSTER_NODES.egg;
+          const next = MONSTER_NODES[result.monster.nodeId] || previous;
+          addMatchHighlight("monster", `${source.playerName} FINAL EVOLUTION`, `${previous.name} → ${next.name}`, team);
+        }
+        return {
+          team,
+          playerKey: result.monster.playerKey,
+          playerName: result.monster.playerName,
+          slot: Number(result.monster.slot) || 0,
+          previousId: result.previousId,
+          nextId: result.monster.nodeId,
+          evolved: result.evolved,
+          steps: result.steps
+        };
+      });
+      if (dexChanged) savePlayerStats();
+      renderMonsterPanel(team);
+      return results;
+    }
+
+    async function showVictoryFinalEvolution(team, evolutions = []) {
+      const entries = Array.isArray(evolutions) ? evolutions.filter((entry) => entry?.nextId) : [];
+      if (!entries.length || !els.victoryEvolutionOverlay || !els.victoryEvolutionGrid) return false;
+      const finalNodes = entries.map((entry) => MONSTER_NODES[entry.nextId] || MONSTER_NODES.egg);
+      await Promise.race([preloadMonsterNodes(finalNodes), delay(2200)]);
+      const overlay = els.victoryEvolutionOverlay;
+      overlay.classList.remove("red", "blue");
+      overlay.classList.add(team);
+      els.victoryEvolutionTeam.textContent = `${state[team].teamTitle} / ALL MONSTERS FINAL FORM`;
+      els.victoryEvolutionGrid.style.setProperty("--victory-evolution-columns", String(Math.min(4, Math.max(1, entries.length))));
+      els.victoryEvolutionGrid.innerHTML = entries.map((entry, index) => {
+        const previous = MONSTER_NODES[entry.previousId] || MONSTER_NODES.egg;
+        const next = MONSTER_NODES[entry.nextId] || previous;
+        const slot = state.doubleMonsterMode ? ` / MONSTER ${Number(entry.slot) + 1}` : "";
+        return `<article class="victory-evolution-unit" style="animation-delay:${index * .08}s">
+          <div class="victory-evolution-art">
+            <div class="victory-evolution-previous">${monsterSpriteMarkup(previous)}</div>
+            <div class="victory-evolution-final">${monsterSpriteMarkup(next)}</div>
+          </div>
+          <b style="${monsterNameFitStyle(next.name, 170, 22, 10)}">${escapeHtml(next.name)}</b>
+          <small>${escapeHtml(entry.playerName)}${slot} / ${monsterRankLabel(next)}</small>
+        </article>`;
+      }).join("");
+      playAudio("victory");
+      screenShake();
+      await showTimedOverlay(overlay, 4700);
+      return true;
     }
 
     function hatchAllPlayerMonsters() {
@@ -10809,7 +10982,10 @@
 
       clearReachTargets();
       if (!becameWinner) computeReachTargets();
-      const monsterMoment = advancePlayerMonster(team, openerName, index);
+      const monsterMoment = becameWinner ? null : advancePlayerMonster(team, openerName, index);
+      const finalEvolutions = becameWinner
+        ? evolveWinningTeamMonstersToFinal(team, `victory:${state.matchTracker?.id || Date.now()}:${index}`)
+        : [];
       renderAll();
       const willShowReach = !becameWinner && shouldShowReach(team);
       const eventHypeMoments = [];
@@ -10850,11 +11026,12 @@
           team,
           victoryKind,
           mvp: cloneOnlineValue(preparedMvp),
-          presentation: createVictoryPresentation(team, victoryKind, preparedMvp)
+          presentation: createVictoryPresentation(team, victoryKind, preparedMvp),
+          finalEvolutions: cloneOnlineValue(finalEvolutions)
         };
         addMatchHighlight("victory", `${getTeamLabel(team)} VICTORY`, `${preparedMvp.name} がMVP`, team, preparedMvp.imageId);
         recordVictory(team, victoryKind, preparedMvp.name);
-        enqueueMonsterPresentation(monsterMoment, { showSpeech: false });
+        if (finalEvolutions.length) enqueueEffect(() => showVictoryFinalEvolution(team, finalEvolutions));
         enqueueEffect(() => finishGame(team, victoryKind, victoryMvpHint));
         return;
       }
@@ -11840,7 +12017,8 @@
       const victoryPresentation = onlineLastVictory?.team === team && onlineLastVictory?.presentation
         ? cloneOnlineValue(onlineLastVictory.presentation)
         : createVictoryPresentation(team, victoryKind, mvp);
-      onlineLastVictory = { team, victoryKind, mvp: cloneOnlineValue(mvp), presentation: victoryPresentation };
+      const finalEvolutions = cloneOnlineValue(onlineLastVictory?.team === team ? onlineLastVictory.finalEvolutions || [] : []);
+      onlineLastVictory = { team, victoryKind, mvp: cloneOnlineValue(mvp), presentation: victoryPresentation, finalEvolutions };
       if (!state.matchStatsFinalized) {
         addMatchHighlight("victory", `${getTeamLabel(team)} VICTORY`, `${mvp.name} がMVP`, team, mvp.imageId);
         recordVictory(team, victoryKind, mvp.name);
@@ -11849,7 +12027,7 @@
       const special = getVictorySpecial(victoryKind);
       showCommentary(special.commentTitle || "VICTORY！", special.commentSub || `${state[team].teamTitle} が2ライン達成。`, 12000);
       await showFinishFlashBridge(() => {
-        playAudio("victory");
+        if (!finalEvolutions.length) playAudio("victory");
         renderVictory(team, victoryKind, mvp, victoryPresentation);
         els.victoryOverlay.classList.remove("victory-comeback", "victory-straight");
         if (victoryKind === "comeback") els.victoryOverlay.classList.add("victory-comeback");
@@ -11877,6 +12055,42 @@
       renderAll();
     }
 
+    function getMonsterBattleSpeed() {
+      return state.monsterBattleSpeed === 2 ? 2 : 1;
+    }
+
+    function battleDelay(duration) {
+      return delay(Math.max(0, Number(duration) || 0) / getMonsterBattleSpeed());
+    }
+
+    function battleTimeout(callback, duration) {
+      return window.setTimeout(callback, Math.max(0, Number(duration) || 0) / getMonsterBattleSpeed());
+    }
+
+    function applyMonsterBattleSpeed() {
+      const speed = getMonsterBattleSpeed();
+      document.body.classList.toggle("monster-battle-speed-2", speed === 2);
+      els.monsterBattleOverlay?.classList.toggle("speed-2", speed === 2);
+      if (els.monsterBattleSpeedButton) {
+        els.monsterBattleSpeedButton.textContent = speed === 2 ? "2x ON" : "2x";
+        els.monsterBattleSpeedButton.classList.toggle("active", speed === 2);
+        els.monsterBattleSpeedButton.setAttribute("aria-pressed", String(speed === 2));
+      }
+      els.monsterBattleOverlay?.getAnimations?.({ subtree: true }).forEach((animation) => {
+        animation.playbackRate = speed;
+      });
+      document.querySelectorAll(".battle-projectile,.battle-damage,.battle-impact-effect,.monster-special-cutin,.monster-link-cutin,.monster-revive-burst").forEach((node) => {
+        node.getAnimations?.({ subtree: true }).forEach((animation) => {
+          animation.playbackRate = speed;
+        });
+      });
+    }
+
+    function toggleMonsterBattleSpeed() {
+      state.monsterBattleSpeed = getMonsterBattleSpeed() === 2 ? 1 : 2;
+      applyMonsterBattleSpeed();
+    }
+
     function startMonsterBattle(options = {}) {
       const seed = Number(options.seed) || Math.floor(Math.random() * 0xFFFFFFFF);
       const remotePresentation = options.remotePresentation === true;
@@ -11898,6 +12112,7 @@
         result: ""
       };
       state.monsterBattlePresentationSeed = seed;
+      applyMonsterBattleSpeed();
       renderVictoryMonsterLineups();
       void runMonsterBattle(seed);
       return true;
@@ -12056,11 +12271,11 @@
         card.getBoundingClientRect();
         fitSingleLineText(els.monsterBattleEntryName, 44, 14);
         card.classList.add("animate");
-        await delay(900);
+        await battleDelay(900);
       }
       if (runId !== state.monsterBattleRunId) return false;
       entrance.classList.add("battle-start");
-      await delay(1350);
+      await battleDelay(1350);
       if (runId !== state.monsterBattleRunId) return false;
       entrance.hidden = true;
       entrance.classList.remove("battle-start");
@@ -12213,7 +12428,7 @@
       line.style.width = `${Math.hypot(x2 - x1, y2 - y1)}px`;
       line.style.rotate = `${Math.atan2(y2 - y1, x2 - x1)}rad`;
       document.body.appendChild(line);
-      window.setTimeout(() => line.remove(), 620);
+      battleTimeout(() => line.remove(), 620);
       return line;
     }
 
@@ -12226,7 +12441,7 @@
       document.body.appendChild(cutin);
       playAudioUrl("audio/monster-battle/special-hit.wav", "monsterBattleSe", 1.12);
       screenShake();
-      await delay(1450);
+      await battleDelay(1450);
       cutin.remove();
     }
 
@@ -12236,7 +12451,7 @@
       element.classList.add("ko-impact");
       playAudioUrl("audio/monster-battle/physical-hit.wav", "monsterBattleSe", 1.08);
       screenShake();
-      await delay(520);
+      await battleDelay(520);
       element.classList.remove("ko-impact");
       element.classList.add("ko");
     }
@@ -12250,7 +12465,7 @@
       element?.classList.remove("ko");
       element?.classList.add("reviving");
       playAudioUrl("audio/monster-battle/magic-hit.wav", "monsterBattleSe", 1.06);
-      await delay(1250);
+      await battleDelay(1250);
       element?.classList.remove("reviving");
       burst.remove();
     }
@@ -12262,7 +12477,7 @@
       els.monsterBattleFinish.hidden = false;
       els.monsterBattleOverlay?.classList.add("finish-slow-motion");
       screenShake();
-      await delay(760);
+      await battleDelay(760);
       els.monsterBattleFinish.hidden = true;
       els.monsterBattleOverlay?.classList.remove("finish-slow-motion");
     }
@@ -12273,7 +12488,7 @@
       els.monsterBattleFinish.innerHTML = `<span>BATTLE COMPLETE</span><strong>FINISH!</strong><em>${escapeHtml(teamLabel)} WIN</em>`;
       els.monsterBattleFinish.hidden = false;
       screenShake();
-      await delay(1450);
+      await battleDelay(1450);
       els.monsterBattleFinish.hidden = true;
     }
 
@@ -12283,7 +12498,7 @@
       impact.style.left = `${bounds.left + bounds.width / 2}px`;
       impact.style.top = `${bounds.top + bounds.height / 2}px`;
       document.body.appendChild(impact);
-      window.setTimeout(() => impact.remove(), special ? 1150 : 820);
+      battleTimeout(() => impact.remove(), special ? 1150 : 820);
     }
 
     async function showMonsterSpecialCutin(attacker) {
@@ -12293,7 +12508,7 @@
       cutin.innerHTML = `<div class="monster-special-cutin-art">${monsterSpriteMarkup(node)}</div><div class="monster-special-cutin-copy"><span>SPECIAL ATTACK</span><strong>${escapeHtml(attacker.stats.special)}</strong><em>${escapeHtml(attacker.name)}</em></div>`;
       document.body.appendChild(cutin);
       screenShake();
-      await delay(1180);
+      await battleDelay(1180);
       cutin.remove();
     }
 
@@ -12301,7 +12516,7 @@
       const { damage, special, line, elementRate, status, link, linkPartner, finishing } = context;
       const attackerElement = els.monsterBattleOverlay?.querySelector(`[data-battle-fighter="${attacker.id}"]`);
       const targetElement = els.monsterBattleOverlay?.querySelector(`[data-battle-fighter="${target.id}"]`);
-      if (!attackerElement || !targetElement) return delay(520);
+      if (!attackerElement || !targetElement) return battleDelay(520);
       if (finishing) await showMonsterFinishPrelude(attacker, target);
       if (link && linkPartner) await showMonsterLinkCutin(attacker, linkPartner, link);
       else if (special) await showMonsterSpecialCutin(attacker);
@@ -12325,7 +12540,7 @@
       requestAnimationFrame(() => {
         projectile.style.transform = `translate(${end.left + end.width / 2 - (start.left + start.width / 2)}px, ${end.top + end.height / 2 - (start.top + start.height / 2)}px) scale(${link ? 2.2 : (special ? 1.8 : 1)})`;
       });
-      await delay(360);
+      await battleDelay(360);
       projectile.remove();
       playAudioUrl(
         `audio/monster-battle/${special ? "special-hit" : (attacker.stats.attackType === "magic" ? "magic-hit" : "physical-hit")}.wav`,
@@ -12343,8 +12558,8 @@
       damageNode.style.left = `${end.left + end.width * .5}px`;
       damageNode.style.top = `${end.top + end.height * .35}px`;
       document.body.appendChild(damageNode);
-      window.setTimeout(() => damageNode.remove(), 1050);
-      await delay(260);
+      battleTimeout(() => damageNode.remove(), 1050);
+      await battleDelay(260);
       attackerElement.classList.remove("attacking", "special");
       targetElement.classList.remove("hit", "evade");
     }
@@ -12476,18 +12691,27 @@
       renderMonsterBattleParty("red", parties.red);
       renderMonsterBattleParty("blue", parties.blue);
       showOverlay(els.monsterBattleOverlay);
+      applyMonsterBattleSpeed();
       playManagedAudioUrlCandidates(BOSS_BATTLE_BGM_CANDIDATES, "monsterBattleBgm", "monsterBattleBgm");
       const entranceComplete = await showMonsterBattleEntrances(parties, runId);
       if (!entranceComplete || runId !== state.monsterBattleRunId) return;
       const startedAt = Date.now();
+      let battleElapsed = 0;
+      let battleClockAt = performance.now();
+      const readBattleElapsed = () => {
+        const now = performance.now();
+        battleElapsed += (now - battleClockAt) * getMonsterBattleSpeed();
+        battleClockAt = now;
+        return battleElapsed;
+      };
       els.monsterBattleCall.textContent = "バトル開始！";
       els.monsterBattleLog.textContent = "全モンスター、戦闘態勢！";
       renderMonsterBattleFlow(parties, null, null, 0);
       const clockTimer = window.setInterval(() => {
-        const remaining = Math.max(0, duration - (Date.now() - startedAt));
+        const remaining = Math.max(0, duration - readBattleElapsed());
         els.monsterBattleClock.textContent = (remaining / 1000).toFixed(1);
       }, 100);
-      await delay(520);
+      await battleDelay(520);
       let completedTurns = 0;
       for (let turn = 0; turn < 29 && runId === state.monsterBattleRunId; turn += 1) {
         const attackingTeam = turn % 2 === (seed % 2) ? "red" : "blue";
@@ -12504,7 +12728,7 @@
           els.monsterBattleCall.textContent = "STATUS DAMAGE";
           els.monsterBattleLog.textContent = `${attacker.name}　${statusTurn.labels.join(" / ")}`;
           updateMonsterBattleFighter(attacker);
-          await delay(480);
+          await battleDelay(480);
           if (attacker.hp <= 0) await resolveMonsterKnockout(attacker);
           if (attacker.ko) {
             if (!parties[attackingTeam].some((fighter) => !fighter.ko)) break;
@@ -12515,7 +12739,7 @@
           els.monsterBattleCall.textContent = "ACTION BLOCKED";
           els.monsterBattleLog.textContent = `${attacker.name}　${statusTurn.labels.join(" / ")}`;
           updateMonsterBattleFighter(attacker);
-          await delay(620);
+          await battleDelay(620);
           continue;
         }
 
@@ -12589,9 +12813,9 @@
         if (linkPartner) updateMonsterBattleFighter(linkPartner);
         updateMonsterBattleFighter(target);
         if (!parties[defendingTeam].some((fighter) => !fighter.ko)) break;
-        const elapsed = Date.now() - startedAt;
+        const elapsed = readBattleElapsed();
         const targetElapsed = Math.min(duration - 1200, (turn + 1) * 930 + 1100);
-        if (targetElapsed > elapsed) await delay(targetElapsed - elapsed);
+        if (targetElapsed > elapsed) await battleDelay(targetElapsed - elapsed);
       }
       window.clearInterval(clockTimer);
       if (runId !== state.monsterBattleRunId) return;
@@ -12645,6 +12869,7 @@
       if (els.monsterBattleCloseButton) els.monsterBattleCloseButton.hidden = true;
       hideOverlay(els.monsterBattleOverlay);
       els.monsterBattleOverlay?.classList.remove("entrance-phase", "finish-slow-motion");
+      document.body.classList.remove("monster-battle-speed-2");
       if (els.monsterBattleEntrance) {
         els.monsterBattleEntrance.hidden = true;
         els.monsterBattleEntrance.classList.remove("battle-start");
@@ -13167,6 +13392,7 @@
         els.firstBingoOverlay,
         els.reachOverlay,
         els.skillOverlay,
+        els.victoryEvolutionOverlay,
         els.victoryOverlay
       ].some((overlay) => overlay?.classList.contains("show"));
     }
@@ -17155,11 +17381,13 @@
       const kind = victory?.victoryKind || "normal";
       const mvp = victory?.mvp || pickMvp(team);
       const presentation = victory?.presentation || createVictoryPresentation(team, kind, mvp);
-      onlineLastVictory = { team, victoryKind: kind, mvp, presentation };
+      const finalEvolutions = cloneOnlineValue(victory?.finalEvolutions || []);
+      onlineLastVictory = { team, victoryKind: kind, mvp, presentation, finalEvolutions };
+      if (finalEvolutions.length) await showVictoryFinalEvolution(team, finalEvolutions);
       const special = getVictorySpecial(kind);
       showCommentary(special.commentTitle || "VICTORY！", special.commentSub || `${state[team].teamTitle} が2ライン達成。`, 12000);
       await showFinishFlashBridge(() => {
-        playAudio("victory");
+        if (!finalEvolutions.length) playAudio("victory");
         renderVictory(team, kind, mvp, presentation);
         els.victoryOverlay.classList.remove("victory-comeback", "victory-straight");
         if (kind === "comeback") els.victoryOverlay.classList.add("victory-comeback");
