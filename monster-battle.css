@@ -172,6 +172,17 @@
     monsterAttackPose 8s steps(1, end) var(--monster-action-delay, 0s) infinite;
 }
 
+.monster-player-card.monster-pose-animated:not(.monster-assets-ready) .monster-sprite-base {
+  opacity: 1 !important;
+  animation: none !important;
+}
+
+.monster-player-card.monster-pose-animated:not(.monster-assets-ready) .monster-sprite-attack,
+.monster-player-card.monster-pose-animated:not(.monster-assets-ready) .monster-portrait-button::before {
+  opacity: 0 !important;
+  animation: none !important;
+}
+
 @keyframes monsterBoardActionRed {
   0%, 16%, 48%, 62%, 84%, 100% { transform: translate3d(0,0,0) rotate(0deg) scale(1); }
   19% { transform: translate3d(-8px,7px,0) rotate(-3deg) scale(1.05,.94); }

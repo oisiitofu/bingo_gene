@@ -322,8 +322,9 @@ test("late joiners restore only the remaining current start presentation", () =>
 
   assert.deepEqual(selectInitialOnlineMatchPresentation(room, 10_500), { kind: "blackout", remainingMs: 580 });
   assert.deepEqual(selectInitialOnlineMatchPresentation(room, 11_500), { kind: "intro", remainingMs: 2_830 });
-  assert.deepEqual(selectInitialOnlineMatchPresentation(room, 14_800), { kind: "ready", remainingMs: 530 });
-  assert.equal(selectInitialOnlineMatchPresentation(room, 15_500), null);
+  assert.deepEqual(selectInitialOnlineMatchPresentation(room, 14_800), { kind: "hatch", remainingMs: 3_430 });
+  assert.deepEqual(selectInitialOnlineMatchPresentation(room, 18_800), { kind: "ready", remainingMs: 430 });
+  assert.equal(selectInitialOnlineMatchPresentation(room, 19_500), null);
   assert.equal(selectInitialOnlineMatchPresentation({ ...room, game: { ...room.game, readyShown: true } }, 11_500), null);
 });
 

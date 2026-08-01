@@ -25,7 +25,8 @@ const ROOM_EVENT_HISTORY_LIMIT = 48;
 const ROOM_ACTION_HISTORY_LIMIT = 120;
 const START_BLACKOUT_MS = 1080;
 const START_INTRO_END_MS = 4330;
-const START_READY_END_MS = 5330;
+const START_HATCH_END_MS = 8230;
+const START_READY_END_MS = 9230;
 const ADMIN_PIN = "9071";
 const ADMIN_PIN_HASH = "6440e6a91202aeddb45b070a80533f65a689c37d0cf1842ab2bd962e33377880";
 const REACTION_TTL_MS = 12000;
@@ -375,6 +376,9 @@ export function selectInitialOnlineMatchPresentation(room = {}, now = Date.now()
   }
   if (elapsed < START_INTRO_END_MS) {
     return { kind: "intro", remainingMs: START_INTRO_END_MS - elapsed };
+  }
+  if (elapsed < START_HATCH_END_MS) {
+    return { kind: "hatch", remainingMs: START_HATCH_END_MS - elapsed };
   }
   if (elapsed < START_READY_END_MS) {
     return { kind: "ready", remainingMs: START_READY_END_MS - elapsed };
@@ -1804,6 +1808,9 @@ export class OnlineCoordinator {
         .join(" / ") || "メンバー未設定";
       const stale = now - (Number(room.updatedAt) || 0) > inactiveMs;
       const phase = stale ? "GHOST" : (PHASE_LABELS[room.phase] || PHASE_LABELS.setup);
+      const onlineMembers = Array.isArray(room.onlineMembers)
+        ? room.onlineMembers.map(normalizeName).filter(Boolean).join(" / ")
+        : "";
       return `
         <article class="online-room-card">
           <div class="online-room-card-head">
@@ -1812,6 +1819,10 @@ export class OnlineCoordinator {
           <div class="online-room-members">
             <b>MEMBERS</b>
             <span>${this.bridge.escapeHtml?.(members) || members}</span>
+          </div>
+          <div class="online-room-live-members">
+            <b>ONLINE NOW</b>
+            <span>${this.bridge.escapeHtml?.(onlineMembers || "---") || onlineMembers || "---"}</span>
           </div>
           <div class="online-room-card-foot">
             <span class="online-room-meta">${Number(room.onlineCount) || 0} ONLINE</span>
@@ -2068,6 +2079,11 @@ export class OnlineCoordinator {
     const setup = room?.setup || {};
     const participants = Object.values(room?.participants || {});
     const onlineCount = participants.filter((participant) => participant?.online).length;
+    const onlineMembers = participants
+      .filter((participant) => participant?.online)
+      .map((participant) => normalizeName(participant.memberName || participant.name || (participant.role === "spectator" ? "WATCH" : "PLAYER")))
+      .filter(Boolean)
+      .sort((a, b) => a.localeCompare(b, "ja"));
     return {
       active: room?.meta?.active !== false,
       title: room?.meta?.title || "TEAM BINGO ROOM",
@@ -2075,6 +2091,7 @@ export class OnlineCoordinator {
       redMembers: setup.redMembers || [],
       blueMembers: setup.blueMembers || [],
       onlineCount,
+      onlineMembers,
       roomRevision: Number(room?.meta?.revision) || 0,
       eventSeq: Number(room?.meta?.eventSeq) || 0,
       updatedAt: room?.meta?.updatedAt || this.backend?.serverNow?.() || Date.now()
@@ -2113,7 +2130,8 @@ export class OnlineCoordinator {
       summary.roomRevision,
       summary.eventSeq,
       summary.phase,
-      summary.onlineCount
+      summary.onlineCount,
+      summary.onlineMembers.join("|")
     ].join(":");
     if (key === this.lastMasterLobbySyncKey) return;
     this.lastMasterLobbySyncKey = key;
@@ -2501,7 +2519,12 @@ export class OnlineCoordinator {
     if (!this.ui?.connectionList) return;
     const rows = buildOnlineConnectionRows(this.room, this.backend?.serverNow?.() || Date.now());
     const onlineCount = rows.filter((row) => row.online).length;
+    const onlineNames = rows.filter((row) => row.online).map((row) => row.name);
     this.ui.connectionSummary.textContent = `${onlineCount} ONLINE / ${rows.length} PARTICIPANTS`;
+    if (this.ui.sessionPresence && this.roomId) {
+      this.ui.sessionPresence.textContent = onlineNames.length ? onlineNames.join(" / ") : "0 ONLINE";
+      this.ui.sessionPresence.title = onlineNames.join(" / ");
+    }
     this.ui.connectionList.innerHTML = rows.length ? rows.map((row) => {
       const role = row.role === "master" ? "MASTER" : (row.role === "spectator" ? "WATCH" : (row.team ? `${row.team.toUpperCase()} TEAM` : "PLAYER"));
       const age = row.online ? "NOW" : (row.lastSeenMs < 60000 ? `${Math.max(1, Math.ceil(row.lastSeenMs / 1000))} SEC AGO` : `${Math.max(1, Math.ceil(row.lastSeenMs / 60000))} MIN AGO`);

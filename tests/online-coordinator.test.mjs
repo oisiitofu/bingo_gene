@@ -403,6 +403,20 @@ test("connection rows put online participants and the master first", () => {
   assert.equal(rows[2].lastSeenMs, 60000);
 });
 
+test("lobby summaries expose the names of participants who are online now", () => {
+  const coordinator = Object.create(OnlineCoordinator.prototype);
+  coordinator.backend = { serverNow: () => 100000 };
+  const room = createRoom();
+  room.participants.master.memberName = "JAN";
+  room.participants.guest.memberName = "EDA";
+  room.participants.offline = { uid: "offline", role: "player", memberName: "Kento", online: false };
+
+  const summary = coordinator.createLobbySummary(room);
+
+  assert.equal(summary.onlineCount, 2);
+  assert.deepEqual(summary.onlineMembers, ["EDA", "JAN"]);
+});
+
 test("spectators can send allowlisted reactions without mutating the room", async () => {
   const store = createStore();
   store.value.teamBingoV1.rooms.ROOM.participants.guest.role = "spectator";

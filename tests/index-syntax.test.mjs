@@ -17,9 +17,9 @@ test("online lobby boot bypasses stale browser modules and retries once", () => 
   const html = readFileSync(new URL("../index.html", import.meta.url), "utf8");
   const serviceWorker = readFileSync(new URL("../sw.js", import.meta.url), "utf8");
 
-  assert.match(html, /online-room\.js\?v=20260731-room-boot-1/);
+  assert.match(html, /online-room\.js\?v=20260801-hatch-sync-1/);
   assert.match(html, /retry=\$\{Date\.now\(\)\}/);
-  assert.match(serviceWorker, /20260801-skill-runtime-85/);
+  assert.match(serviceWorker, /20260801-hatch-sync-86/);
 });
 
 test("consecutive skills cancel stale audio and setup snapshots clear persistent effects", () => {
@@ -508,6 +508,13 @@ test("monster evolution has eight childhood entries, rank six fusions, passives,
   assert.doesNotMatch(html, /Object\.groupBy\(/, "Online double evolutions must work in older Chromium builds");
   assert.match(html, /type === "monster-battle-start"/);
   assert.match(html, /effects\.has\("monster-battle-start"\)/);
+  assert.match(html, /matchId: String\(state\.matchTracker\?\.id \|\| ""\)/, "Monster battle results must be scoped to one match");
+  assert.match(html, /String\(incomingBattle\.matchId \|\| ""\) === incomingMatchId/, "Online rematches must reject stale monster battle results");
+  assert.match(html, /state\.monsterHatches = hatchAllPlayerMonsters\(\)/, "Every match must hatch all player eggs together");
+  assert.match(html, /effects\.push\("intro", "monster-hatch", "ready"\)/, "Online hatch presentation must be part of the shared start sequence");
+  assert.match(html, /function preloadMonsterNodes\(/, "Visible monster pose assets must be warmed before animation");
+  assert.ok(existsSync(new URL("../skill-assets/Lickey/castle-tofu-curse.png", import.meta.url)), "Missing tofu-cursed Likecy castle artwork");
+  assert.match(html, /isPoopCell \? "tofuCastle" : "castle"/, "The tofu and Likecy skill combo must use its dedicated castle");
   assert.match(html, /kind: "monster-speech"/);
   assert.ok(existsSync(new URL("../images/monster-battle/arena.png", import.meta.url)));
   assert.ok(existsSync(new URL("../monster-battle.css", import.meta.url)));

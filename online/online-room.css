@@ -477,6 +477,18 @@ html.territory-standalone .online-reaction-dock {
   background: rgba(255, 255, 255, .045);
 }
 
+.online-room-live-members {
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: #8ee3b1;
+  font-size: 10px;
+  font-weight: 900;
+}
+.online-room-live-members b { flex: 0 0 auto; color: #fff; }
+.online-room-live-members span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
 .online-room-members b {
   color: #9aa7b8;
   font-size: 9px;
@@ -908,8 +920,15 @@ body.online-local-mode .online-session-role,
 body.online-local-mode .online-session-presence { display: none; }
 
 body.online-active .online-session-name,
-body.online-active .online-session-role,
-body.online-active .online-session-presence { display: none; }
+body.online-active .online-session-role { display: none; }
+body.online-active .online-session-presence {
+  display: block;
+  flex: 0 1 240px;
+  max-width: min(34vw, 240px);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
 
 @media (min-width: 1101px) {
   body.online-room-draft .setup-top-bar {

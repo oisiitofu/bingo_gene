@@ -6921,6 +6921,70 @@
       to { opacity: 1; transform: none; }
     }
 
+    .monster-hatch-overlay {
+      flex-direction: column;
+      gap: 16px;
+      padding: clamp(18px, 3vw, 42px);
+      background:
+        radial-gradient(circle at 50% 45%, rgba(255, 224, 112, .22), transparent 38%),
+        linear-gradient(90deg, rgba(87, 9, 26, .9) 0 49.8%, rgba(5, 41, 91, .9) 50.2% 100%);
+      backdrop-filter: blur(7px) saturate(1.2);
+    }
+
+    .monster-hatch-heading { position: relative; z-index: 2; display: grid; justify-items: center; color: #fff; text-shadow: 0 3px 0 #000; }
+    .monster-hatch-heading span { color: #ffe06a; font-size: clamp(13px, 1.4vw, 22px); font-weight: 1000; }
+    .monster-hatch-heading strong { font-family: Impact, "Arial Black", sans-serif; font-size: clamp(36px, 6vw, 86px); line-height: .95; letter-spacing: 0; }
+    .monster-hatch-grid {
+      --hatch-columns: 4;
+      position: relative;
+      z-index: 2;
+      width: min(1500px, 96vw);
+      height: min(650px, 70vh);
+      display: grid;
+      grid-template-columns: repeat(var(--hatch-columns), minmax(0, 1fr));
+      grid-auto-rows: minmax(0, 1fr);
+      gap: clamp(7px, 1vw, 14px);
+    }
+
+    .monster-hatch-card {
+      --hatch-color: #ff3158;
+      min-width: 0;
+      min-height: 0;
+      display: grid;
+      grid-template-rows: auto minmax(0, 1fr) auto auto;
+      padding: 10px;
+      overflow: hidden;
+      border: 2px solid color-mix(in srgb, var(--hatch-color) 65%, white);
+      background: linear-gradient(180deg, color-mix(in srgb, var(--hatch-color) 28%, #050914), rgba(3, 7, 17, .96));
+      box-shadow: inset 0 0 28px color-mix(in srgb, var(--hatch-color) 35%, transparent), 0 12px 30px rgba(0,0,0,.42);
+      color: #fff;
+      text-align: center;
+      animation: hatchCardIn .42s cubic-bezier(.18,.8,.2,1) both;
+    }
+    .monster-hatch-card.blue { --hatch-color: #1687ff; }
+    .monster-hatch-team { color: color-mix(in srgb, var(--hatch-color) 45%, white); font-size: 10px; font-weight: 1000; }
+    .monster-hatch-stage { position: relative; min-height: 0; display: grid; place-items: center; }
+    .monster-hatch-egg,
+    .monster-hatch-born { position: absolute; inset: 0; display: grid; place-items: center; }
+    .monster-hatch-stage .monster-sprite { width: auto; max-width: 100%; height: 100%; aspect-ratio: var(--monster-aspect, 1); }
+    .monster-hatch-egg { animation: hatchEggBreak 2.2s ease-in-out both; }
+    .monster-hatch-born { animation: hatchMonsterBorn 2.5s .55s cubic-bezier(.16,.82,.18,1) both; }
+    .monster-hatch-flash { position: absolute; width: 30%; aspect-ratio: 1; border-radius: 50%; background: #fff; filter: blur(12px); animation: hatchFlash 1.1s .72s ease-out both; }
+    .monster-hatch-player { overflow: hidden; color: #fff; font-size: clamp(11px, 1.1vw, 17px); font-weight: 1000; text-overflow: ellipsis; white-space: nowrap; }
+    .monster-hatch-player small { margin-left: 5px; color: #ffe06a; font-size: .72em; }
+    .monster-hatch-card > strong { overflow: hidden; color: #ffe778; font-size: clamp(12px, 1.3vw, 20px); text-overflow: ellipsis; text-shadow: 0 2px 0 #000; white-space: nowrap; }
+    @keyframes hatchCardIn { from { opacity: 0; transform: translateY(24px) scale(.95); } to { opacity: 1; transform: none; } }
+    @keyframes hatchEggBreak { 0%, 32% { opacity: 1; transform: scale(.82) rotate(0); filter: brightness(1); } 42% { transform: scale(.9) rotate(-4deg); } 52% { transform: scale(.9) rotate(5deg); } 66% { opacity: 1; transform: scale(1.08); filter: brightness(4); } 100% { opacity: 0; transform: scale(1.5); filter: brightness(6) blur(6px); } }
+    @keyframes hatchMonsterBorn { 0%, 30% { opacity: 0; transform: scale(.38); filter: brightness(5) blur(7px); } 65% { opacity: 1; transform: scale(1.1); filter: brightness(1.6); } 100% { opacity: 1; transform: scale(1); filter: none; } }
+    @keyframes hatchFlash { 0%, 15% { opacity: 0; transform: scale(.2); } 45% { opacity: .95; } 100% { opacity: 0; transform: scale(5); } }
+
+    .cell.lickey-tofu-castle-cell { background: radial-gradient(circle, rgba(255,239,154,.98), rgba(176,95,12,.9) 54%, rgba(72,30,0,.96)); }
+    .lickey-tofu-castle-art { width: 106%; height: 106%; filter: drop-shadow(0 5px 5px rgba(0,0,0,.5)) drop-shadow(0 0 12px rgba(255,194,47,.72)); }
+
+    @media (max-width: 900px) {
+      .monster-hatch-grid { --hatch-columns: 2; height: min(720px, 76vh); }
+    }
+
     @media (max-width: 1100px) {
       .setup-layout,
       .boards,
@@ -7447,6 +7511,14 @@
     </div>
   </section>
 
+  <section class="overlay monster-hatch-overlay" id="monsterHatchOverlay" aria-hidden="true">
+    <div class="monster-hatch-heading">
+      <span>MONSTER BIRTH</span>
+      <strong>一斉孵化！</strong>
+    </div>
+    <div class="monster-hatch-grid" id="monsterHatchGrid"></div>
+  </section>
+
   <section class="overlay" id="firstBingoOverlay" aria-hidden="true">
     <img class="overlay-fg" src="images/ui/fg-bingo.png" alt="" aria-hidden="true" />
     <div class="first-bingo-card">
@@ -7920,7 +7992,7 @@
       jan: { folder: "\u30b8\u30e3\u30f3", logo: ["logo.png", "logo.svg"], se: ["se.mp3", "se.wav"], bgm: ["bgm.mp3", "bgm.wav"], bgmDelay: 1200, selectCell: true },
       eda: { folder: "\u3048\u3060", logo: ["logo.png", "logo.svg"], se: ["se.mp3", "se.wav"], bgm: ["bgm.mp3", "bgm.wav"], bgmDelay: 1800, selectCell: true },
       kento: { folder: "Kento", logo: ["logo.png", "logo.svg"], se: ["se.mp3", "se.wav"], bgm: ["bgm.mp3", "bgm.wav"], bgmDelay: 420, aura: "aura.png" },
-      lickey: { folder: "Lickey", logo: ["logo.png", "logo.svg"], se: ["se.mp3", "se.wav"], bgm: ["bgm.mp3", "bgm.wav"], bgmDelay: 420, castle: "castle.png", rubble: "castle-rubble.png" },
+      lickey: { folder: "Lickey", logo: ["logo.png", "logo.svg"], se: ["se.mp3", "se.wav"], bgm: ["bgm.mp3", "bgm.wav"], bgmDelay: 420, castle: "castle.png", tofuCastle: "castle-tofu-curse.png", rubble: "castle-rubble.png" },
       tofu: { folder: "\u304a\u3044\u3057\u3044\u3068\u3046\u3075", logo: ["logo-generated.png", "logo.png", "logo.svg"], se: ["se.mp3", "se.wav"], bgm: ["bgm.mp3", "bgm.wav"], bgmDelay: 420, poop: "poop.png", openOverride: ["unpi.mp3", "unpi.wav"] },
       rima: { folder: "\u30ea\u30fc\u30de", logo: ["logo.png", "logo.svg"], se: ["se.mp3", "se.wav"], bgm: ["bgm.mp3", "bgm.wav"], bgmDelay: 420, openOverride: ["ngo.mp3", "ngo.wav"] },
       default: { folder: "", logo: ["images/ui/title-skill-activation.png"], se: ["audio/hype-voice.wav"], bgm: [] }
@@ -8363,6 +8435,7 @@
       monsterBattle: null,
       monsterBattleRunId: 0,
       monsterBattlePresentationSeed: 0,
+      monsterHatches: [],
       winner: null,
       readyShown: false,
       ranking: {},
@@ -8419,6 +8492,8 @@
     const els = {};
     const timedOverlaySkips = new Map();
     const failedCellImagePaths = new Set();
+    const monsterAssetPromises = new Map();
+    const loadedMonsterAssets = new Set();
     const renderMarkupCache = {
       grids: { red: "", blue: "" },
       monsters: { red: "", blue: "" }
@@ -8550,7 +8625,7 @@
         "matchReplayModal", "replayMatchMeta", "replaySummary", "replayBoards", "replayTimeline", "replayCloseButton",
         "replayPrevButton", "replayPlayButton", "replayRange", "replayStepLabel",
         "feverAura", "fxLayer", "openedByPopover", "victoryParticles", "setupThemePlayer", "copyrightToggle",
-        "monsterEvolutionOverlay", "monsterEvolutionStage", "monsterEvolutionBefore", "monsterEvolutionAfter", "monsterEvolutionName",
+        "monsterEvolutionOverlay", "monsterEvolutionStage", "monsterEvolutionBefore", "monsterEvolutionAfter", "monsterEvolutionName", "monsterHatchOverlay", "monsterHatchGrid",
         "victoryMonsterSection", "victoryMonsterLineups", "monsterBattleStartButton",
         "monsterZoomOverlay", "monsterZoomCloseButton", "monsterZoomPlayer", "monsterZoomArt", "monsterZoomName", "monsterZoomStage", "monsterZoomAnimationButton", "monsterZoomStats", "monsterZoomSpecial",
         "monsterBattleOverlay", "monsterBattleEntrance", "monsterBattleEntryCard", "monsterBattleEntryArt", "monsterBattleEntryTeam", "monsterBattleEntryIndex", "monsterBattleEntryName", "monsterBattleEntryPlayer", "monsterBattleEntrySpecial", "monsterBattleEntryStart", "monsterBattleRedLabel", "monsterBattleBlueLabel", "monsterBattleClock", "monsterBattleRedParty", "monsterBattleBlueParty", "monsterBattleTimeline", "monsterBattleMatchup", "monsterBattleCall", "monsterBattleLog", "monsterBattleFinish", "monsterBattleResult", "monsterBattleCloseButton"
@@ -9351,6 +9426,7 @@
       dealCards();
       state.gameStarted = true;
       unlockCurrentMonsterEggs();
+      state.monsterHatches = hatchAllPlayerMonsters();
       recordMatchStart();
       state.inputLocked = true;
       state.readyShown = false;
@@ -9360,6 +9436,7 @@
       showCommentary("開幕準備完了！", "チーム紹介からREADYへ。", 3600);
       enqueueEffect(async () => {
         await showIntroWithBlackout();
+        await showAllMonsterHatches(state.monsterHatches);
         await showReadyOnce();
         state.inputLocked = false;
         renderAll();
@@ -9381,6 +9458,7 @@
       state.monsterBattle = null;
       state.monsterBattleRunId += 1;
       state.monsterBattlePresentationSeed = 0;
+      state.monsterHatches = [];
       state.skillCharges = { red: false, blue: false };
       state.skillChargeAnnounced = { red: false, blue: false };
       state.skillEffects = createSkillEffects();
@@ -9439,6 +9517,7 @@
         els.startBlackoutOverlay,
         els.finishFlashOverlay,
         els.monsterEvolutionOverlay,
+        els.monsterHatchOverlay,
         els.monsterZoomOverlay,
         els.monsterBattleOverlay
       ].forEach((overlay) => {
@@ -9712,6 +9791,48 @@
       }, "monster-sprite-attack");
     }
 
+    function monsterNodeAssetUrls(node) {
+      if (!node?.sprite?.sheet) return [];
+      const attackSheet = node.sprite.attackSheet || MONSTER_ATTACK_SHEETS[node.sprite.sheet];
+      return [...new Set([node.sprite.sheet, attackSheet].filter(Boolean))];
+    }
+
+    function preloadMonsterAsset(url) {
+      if (!url || loadedMonsterAssets.has(url)) return Promise.resolve(url);
+      if (monsterAssetPromises.has(url)) return monsterAssetPromises.get(url);
+      const request = new Promise((resolve, reject) => {
+        const image = new Image();
+        image.decoding = "async";
+        image.onload = async () => {
+          try { await image.decode?.(); } catch (_) {}
+          loadedMonsterAssets.add(url);
+          resolve(url);
+        };
+        image.onerror = () => reject(new Error(`Monster asset failed: ${url}`));
+        image.src = url;
+      }).catch((error) => {
+        monsterAssetPromises.delete(url);
+        console.warn(error.message);
+        return "";
+      });
+      monsterAssetPromises.set(url, request);
+      return request;
+    }
+
+    function preloadMonsterNodes(nodes = []) {
+      const urls = [...new Set(nodes.flatMap((node) => monsterNodeAssetUrls(node)))];
+      return Promise.all(urls.map(preloadMonsterAsset));
+    }
+
+    function warmMonsterPanelAssets(panel) {
+      panel?.querySelectorAll("[data-monster-node]").forEach((card) => {
+        const node = MONSTER_NODES[card.dataset.monsterNode] || MONSTER_NODES.egg;
+        preloadMonsterNodes([node]).then(() => {
+          if (card.isConnected) card.classList.add("monster-assets-ready");
+        });
+      });
+    }
+
     function renderMonsterPanel(team) {
       const panel = els[`${team}MonsterPanel`];
       if (!panel) return;
@@ -9724,9 +9845,11 @@
           ${side.monsters.map((monster, monsterIndex) => renderPlayerMonsterCard(team, monster, monsterIndex)).join("")}
         </div>
       `;
-      if (renderMarkupCache.monsters[team] === markup) return;
-      renderMarkupCache.monsters[team] = markup;
-      panel.innerHTML = markup;
+      if (renderMarkupCache.monsters[team] !== markup) {
+        renderMarkupCache.monsters[team] = markup;
+        panel.innerHTML = markup;
+      }
+      warmMonsterPanelAssets(panel);
     }
 
     function renderPlayerMonsterCard(team, monster, monsterIndex = 0) {
@@ -9736,7 +9859,7 @@
       const poseAnimated = hasMonsterPoseAnimation(node);
       const actionDelay = -((monsterIndex * 1.65) + (team === "blue" ? .8 : 0));
       return `
-        <article class="monster-player-card${poseAnimated ? " monster-pose-animated" : ""}" data-monster-player="${escapeHtml(identity)}" data-monster-stage="${Number(node.stage) || 0}" style="--monster-action-delay:${actionDelay}s">
+        <article class="monster-player-card${poseAnimated ? " monster-pose-animated" : ""}" data-monster-player="${escapeHtml(identity)}" data-monster-node="${escapeHtml(node.id)}" data-monster-stage="${Number(node.stage) || 0}" style="--monster-action-delay:${actionDelay}s">
           <button type="button" class="monster-portrait-button" data-monster-team="${team}" data-monster-zoom="${escapeHtml(identity)}" title="${escapeHtml(node.name)}を拡大">
             ${monsterSpriteMarkup(node, poseAnimated ? "monster-sprite-base" : "")}
             ${poseAnimated ? monsterAttackSpriteMarkup(node) : ""}
@@ -9816,6 +9939,62 @@
       els.monsterEvolutionName.textContent = evolutions.map((result) => MONSTER_NODES[result.monster.nodeId]?.name || "").join(" ＋ ");
       screenShake();
       return showTimedOverlay(overlay, 3900).finally(() => overlay.classList.remove("double-evolution"));
+    }
+
+    function hatchAllPlayerMonsters() {
+      if (!state.monsterBattleMode) return [];
+      const hatches = [];
+      ["red", "blue"].forEach((team) => {
+        const side = state[team];
+        side.monsters = syncTeamMonsters(team);
+        side.monsters.forEach((monster, index) => {
+          if (monster.nodeId !== "egg") return;
+          const playerDex = getPlayerStat(monster.playerName).monsterDex || {};
+          const result = MONSTER_SYSTEM.evolvePlayerMonster(
+            monster,
+            `hatch:${state.matchTracker?.id || Date.now()}:${team}:${monster.playerKey}:${monster.slot}`,
+            getDistributedEvolutionRandom(monster),
+            playerDex
+          );
+          side.monsters[index] = result.monster;
+          if (!result.evolved) return;
+          unlockPlayerMonster(monster.playerName, result.monster.nodeId, team);
+          hatches.push({
+            team,
+            playerKey: result.monster.playerKey,
+            playerName: result.monster.playerName,
+            slot: Number(result.monster.slot) || 0,
+            previousId: result.previousId,
+            nextId: result.monster.nodeId
+          });
+        });
+      });
+      return hatches;
+    }
+
+    async function showAllMonsterHatches(hatches = [], duration = 3900) {
+      const entries = Array.isArray(hatches) ? hatches.filter((entry) => entry?.nextId) : [];
+      if (!entries.length || !els.monsterHatchOverlay || !els.monsterHatchGrid) return;
+      const nodes = entries.map((entry) => MONSTER_NODES[entry.nextId] || MONSTER_NODES.egg);
+      await Promise.race([preloadMonsterNodes(nodes), delay(2200)]);
+      els.monsterHatchGrid.style.setProperty("--hatch-columns", String(Math.min(4, Math.max(1, entries.length))));
+      els.monsterHatchGrid.innerHTML = entries.map((entry) => {
+        const previous = MONSTER_NODES[entry.previousId] || MONSTER_NODES.egg;
+        const next = MONSTER_NODES[entry.nextId] || previous;
+        const slot = state.doubleMonsterMode ? `<small>MONSTER ${Number(entry.slot) + 1}</small>` : "";
+        return `<article class="monster-hatch-card ${entry.team}">
+          <div class="monster-hatch-team">${entry.team.toUpperCase()} TEAM</div>
+          <div class="monster-hatch-stage">
+            <div class="monster-hatch-egg">${monsterSpriteMarkup(previous)}</div>
+            <div class="monster-hatch-born">${monsterSpriteMarkup(next)}</div>
+            <span class="monster-hatch-flash" aria-hidden="true"></span>
+          </div>
+          <div class="monster-hatch-player">${escapeHtml(entry.playerName)}${slot}</div>
+          <strong>${escapeHtml(next.name)}</strong>
+        </article>`;
+      }).join("");
+      screenShake();
+      return showTimedOverlay(els.monsterHatchOverlay, Math.max(250, Number(duration) || 3900));
     }
 
     function getPlayerMonster(team, playerNameOrKey, slot = 0) {
@@ -10337,6 +10516,7 @@
       if (cell.free) classes.push("free", "open", team);
       if (isRimaAimCell) classes.push("rima-aim-cell");
       if (isLickeyCastleCell) classes.push("lickey-castle-cell");
+      if (isLickeyCastleCell && isPoopCell) classes.push("lickey-tofu-castle-cell");
       if (isLickeyRubbleCell) classes.push("lickey-rubble-cell");
       if (isPoopCell) classes.push("poop-cell");
       if (useTofuCellSkin) classes.push("tofu-cell-skin");
@@ -10363,7 +10543,7 @@
         : "";
       const content = cell.free
         ? (isLickeyCastleCell
-          ? `<img class="lickey-castle-art" src="${skillAssetUrl("lickey", "castle")}" alt="" />`
+          ? `<img class="lickey-castle-art${isPoopCell ? " lickey-tofu-castle-art" : ""}" src="${skillAssetUrl("lickey", isPoopCell ? "tofuCastle" : "castle")}" alt="" />`
           : (isLickeyRubbleCell
             ? `<img class="lickey-rubble-art" src="${skillAssetUrl("lickey", "rubble")}" alt="" />`
             : (isPoopCell ? `<img class="poop-cell-art" src="${skillAssetUrl("tofu", "poop")}" alt="" />` : `<span class="free-hole" aria-hidden="true"></span>`)))
@@ -11682,7 +11862,13 @@
           () => startMonsterBattle({ ...options, seed, onlineBypass: true })
         );
       }
-      state.monsterBattle = { seed, status: "running", startedAt: Date.now(), result: "" };
+      state.monsterBattle = {
+        seed,
+        matchId: String(state.matchTracker?.id || ""),
+        status: "running",
+        startedAt: Date.now(),
+        result: ""
+      };
       state.monsterBattlePresentationSeed = seed;
       renderVictoryMonsterLineups();
       void runMonsterBattle(seed);
@@ -12232,6 +12418,9 @@
             blue: createAdminMonsterBattleFighters("blue", options.lineup?.blue, options.hype?.blue)
           }
         : { red: createMonsterBattleFighters("red"), blue: createMonsterBattleFighters("blue") };
+      const battleNodes = [...parties.red, ...parties.blue].map((fighter) => MONSTER_NODES[fighter.nodeId] || MONSTER_NODES.egg);
+      await Promise.race([preloadMonsterNodes(battleNodes), delay(2500)]);
+      if (runId !== state.monsterBattleRunId) return;
       const teamLabels = options.teamLabels || { red: state.red.teamTitle, blue: state.blue.teamTitle };
       const duration = 30000;
       state.inputLocked = true;
@@ -12376,7 +12565,14 @@
       });
       const summary = createMonsterBattleSummary(parties, winner, completedTurns);
       await showMonsterBattleFinish(winner, teamLabels[winner]);
-      if (!adminBattle) state.monsterBattle = { seed, status: "complete", startedAt, result: winner, summary };
+      if (!adminBattle) state.monsterBattle = {
+        seed,
+        matchId: String(state.matchTracker?.id || ""),
+        status: "complete",
+        startedAt,
+        result: winner,
+        summary
+      };
       els.monsterBattleResult.textContent = `${teamLabels[winner]}　モンスター勝利！`;
       els.monsterBattleResult.className = `monster-battle-result ${winner}`;
       els.monsterBattleResult.hidden = false;
@@ -16139,7 +16335,7 @@
       if ("serviceWorker" in navigator && /^https?:$/.test(location.protocol)) {
         navigator.serviceWorker.register("./sw.js").then((registration) => registration.update()).catch((error) => console.warn("Service worker registration failed", error));
       }
-      const onlineRoomModuleUrl = "./online/online-room.js?v=20260731-room-boot-1";
+      const onlineRoomModuleUrl = "./online/online-room.js?v=20260801-hatch-sync-1";
       import(onlineRoomModuleUrl)
         .catch((firstError) => import(`${onlineRoomModuleUrl}&retry=${Date.now()}`)
           .catch((retryError) => {
@@ -16380,6 +16576,7 @@
         monsterBattleMode: state.monsterBattleMode,
         doubleMonsterMode: state.doubleMonsterMode,
         monsterBattle: cloneOnlineValue(state.monsterBattle),
+        monsterHatches: cloneOnlineValue(state.monsterHatches),
         skillCharges: cloneOnlineValue(state.skillCharges),
         skillChargeAnnounced: cloneOnlineValue(state.skillChargeAnnounced),
         skillEffects: cloneOnlineValue(state.skillEffects),
@@ -16424,7 +16621,11 @@
       if (!snapshot || typeof snapshot !== "object") return;
       const startsNewMatch = onlineMatchResetDetector(snapshot, state);
       const finishesReady = onlineMatchStartDetector(snapshot, state);
-      if (startsNewMatch) resetMatchPresentation();
+      if (startsNewMatch) {
+        resetMatchPresentation();
+        state.monsterBattleRunId += 1;
+        state.monsterBattlePresentationSeed = 0;
+      }
       state.gridSize = Number(snapshot.gridSize) === 7 ? 7 : 5;
       state.gameStarted = Boolean(snapshot.gameStarted);
       state.inputLocked = Boolean(snapshot.inputLocked);
@@ -16441,7 +16642,12 @@
       state.randomEventsEnabled = snapshot.randomEventsEnabled !== false;
       state.randomEventMilestones = Array.isArray(snapshot.randomEventMilestones) ? cloneOnlineValue(snapshot.randomEventMilestones) : [];
       state.monsterBattleMode = snapshot.monsterBattleMode !== false;
-      state.monsterBattle = cloneOnlineValue(snapshot.monsterBattle || null);
+      const incomingMatchId = String(snapshot.matchTracker?.id || "");
+      const incomingBattle = cloneOnlineValue(snapshot.monsterBattle || null);
+      state.monsterBattle = incomingBattle && (
+        !incomingMatchId || String(incomingBattle.matchId || "") === incomingMatchId
+      ) ? incomingBattle : null;
+      state.monsterHatches = Array.isArray(snapshot.monsterHatches) ? cloneOnlineValue(snapshot.monsterHatches) : [];
       const shouldPresentMonsterBattle = onlineMonsterBattlePresentationDetector(
         state.monsterBattle,
         state.monsterBattlePresentationSeed
@@ -16527,7 +16733,11 @@
       if (!phase?.kind || !state.gameStarted || state.winner) return;
       const remainingMs = Math.max(0, Number(phase.remainingMs) || 0);
       if (!remainingMs) return;
-      [els.startBlackoutOverlay, els.introOverlay, els.readyOverlay].forEach((overlay) => hideOverlay(overlay));
+      [els.startBlackoutOverlay, els.introOverlay, els.monsterHatchOverlay, els.readyOverlay].forEach((overlay) => hideOverlay(overlay));
+      if (phase.kind === "hatch") {
+        void showAllMonsterHatches(state.monsterHatches, remainingMs);
+        return;
+      }
       const overlay = phase.kind === "blackout"
         ? els.startBlackoutOverlay
         : (phase.kind === "intro" ? els.introOverlay : els.readyOverlay);
@@ -16684,7 +16894,10 @@
         effects: [],
         presentation: cloneOnlineValue(action?.presentation || { timeline: [] })
       };
-      if (type === "start-game") event.effects.push("intro", "ready");
+      if (type === "start-game") {
+        event.effects.push("intro", "monster-hatch", "ready");
+        event.payload.monsterHatches = cloneOnlineValue(after?.monsterHatches || []);
+      }
       if (type === "toggle-cell" || type === "toggle-cell-player") {
         const team = payload.team;
         const index = Number(payload.index);
@@ -16761,6 +16974,7 @@
         resetMatchPresentation();
         enqueueEffect(async () => {
           await showIntroWithBlackout();
+          if (effects.has("monster-hatch")) await showAllMonsterHatches(payload.monsterHatches);
           await showReadyOnce();
         });
       }
