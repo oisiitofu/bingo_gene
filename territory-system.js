@@ -10,6 +10,9 @@
   const MAX_LOGS = 180;
   const PARTY_SIZE = 3;
   const DEFAULT_HYPE = 20;
+  const TERRITORY_POINT_BASE = 2;
+  const TERRITORY_SCORE_WEIGHT = 12;
+  const ACTIVITY_CATCHUP_MARGIN = 4;
   const EVENT_REROLL_TICKS = 6;
   const JST_OFFSET = 9 * 60 * 60 * 1000;
 
@@ -820,30 +823,42 @@
   function createActions(state, random) {
     const counts = territoryCounts(state);
     const actions = [];
+    const battleCounts = PLAYERS.map((player) => Number(state.players[player.id]?.battles) || 0);
+    const leastBattles = Math.min(...battleCounts);
     PLAYERS.forEach((player) => {
       const playerState = state.players[player.id];
-      const candidate = targetCandidates(state, player, counts, random)[0];
-      if (!candidate) return;
-      const sourceTile = state.tiles[candidate.fromId];
-      const party = sourceTile?.garrison;
-      if (!party?.lineup?.length || party.ownerId !== player.id) return;
-      const skill = shouldUseSkill(player, playerState, candidate.tile, counts, state.season.tick, random);
-      actions.push({
-        id: `${state.season.id}-${state.season.tick}-${player.id}`,
-        playerId: player.id,
-        targetId: candidate.tile.id,
-        fromId: candidate.fromId,
-        partyId: party.id,
-        party: clone(party),
-        lineup: party.lineup.map((monster) => monster.nodeId),
-        hype: clampHype(party.hype),
-        skill,
-        mode: "attack"
+      const candidates = targetCandidates(state, player, counts, random);
+      const actionLimit = playerState.battles <= leastBattles + ACTIVITY_CATCHUP_MARGIN ? 2 : 1;
+      const usedSources = new Set();
+      const usedTargets = new Set();
+      let skillUsed = false;
+      candidates.forEach((candidate) => {
+        if (usedSources.size >= actionLimit || usedSources.has(candidate.fromId) || usedTargets.has(candidate.tile.id)) return;
+        const sourceTile = state.tiles[candidate.fromId];
+        const party = sourceTile?.garrison;
+        if (!party?.lineup?.length || party.ownerId !== player.id) return;
+        const skill = !skillUsed && shouldUseSkill(player, playerState, candidate.tile, counts, state.season.tick, random);
+        const actionIndex = usedSources.size;
+        actions.push({
+          id: `${state.season.id}-${state.season.tick}-${player.id}-${actionIndex}`,
+          playerId: player.id,
+          targetId: candidate.tile.id,
+          fromId: candidate.fromId,
+          partyId: party.id,
+          party: clone(party),
+          lineup: party.lineup.map((monster) => monster.nodeId),
+          hype: clampHype(party.hype),
+          skill,
+          mode: "attack"
+        });
+        usedSources.add(candidate.fromId);
+        usedTargets.add(candidate.tile.id);
+        if (skill) {
+          skillUsed = true;
+          playerState.lastSkillTick = state.season.tick;
+          playerState.skillUses += 1;
+        }
       });
-      if (skill) {
-        playerState.lastSkillTick = state.season.tick;
-        playerState.skillUses += 1;
-      }
     });
     return actions;
   }
@@ -1104,7 +1119,7 @@
     PLAYERS.forEach((player) => {
       const gain = ownedTiles(state, player.id).reduce((sum, tile) => {
         const event = TILE_EVENT_BY_ID[tile.eventId];
-        return sum + (Number(tile.value) || 0) * (Number(event?.pointMultiplier) || 1);
+        return sum + TERRITORY_POINT_BASE + (Number(tile.value) || 0) * (Number(event?.pointMultiplier) || 1);
       }, 0);
       state.players[player.id].points += Math.round(gain);
     });
@@ -1161,8 +1176,12 @@
         ...player,
         ...record,
         territoryCount: counts[player.id] || 0,
+        territoryScore: (counts[player.id] || 0) * TERRITORY_SCORE_WEIGHT,
         averageHype,
-        score: (Number(record.points) || 0) + (Number(record.wins) || 0) * 2 + (Number(record.defenseWins) || 0)
+        score: (Number(record.points) || 0) +
+          (counts[player.id] || 0) * TERRITORY_SCORE_WEIGHT +
+          (Number(record.wins) || 0) * 2 +
+          (Number(record.defenseWins) || 0)
       };
     }).sort((a, b) => b.score - a.score || b.territoryCount - a.territoryCount || b.wins - a.wins || a.name.localeCompare(b.name, "ja-JP"));
   }
@@ -1214,6 +1233,7 @@
 
   global.TeamBingoTerritorySystem = Object.freeze({
     VERSION, MAP_RADIUS, TICK_MINUTES, TICK_MS, SEASON_DAYS, PARTY_SIZE, DEFAULT_HYPE, EVENT_REROLL_TICKS,
+    TERRITORY_POINT_BASE, TERRITORY_SCORE_WEIGHT, ACTIVITY_CATCHUP_MARGIN,
     PLAYERS, PLAYER_BY_ID, TERRAINS, TERRAIN_BY_ID, TILE_EVENTS, TILE_EVENT_BY_ID,
     tileId, parseTileId, neighbors, axialDistance, seasonWindow, createMap, createInitialState, normalizeState,
     refreshAllSquads, refreshAllEquipment, ensureTileGarrisons, advanceState, standings, territoryCounts, tileSummary,

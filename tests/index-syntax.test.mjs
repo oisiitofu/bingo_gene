@@ -19,7 +19,7 @@ test("online lobby boot bypasses stale browser modules and retries once", () => 
 
   assert.match(html, /online-room\.js\?v=20260801-hatch-sync-1/);
   assert.match(html, /retry=\$\{Date\.now\(\)\}/);
-  assert.match(serviceWorker, /20260801-skill-memory-90/);
+  assert.match(serviceWorker, /20260801-territory-kick-91/);
 });
 
 test("consecutive skills cancel stale audio and setup snapshots clear persistent effects", () => {
@@ -647,8 +647,11 @@ test("monster evolution has eight childhood entries, rank six fusions, passives,
   assert.match(battleCss, /\.monster-revive-burst/);
   assert.match(battleCss, /\.monster-battle-finish/);
   assert.match(html, /id="adminMonsterBattleModal"/);
+  assert.match(html, /id="adminMonsterBattleShuffle"/);
   assert.match(html, /function showAdminMonsterDex\(/);
   assert.match(html, /function openAdminMonsterBattleLab\(/);
+  assert.match(html, /function shuffleAdminMonsterBattleLineup\(/);
+  assert.match(html, /ids\.slice\(0, selects\.length\)/);
   assert.match(html, /function createAdminMonsterBattleFighters\(/);
   assert.match(html, /runMonsterBattle\(seed, \{ adminBattle: true/);
   assert.match(html, /openAdminMonsterDex: showAdminMonsterDex/);

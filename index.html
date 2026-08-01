@@ -7752,6 +7752,7 @@
         </section>
       </div>
       <div class="admin-monster-battle-actions">
+        <button type="button" class="btn simple-ui-btn" id="adminMonsterBattleShuffle">SHUFFLE</button>
         <button type="button" class="btn simple-ui-btn" id="adminMonsterBattleCancel">CANCEL</button>
         <button type="button" class="btn simple-ui-btn primary" id="adminMonsterBattleStart">BATTLE START</button>
       </div>
@@ -8632,7 +8633,7 @@
         "closeVictoryButton", "victoryEquipmentRewardModal", "victoryEquipmentRewardTitle", "victoryEquipmentRewardSummary", "victoryEquipmentRewardList", "victoryEquipmentRewardClose",
         "statsModal", "statsSummary", "statsPlayerList", "statsHighlightList", "statsRivalryList", "statsMatchList", "statsCloseButton",
         "monsterDexModal", "monsterDexCloseButton", "statsMonsterDexSummary", "statsMonsterPlayerSelect", "statsMonsterDexGrid", "statsMonsterDexTree", "statsMonsterMasteryPage", "monsterEquipmentPage", "itemDexPage", "dexNumberViewButton", "dexTreeViewButton", "dexMasteryViewButton", "monsterEquipmentViewButton", "itemDexViewButton", "dexOverviewButton",
-        "adminMonsterBattleModal", "adminMonsterRed1", "adminMonsterRed2", "adminMonsterBlue1", "adminMonsterBlue2", "adminMonsterBattleCancel", "adminMonsterBattleStart",
+        "adminMonsterBattleModal", "adminMonsterRed1", "adminMonsterRed2", "adminMonsterBlue1", "adminMonsterBlue2", "adminMonsterBattleShuffle", "adminMonsterBattleCancel", "adminMonsterBattleStart",
         "teamSelectModal", "teamSelectList", "teamSelectRedMembers", "teamSelectBlueMembers", "teamSelectShuffleButton", "teamSelectConfirmButton", "teamSelectCancelButton", "teamSelectError",
         "statsSeasonSelect", "statsSeasonList", "statsTournamentList", "statsTerritoryList",
         "randomEventButton", "monsterBattleModeButton", "doubleMonsterModeButton", "territoryModeButton", "playTerritoryModeButton", "worldTournamentButton",
@@ -8729,6 +8730,7 @@
       els.statsCloseButton.addEventListener("click", () => hideModal(els.statsModal));
       els.monsterDexCloseButton?.addEventListener("click", closeMonsterDexPage);
       els.adminMonsterBattleCancel?.addEventListener("click", closeAdminMonsterBattleLab);
+      els.adminMonsterBattleShuffle?.addEventListener("click", shuffleAdminMonsterBattleLineup);
       els.adminMonsterBattleStart?.addEventListener("click", startAdminMonsterBattle);
       els.dexNumberViewButton?.addEventListener("click", () => setMonsterDexView("number"));
       els.dexTreeViewButton?.addEventListener("click", () => setMonsterDexView("tree"));
@@ -11969,6 +11971,21 @@
           battleStats: { damage: 0, kos: 0, specials: 0, links: 0, revives: 0, statuses: 0 }
         };
       });
+    }
+
+    function shuffleAdminMonsterBattleLineup() {
+      const ids = getMonsterDexNodes()
+        .filter((node) => node?.id && node.id !== "egg")
+        .map((node) => node.id);
+      for (let index = ids.length - 1; index > 0; index -= 1) {
+        const swapIndex = Math.floor(Math.random() * (index + 1));
+        [ids[index], ids[swapIndex]] = [ids[swapIndex], ids[index]];
+      }
+      const selects = [els.adminMonsterRed1, els.adminMonsterRed2, els.adminMonsterBlue1, els.adminMonsterBlue2];
+      selects.forEach((select, index) => {
+        if (select && ids[index]) select.value = ids[index];
+      });
+      return ids.slice(0, selects.length);
     }
 
     function startAdminMonsterBattle() {

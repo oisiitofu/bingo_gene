@@ -1008,7 +1008,9 @@ export class OnlineCoordinator {
       const current = await this.backend.get(this.roomPath(roomId)).catch(() => null);
       if (!current || this.hasAuthoritativeMembership(current)) return;
       this.bridge.showOnlineMessage?.("SESSION MOVED", "この参加枠は別のタブへ引き継がれました。");
-      await this.leaveRoom({ remoteClosed: true, preserveReclaimToken: true });
+      const kicked = Boolean(current.kickedUids?.[this.backend?.uid]);
+      if (kicked) this.bridge.showOnlineMessage?.("REMOVED FROM ROOM", "部屋主によってこの部屋から追放されました。");
+      await this.leaveRoom({ remoteClosed: true, preserveReclaimToken: !kicked });
     }, 0);
   }
 
@@ -1456,6 +1458,11 @@ export class OnlineCoordinator {
       this.openTerritoryWindow();
     });
     this.ui.statusClose.addEventListener("click", () => this.ui.statusDialog.close());
+    this.ui.connectionList.addEventListener("click", (event) => {
+      const button = event.target.closest("[data-online-kick]");
+      if (!button) return;
+      this.kickParticipant(button.dataset.onlineKick);
+    });
     this.ui.openReactions.addEventListener("click", () => {
       this.setReactionMenuOpen(this.ui.reactionMenu.hidden);
     });
@@ -2210,6 +2217,10 @@ export class OnlineCoordinator {
           abortReason = "部屋が見つかりません。ロビーを更新してください。";
           return undefined;
         }
+        if (room.kickedUids?.[this.backend.uid]) {
+          abortReason = "この部屋から追放されています。";
+          return undefined;
+        }
         room.meta.active = true;
         room.participants ||= {};
         room.seats ||= {};
@@ -2529,11 +2540,16 @@ export class OnlineCoordinator {
       const role = row.role === "master" ? "MASTER" : (row.role === "spectator" ? "WATCH" : (row.team ? `${row.team.toUpperCase()} TEAM` : "PLAYER"));
       const age = row.online ? "NOW" : (row.lastSeenMs < 60000 ? `${Math.max(1, Math.ceil(row.lastSeenMs / 1000))} SEC AGO` : `${Math.max(1, Math.ceil(row.lastSeenMs / 60000))} MIN AGO`);
       const safeName = this.bridge.escapeHtml?.(row.name) || row.name;
+      const safeUid = this.bridge.escapeHtml?.(row.uid) || row.uid;
+      const kickButton = this.isMaster() && row.uid !== this.backend?.uid
+        ? `<button type="button" class="online-kick-button" data-online-kick="${safeUid}" title="この参加者を追放" aria-label="${safeName}を追放">KICK</button>`
+        : "";
       return `<div class="online-connection-row ${row.online ? "online" : "offline"} ${row.team}">
         <span class="online-connection-light"></span>
         <strong>${safeName}</strong>
         <span class="online-connection-role">${role}</span>
         <time>${age}</time>
+        ${kickButton}
       </div>`;
     }).join("") : `<div class="online-empty">参加者情報を取得中です。</div>`;
   }
@@ -2548,6 +2564,42 @@ export class OnlineCoordinator {
     this.ui.emergencyPause.querySelector("b").textContent = paused ? "RESUME" : "PAUSE";
     this.ui.emergencyPause.querySelector("span").textContent = paused ? "試合操作を再開" : "試合操作を一時停止";
     this.ui.emergencyPause.classList.toggle("active", paused);
+  }
+
+  async kickParticipant(targetUid) {
+    if (!this.isMaster() || !targetUid || targetUid === this.backend?.uid) return false;
+    const target = this.room?.participants?.[targetUid];
+    if (!target) return false;
+    const targetName = normalizeName(target.memberName || target.name || "参加者");
+    if (!window.confirm(`${targetName}をこの部屋から追放しますか？`)) return false;
+    const now = this.backend.serverNow();
+    try {
+      const result = await this.backend.transaction(this.roomPath(), (room) => {
+        if (!room || room.meta?.masterUid !== this.backend.uid || targetUid === room.meta.masterUid) return undefined;
+        const participant = room.participants?.[targetUid];
+        if (!participant) return undefined;
+        room.kickedUids ||= {};
+        room.kickedUids[targetUid] = {
+          uid: targetUid,
+          name: normalizeName(participant.memberName || participant.name || targetName),
+          kickedAt: now,
+          kickedBy: this.backend.uid
+        };
+        delete room.participants[targetUid];
+        Object.entries(room.seats || {}).forEach(([seatKey, seat]) => {
+          if (seat?.uid === targetUid) delete room.seats[seatKey];
+        });
+        room.meta.updatedAt = now;
+        return room;
+      });
+      if (!result.committed) return false;
+      this.applyRoom(result.value);
+      await this.publishLobbySummary(result.value);
+      return true;
+    } catch (error) {
+      this.showError("KICK ERROR", error);
+      return false;
+    }
   }
 
   async setEmergencyPause(paused) {

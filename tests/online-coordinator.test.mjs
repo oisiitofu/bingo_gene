@@ -1726,6 +1726,35 @@ test("a stale heartbeat cannot recreate a participant after its seat was reclaim
   }
 });
 
+test("the room master can kick a participant and block immediate re-entry", async () => {
+  const store = createStore();
+  store.value.teamBingoV1.rooms.ROOM.seats = {
+    guest: { uid: "guest", deviceId: "device-guest", name: "Guest", team: "blue", online: true }
+  };
+  const master = createCoordinator(store, "master", "master", "red");
+  const previousConfirm = window.confirm;
+  const previousError = console.error;
+  window.confirm = () => true;
+  console.error = () => {};
+
+  try {
+    assert.equal(await master.kickParticipant("guest"), true);
+    const room = store.value.teamBingoV1.rooms.ROOM;
+    assert.equal(room.participants.guest, undefined);
+    assert.equal(room.seats.guest, undefined);
+    assert.equal(room.kickedUids.guest.uid, "guest");
+
+    const kicked = prepareJoinCoordinator(store, "guest", "device-guest");
+    await kicked.joinRoom("ROOM", { name: "Guest", team: "blue", spectator: false });
+    await new Promise((resolve) => setTimeout(resolve, 0));
+    assert.equal(store.value.teamBingoV1.rooms.ROOM.participants.guest, undefined);
+    assert.match(kicked.lastError, /^JOIN ERROR:/);
+  } finally {
+    window.confirm = previousConfirm;
+    console.error = previousError;
+  }
+});
+
 test("explicit leave cancels disconnect tracking before removing the participant", async () => {
   const store = createStore();
   const room = store.value.teamBingoV1.rooms.ROOM;

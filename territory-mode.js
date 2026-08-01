@@ -293,7 +293,7 @@
     list.innerHTML = ranking.map((player, index) => `
       <button type="button" class="territory-rank-row ${(selectedPlayerId || state.tiles?.[selectedTileId]?.ownerId) === player.id ? "active" : ""}" data-king-id="${player.id}" style="--king-color:${player.color}">
         <span class="territory-rank-position">${index + 1}</span>
-        <span class="territory-rank-copy"><strong>${escapeHtml(player.name)}</strong><span>${player.territoryCount}領地 / ${player.wins}勝 / HYPE ${player.averageHype}</span></span>
+        <span class="territory-rank-copy"><strong>${escapeHtml(player.name)}</strong><span>${player.territoryCount}領地 / 支配 +${player.territoryScore} / ${player.wins}勝 / HYPE ${player.averageHype}</span></span>
         <span class="territory-rank-score"><strong>${player.score}</strong><span>POINT</span></span>
       </button>
     `).join("");

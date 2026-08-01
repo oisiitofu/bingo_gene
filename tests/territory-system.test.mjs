@@ -310,6 +310,34 @@ test("バージョン2の重複PTを所有権を保ったままバージョン4�
   assertUniqueTerritoryMonsters(migrated);
 });
 
+test("territory control has a visible score bonus", () => {
+  const state = Territory.createInitialState(createStats(), MONDAY_JST);
+  const neutral = Object.values(state.tiles).find((tile) => !tile.ownerId && !tile.baseFor);
+  neutral.ownerId = "jan";
+  const standings = Territory.standings(state);
+  const jan = standings.find((player) => player.id === "jan");
+  const eda = standings.find((player) => player.id === "eda");
+
+  assert.equal(jan.territoryCount, eda.territoryCount + 1);
+  assert.equal(jan.territoryScore - eda.territoryScore, Territory.TERRITORY_SCORE_WEIGHT);
+  assert.equal(jan.score - eda.score, Territory.TERRITORY_SCORE_WEIGHT);
+});
+
+test("activity catch-up keeps every ruler invading during automatic progression", () => {
+  const stats = createStats();
+  const initial = Territory.createInitialState(stats, MONDAY_JST);
+  const state = Territory.advanceState(
+    initial,
+    stats,
+    initial.season.nextTickAt + Territory.TICK_MS * 11,
+    { maxTicks: 12 }
+  ).state;
+  const battleCounts = Territory.PLAYERS.map((player) => state.players[player.id].battles);
+
+  assert.ok(battleCounts.every((count) => count >= 18));
+  assert.ok(Math.max(...battleCounts) - Math.min(...battleCounts) <= 12);
+});
+
 test("saved territory uses the current terrain distribution after normalization", () => {
   const stats = createStats();
   const saved = Territory.createInitialState(stats, MONDAY_JST);
