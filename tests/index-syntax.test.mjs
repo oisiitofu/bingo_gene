@@ -19,7 +19,7 @@ test("online lobby boot bypasses stale browser modules and retries once", () => 
 
   assert.match(html, /online-room\.js\?v=20260801-hatch-sync-1/);
   assert.match(html, /retry=\$\{Date\.now\(\)\}/);
-  assert.match(serviceWorker, /20260801-mobile-theme-88/);
+  assert.match(serviceWorker, /20260801-mobile-scroll-audio-89/);
 });
 
 test("consecutive skills cancel stale audio and setup snapshots clear persistent effects", () => {
@@ -58,6 +58,17 @@ test("setup theme cannot resume after a mobile transition into a match", () => {
   assert.match(html, /function promoteSetupThemeAudio\(audio\) \{\s*if \(!isSetupThemePlaybackAllowed\(\)\) return/);
   assert.match(html, /function stopSetupTheme\(\) \{[\s\S]*?audio\.autoplay = false;[\s\S]*?audio\.pause\(\);[\s\S]*?audio\.muted = true/);
   assert.match(html, /if \(isManagedBgmKey\(key\)\) \{\s*stopSetupTheme\(\);\s*stopManagedBgm\(\)/);
+});
+
+test("mobile scrolling never counts as an audio activation gesture", () => {
+  const html = readFileSync(new URL("../index.html", import.meta.url), "utf8");
+  const bindStart = html.indexOf("const onFirstAudioGesture = () =>");
+  const bindEnd = html.indexOf('window.addEventListener("focus"', bindStart);
+  const audioGestureBindings = html.slice(bindStart, bindEnd);
+  const eventLists = Array.from(audioGestureBindings.matchAll(/\[([^\]]+)\]\.forEach\(\(eventName\)/g))
+    .map((match) => match[1].replace(/\s+/g, " ").trim());
+
+  assert.deepEqual(eventLists, ['"click", "keydown"', '"click", "keydown"']);
 });
 
 test("bingo cells are operated only through player-name buttons", () => {

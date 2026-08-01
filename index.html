@@ -8798,11 +8798,13 @@
         unlockAudio();
         syncSetupTheme();
       };
-      ["pointerdown", "pointermove", "mousemove", "mouseover", "mouseenter", "keydown", "focusin", "touchstart", "wheel"].forEach((eventName) => {
+      // A touchstart/pointerdown can be the beginning of a mobile scroll.
+      // Only completed taps and keyboard actions may start or resume audio.
+      ["click", "keydown"].forEach((eventName) => {
         document.addEventListener(eventName, onFirstAudioGesture, { once: true, passive: true });
       });
       const onAudioGesture = () => ensureAudioReady(true);
-      ["pointerdown", "mousedown", "keydown", "touchstart"].forEach((eventName) => {
+      ["click", "keydown"].forEach((eventName) => {
         document.addEventListener(eventName, onAudioGesture, { passive: true });
       });
       window.addEventListener("focus", scheduleSetupThemeAutoplay);
