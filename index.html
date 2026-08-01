@@ -15578,6 +15578,7 @@
         updateVolumeControls();
       }
       localStorage.setItem(STORAGE.sound, state.soundEnabled ? "on" : "off");
+      if (!state.soundEnabled) pendingAudioRetries.clear();
       updateSoundButton();
       updateCachedAudioVolume();
       scheduleAutoBackup("sound-setting");
@@ -15633,9 +15634,11 @@
     function updateCachedAudioVolume() {
       audioCache.forEach((audio, key) => {
         audio.volume = getAudioVolume(key);
+        audio.muted = !state.soundEnabled;
       });
       if (activeBgmAudio && activeBgmKey) {
         activeBgmAudio.volume = getAudioVolume(activeBgmKey);
+        activeBgmAudio.muted = !state.soundEnabled;
       }
       activeTransientAudios.forEach((audio) => {
         applyTrackedAudioVolume(audio);
@@ -15770,6 +15773,9 @@
 
     function applyTrackedAudioVolume(audio) {
       if (!audio) return;
+      // iOS Safari does not reliably honor programmatic HTMLMediaElement.volume.
+      // Keep muted in sync as the authoritative mobile sound switch.
+      audio.muted = !state.soundEnabled;
       const meta = activeAudioVolumeMeta.get(audio);
       if (!meta?.volumeKey) {
         audio.volume = clampVolume(audio.volume);
@@ -15994,6 +16000,7 @@
         const playAttempt = audio.play();
         if (playAttempt && playAttempt.catch) {
           playAttempt.catch(() => {
+            if (!state.soundEnabled) return;
             const fallback = resolveAudio(key);
             if (!fallback || fallback === audio) return;
             try {
@@ -16062,6 +16069,7 @@
         };
         audio.addEventListener("error", clearIfCurrent, { once: true });
         const tryPlay = () => {
+          if (!state.soundEnabled) return;
           const playAttempt = audio.play();
           if (playAttempt?.catch) {
             playAttempt.catch((error) => {
@@ -16141,6 +16149,7 @@
         };
         audio.addEventListener("error", playFallback, { once: true });
         const tryPlay = () => {
+          if (!state.soundEnabled) return;
           const playAttempt = audio.play();
           if (playAttempt?.catch) {
             playAttempt.catch((error) => {
@@ -16205,6 +16214,7 @@
       playAttempt
         .then(() => promoteSetupThemeAudio(audio))
         .catch(() => {
+          if (!state.soundEnabled || !els.setupScreen.classList.contains("active")) return;
           audio.muted = false;
           audio.volume = getAudioVolume("setupTheme");
           audio.play()

@@ -19,7 +19,7 @@ test("online lobby boot bypasses stale browser modules and retries once", () => 
 
   assert.match(html, /online-room\.js\?v=20260801-hatch-sync-1/);
   assert.match(html, /retry=\$\{Date\.now\(\)\}/);
-  assert.match(serviceWorker, /20260801-hatch-sync-86/);
+  assert.match(serviceWorker, /20260801-mobile-sound-87/);
 });
 
 test("consecutive skills cancel stale audio and setup snapshots clear persistent effects", () => {
@@ -36,6 +36,18 @@ test("consecutive skills cancel stale audio and setup snapshots clear persistent
   assert.match(html, /if \(!state\.gameStarted\) \{[\s\S]*?stopAllTransientAudio\(\{ keepSetupTheme: true \}\)/);
   assert.match(html, /function startKentoLiveChat\(team\) \{[\s\S]*?if \(!state\.gameStarted \|\| state\.winner\) return/);
   assert.doesNotMatch(html, /\.cell:not\(\.free\):not\(\.open\)[\s\S]{0,800}url\("skill-assets\/Kento\/aura\.png"\)/);
+});
+
+test("sound toggle mutes live HTML audio for mobile browsers", () => {
+  const html = readFileSync(new URL("../index.html", import.meta.url), "utf8");
+
+  assert.match(html, /audioCache\.forEach\(\(audio, key\) => \{[\s\S]*?audio\.muted = !state\.soundEnabled/);
+  assert.match(html, /if \(activeBgmAudio && activeBgmKey\) \{[\s\S]*?activeBgmAudio\.muted = !state\.soundEnabled/);
+  assert.match(html, /function applyTrackedAudioVolume\(audio\) \{[\s\S]*?audio\.muted = !state\.soundEnabled/);
+  assert.match(html, /activeOpenSoundNodes\.forEach\(\(node\) => \{[\s\S]*?applyTrackedOpenSoundVolume\(node\)/);
+  assert.match(html, /if \(!state\.soundEnabled\) pendingAudioRetries\.clear\(\)/);
+  assert.match(html, /playAttempt\.catch\(\(\) => \{\s*if \(!state\.soundEnabled\) return/);
+  assert.match(html, /\.catch\(\(\) => \{\s*if \(!state\.soundEnabled \|\| !els\.setupScreen\.classList\.contains\("active"\)\) return/);
 });
 
 test("bingo cells are operated only through player-name buttons", () => {
