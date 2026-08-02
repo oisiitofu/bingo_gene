@@ -1,11 +1,11 @@
 {
   "version": 1,
-  "generatedAt": "2026-08-02T09:42:41.615Z",
+  "generatedAt": "2026-08-02T10:37:48.601Z",
   "totals": {
-    "all": 801,
-    "images": 638,
+    "all": 802,
+    "images": 639,
     "audio": 163,
-    "bytes": 534467466
+    "bytes": 536262688
   },
   "assets": [
     {
@@ -3775,6 +3775,12 @@
       "type": "image",
       "category": "images/monsters/singles",
       "bytes": 994530
+    },
+    {
+      "path": "images/monsters/singles/chibi-dragon-attack-v2.png",
+      "type": "image",
+      "category": "images/monsters/singles",
+      "bytes": 1795222
     },
     {
       "path": "images/monsters/singles/chibi-dragon-attack.png",

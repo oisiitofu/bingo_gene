@@ -19,7 +19,7 @@ test("online lobby boot bypasses stale browser modules and retries once", () => 
 
   assert.match(html, /online-room\.js\?v=20260801-hatch-sync-1/);
   assert.match(html, /retry=\$\{Date\.now\(\)\}/);
-  assert.match(serviceWorker, /20260802-verified-monster-motion-101/);
+  assert.match(serviceWorker, /20260802-restored-monster-attacks-103/);
 });
 
 test("consecutive skills cancel stale audio and setup snapshots clear persistent effects", () => {
@@ -282,7 +282,7 @@ test("monster battles use pose artwork while attacks are active", () => {
   assert.match(html, /preserveAspectRatio="xMidYMid meet"/);
   assert.match(html, /class="monster-sprite-surface"/);
   assert.match(html, /function matchedMonsterAttackSheet\(node\)/);
-  assert.match(html, /node\?\.sprite\?\.poseMatched \? node\.sprite\.attackSheet : ""/);
+  assert.match(html, /node\.sprite\.poseMatched \|\| baseSheet\.includes\("\/pairs\/"\)/);
   assert.match(monsterSystem, /const aspect = lineage\.aspect \|\| 1/);
   assert.match(styles, /\.battle-fighter\.attacking \.battle-fighter-art\.has-pose-animation \.monster-sprite-attack/);
   assert.match(styles, /@keyframes battleAttackPoseSwap/);
@@ -447,10 +447,12 @@ test("monster evolution has eight childhood entries, rank six fusions, passives,
     result.STAGES.map((_, stage) => Object.values(result.NODES).filter((node) => node.stage === stage).length),
     [1, 8, 16, 32, 64, 132, 32]
   );
-  assert.equal(Boolean(result.NODES["growth-blade"].sprite.poseMatched), false, "No.020 must never swap to an unverified attack monster");
+  assert.equal(Boolean(result.NODES["growth-blade"].sprite.poseMatched), false, "Repacked monsters rely on their verified manifest slot");
   assert.equal(Boolean(result.NODES["candy-ultimate-1"].sprite.poseMatched), false, "No.128 must never swap from the unicorn to another monster");
   assert.equal(result.NODES["fossil-perfect-a"].sprite.poseMatched, true, "Recently rebuilt pose pairs must be explicitly verified");
-  assert.equal(Object.values(result.NODES).filter((node) => node.sprite.poseMatched).length, 19, "Only the nineteen audited pose pairs may swap artwork");
+  assert.equal(result.NODES["growth-rail"].sprite.attackSheet, "images/monsters/singles/chibi-dragon-attack-v2.png", "No.020 needs a distinct attack illustration");
+  assert.equal(result.NODES["growth-rail"].sprite.poseMatched, true);
+  assert.equal(Object.values(result.NODES).filter((node) => node.sprite.poseMatched).length, 21, "The twenty-one isolated pose pairs must be explicitly verified");
   Object.values(result.NODES).filter((node) => node.stage === 2).forEach((node) => {
     if (node.id === "growth-rail") {
       assert.equal(node.sprite.size, "contain", "growth-rail must use isolated artwork without the adjacent sprite");
@@ -793,7 +795,7 @@ test("monster battle audio is dedicated stereo material", () => {
   });
 });
 
-test("only audited pose pairs swap artwork while every monster keeps single-art motion", () => {
+test("generated pair slots and audited singles restore attack poses without dex walking", () => {
   const html = readFileSync(new URL("../index.html", import.meta.url), "utf8");
   const battleCss = readFileSync(new URL("../monster-battle.css", import.meta.url), "utf8");
   const monsterSystem = readFileSync(new URL("../monster-system.js", import.meta.url), "utf8");
@@ -808,13 +810,13 @@ test("only audited pose pairs swap artwork while every monster keeps single-art 
   assert.match(battleCss, /@keyframes monsterBoardActionRed/);
   assert.match(battleCss, /@keyframes monsterBoardActionBlue/);
   assert.match(battleCss, /@keyframes monsterBoardRunDust/);
-  assert.match(battleCss, /@keyframes monsterZoomSingleMotion/);
+  assert.doesNotMatch(battleCss, /@keyframes monsterZoomSingleMotion/);
   assert.match(battleCss, /@keyframes monsterBasePose/);
   assert.match(battleCss, /@keyframes monsterAttackPose/);
   assert.doesNotMatch(monsterSystem, /rank6-[ab]-v3\.png/);
   assert.doesNotMatch(html, /rank6-[ab]-v3-attack\.png/);
   assert.doesNotMatch(html, /MONSTER_ATTACK_SHEETS/);
-  assert.equal((monsterSystem.match(/poseMatched: true/g) || []).length, 19);
+  assert.equal((monsterSystem.match(/poseMatched: true/g) || []).length, 21);
   assert.match(battleCss, /\.monster-zoom-art\.has-pose-animation \.monster-sprite \{[\s\S]*?position:absolute !important;[\s\S]*?width:100% !important;/);
   assert.doesNotMatch(battleCss, /stageOneAttackEffect/);
   assert.doesNotMatch(battleCss, /stage-one-animated/);
@@ -831,8 +833,8 @@ test("monster encyclopedia zoom previews available pose animations", () => {
   assert.match(html, /monsterAttackSpriteMarkup\(node\)/);
   assert.match(html, /has-pose-animation/);
   assert.match(html, /has-motion-animation/);
-  assert.match(html, /motionAnimated \? "ANIMATION ON" : "ANIMATION OFF"/);
-  assert.match(battleCss, /@keyframes monsterZoomSingleMotion/);
+  assert.match(html, /attackMarkup \? "ANIMATION ON" : "ANIMATION OFF"/);
+  assert.doesNotMatch(battleCss, /@keyframes monsterZoomSingleMotion/);
   assert.match(battleCss, /\.monster-zoom-card[\s\S]*width: min\(1680px, 98vw\)/);
   assert.match(battleCss, /\.monster-zoom-art\.animation-paused/);
 });

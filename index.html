@@ -8810,7 +8810,7 @@
       els.monsterZoomPreviousButton?.addEventListener("click", () => navigateMonsterZoom(-1));
       els.monsterZoomNextButton?.addEventListener("click", () => navigateMonsterZoom(1));
       els.monsterZoomAnimationButton?.addEventListener("click", () => {
-        if (!els.monsterZoomArt?.classList.contains("has-motion-animation")) return;
+        if (!els.monsterZoomArt?.classList.contains("has-pose-animation")) return;
         const paused = els.monsterZoomArt.classList.toggle("animation-paused");
         els.monsterZoomAnimationButton.textContent = paused ? "ANIMATION OFF" : "ANIMATION ON";
         els.monsterZoomAnimationButton.setAttribute("aria-pressed", String(!paused));
@@ -9894,8 +9894,15 @@
     }
 
     function matchedMonsterAttackSheet(node) {
-      const attackSheet = node?.sprite?.poseMatched ? node.sprite.attackSheet : "";
-      return attackSheet && attackSheet !== node?.sprite?.sheet ? attackSheet : "";
+      const baseSheet = node?.sprite?.sheet || "";
+      const declaredAttack = node?.sprite?.attackSheet || "";
+      if (declaredAttack && declaredAttack !== baseSheet && (node.sprite.poseMatched || baseSheet.includes("/pairs/"))) {
+        return declaredAttack;
+      }
+      if (!declaredAttack && baseSheet && !baseSheet.includes("/rank6-singles/")) {
+        return baseSheet.replace(/\.png$/i, "-attack.png");
+      }
+      return "";
     }
 
     function hasMonsterPoseAnimation(node) {
@@ -10327,17 +10334,16 @@
         ? TERRITORY_EQUIPMENT.applyEquipmentStats(baseStats, loadout, node.id)
         : baseStats;
       const attackMarkup = monsterAttackSpriteMarkup(node);
-      const motionAnimated = hasMonsterMotionAnimation(node);
       els.monsterZoomOverlay.style.setProperty("--zoom-team", accent);
       els.monsterZoomPlayer.textContent = playerLabel;
       els.monsterZoomArt.classList.toggle("has-pose-animation", Boolean(attackMarkup));
-      els.monsterZoomArt.classList.toggle("has-motion-animation", motionAnimated);
+      els.monsterZoomArt.classList.toggle("has-motion-animation", Boolean(attackMarkup));
       els.monsterZoomArt.classList.remove("animation-paused");
-      els.monsterZoomArt.innerHTML = `${monsterSpriteMarkup(node, attackMarkup ? "monster-sprite-base" : (motionAnimated ? "monster-sprite-motion" : ""))}${attackMarkup}`;
+      els.monsterZoomArt.innerHTML = `${monsterSpriteMarkup(node, attackMarkup ? "monster-sprite-base" : "")}${attackMarkup}`;
       if (els.monsterZoomAnimationButton) {
-        els.monsterZoomAnimationButton.disabled = !motionAnimated;
-        els.monsterZoomAnimationButton.textContent = motionAnimated ? "ANIMATION ON" : "ANIMATION OFF";
-        els.monsterZoomAnimationButton.setAttribute("aria-pressed", String(motionAnimated));
+        els.monsterZoomAnimationButton.disabled = !attackMarkup;
+        els.monsterZoomAnimationButton.textContent = attackMarkup ? "ANIMATION ON" : "ANIMATION OFF";
+        els.monsterZoomAnimationButton.setAttribute("aria-pressed", String(Boolean(attackMarkup)));
       }
       els.monsterZoomName.textContent = node.name;
       els.monsterZoomStage.textContent = `${monsterRankLabel(node)} / ${element.name}属性 / ${role.name} / ${stats.attackType === "magic" ? "魔法" : "物理"}タイプ / 絆 Lv.${MONSTER_SYSTEM.masteryLevel(masteryXp)}${node.legendary ? " / 伝説のモンスター" : ""}${node.rank6 ? " / 4体融合モンスター" : ""}`;

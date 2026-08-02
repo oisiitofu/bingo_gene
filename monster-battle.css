@@ -232,13 +232,13 @@
 }
 
 @keyframes monsterBasePose {
-  0%, 64%, 68%, 72%, 80%, 100% { opacity:1; visibility:visible; }
-  65%, 67%, 69%, 71%, 73%, 79% { opacity:0; visibility:hidden; }
+  0%, 56%, 84%, 100% { opacity:1; visibility:visible; }
+  58%, 82% { opacity:0; visibility:hidden; }
 }
 
 @keyframes monsterAttackPose {
-  0%, 64%, 68%, 72%, 80%, 100% { opacity:0; visibility:hidden; }
-  65%, 67%, 69%, 71%, 73%, 79% { opacity:1; visibility:visible; }
+  0%, 56%, 84%, 100% { opacity:0; visibility:hidden; }
+  58%, 82% { opacity:1; visibility:visible; }
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -501,22 +501,6 @@
   opacity:0;
   pointer-events:none;
   animation:monsterAttackPose 5.6s steps(1, end) infinite;
-}
-
-.monster-zoom-art.has-motion-animation:not(.has-pose-animation) .monster-sprite-motion {
-  transform-origin:50% 72%;
-  will-change:transform;
-  animation:monsterZoomSingleMotion 5.6s ease-in-out infinite;
-}
-
-@keyframes monsterZoomSingleMotion {
-  0%, 16%, 54%, 86%, 100% { transform:translate3d(0,0,0) rotate(0deg) scale(1); }
-  20% { transform:translate3d(-1.2%,1.2%,0) rotate(-1.2deg) scale(1.015,.985); }
-  26% { transform:translate3d(1.2%,-1%,0) rotate(1.2deg) scale(.992,1.018); }
-  64% { transform:translate3d(-2.2%,2%,0) rotate(-2deg) scale(1.04,.95); }
-  70% { transform:translate3d(6%,-1%,0) rotate(2.8deg) scale(1.07,.98); }
-  76% { transform:translate3d(2%,-2%,0) rotate(-1.5deg) scale(.99,1.045); }
-  82% { transform:translate3d(-1%,0,0) rotate(-.7deg) scale(1.015,.99); }
 }
 
 .monster-zoom-art.animation-paused .monster-sprite { animation-play-state:paused; }

@@ -66,7 +66,7 @@
       "perfect-a": { sheet: "singles/fossil-triceratops.png", attackSheet: "singles/fossil-triceratops-attack.png", poseMatched: true },
       "perfect-b": { sheet: "singles/amber-ptera.png" },
       "ultimate-0": { sheet: "singles/bone-king-tyranno.png", attackSheet: "singles/bone-king-tyranno-attack.png", poseMatched: true },
-      "ultimate-1": { sheet: "singles/fossil-amber-phoenix.png", attackSheet: "singles/fossil-amber-phoenix-attack.png" },
+      "ultimate-1": { sheet: "singles/fossil-amber-phoenix.png", attackSheet: "singles/fossil-amber-phoenix-attack.png", poseMatched: true },
       "ultimate-2": { sheet: "singles/ancient-mammoth.png", attackSheet: "singles/ancient-mammoth-attack.png", poseMatched: true },
       "ultimate-3": { sheet: "singles/fossil-nether-hydra.png", attackSheet: "singles/fossil-nether-hydra-attack.png", poseMatched: true }
     },
@@ -500,7 +500,11 @@
       stage: 2,
       lineage,
       sprite: standaloneSheet
-        ? sprite(standaloneSheet, "contain", "center", 1, 1.05)
+        ? {
+            ...sprite(standaloneSheet, "contain", "center", 1, 1.05),
+            attackSheet: "images/monsters/singles/chibi-dragon-attack-v2.png",
+            poseMatched: true
+          }
         : sprite("growth-new-b.png", "400% 100%", `${x * 33.333}% 50%`, .75, 1.15),
       next
     }));
