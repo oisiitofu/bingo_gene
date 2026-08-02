@@ -7716,7 +7716,8 @@
         <div class="monster-zoom-name" id="monsterZoomName"></div>
         <div class="monster-zoom-stage" id="monsterZoomStage"></div>
         <div class="monster-zoom-animation-control">
-          <button type="button" class="simple-action-button" id="monsterZoomAnimationButton" aria-pressed="true">ANIMATION ON</button>
+          <button type="button" class="simple-action-button" id="monsterZoomPose1Button" aria-pressed="true">ポーズ1</button>
+          <button type="button" class="simple-action-button" id="monsterZoomPose2Button" aria-pressed="false">ポーズ2</button>
         </div>
         <div class="monster-zoom-stats" id="monsterZoomStats"></div>
         <div class="monster-zoom-special" id="monsterZoomSpecial"></div>
@@ -8749,7 +8750,7 @@
         "feverAura", "fxLayer", "openedByPopover", "victoryParticles", "setupThemePlayer", "copyrightToggle",
         "monsterEvolutionOverlay", "monsterEvolutionStage", "monsterEvolutionBefore", "monsterEvolutionAfter", "monsterEvolutionName", "monsterHatchOverlay", "monsterHatchGrid", "victoryEvolutionOverlay", "victoryEvolutionTeam", "victoryEvolutionGrid",
         "victoryMonsterSection", "victoryMonsterLineups", "monsterBattleStartButton",
-        "monsterZoomOverlay", "monsterZoomCloseButton", "monsterZoomPreviousButton", "monsterZoomNextButton", "monsterZoomPlayer", "monsterZoomArt", "monsterZoomName", "monsterZoomStage", "monsterZoomAnimationButton", "monsterZoomStats", "monsterZoomSpecial",
+        "monsterZoomOverlay", "monsterZoomCloseButton", "monsterZoomPreviousButton", "monsterZoomNextButton", "monsterZoomPlayer", "monsterZoomArt", "monsterZoomName", "monsterZoomStage", "monsterZoomPose1Button", "monsterZoomPose2Button", "monsterZoomStats", "monsterZoomSpecial",
         "monsterBattleOverlay", "monsterBattleEntrance", "monsterBattleEntryCard", "monsterBattleEntryArt", "monsterBattleEntryTeam", "monsterBattleEntryIndex", "monsterBattleEntryName", "monsterBattleEntryPlayer", "monsterBattleEntrySpecial", "monsterBattleEntryStart", "monsterBattleRedLabel", "monsterBattleBlueLabel", "monsterBattleClock", "monsterBattleSpeedButton", "monsterBattleRedParty", "monsterBattleBlueParty", "monsterBattleTimeline", "monsterBattleMatchup", "monsterBattleCall", "monsterBattleLog", "monsterBattleFinish", "monsterBattleResult", "monsterBattleCloseButton"
       ].forEach((id) => { els[id] = document.getElementById(id); });
       els.players = Array.from(document.querySelectorAll("#playerInputs input"));
@@ -8809,12 +8810,8 @@
       els.monsterZoomCloseButton?.addEventListener("click", closeMonsterZoom);
       els.monsterZoomPreviousButton?.addEventListener("click", () => navigateMonsterZoom(-1));
       els.monsterZoomNextButton?.addEventListener("click", () => navigateMonsterZoom(1));
-      els.monsterZoomAnimationButton?.addEventListener("click", () => {
-        if (!els.monsterZoomArt?.classList.contains("has-pose-animation")) return;
-        const paused = els.monsterZoomArt.classList.toggle("animation-paused");
-        els.monsterZoomAnimationButton.textContent = paused ? "ANIMATION OFF" : "ANIMATION ON";
-        els.monsterZoomAnimationButton.setAttribute("aria-pressed", String(!paused));
-      });
+      els.monsterZoomPose1Button?.addEventListener("click", () => selectMonsterZoomPose(1));
+      els.monsterZoomPose2Button?.addEventListener("click", () => selectMonsterZoomPose(2));
       els.monsterZoomOverlay?.addEventListener("click", (event) => {
         if (event.target === els.monsterZoomOverlay) closeMonsterZoom();
       });
@@ -9913,6 +9910,13 @@
       return Boolean(node?.sprite?.sheet);
     }
 
+    function selectMonsterZoomPose(pose) {
+      const showPose2 = Number(pose) === 2 && els.monsterZoomArt?.classList.contains("has-pose-animation");
+      els.monsterZoomArt?.classList.toggle("show-pose-2", Boolean(showPose2));
+      els.monsterZoomPose1Button?.setAttribute("aria-pressed", String(!showPose2));
+      els.monsterZoomPose2Button?.setAttribute("aria-pressed", String(Boolean(showPose2)));
+    }
+
     function monsterAttackSpriteMarkup(node) {
       const attackSheet = matchedMonsterAttackSheet(node);
       if (!attackSheet) return "";
@@ -10337,14 +10341,11 @@
       els.monsterZoomOverlay.style.setProperty("--zoom-team", accent);
       els.monsterZoomPlayer.textContent = playerLabel;
       els.monsterZoomArt.classList.toggle("has-pose-animation", Boolean(attackMarkup));
-      els.monsterZoomArt.classList.toggle("has-motion-animation", Boolean(attackMarkup));
-      els.monsterZoomArt.classList.remove("animation-paused");
+      els.monsterZoomArt.classList.remove("has-motion-animation", "show-pose-2");
       els.monsterZoomArt.innerHTML = `${monsterSpriteMarkup(node, attackMarkup ? "monster-sprite-base" : "")}${attackMarkup}`;
-      if (els.monsterZoomAnimationButton) {
-        els.monsterZoomAnimationButton.disabled = !attackMarkup;
-        els.monsterZoomAnimationButton.textContent = attackMarkup ? "ANIMATION ON" : "ANIMATION OFF";
-        els.monsterZoomAnimationButton.setAttribute("aria-pressed", String(Boolean(attackMarkup)));
-      }
+      if (els.monsterZoomPose1Button) els.monsterZoomPose1Button.disabled = false;
+      if (els.monsterZoomPose2Button) els.monsterZoomPose2Button.disabled = !attackMarkup;
+      selectMonsterZoomPose(1);
       els.monsterZoomName.textContent = node.name;
       els.monsterZoomStage.textContent = `${monsterRankLabel(node)} / ${element.name}属性 / ${role.name} / ${stats.attackType === "magic" ? "魔法" : "物理"}タイプ / 絆 Lv.${MONSTER_SYSTEM.masteryLevel(masteryXp)}${node.legendary ? " / 伝説のモンスター" : ""}${node.rank6 ? " / 4体融合モンスター" : ""}`;
       els.monsterZoomStats.innerHTML = [

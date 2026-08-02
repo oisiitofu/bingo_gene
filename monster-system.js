@@ -63,7 +63,8 @@
       "ultimate-3": { sheet: "singles/treasure-island-crab-emperor.png", attackSheet: "singles/treasure-island-crab-emperor-attack.png", poseMatched: true }
     },
     fossil: {
-      "perfect-a": { sheet: "singles/fossil-triceratops.png", attackSheet: "singles/fossil-triceratops-attack.png", poseMatched: true },
+      "mature": { sheet: "singles/bone-raptor-v2.png", attackSheet: "singles/bone-raptor-v2-attack.png", poseMatched: true },
+      "perfect-a": { sheet: "singles/fossil-triceratops-v2.png", attackSheet: "singles/fossil-triceratops-v2-attack.png", poseMatched: true },
       "perfect-b": { sheet: "singles/amber-ptera.png" },
       "ultimate-0": { sheet: "singles/bone-king-tyranno.png", attackSheet: "singles/bone-king-tyranno-attack.png", poseMatched: true },
       "ultimate-1": { sheet: "singles/fossil-amber-phoenix.png", attackSheet: "singles/fossil-amber-phoenix-attack.png", poseMatched: true },
@@ -501,7 +502,7 @@
       lineage,
       sprite: standaloneSheet
         ? {
-            ...sprite(standaloneSheet, "contain", "center", 1, 1.05),
+            ...sprite("singles/chibi-dragon-v2.png", "contain", "center", 1, 1.05),
             attackSheet: "images/monsters/singles/chibi-dragon-attack-v2.png",
             poseMatched: true
           }
@@ -536,9 +537,8 @@
         1.04,
         RANK6_RIGHT_FACING.has(lineage.id) ? "right" : "left"
       );
-      // Keep rank-six battle animation on the new isolated artwork instead of
-      // flashing back to the retired multi-monster attack sheets.
-      rank6Sprite.attackSheet = rank6Sprite.sheet;
+      rank6Sprite.attackSheet = `images/monsters/rank6-singles/${lineage.id}-rank6-attack.png`;
+      rank6Sprite.poseMatched = true;
       add({
         id: `${lineage.id}-rank6`,
         name: RANK6_NAMES[lineage.id],

@@ -19,7 +19,7 @@ test("online lobby boot bypasses stale browser modules and retries once", () => 
 
   assert.match(html, /online-room\.js\?v=20260801-hatch-sync-1/);
   assert.match(html, /retry=\$\{Date\.now\(\)\}/);
-  assert.match(serviceWorker, /20260802-restored-monster-attacks-103/);
+  assert.match(serviceWorker, /20260802-manual-monster-poses-104/);
 });
 
 test("consecutive skills cancel stale audio and setup snapshots clear persistent effects", () => {
@@ -294,10 +294,10 @@ test("oversized monster sheet entries use isolated artwork and fitted encycloped
   const monsterSystem = readFileSync(new URL("../monster-system.js", import.meta.url), "utf8");
   const styles = readFileSync(new URL("../monster-battle.css", import.meta.url), "utf8");
   const assets = [
-    "chibi-dragon.png", "chibi-dragon-attack.png",
+    "chibi-dragon-v2.png", "chibi-dragon-attack-v2.png",
     "electric-owl.png", "electric-owl-attack.png",
-    "bone-raptor.png", "bone-raptor-attack.png",
-    "fossil-triceratops.png", "fossil-triceratops-attack.png",
+    "bone-raptor-v2.png", "bone-raptor-v2-attack.png",
+    "fossil-triceratops-v2.png", "fossil-triceratops-v2-attack.png",
     "amber-ptera.png", "amber-ptera-attack.png",
     "jade-gorilla-monk.png", "jade-gorilla-monk-attack.png",
     "pudding-hydra.png", "pudding-hydra-attack.png",
@@ -328,10 +328,10 @@ test("oversized monster sheet entries use isolated artwork and fitted encycloped
   ];
 
   assets.forEach((name) => assert.ok(existsSync(new URL(`../images/monsters/singles/${name}`, import.meta.url)), name));
-  assert.match(monsterSystem, /singles\/chibi-dragon\.png/);
+  assert.match(monsterSystem, /singles\/chibi-dragon-v2\.png/);
   assert.match(monsterSystem, /singles\/electric-owl\.png/);
-  assert.match(monsterSystem, /singles\/bone-raptor\.png/);
-  assert.match(monsterSystem, /singles\/fossil-triceratops\.png/);
+  assert.match(monsterSystem, /singles\/bone-raptor-v2\.png/);
+  assert.match(monsterSystem, /singles\/fossil-triceratops-v2\.png/);
   assert.match(monsterSystem, /singles\/amber-ptera\.png/);
   assert.match(monsterSystem, /singles\/jade-gorilla-monk\.png/);
   assert.match(monsterSystem, /singles\/pudding-hydra\.png/);
@@ -452,11 +452,13 @@ test("monster evolution has eight childhood entries, rank six fusions, passives,
   assert.equal(result.NODES["fossil-perfect-a"].sprite.poseMatched, true, "Recently rebuilt pose pairs must be explicitly verified");
   assert.equal(result.NODES["growth-rail"].sprite.attackSheet, "images/monsters/singles/chibi-dragon-attack-v2.png", "No.020 needs a distinct attack illustration");
   assert.equal(result.NODES["growth-rail"].sprite.poseMatched, true);
-  assert.equal(Object.values(result.NODES).filter((node) => node.sprite.poseMatched).length, 21, "The twenty-one isolated pose pairs must be explicitly verified");
+  assert.equal(result.NODES["fossil-mature"].sprite.sheet, "images/monsters/singles/bone-raptor-v2.png");
+  assert.equal(result.NODES["fossil-perfect-a"].sprite.sheet, "images/monsters/singles/fossil-triceratops-v2.png");
+  assert.equal(Object.values(result.NODES).filter((node) => node.sprite.poseMatched).length, 54, "Audited singles and every rank-six monster need a second pose");
   Object.values(result.NODES).filter((node) => node.stage === 2).forEach((node) => {
     if (node.id === "growth-rail") {
       assert.equal(node.sprite.size, "contain", "growth-rail must use isolated artwork without the adjacent sprite");
-      assert.match(node.sprite.sheet, /singles\/chibi-dragon\.png$/);
+      assert.match(node.sprite.sheet, /singles\/chibi-dragon-v2\.png$/);
     } else {
       assert.match(node.sprite.sheet, /images\/monsters\/pairs\//, `${node.id} must use repacked artwork`);
       assert.match(node.sprite.size, /^(?:200% 100%|contain)$/, `${node.id} must use no more than a two-column sheet`);
@@ -611,7 +613,10 @@ test("monster evolution has eight childhood entries, rank six fusions, passives,
     assert.match(node.sprite.sheet, new RegExp(`images/monsters/rank6-singles/${node.lineage}-rank6\\.png$`));
     assert.equal(node.sprite.size, "contain");
     assert.equal(node.sprite.position, "center");
-    assert.equal(node.sprite.attackSheet, node.sprite.sheet, "Rank-six attacks must never revert to the retired group artwork");
+    assert.match(node.sprite.attackSheet, new RegExp(`images/monsters/rank6-singles/${node.lineage}-rank6-attack\\.png$`));
+    assert.notEqual(node.sprite.attackSheet, node.sprite.sheet, "Rank-six monsters need a distinct attack pose");
+    assert.equal(node.sprite.poseMatched, true);
+    assert.ok(existsSync(new URL(`../${node.sprite.attackSheet}`, import.meta.url)), `Missing rank-six attack artwork: ${node.sprite.attackSheet}`);
   });
 
   const monsterSheets = new Map();
@@ -816,7 +821,8 @@ test("generated pair slots and audited singles restore attack poses without dex 
   assert.doesNotMatch(monsterSystem, /rank6-[ab]-v3\.png/);
   assert.doesNotMatch(html, /rank6-[ab]-v3-attack\.png/);
   assert.doesNotMatch(html, /MONSTER_ATTACK_SHEETS/);
-  assert.equal((monsterSystem.match(/poseMatched: true/g) || []).length, 21);
+  assert.equal((monsterSystem.match(/poseMatched: true/g) || []).length, 22);
+  assert.match(monsterSystem, /rank6Sprite\.poseMatched = true/);
   assert.match(battleCss, /\.monster-zoom-art\.has-pose-animation \.monster-sprite \{[\s\S]*?position:absolute !important;[\s\S]*?width:100% !important;/);
   assert.doesNotMatch(battleCss, /stageOneAttackEffect/);
   assert.doesNotMatch(battleCss, /stage-one-animated/);
@@ -824,19 +830,25 @@ test("generated pair slots and audited singles restore attack poses without dex 
   assert.match(battleCss, /prefers-reduced-motion: reduce/);
 });
 
-test("monster encyclopedia zoom previews available pose animations", () => {
+test("monster encyclopedia switches static poses only through pose buttons", () => {
   const html = readFileSync(new URL("../index.html", import.meta.url), "utf8");
   const battleCss = readFileSync(new URL("../monster-battle.css", import.meta.url), "utf8");
 
-  assert.match(html, /id="monsterZoomAnimationButton"/);
+  assert.match(html, /id="monsterZoomPose1Button"[^>]*>ポーズ1</);
+  assert.match(html, /id="monsterZoomPose2Button"[^>]*>ポーズ2</);
+  assert.doesNotMatch(html, /monsterZoomAnimationButton/);
   assert.match(html, /matchedMonsterAttackSheet/);
   assert.match(html, /monsterAttackSpriteMarkup\(node\)/);
   assert.match(html, /has-pose-animation/);
-  assert.match(html, /has-motion-animation/);
-  assert.match(html, /attackMarkup \? "ANIMATION ON" : "ANIMATION OFF"/);
+  assert.match(html, /function selectMonsterZoomPose\(pose\)/);
+  assert.match(html, /classList\.toggle\("show-pose-2"/);
+  assert.match(html, /selectMonsterZoomPose\(1\)/);
+  assert.match(html, /selectMonsterZoomPose\(2\)/);
   assert.doesNotMatch(battleCss, /@keyframes monsterZoomSingleMotion/);
   assert.match(battleCss, /\.monster-zoom-card[\s\S]*width: min\(1680px, 98vw\)/);
-  assert.match(battleCss, /\.monster-zoom-art\.animation-paused/);
+  assert.match(battleCss, /\.monster-zoom-art\.has-pose-animation\.show-pose-2 \.monster-sprite-attack/);
+  assert.doesNotMatch(battleCss, /\.monster-zoom-art\.animation-paused/);
+  assert.doesNotMatch(battleCss, /\.monster-zoom-art\.has-pose-animation \.monster-sprite-base \{\s*animation:/);
 });
 
 test("territory mode has replaceable looping audio and a tofu gray selection aura", () => {

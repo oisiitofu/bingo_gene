@@ -459,7 +459,7 @@
 .monster-zoom-details { grid-area:details; min-width:0; max-height:100%; display:grid; align-content:center; gap:10px; padding-right:4px; overflow-x:hidden; overflow-y:auto; }
 .monster-zoom-name { min-width:0; width:100%; overflow:hidden; color:#fff; font-family:Impact,"Arial Black",sans-serif; font-size:70px; line-height:.95; letter-spacing:0; text-overflow:clip; white-space:nowrap; text-shadow:0 0 28px var(--zoom-team,#ff385d); }
 .monster-zoom-stage { color: #ced7e6; font-size: 16px; line-height:1.35; font-weight: 900; }
-.monster-zoom-animation-control { display:flex; align-items:center; }
+.monster-zoom-animation-control { display:flex; align-items:center; gap:6px; }
 .monster-zoom-animation-control .simple-action-button {
   min-width:150px;
   min-height:34px;
@@ -494,24 +494,31 @@
 }
 
 .monster-zoom-art.has-pose-animation .monster-sprite-base {
-  animation:monsterBasePose 5.6s steps(1, end) infinite;
+  opacity:1;
+  visibility:visible;
 }
 
 .monster-zoom-art.has-pose-animation .monster-sprite-attack {
   opacity:0;
+  visibility:hidden;
   pointer-events:none;
-  animation:monsterAttackPose 5.6s steps(1, end) infinite;
 }
 
-.monster-zoom-art.animation-paused .monster-sprite { animation-play-state:paused; }
+.monster-zoom-art.has-pose-animation.show-pose-2 .monster-sprite-base {
+  opacity:0;
+  visibility:hidden;
+}
+
+.monster-zoom-art.has-pose-animation.show-pose-2 .monster-sprite-attack {
+  opacity:1;
+  visibility:visible;
+}
 
 @media (prefers-reduced-motion: reduce) {
   .monster-zoom-art.has-pose-animation .monster-sprite {
     animation:none !important;
     will-change:auto;
   }
-  .monster-zoom-art.has-pose-animation .monster-sprite-base { opacity:1; }
-  .monster-zoom-art.has-pose-animation .monster-sprite-attack { opacity:0; }
 }
 
 #victoryOverlay .victory-card {
