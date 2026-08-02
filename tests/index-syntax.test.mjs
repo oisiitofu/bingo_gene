@@ -19,7 +19,7 @@ test("online lobby boot bypasses stale browser modules and retries once", () => 
 
   assert.match(html, /online-room\.js\?v=20260801-hatch-sync-1/);
   assert.match(html, /retry=\$\{Date\.now\(\)\}/);
-  assert.match(serviceWorker, /20260802-manual-monster-poses-104/);
+  assert.match(serviceWorker, /20260802-single-monster-art-105/);
 });
 
 test("consecutive skills cancel stale audio and setup snapshots clear persistent effects", () => {
@@ -311,7 +311,7 @@ test("oversized monster sheet entries use isolated artwork and fitted encycloped
     "thunder-string-wolf.png", "thunder-string-wolf-attack.png",
     "bone-king-tyranno.png", "bone-king-tyranno-attack.png",
     "fossil-amber-phoenix.png", "fossil-amber-phoenix-attack.png",
-    "mercury-knight-god.png", "mercury-knight-god-attack.png",
+    "mercury-knight-god-v2.png", "mercury-knight-god-v2-attack.png",
     "flame-crown-dragon.png", "flame-crown-dragon-attack.png",
     "fossil-nether-hydra.png", "fossil-nether-hydra-attack.png",
     "hotpot-crab-king.png", "hotpot-crab-king-attack.png",
@@ -320,11 +320,13 @@ test("oversized monster sheet entries use isolated artwork and fitted encycloped
     "steam-giant.png", "steam-giant-attack.png",
     "battleship-whale-admira.png", "battleship-whale-admira-attack.png",
     "submarine-dragon.png", "submarine-dragon-attack.png",
-    "ancient-mammoth.png", "ancient-mammoth-attack.png",
+    "ancient-mammoth-v2.png", "ancient-mammoth-v2-attack.png",
     "silver-ice-dragon.png", "silver-ice-dragon-attack.png",
     "racing-junk-dragon.png", "racing-junk-dragon-attack.png",
     "treasure-island-crab-emperor.png", "treasure-island-crab-emperor-attack.png",
-    "dance-god-octopus.png", "dance-god-octopus-attack.png"
+    "dance-god-octopus.png", "dance-god-octopus-attack.png",
+    "three-star-oni-chef-v2.png", "three-star-oni-chef-v2-attack.png",
+    "slash-mantis-v2.png", "slash-mantis-v2-attack.png"
   ];
 
   assets.forEach((name) => assert.ok(existsSync(new URL(`../images/monsters/singles/${name}`, import.meta.url)), name));
@@ -342,10 +344,10 @@ test("oversized monster sheet entries use isolated artwork and fitted encycloped
   assert.match(monsterSystem, /singles\/rainbow-garden-phoenix\.png/);
   [
     "lotus-crane", "white-rabbit-kicker", "thunder-string-wolf", "bone-king-tyranno",
-    "mercury-knight-god", "flame-crown-dragon", "fossil-amber-phoenix", "fossil-nether-hydra", "hotpot-crab-king",
+    "mercury-knight-god-v2", "flame-crown-dragon", "fossil-amber-phoenix", "fossil-nether-hydra", "hotpot-crab-king",
     "chaos-sweets-god", "sushi-phoenix", "steam-giant", "battleship-whale-admira",
-    "submarine-dragon", "ancient-mammoth", "silver-ice-dragon", "racing-junk-dragon",
-    "treasure-island-crab-emperor", "dance-god-octopus"
+    "submarine-dragon", "ancient-mammoth-v2", "silver-ice-dragon", "racing-junk-dragon",
+    "treasure-island-crab-emperor", "dance-god-octopus", "three-star-oni-chef-v2", "slash-mantis-v2"
   ].forEach((slug) => {
     assert.ok(monsterSystem.includes(`singles/${slug}.png`), `${slug} idle override`);
     assert.ok(monsterSystem.includes(`singles/${slug}-attack.png`), `${slug} attack override`);
@@ -454,7 +456,25 @@ test("monster evolution has eight childhood entries, rank six fusions, passives,
   assert.equal(result.NODES["growth-rail"].sprite.poseMatched, true);
   assert.equal(result.NODES["fossil-mature"].sprite.sheet, "images/monsters/singles/bone-raptor-v2.png");
   assert.equal(result.NODES["fossil-perfect-a"].sprite.sheet, "images/monsters/singles/fossil-triceratops-v2.png");
-  assert.equal(Object.values(result.NODES).filter((node) => node.sprite.poseMatched).length, 54, "Audited singles and every rank-six monster need a second pose");
+  assert.equal(Object.values(result.NODES).filter((node) => node.sprite.poseMatched).length, 56, "Audited singles and every rank-six monster need a second pose");
+  const numberedNodes = Object.values(result.NODES).sort((a, b) => (
+    Number(Boolean(a.legendary)) - Number(Boolean(b.legendary)) ||
+    a.stage - b.stage ||
+    a.name.localeCompare(b.name, "ja-JP")
+  ));
+  [
+    [173, "gourmet-ultimate-3", "three-star-oni-chef-v2"],
+    [176, "beetle-ultimate-3", "slash-mantis-v2"],
+    [188, "slime-ultimate-2", "mercury-knight-god-v2"],
+    [202, "fossil-ultimate-2", "ancient-mammoth-v2"]
+  ].forEach(([number, id, slug]) => {
+    const node = numberedNodes[number - 1];
+    assert.equal(node.id, id, `No.${number} identity changed`);
+    assert.equal(node.sprite.sheet, `images/monsters/singles/${slug}.png`, `No.${number} must use one isolated monster per file`);
+    assert.equal(node.sprite.attackSheet, `images/monsters/singles/${slug}-attack.png`, `No.${number} must use an isolated attack pose`);
+    assert.equal(node.sprite.size, "contain", `No.${number} must fit inside its frame`);
+    assert.equal(node.sprite.poseMatched, true, `No.${number} pose pair must remain verified`);
+  });
   Object.values(result.NODES).filter((node) => node.stage === 2).forEach((node) => {
     if (node.id === "growth-rail") {
       assert.equal(node.sprite.size, "contain", "growth-rail must use isolated artwork without the adjacent sprite");
@@ -821,7 +841,7 @@ test("generated pair slots and audited singles restore attack poses without dex 
   assert.doesNotMatch(monsterSystem, /rank6-[ab]-v3\.png/);
   assert.doesNotMatch(html, /rank6-[ab]-v3-attack\.png/);
   assert.doesNotMatch(html, /MONSTER_ATTACK_SHEETS/);
-  assert.equal((monsterSystem.match(/poseMatched: true/g) || []).length, 22);
+  assert.equal((monsterSystem.match(/poseMatched: true/g) || []).length, 24);
   assert.match(monsterSystem, /rank6Sprite\.poseMatched = true/);
   assert.match(battleCss, /\.monster-zoom-art\.has-pose-animation \.monster-sprite \{[\s\S]*?position:absolute !important;[\s\S]*?width:100% !important;/);
   assert.doesNotMatch(battleCss, /stageOneAttackEffect/);

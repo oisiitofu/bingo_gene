@@ -1,11 +1,11 @@
 {
   "version": 1,
-  "generatedAt": "2026-08-02T12:31:28.801Z",
+  "generatedAt": "2026-08-02T13:07:00.686Z",
   "totals": {
-    "all": 839,
-    "images": 676,
+    "all": 847,
+    "images": 684,
     "audio": 163,
-    "bytes": 610456644
+    "bytes": 622366363
   },
   "assets": [
     {
@@ -3903,6 +3903,18 @@
       "bytes": 829978
     },
     {
+      "path": "images/monsters/singles/ancient-mammoth-v2-attack.png",
+      "type": "image",
+      "category": "images/monsters/singles",
+      "bytes": 1580741
+    },
+    {
+      "path": "images/monsters/singles/ancient-mammoth-v2.png",
+      "type": "image",
+      "category": "images/monsters/singles",
+      "bytes": 1487080
+    },
+    {
       "path": "images/monsters/singles/ancient-mammoth.png",
       "type": "image",
       "category": "images/monsters/singles",
@@ -4131,6 +4143,18 @@
       "bytes": 908805
     },
     {
+      "path": "images/monsters/singles/mercury-knight-god-v2-attack.png",
+      "type": "image",
+      "category": "images/monsters/singles",
+      "bytes": 1217562
+    },
+    {
+      "path": "images/monsters/singles/mercury-knight-god-v2.png",
+      "type": "image",
+      "category": "images/monsters/singles",
+      "bytes": 1416723
+    },
+    {
       "path": "images/monsters/singles/mercury-knight-god.png",
       "type": "image",
       "category": "images/monsters/singles",
@@ -4197,6 +4221,18 @@
       "bytes": 1040556
     },
     {
+      "path": "images/monsters/singles/slash-mantis-v2-attack.png",
+      "type": "image",
+      "category": "images/monsters/singles",
+      "bytes": 1532103
+    },
+    {
+      "path": "images/monsters/singles/slash-mantis-v2.png",
+      "type": "image",
+      "category": "images/monsters/singles",
+      "bytes": 1499114
+    },
+    {
       "path": "images/monsters/singles/spring-kirin-attack.png",
       "type": "image",
       "category": "images/monsters/singles",
@@ -4243,6 +4279,18 @@
       "type": "image",
       "category": "images/monsters/singles",
       "bytes": 914860
+    },
+    {
+      "path": "images/monsters/singles/three-star-oni-chef-v2-attack.png",
+      "type": "image",
+      "category": "images/monsters/singles",
+      "bytes": 1551217
+    },
+    {
+      "path": "images/monsters/singles/three-star-oni-chef-v2.png",
+      "type": "image",
+      "category": "images/monsters/singles",
+      "bytes": 1625179
     },
     {
       "path": "images/monsters/singles/thunder-string-wolf-attack.png",

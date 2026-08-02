@@ -42,7 +42,8 @@
       "ultimate-2": { sheet: "singles/flame-crown-dragon.png", attackSheet: "singles/flame-crown-dragon-attack.png", poseMatched: true }
     },
     beetle: {
-      "ultimate-1": { sheet: "singles/steam-giant.png", attackSheet: "singles/steam-giant-attack.png", poseMatched: true }
+      "ultimate-1": { sheet: "singles/steam-giant.png", attackSheet: "singles/steam-giant-attack.png", poseMatched: true },
+      "ultimate-3": { sheet: "singles/slash-mantis-v2.png", attackSheet: "singles/slash-mantis-v2-attack.png", poseMatched: true }
     },
     abyss: {
       "ultimate-3": { sheet: "singles/submarine-dragon.png", attackSheet: "singles/submarine-dragon-attack.png", poseMatched: true }
@@ -68,7 +69,7 @@
       "perfect-b": { sheet: "singles/amber-ptera.png" },
       "ultimate-0": { sheet: "singles/bone-king-tyranno.png", attackSheet: "singles/bone-king-tyranno-attack.png", poseMatched: true },
       "ultimate-1": { sheet: "singles/fossil-amber-phoenix.png", attackSheet: "singles/fossil-amber-phoenix-attack.png", poseMatched: true },
-      "ultimate-2": { sheet: "singles/ancient-mammoth.png", attackSheet: "singles/ancient-mammoth-attack.png", poseMatched: true },
+      "ultimate-2": { sheet: "singles/ancient-mammoth-v2.png", attackSheet: "singles/ancient-mammoth-v2-attack.png", poseMatched: true },
       "ultimate-3": { sheet: "singles/fossil-nether-hydra.png", attackSheet: "singles/fossil-nether-hydra-attack.png", poseMatched: true }
     },
     dojo: {
@@ -89,11 +90,12 @@
     },
     slime: {
       "ultimate-1": { sheet: "singles/pudding-hydra.png" },
-      "ultimate-2": { sheet: "singles/mercury-knight-god.png", attackSheet: "singles/mercury-knight-god-attack.png", poseMatched: true }
+      "ultimate-2": { sheet: "singles/mercury-knight-god-v2.png", attackSheet: "singles/mercury-knight-god-v2-attack.png", poseMatched: true }
     },
     gourmet: {
       "ultimate-1": { sheet: "singles/hotpot-crab-king.png", attackSheet: "singles/hotpot-crab-king-attack.png", poseMatched: true },
-      "ultimate-2": { sheet: "singles/sushi-phoenix.png", attackSheet: "singles/sushi-phoenix-attack.png", poseMatched: true }
+      "ultimate-2": { sheet: "singles/sushi-phoenix.png", attackSheet: "singles/sushi-phoenix-attack.png", poseMatched: true },
+      "ultimate-3": { sheet: "singles/three-star-oni-chef-v2.png", attackSheet: "singles/three-star-oni-chef-v2-attack.png", poseMatched: true }
     }
   });
   LINEAGES.forEach((lineage) => {
