@@ -19,7 +19,7 @@ test("online lobby boot bypasses stale browser modules and retries once", () => 
 
   assert.match(html, /online-room\.js\?v=20260801-hatch-sync-1/);
   assert.match(html, /retry=\$\{Date\.now\(\)\}/);
-  assert.match(serviceWorker, /20260802-territory-replay-monster-fit-98/);
+  assert.match(serviceWorker, /20260802-isolated-monster-poses-99/);
 });
 
 test("consecutive skills cancel stale audio and setup snapshots clear persistent effects", () => {
@@ -303,7 +303,26 @@ test("oversized monster sheet entries use isolated artwork and fitted encycloped
     "permafrost-garm.png", "permafrost-garm-attack.png",
     "spring-kirin.png", "spring-kirin-attack.png",
     "world-flower-dragon.png", "world-flower-dragon-attack.png",
-    "rainbow-garden-phoenix.png", "rainbow-garden-phoenix-attack.png"
+    "rainbow-garden-phoenix.png", "rainbow-garden-phoenix-attack.png",
+    "lotus-crane.png", "lotus-crane-attack.png",
+    "white-rabbit-kicker.png", "white-rabbit-kicker-attack.png",
+    "thunder-string-wolf.png", "thunder-string-wolf-attack.png",
+    "bone-king-tyranno.png", "bone-king-tyranno-attack.png",
+    "fossil-amber-phoenix.png", "fossil-amber-phoenix-attack.png",
+    "mercury-knight-god.png", "mercury-knight-god-attack.png",
+    "flame-crown-dragon.png", "flame-crown-dragon-attack.png",
+    "fossil-nether-hydra.png", "fossil-nether-hydra-attack.png",
+    "hotpot-crab-king.png", "hotpot-crab-king-attack.png",
+    "chaos-sweets-god.png", "chaos-sweets-god-attack.png",
+    "sushi-phoenix.png", "sushi-phoenix-attack.png",
+    "steam-giant.png", "steam-giant-attack.png",
+    "battleship-whale-admira.png", "battleship-whale-admira-attack.png",
+    "submarine-dragon.png", "submarine-dragon-attack.png",
+    "ancient-mammoth.png", "ancient-mammoth-attack.png",
+    "silver-ice-dragon.png", "silver-ice-dragon-attack.png",
+    "racing-junk-dragon.png", "racing-junk-dragon-attack.png",
+    "treasure-island-crab-emperor.png", "treasure-island-crab-emperor-attack.png",
+    "dance-god-octopus.png", "dance-god-octopus-attack.png"
   ];
 
   assets.forEach((name) => assert.ok(existsSync(new URL(`../images/monsters/singles/${name}`, import.meta.url)), name));
@@ -319,6 +338,17 @@ test("oversized monster sheet entries use isolated artwork and fitted encycloped
   assert.match(monsterSystem, /singles\/spring-kirin\.png/);
   assert.match(monsterSystem, /singles\/world-flower-dragon\.png/);
   assert.match(monsterSystem, /singles\/rainbow-garden-phoenix\.png/);
+  [
+    "lotus-crane", "white-rabbit-kicker", "thunder-string-wolf", "bone-king-tyranno",
+    "mercury-knight-god", "flame-crown-dragon", "fossil-amber-phoenix", "fossil-nether-hydra", "hotpot-crab-king",
+    "chaos-sweets-god", "sushi-phoenix", "steam-giant", "battleship-whale-admira",
+    "submarine-dragon", "ancient-mammoth", "silver-ice-dragon", "racing-junk-dragon",
+    "treasure-island-crab-emperor", "dance-god-octopus"
+  ].forEach((slug) => {
+    assert.ok(monsterSystem.includes(`singles/${slug}.png`), `${slug} idle override`);
+    assert.ok(monsterSystem.includes(`singles/${slug}-attack.png`), `${slug} attack override`);
+  });
+  assert.match(monsterSystem, /attackSheet: `images\/monsters\/\$\{override\.attackSheet\}`/);
   assert.match(monsterSystem, /lineage\.ultimate\.forEach[\s\S]*?lineageSprite\(`ultimate-\$\{index\}`/);
   assert.match(html, /function monsterNameFitStyle\(/);
   assert.match(html, /--monster-name-size:/);

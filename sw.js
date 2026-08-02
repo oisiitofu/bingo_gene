@@ -1,6 +1,6 @@
 "use strict";
 
-const CACHE_VERSION = "team-bingo-v1-20260802-territory-replay-monster-fit-98";
+const CACHE_VERSION = "team-bingo-v1-20260802-isolated-monster-poses-99";
 const SHELL_CACHE = `${CACHE_VERSION}-shell`;
 const ASSET_CACHE = `${CACHE_VERSION}-assets`;
 const SHELL_FILES = [

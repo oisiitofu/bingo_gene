@@ -38,15 +38,61 @@
   ];
 
   const INDIVIDUAL_SPRITE_OVERRIDES = Object.freeze({
-    fossil: { "perfect-b": { sheet: "singles/amber-ptera.png" } },
-    dojo: { "perfect-a": { sheet: "singles/jade-gorilla-monk.png" } },
-    slime: { "ultimate-1": { sheet: "singles/pudding-hydra.png" } },
-    candy: { "ultimate-2": { sheet: "singles/candywork-dragon.png" } },
-    glacier: { "ultimate-1": { sheet: "singles/permafrost-garm.png" } },
+    inferno: {
+      "ultimate-2": { sheet: "singles/flame-crown-dragon.png", attackSheet: "singles/flame-crown-dragon-attack.png" }
+    },
+    beetle: {
+      "ultimate-1": { sheet: "singles/steam-giant.png", attackSheet: "singles/steam-giant-attack.png" }
+    },
+    abyss: {
+      "ultimate-3": { sheet: "singles/submarine-dragon.png", attackSheet: "singles/submarine-dragon-attack.png" }
+    },
+    glacier: {
+      "ultimate-1": { sheet: "singles/permafrost-garm.png" },
+      "ultimate-2": { sheet: "singles/silver-ice-dragon.png", attackSheet: "singles/silver-ice-dragon-attack.png" }
+    },
+    candy: {
+      "ultimate-2": { sheet: "singles/candywork-dragon.png" },
+      "ultimate-3": { sheet: "singles/chaos-sweets-god.png", attackSheet: "singles/chaos-sweets-god-attack.png" }
+    },
+    junk: {
+      "ultimate-2": { sheet: "singles/racing-junk-dragon.png", attackSheet: "singles/racing-junk-dragon-attack.png" }
+    },
+    corsair: {
+      "ultimate-1": { sheet: "singles/battleship-whale-admira.png", attackSheet: "singles/battleship-whale-admira-attack.png" },
+      "ultimate-3": { sheet: "singles/treasure-island-crab-emperor.png", attackSheet: "singles/treasure-island-crab-emperor-attack.png" }
+    },
+    fossil: {
+      "perfect-a": { sheet: "singles/fossil-triceratops.png", attackSheet: "singles/fossil-triceratops-attack.png" },
+      "perfect-b": { sheet: "singles/amber-ptera.png" },
+      "ultimate-0": { sheet: "singles/bone-king-tyranno.png", attackSheet: "singles/bone-king-tyranno-attack.png" },
+      "ultimate-1": { sheet: "singles/fossil-amber-phoenix.png", attackSheet: "singles/fossil-amber-phoenix-attack.png" },
+      "ultimate-2": { sheet: "singles/ancient-mammoth.png", attackSheet: "singles/ancient-mammoth-attack.png" },
+      "ultimate-3": { sheet: "singles/fossil-nether-hydra.png", attackSheet: "singles/fossil-nether-hydra-attack.png" }
+    },
+    dojo: {
+      "perfect-a": { sheet: "singles/jade-gorilla-monk.png" },
+      "perfect-b": { sheet: "singles/white-rabbit-kicker.png", attackSheet: "singles/white-rabbit-kicker-attack.png" }
+    },
+    sonic: {
+      "perfect-a": { sheet: "singles/thunder-string-wolf.png", attackSheet: "singles/thunder-string-wolf-attack.png" }
+    },
+    festival: {
+      "ultimate-3": { sheet: "singles/dance-god-octopus.png", attackSheet: "singles/dance-god-octopus-attack.png" }
+    },
     bloom: {
+      "perfect-b": { sheet: "singles/lotus-crane.png", attackSheet: "singles/lotus-crane-attack.png" },
       "ultimate-0": { sheet: "singles/world-flower-dragon.png" },
       "ultimate-1": { sheet: "singles/spring-kirin.png" },
       "ultimate-3": { sheet: "singles/rainbow-garden-phoenix.png" }
+    },
+    slime: {
+      "ultimate-1": { sheet: "singles/pudding-hydra.png" },
+      "ultimate-2": { sheet: "singles/mercury-knight-god.png", attackSheet: "singles/mercury-knight-god-attack.png" }
+    },
+    gourmet: {
+      "ultimate-1": { sheet: "singles/hotpot-crab-king.png", attackSheet: "singles/hotpot-crab-king-attack.png" },
+      "ultimate-2": { sheet: "singles/sushi-phoenix.png", attackSheet: "singles/sushi-phoenix-attack.png" }
     }
   });
   LINEAGES.forEach((lineage) => {
@@ -443,9 +489,11 @@
       const facingFor = (slot) => lineage.rightFacing?.includes(slot) ? "right" : "left";
       const lineageSprite = (slot, position, zoom = 1.16) => {
         const override = lineage.spriteOverrides?.[slot];
-        return override
-          ? sprite(override.sheet, "contain", "center", override.aspect || 1, override.zoom || 1.04, facingFor(slot))
-          : sprite(lineage.sheet, "400% 200%", position, aspect, zoom, facingFor(slot));
+        if (!override) return sprite(lineage.sheet, "400% 200%", position, aspect, zoom, facingFor(slot));
+        const isolatedSprite = sprite(override.sheet, "contain", "center", override.aspect || 1, override.zoom || 1.04, facingFor(slot));
+        return override.attackSheet
+          ? { ...isolatedSprite, attackSheet: `images/monsters/${override.attackSheet}` }
+          : isolatedSprite;
       };
       add({ id: matureId, name: lineage.mature, stage: 3, lineage: lineage.id, sprite: lineageSprite("mature", "0% 0%"), next: [perfectA, perfectB] });
       add({ id: perfectA, name: lineage.perfect[0], stage: 4, lineage: lineage.id, sprite: lineageSprite("perfect-a", "33.333% 0%"), next: [`${lineage.id}-ultimate-0`, `${lineage.id}-ultimate-1`] });

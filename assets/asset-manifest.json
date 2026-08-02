@@ -1,11 +1,11 @@
 {
   "version": 1,
-  "generatedAt": "2026-08-02T04:03:32.139Z",
+  "generatedAt": "2026-08-02T09:42:41.615Z",
   "totals": {
-    "all": 763,
-    "images": 600,
+    "all": 801,
+    "images": 638,
     "audio": 163,
-    "bytes": 500292691
+    "bytes": 534467466
   },
   "assets": [
     {
@@ -3705,6 +3705,42 @@
       "bytes": 845321
     },
     {
+      "path": "images/monsters/singles/ancient-mammoth-attack.png",
+      "type": "image",
+      "category": "images/monsters/singles",
+      "bytes": 829978
+    },
+    {
+      "path": "images/monsters/singles/ancient-mammoth.png",
+      "type": "image",
+      "category": "images/monsters/singles",
+      "bytes": 846419
+    },
+    {
+      "path": "images/monsters/singles/battleship-whale-admira-attack.png",
+      "type": "image",
+      "category": "images/monsters/singles",
+      "bytes": 926546
+    },
+    {
+      "path": "images/monsters/singles/battleship-whale-admira.png",
+      "type": "image",
+      "category": "images/monsters/singles",
+      "bytes": 875195
+    },
+    {
+      "path": "images/monsters/singles/bone-king-tyranno-attack.png",
+      "type": "image",
+      "category": "images/monsters/singles",
+      "bytes": 847867
+    },
+    {
+      "path": "images/monsters/singles/bone-king-tyranno.png",
+      "type": "image",
+      "category": "images/monsters/singles",
+      "bytes": 715084
+    },
+    {
       "path": "images/monsters/singles/bone-raptor-attack.png",
       "type": "image",
       "category": "images/monsters/singles",
@@ -3729,6 +3765,18 @@
       "bytes": 1269846
     },
     {
+      "path": "images/monsters/singles/chaos-sweets-god-attack.png",
+      "type": "image",
+      "category": "images/monsters/singles",
+      "bytes": 1097622
+    },
+    {
+      "path": "images/monsters/singles/chaos-sweets-god.png",
+      "type": "image",
+      "category": "images/monsters/singles",
+      "bytes": 994530
+    },
+    {
       "path": "images/monsters/singles/chibi-dragon-attack.png",
       "type": "image",
       "category": "images/monsters/singles",
@@ -3739,6 +3787,18 @@
       "type": "image",
       "category": "images/monsters/singles",
       "bytes": 1256803
+    },
+    {
+      "path": "images/monsters/singles/dance-god-octopus-attack.png",
+      "type": "image",
+      "category": "images/monsters/singles",
+      "bytes": 1123658
+    },
+    {
+      "path": "images/monsters/singles/dance-god-octopus.png",
+      "type": "image",
+      "category": "images/monsters/singles",
+      "bytes": 1172803
     },
     {
       "path": "images/monsters/singles/electric-owl-attack.png",
@@ -3753,16 +3813,64 @@
       "bytes": 1221183
     },
     {
+      "path": "images/monsters/singles/flame-crown-dragon-attack.png",
+      "type": "image",
+      "category": "images/monsters/singles",
+      "bytes": 1130606
+    },
+    {
+      "path": "images/monsters/singles/flame-crown-dragon.png",
+      "type": "image",
+      "category": "images/monsters/singles",
+      "bytes": 1062456
+    },
+    {
+      "path": "images/monsters/singles/fossil-amber-phoenix-attack.png",
+      "type": "image",
+      "category": "images/monsters/singles",
+      "bytes": 806569
+    },
+    {
+      "path": "images/monsters/singles/fossil-amber-phoenix.png",
+      "type": "image",
+      "category": "images/monsters/singles",
+      "bytes": 928452
+    },
+    {
+      "path": "images/monsters/singles/fossil-nether-hydra-attack.png",
+      "type": "image",
+      "category": "images/monsters/singles",
+      "bytes": 925826
+    },
+    {
+      "path": "images/monsters/singles/fossil-nether-hydra.png",
+      "type": "image",
+      "category": "images/monsters/singles",
+      "bytes": 893573
+    },
+    {
       "path": "images/monsters/singles/fossil-triceratops-attack.png",
       "type": "image",
       "category": "images/monsters/singles",
-      "bytes": 1188605
+      "bytes": 1061652
     },
     {
       "path": "images/monsters/singles/fossil-triceratops.png",
       "type": "image",
       "category": "images/monsters/singles",
-      "bytes": 1188605
+      "bytes": 946063
+    },
+    {
+      "path": "images/monsters/singles/hotpot-crab-king-attack.png",
+      "type": "image",
+      "category": "images/monsters/singles",
+      "bytes": 945453
+    },
+    {
+      "path": "images/monsters/singles/hotpot-crab-king.png",
+      "type": "image",
+      "category": "images/monsters/singles",
+      "bytes": 964389
     },
     {
       "path": "images/monsters/singles/jade-gorilla-monk-attack.png",
@@ -3775,6 +3883,30 @@
       "type": "image",
       "category": "images/monsters/singles",
       "bytes": 1291006
+    },
+    {
+      "path": "images/monsters/singles/lotus-crane-attack.png",
+      "type": "image",
+      "category": "images/monsters/singles",
+      "bytes": 694396
+    },
+    {
+      "path": "images/monsters/singles/lotus-crane.png",
+      "type": "image",
+      "category": "images/monsters/singles",
+      "bytes": 425699
+    },
+    {
+      "path": "images/monsters/singles/mercury-knight-god-attack.png",
+      "type": "image",
+      "category": "images/monsters/singles",
+      "bytes": 908805
+    },
+    {
+      "path": "images/monsters/singles/mercury-knight-god.png",
+      "type": "image",
+      "category": "images/monsters/singles",
+      "bytes": 810821
     },
     {
       "path": "images/monsters/singles/permafrost-garm-attack.png",
@@ -3801,6 +3933,18 @@
       "bytes": 930681
     },
     {
+      "path": "images/monsters/singles/racing-junk-dragon-attack.png",
+      "type": "image",
+      "category": "images/monsters/singles",
+      "bytes": 1057957
+    },
+    {
+      "path": "images/monsters/singles/racing-junk-dragon.png",
+      "type": "image",
+      "category": "images/monsters/singles",
+      "bytes": 1143437
+    },
+    {
       "path": "images/monsters/singles/rainbow-garden-phoenix-attack.png",
       "type": "image",
       "category": "images/monsters/singles",
@@ -3813,6 +3957,18 @@
       "bytes": 1304868
     },
     {
+      "path": "images/monsters/singles/silver-ice-dragon-attack.png",
+      "type": "image",
+      "category": "images/monsters/singles",
+      "bytes": 947801
+    },
+    {
+      "path": "images/monsters/singles/silver-ice-dragon.png",
+      "type": "image",
+      "category": "images/monsters/singles",
+      "bytes": 1040556
+    },
+    {
       "path": "images/monsters/singles/spring-kirin-attack.png",
       "type": "image",
       "category": "images/monsters/singles",
@@ -3823,6 +3979,78 @@
       "type": "image",
       "category": "images/monsters/singles",
       "bytes": 920641
+    },
+    {
+      "path": "images/monsters/singles/steam-giant-attack.png",
+      "type": "image",
+      "category": "images/monsters/singles",
+      "bytes": 1008695
+    },
+    {
+      "path": "images/monsters/singles/steam-giant.png",
+      "type": "image",
+      "category": "images/monsters/singles",
+      "bytes": 1050936
+    },
+    {
+      "path": "images/monsters/singles/submarine-dragon-attack.png",
+      "type": "image",
+      "category": "images/monsters/singles",
+      "bytes": 654147
+    },
+    {
+      "path": "images/monsters/singles/submarine-dragon.png",
+      "type": "image",
+      "category": "images/monsters/singles",
+      "bytes": 723840
+    },
+    {
+      "path": "images/monsters/singles/sushi-phoenix-attack.png",
+      "type": "image",
+      "category": "images/monsters/singles",
+      "bytes": 1118803
+    },
+    {
+      "path": "images/monsters/singles/sushi-phoenix.png",
+      "type": "image",
+      "category": "images/monsters/singles",
+      "bytes": 914860
+    },
+    {
+      "path": "images/monsters/singles/thunder-string-wolf-attack.png",
+      "type": "image",
+      "category": "images/monsters/singles",
+      "bytes": 773734
+    },
+    {
+      "path": "images/monsters/singles/thunder-string-wolf.png",
+      "type": "image",
+      "category": "images/monsters/singles",
+      "bytes": 814722
+    },
+    {
+      "path": "images/monsters/singles/treasure-island-crab-emperor-attack.png",
+      "type": "image",
+      "category": "images/monsters/singles",
+      "bytes": 1121787
+    },
+    {
+      "path": "images/monsters/singles/treasure-island-crab-emperor.png",
+      "type": "image",
+      "category": "images/monsters/singles",
+      "bytes": 1075126
+    },
+    {
+      "path": "images/monsters/singles/white-rabbit-kicker-attack.png",
+      "type": "image",
+      "category": "images/monsters/singles",
+      "bytes": 734660
+    },
+    {
+      "path": "images/monsters/singles/white-rabbit-kicker.png",
+      "type": "image",
+      "category": "images/monsters/singles",
+      "bytes": 436462
     },
     {
       "path": "images/monsters/singles/world-flower-dragon-attack.png",
