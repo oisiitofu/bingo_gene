@@ -1,11 +1,11 @@
 {
   "version": 1,
-  "generatedAt": "2026-08-01T10:51:34.135Z",
+  "generatedAt": "2026-08-02T02:48:33.413Z",
   "totals": {
-    "all": 715,
-    "images": 552,
+    "all": 747,
+    "images": 584,
     "audio": 163,
-    "bytes": 405937210
+    "bytes": 477772760
   },
   "assets": [
     {
@@ -3499,6 +3499,198 @@
       "type": "image",
       "category": "images/monsters/pairs",
       "bytes": 865331
+    },
+    {
+      "path": "images/monsters/rank6-singles/abyss-rank6.png",
+      "type": "image",
+      "category": "images/monsters/rank6-singles",
+      "bytes": 2218854
+    },
+    {
+      "path": "images/monsters/rank6-singles/beetle-rank6.png",
+      "type": "image",
+      "category": "images/monsters/rank6-singles",
+      "bytes": 1913971
+    },
+    {
+      "path": "images/monsters/rank6-singles/bloom-rank6.png",
+      "type": "image",
+      "category": "images/monsters/rank6-singles",
+      "bytes": 2145148
+    },
+    {
+      "path": "images/monsters/rank6-singles/candy-rank6.png",
+      "type": "image",
+      "category": "images/monsters/rank6-singles",
+      "bytes": 2719029
+    },
+    {
+      "path": "images/monsters/rank6-singles/coral-rank6.png",
+      "type": "image",
+      "category": "images/monsters/rank6-singles",
+      "bytes": 2027577
+    },
+    {
+      "path": "images/monsters/rank6-singles/corsair-rank6.png",
+      "type": "image",
+      "category": "images/monsters/rank6-singles",
+      "bytes": 2616551
+    },
+    {
+      "path": "images/monsters/rank6-singles/cosmic-rank6.png",
+      "type": "image",
+      "category": "images/monsters/rank6-singles",
+      "bytes": 1984591
+    },
+    {
+      "path": "images/monsters/rank6-singles/crystal-rank6.png",
+      "type": "image",
+      "category": "images/monsters/rank6-singles",
+      "bytes": 2475476
+    },
+    {
+      "path": "images/monsters/rank6-singles/dojo-rank6.png",
+      "type": "image",
+      "category": "images/monsters/rank6-singles",
+      "bytes": 2067426
+    },
+    {
+      "path": "images/monsters/rank6-singles/dream-rank6.png",
+      "type": "image",
+      "category": "images/monsters/rank6-singles",
+      "bytes": 1858259
+    },
+    {
+      "path": "images/monsters/rank6-singles/dune-rank6.png",
+      "type": "image",
+      "category": "images/monsters/rank6-singles",
+      "bytes": 2454596
+    },
+    {
+      "path": "images/monsters/rank6-singles/festival-rank6.png",
+      "type": "image",
+      "category": "images/monsters/rank6-singles",
+      "bytes": 2461731
+    },
+    {
+      "path": "images/monsters/rank6-singles/fossil-rank6.png",
+      "type": "image",
+      "category": "images/monsters/rank6-singles",
+      "bytes": 2370481
+    },
+    {
+      "path": "images/monsters/rank6-singles/glacier-rank6.png",
+      "type": "image",
+      "category": "images/monsters/rank6-singles",
+      "bytes": 2366838
+    },
+    {
+      "path": "images/monsters/rank6-singles/gourmet-rank6.png",
+      "type": "image",
+      "category": "images/monsters/rank6-singles",
+      "bytes": 2411423
+    },
+    {
+      "path": "images/monsters/rank6-singles/grove-rank6.png",
+      "type": "image",
+      "category": "images/monsters/rank6-singles",
+      "bytes": 2085144
+    },
+    {
+      "path": "images/monsters/rank6-singles/inferno-rank6.png",
+      "type": "image",
+      "category": "images/monsters/rank6-singles",
+      "bytes": 2323565
+    },
+    {
+      "path": "images/monsters/rank6-singles/ink-rank6.png",
+      "type": "image",
+      "category": "images/monsters/rank6-singles",
+      "bytes": 2377042
+    },
+    {
+      "path": "images/monsters/rank6-singles/junk-rank6.png",
+      "type": "image",
+      "category": "images/monsters/rank6-singles",
+      "bytes": 2165070
+    },
+    {
+      "path": "images/monsters/rank6-singles/mecha-rank6.png",
+      "type": "image",
+      "category": "images/monsters/rank6-singles",
+      "bytes": 2326825
+    },
+    {
+      "path": "images/monsters/rank6-singles/ninja-rank6.png",
+      "type": "image",
+      "category": "images/monsters/rank6-singles",
+      "bytes": 1817372
+    },
+    {
+      "path": "images/monsters/rank6-singles/rail-rank6.png",
+      "type": "image",
+      "category": "images/monsters/rank6-singles",
+      "bytes": 2178822
+    },
+    {
+      "path": "images/monsters/rank6-singles/ryu-rank6.png",
+      "type": "image",
+      "category": "images/monsters/rank6-singles",
+      "bytes": 2385227
+    },
+    {
+      "path": "images/monsters/rank6-singles/samurai-rank6.png",
+      "type": "image",
+      "category": "images/monsters/rank6-singles",
+      "bytes": 2298067
+    },
+    {
+      "path": "images/monsters/rank6-singles/shadow-rank6.png",
+      "type": "image",
+      "category": "images/monsters/rank6-singles",
+      "bytes": 1912243
+    },
+    {
+      "path": "images/monsters/rank6-singles/sky-rank6.png",
+      "type": "image",
+      "category": "images/monsters/rank6-singles",
+      "bytes": 2195693
+    },
+    {
+      "path": "images/monsters/rank6-singles/slime-rank6.png",
+      "type": "image",
+      "category": "images/monsters/rank6-singles",
+      "bytes": 2570999
+    },
+    {
+      "path": "images/monsters/rank6-singles/sonic-rank6.png",
+      "type": "image",
+      "category": "images/monsters/rank6-singles",
+      "bytes": 2386643
+    },
+    {
+      "path": "images/monsters/rank6-singles/spirit-rank6.png",
+      "type": "image",
+      "category": "images/monsters/rank6-singles",
+      "bytes": 2196937
+    },
+    {
+      "path": "images/monsters/rank6-singles/spore-rank6.png",
+      "type": "image",
+      "category": "images/monsters/rank6-singles",
+      "bytes": 1771750
+    },
+    {
+      "path": "images/monsters/rank6-singles/tempest-rank6.png",
+      "type": "image",
+      "category": "images/monsters/rank6-singles",
+      "bytes": 2362912
+    },
+    {
+      "path": "images/monsters/rank6-singles/thunder-rank6.png",
+      "type": "image",
+      "category": "images/monsters/rank6-singles",
+      "bytes": 2389288
     },
     {
       "path": "images/monsters/singles/bone-raptor-attack.png",

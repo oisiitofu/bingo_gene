@@ -19,7 +19,7 @@ test("online lobby boot bypasses stale browser modules and retries once", () => 
 
   assert.match(html, /online-room\.js\?v=20260801-hatch-sync-1/);
   assert.match(html, /retry=\$\{Date\.now\(\)\}/);
-  assert.match(serviceWorker, /20260802-monster-navigation-96/);
+  assert.match(serviceWorker, /20260802-rank6-redesign-97/);
 });
 
 test("consecutive skills cancel stale audio and setup snapshots clear persistent effects", () => {
@@ -544,6 +544,16 @@ test("monster evolution has eight childhood entries, rank six fusions, passives,
   assert.equal(unlockedRank6.monster.stage, 6);
   assert.equal(result.rank6Requirements("inferno-ultimate-0").length, 4);
 
+  const redesignedRank6 = Object.values(result.NODES).filter((node) => node.rank6 && !node.legendary);
+  assert.equal(redesignedRank6.length, 32);
+  assert.equal(new Set(redesignedRank6.map((node) => node.sprite.sheet)).size, 32, "Every rank-six monster needs its own image file");
+  redesignedRank6.forEach((node) => {
+    assert.match(node.sprite.sheet, new RegExp(`images/monsters/rank6-singles/${node.lineage}-rank6\\.png$`));
+    assert.equal(node.sprite.size, "contain");
+    assert.equal(node.sprite.position, "center");
+    assert.equal(node.sprite.attackSheet, node.sprite.sheet, "Rank-six attacks must never revert to the retired group artwork");
+  });
+
   const monsterSheets = new Map();
   Object.values(result.NODES).forEach((node) => {
     const members = monsterSheets.get(node.sprite.sheet) || [];
@@ -764,14 +774,14 @@ test("available monster pose sheets animate toward the opposing bingo card", () 
   assert.match(html, /lineage-ninja-attack\.png/);
   assert.match(html, /lineage-rail-attack\.png/);
   assert.match(html, /lineage-ryu-attack\.png/);
-  assert.match(html, /rank6-a-v3-attack\.png/);
-  assert.match(html, /rank6-b-v3-attack\.png/);
+  assert.doesNotMatch(monsterSystem, /rank6-[ab]-v3\.png/);
+  assert.doesNotMatch(html, /rank6-[ab]-v3-attack\.png/);
   assert.match(html, /legendary-attack\.png/);
   assert.match(html, /legendary-new-attack\.png/);
   assert.match(html, /egg-attack\.png/);
   const declaredSheets = new Set([...monsterSystem.matchAll(/"([A-Za-z0-9-]+\.png)"/g)].map((match) => match[1]));
   const animatedSheets = new Set([...html.matchAll(/"images\/monsters\/([A-Za-z0-9-]+\.png)"\s*:\s*"images\/monsters\/[A-Za-z0-9-]+-attack\.png"/g)].map((match) => match[1]));
-  assert.equal(declaredSheets.size, 44);
+  assert.equal(declaredSheets.size, 42);
   declaredSheets.forEach((sheet) => assert.ok(animatedSheets.has(sheet), `missing monster pose animation for ${sheet}`));
   assert.doesNotMatch(battleCss, /stageOneAttackEffect/);
   assert.doesNotMatch(battleCss, /stage-one-animated/);

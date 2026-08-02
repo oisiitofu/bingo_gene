@@ -435,11 +435,18 @@
       add({ id: perfectB, name: lineage.perfect[1], stage: 4, lineage: lineage.id, sprite: lineageSprite("perfect-b", "66.667% 0%"), next: [`${lineage.id}-ultimate-2`, `${lineage.id}-ultimate-3`] });
       lineage.ultimate.forEach((name, index) => add({ id: `${lineage.id}-ultimate-${index}`, name, stage: 5, lineage: lineage.id, sprite: sprite(lineage.sheet, "400% 200%", `${index * 33.333}% 100%`, aspect, 1.14, facingFor(`ultimate-${index}`)), next: [`${lineage.id}-rank6`] }));
     });
-    LINEAGES.forEach((lineage, index) => {
-      const sheet = index < 16 ? "rank6-a-v3.png" : "rank6-b-v3.png";
-      const slot = index % 16;
-      const x = slot % 4;
-      const y = Math.floor(slot / 4);
+    LINEAGES.forEach((lineage) => {
+      const rank6Sprite = sprite(
+        `rank6-singles/${lineage.id}-rank6.png`,
+        "contain",
+        "center",
+        1,
+        1.04,
+        RANK6_RIGHT_FACING.has(lineage.id) ? "right" : "left"
+      );
+      // Keep rank-six battle animation on the new isolated artwork instead of
+      // flashing back to the retired multi-monster attack sheets.
+      rank6Sprite.attackSheet = rank6Sprite.sheet;
       add({
         id: `${lineage.id}-rank6`,
         name: RANK6_NAMES[lineage.id],
@@ -447,7 +454,7 @@
         lineage: lineage.id,
         rank6: true,
         requirements: lineage.ultimate.map((_, ultimateIndex) => `${lineage.id}-ultimate-${ultimateIndex}`),
-        sprite: sprite(sheet, "400% 400%", `${x * 33.333}% ${y * 33.333}%`, 1, 1.08, RANK6_RIGHT_FACING.has(lineage.id) ? "right" : "left"),
+        sprite: rank6Sprite,
         next: []
       });
     });
