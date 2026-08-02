@@ -19,7 +19,7 @@ test("online lobby boot bypasses stale browser modules and retries once", () => 
 
   assert.match(html, /online-room\.js\?v=20260801-hatch-sync-1/);
   assert.match(html, /retry=\$\{Date\.now\(\)\}/);
-  assert.match(serviceWorker, /20260802-rank6-redesign-97/);
+  assert.match(serviceWorker, /20260802-territory-replay-monster-fit-98/);
 });
 
 test("consecutive skills cancel stale audio and setup snapshots clear persistent effects", () => {
@@ -145,6 +145,11 @@ test("六王領土戦のクライアント、Worker、Firebaseルールが公開
   assert.match(territoryMode, /rewardCountForSeason/);
   assert.match(worker, /seasonEquipmentRewards/);
   assert.match(territoryMode, /BATTLE ARCHIVE/);
+  assert.match(territoryMode, /function focusTerritoryLog\(logId\)/);
+  assert.match(territoryMode, /data-territory-log=/);
+  assert.match(territoryMode, /map3D\.update\(state, selectedTileId, selectedPlayerId, attackFocus\)/);
+  assert.match(territoryMap3D, /attackTargeted \? new THREE\.Color\(0xff385d\) : new THREE\.Color\(0xffd45d\)/);
+  assert.match(territorySystem, /sourceTileIds: \[\.\.\.new Set/);
   assert.match(html, /applyTerritoryPreviousSnapshot/);
   assert.match(territoryMode, /SEASON \$\{formatDate\(season\.startsAt\)\}/);
   assert.doesNotMatch(territoryMode, /SEASON \$\{season\.id\} \//);
@@ -290,7 +295,15 @@ test("oversized monster sheet entries use isolated artwork and fitted encycloped
     "chibi-dragon.png", "chibi-dragon-attack.png",
     "electric-owl.png", "electric-owl-attack.png",
     "bone-raptor.png", "bone-raptor-attack.png",
-    "fossil-triceratops.png", "fossil-triceratops-attack.png"
+    "fossil-triceratops.png", "fossil-triceratops-attack.png",
+    "amber-ptera.png", "amber-ptera-attack.png",
+    "jade-gorilla-monk.png", "jade-gorilla-monk-attack.png",
+    "pudding-hydra.png", "pudding-hydra-attack.png",
+    "candywork-dragon.png", "candywork-dragon-attack.png",
+    "permafrost-garm.png", "permafrost-garm-attack.png",
+    "spring-kirin.png", "spring-kirin-attack.png",
+    "world-flower-dragon.png", "world-flower-dragon-attack.png",
+    "rainbow-garden-phoenix.png", "rainbow-garden-phoenix-attack.png"
   ];
 
   assets.forEach((name) => assert.ok(existsSync(new URL(`../images/monsters/singles/${name}`, import.meta.url)), name));
@@ -298,6 +311,15 @@ test("oversized monster sheet entries use isolated artwork and fitted encycloped
   assert.match(monsterSystem, /singles\/electric-owl\.png/);
   assert.match(monsterSystem, /singles\/bone-raptor\.png/);
   assert.match(monsterSystem, /singles\/fossil-triceratops\.png/);
+  assert.match(monsterSystem, /singles\/amber-ptera\.png/);
+  assert.match(monsterSystem, /singles\/jade-gorilla-monk\.png/);
+  assert.match(monsterSystem, /singles\/pudding-hydra\.png/);
+  assert.match(monsterSystem, /singles\/candywork-dragon\.png/);
+  assert.match(monsterSystem, /singles\/permafrost-garm\.png/);
+  assert.match(monsterSystem, /singles\/spring-kirin\.png/);
+  assert.match(monsterSystem, /singles\/world-flower-dragon\.png/);
+  assert.match(monsterSystem, /singles\/rainbow-garden-phoenix\.png/);
+  assert.match(monsterSystem, /lineage\.ultimate\.forEach[\s\S]*?lineageSprite\(`ultimate-\$\{index\}`/);
   assert.match(html, /function monsterNameFitStyle\(/);
   assert.match(html, /--monster-name-size:/);
   assert.match(html, /function fitSingleLineText\(/);
@@ -610,8 +632,14 @@ test("monster evolution has eight childhood entries, rank six fusions, passives,
   assert.match(html, /const hasFinalMonster = side\.monsters\.some\(\(monster\) => Number\(MONSTER_NODES\[monster\.nodeId\]\?\.stage\) >= 5\)/);
   assert.match(html, /combinedPresentation: !hasFinalMonster/);
   assert.match(html, /function shouldShowVictoryFinalEvolution\(/);
-  assert.match(html, /node\.legendary \? 1 : \(Number\(node\.stage\) >= 3 \? 1\.52 : \(Number\(node\.stage\) > 1 \? 1\.16 : 1\)\)/);
+  assert.match(html, /node\.legendary \|\| node\.rank6[\s\S]*?\? 1/);
+  assert.match(html, /"fossil-perfect-b": 1\.02/);
   assert.match(html, /--monster-display-boost:\$\{displayBoost\}/);
+  assert.match(html, /territoryBattleReplayActive: false/);
+  assert.doesNotMatch(html, /openTerritoryBattleReplay\(battle\)[\s\S]{0,500}TeamBingoTerritoryMode\?\.close/);
+  assert.match(html, /state\.territoryBattleReplayActive = true/);
+  assert.match(html, /if \(state\.territoryBattleReplayActive\)[\s\S]*?startTerritoryBgm\(\)/);
+  assert.match(monsterBattleCss, /body\.territory-mode-open \.monster-battle-overlay \{ z-index: 6300; \}/);
   assert.match(html, /id="monsterZoomPreviousButton"/);
   assert.match(html, /id="monsterZoomNextButton"/);
   assert.match(html, /function navigateMonsterZoom\(/);

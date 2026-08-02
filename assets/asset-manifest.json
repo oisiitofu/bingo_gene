@@ -1,11 +1,11 @@
 {
   "version": 1,
-  "generatedAt": "2026-08-02T02:48:33.413Z",
+  "generatedAt": "2026-08-02T04:03:32.139Z",
   "totals": {
-    "all": 747,
-    "images": 584,
+    "all": 763,
+    "images": 600,
     "audio": 163,
-    "bytes": 477772760
+    "bytes": 500292691
   },
   "assets": [
     {
@@ -3693,52 +3693,148 @@
       "bytes": 2389288
     },
     {
+      "path": "images/monsters/singles/amber-ptera-attack.png",
+      "type": "image",
+      "category": "images/monsters/singles",
+      "bytes": 845321
+    },
+    {
+      "path": "images/monsters/singles/amber-ptera.png",
+      "type": "image",
+      "category": "images/monsters/singles",
+      "bytes": 845321
+    },
+    {
       "path": "images/monsters/singles/bone-raptor-attack.png",
       "type": "image",
       "category": "images/monsters/singles",
-      "bytes": 439695
+      "bytes": 953021
     },
     {
       "path": "images/monsters/singles/bone-raptor.png",
       "type": "image",
       "category": "images/monsters/singles",
-      "bytes": 544501
+      "bytes": 953021
+    },
+    {
+      "path": "images/monsters/singles/candywork-dragon-attack.png",
+      "type": "image",
+      "category": "images/monsters/singles",
+      "bytes": 1269846
+    },
+    {
+      "path": "images/monsters/singles/candywork-dragon.png",
+      "type": "image",
+      "category": "images/monsters/singles",
+      "bytes": 1269846
     },
     {
       "path": "images/monsters/singles/chibi-dragon-attack.png",
       "type": "image",
       "category": "images/monsters/singles",
-      "bytes": 705350
+      "bytes": 1256803
     },
     {
       "path": "images/monsters/singles/chibi-dragon.png",
       "type": "image",
       "category": "images/monsters/singles",
-      "bytes": 705350
+      "bytes": 1256803
     },
     {
       "path": "images/monsters/singles/electric-owl-attack.png",
       "type": "image",
       "category": "images/monsters/singles",
-      "bytes": 674136
+      "bytes": 1221183
     },
     {
       "path": "images/monsters/singles/electric-owl.png",
       "type": "image",
       "category": "images/monsters/singles",
-      "bytes": 674136
+      "bytes": 1221183
     },
     {
       "path": "images/monsters/singles/fossil-triceratops-attack.png",
       "type": "image",
       "category": "images/monsters/singles",
-      "bytes": 516174
+      "bytes": 1188605
     },
     {
       "path": "images/monsters/singles/fossil-triceratops.png",
       "type": "image",
       "category": "images/monsters/singles",
-      "bytes": 676953
+      "bytes": 1188605
+    },
+    {
+      "path": "images/monsters/singles/jade-gorilla-monk-attack.png",
+      "type": "image",
+      "category": "images/monsters/singles",
+      "bytes": 1291006
+    },
+    {
+      "path": "images/monsters/singles/jade-gorilla-monk.png",
+      "type": "image",
+      "category": "images/monsters/singles",
+      "bytes": 1291006
+    },
+    {
+      "path": "images/monsters/singles/permafrost-garm-attack.png",
+      "type": "image",
+      "category": "images/monsters/singles",
+      "bytes": 1061022
+    },
+    {
+      "path": "images/monsters/singles/permafrost-garm.png",
+      "type": "image",
+      "category": "images/monsters/singles",
+      "bytes": 1061022
+    },
+    {
+      "path": "images/monsters/singles/pudding-hydra-attack.png",
+      "type": "image",
+      "category": "images/monsters/singles",
+      "bytes": 930681
+    },
+    {
+      "path": "images/monsters/singles/pudding-hydra.png",
+      "type": "image",
+      "category": "images/monsters/singles",
+      "bytes": 930681
+    },
+    {
+      "path": "images/monsters/singles/rainbow-garden-phoenix-attack.png",
+      "type": "image",
+      "category": "images/monsters/singles",
+      "bytes": 1304868
+    },
+    {
+      "path": "images/monsters/singles/rainbow-garden-phoenix.png",
+      "type": "image",
+      "category": "images/monsters/singles",
+      "bytes": 1304868
+    },
+    {
+      "path": "images/monsters/singles/spring-kirin-attack.png",
+      "type": "image",
+      "category": "images/monsters/singles",
+      "bytes": 920641
+    },
+    {
+      "path": "images/monsters/singles/spring-kirin.png",
+      "type": "image",
+      "category": "images/monsters/singles",
+      "bytes": 920641
+    },
+    {
+      "path": "images/monsters/singles/world-flower-dragon-attack.png",
+      "type": "image",
+      "category": "images/monsters/singles",
+      "bytes": 1485116
+    },
+    {
+      "path": "images/monsters/singles/world-flower-dragon.png",
+      "type": "image",
+      "category": "images/monsters/singles",
+      "bytes": 1485116
     },
     {
       "path": "images/random-events/gold-rush.png",

@@ -23,6 +23,8 @@
   let historyMap3D = null;
   let historySelectedTileId = "0,0";
   let countdownTimer = 0;
+  let attackFocus = null;
+  let attackFocusTimer = 0;
 
   function escapeHtml(value) {
     return String(value ?? "")
@@ -197,6 +199,18 @@
       openMonsterPage();
       return;
     }
+    const replay = event.target.closest("[data-territory-replay]");
+    if (replay) {
+      const source = root.querySelector("[data-territory-history]")?.hidden ? state : selectedArchiveState();
+      const battle = source?.battles?.find((item) => item.id === replay.dataset.territoryReplay);
+      if (battle) replayBattle(battle);
+      return;
+    }
+    const logFocus = event.target.closest("[data-territory-log]");
+    if (logFocus) {
+      focusTerritoryLog(logFocus.dataset.territoryLog);
+      return;
+    }
     const monster = event.target.closest("[data-territory-monster]");
     if (monster) {
       const tile = state?.tiles?.[monster.dataset.territoryTileId || selectedTileId];
@@ -229,12 +243,33 @@
       render();
       return;
     }
-    const replay = event.target.closest("[data-territory-replay]");
-    if (replay) {
-      const source = root.querySelector("[data-territory-history]")?.hidden ? state : selectedArchiveState();
-      const battle = source?.battles?.find((item) => item.id === replay.dataset.territoryReplay);
-      if (battle) replayBattle(battle);
-    }
+  }
+
+  function focusTerritoryLog(logId) {
+    const log = state?.logs?.find((entry) => entry.id === logId);
+    if (!log) return;
+    const battle = log.battleId ? state.battles?.find((entry) => entry.id === log.battleId) : null;
+    const targetTileId = log.tileId || battle?.tileId || "";
+    const sourceTileIds = [...new Set([
+      ...(Array.isArray(log.sourceTileIds) ? log.sourceTileIds : []),
+      log.sourceTileId,
+      ...(battle?.sides || []).map((side) => side.sourceTileId)
+    ].filter((tileId) => tileId && tileId !== targetTileId && state.tiles?.[tileId]))];
+    if (!targetTileId || !state.tiles?.[targetTileId]) return;
+    selectedTileId = targetTileId;
+    selectedPlayerId = "";
+    attackFocus = { logId, sourceTileIds, targetTileId };
+    window.clearTimeout(attackFocusTimer);
+    attackFocusTimer = window.setTimeout(() => {
+      attackFocus = null;
+      attackFocusTimer = 0;
+      renderMap();
+      renderFeed();
+    }, 5200);
+    renderRanking();
+    renderMap();
+    renderDetail();
+    renderFeed();
   }
 
   function hexPoints(cx, cy, size) {
@@ -256,7 +291,7 @@
     const map = root.querySelector("[data-territory-map]");
     if (map3D) {
       map.setAttribute("hidden", "");
-      map3D.update(state, selectedTileId, selectedPlayerId);
+      map3D.update(state, selectedTileId, selectedPlayerId, attackFocus);
       return;
     }
     map.removeAttribute("hidden");
@@ -271,7 +306,9 @@
         owner ? "" : "neutral",
         tile.kind,
         tile.id === selectedTileId ? "selected" : "",
-        selectedPlayerId && tile.ownerId === selectedPlayerId ? "owner-focus" : ""
+        selectedPlayerId && tile.ownerId === selectedPlayerId ? "owner-focus" : "",
+        attackFocus?.sourceTileIds?.includes(tile.id) ? "attack-source" : "",
+        attackFocus?.targetTileId === tile.id ? "attack-target" : ""
       ].filter(Boolean).join(" ");
       const event = Territory.TILE_EVENT_BY_ID[tile.eventId];
       const hype = Number.isFinite(Number(tile.garrison?.hype)) ? Number(tile.garrison.hype) : Territory.DEFAULT_HYPE;
@@ -407,9 +444,12 @@
     const feed = root.querySelector("[data-territory-feed]");
     const logs = [...(state.logs || [])].reverse().slice(0, 50);
     feed.innerHTML = logs.length ? logs.map((log) => `
-      <div class="territory-feed-row">
-        <time>${formatDate(log.at)}</time>
-        <span>${escapeHtml(log.text)}</span>
+      <div class="territory-feed-row${attackFocus?.logId === log.id ? " active" : ""}">
+        <button type="button" class="territory-feed-focus" data-territory-log="${escapeHtml(log.id)}" title="攻撃元と攻撃先をマップで表示">
+          <time>${formatDate(log.at)}</time>
+          <span>${escapeHtml(log.text)}</span>
+          <b>MAP</b>
+        </button>
         ${log.battleId ? `<button type="button" class="territory-replay-button" data-territory-replay="${escapeHtml(log.battleId)}">REPLAY</button>` : ""}
       </div>
     `).join("") : `<div class="territory-empty">開戦待機中</div>`;
@@ -764,6 +804,9 @@
   function close() {
     if (!root || root.hidden) return;
     closePreviousSeason();
+    window.clearTimeout(attackFocusTimer);
+    attackFocusTimer = 0;
+    attackFocus = null;
     root.hidden = true;
     document.body.classList.remove("territory-mode-open");
     map3D?.setActive(false);

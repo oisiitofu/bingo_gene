@@ -633,6 +633,7 @@
 @keyframes monsterEntryBlue { from { opacity: 0; transform: translateX(38vw) skewX(7deg) scale(.78); } 65% { transform: translateX(-2vw) skewX(-1deg) scale(1.03); } to { opacity: 1; transform: none; } }
 @keyframes monsterBattleStartCall { 0% { opacity: 0; transform: scale(2.1); filter: brightness(3); } 48% { opacity: 1; transform: scale(.92); } 68% { transform: scale(1.08); } 100% { opacity: 1; transform: scale(1); } }
 .monster-battle-overlay.show { display: flex; }
+body.territory-mode-open .monster-battle-overlay { z-index: 6300; }
 .monster-battle-stage {
   position: relative;
   width: 100vw;

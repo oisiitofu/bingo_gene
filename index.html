@@ -8601,6 +8601,7 @@
       activeMonsterDexOverview: { number: false, tree: false, mastery: false, equipment: false, items: false },
       adminMonsterDexMode: false,
       adminMonsterBattleActive: false,
+      territoryBattleReplayActive: false,
       teamSelectionDraft: null,
       replayTimer: null,
       autoBackupTimer: null,
@@ -9833,13 +9834,50 @@
       });
     }
 
+    const MONSTER_DISPLAY_BOOST_OVERRIDES = Object.freeze({
+        "growth-rail": 1.02,
+        "bloom-mature": 1.12,
+        "fossil-mature": 1.02,
+        "fossil-perfect-a": 1.02,
+        "sonic-perfect-b": 1.02,
+        "dune-perfect-a": 1.12,
+        "bloom-perfect-a": 1.12,
+        "bloom-ultimate-2": 1.1,
+        "inferno-ultimate-2": 1.1,
+        "fossil-ultimate-3": 1.08,
+        "gourmet-ultimate-1": 1.1,
+        "candy-ultimate-3": 1.08,
+        "gourmet-ultimate-3": 1.08,
+        "beetle-ultimate-3": 1.08,
+        "gourmet-ultimate-2": 1.1,
+        "beetle-ultimate-1": 1.1,
+        "corsair-ultimate-1": 1.1,
+        "abyss-ultimate-3": 1.08,
+        "fossil-ultimate-2": 1.1,
+        "glacier-ultimate-2": 1.1,
+        "junk-ultimate-2": 1.1,
+        "corsair-ultimate-3": 1.08,
+        "festival-ultimate-3": 1.08,
+        "fossil-perfect-b": 1.02,
+        "dojo-perfect-a": 1.02,
+        "slime-ultimate-1": 1.02,
+        "candy-ultimate-2": 1.02,
+        "glacier-ultimate-1": 1.02,
+        "bloom-ultimate-1": 1.02,
+        "bloom-ultimate-0": 1.02,
+        "bloom-ultimate-3": 1.02
+      });
+
     function monsterSpriteMarkup(node, extraClass = "", viewportPadding = 0) {
       if (!node?.sprite) return "";
       const guardedSize = spriteSheetSizeWithBleedGuard(node.sprite.size);
       const aspect = Math.max(.1, Number(node.sprite.aspect) || 1);
       const viewBoxWidth = Math.round(aspect * 1000);
       const padding = Math.max(0, Math.min(250, Number(viewportPadding) || 0));
-      const displayBoost = node.legendary ? 1 : (Number(node.stage) >= 3 ? 1.52 : (Number(node.stage) > 1 ? 1.16 : 1));
+      const defaultDisplayBoost = node.legendary || node.rank6
+        ? 1
+        : (Number(node.stage) >= 3 ? 1.52 : (Number(node.stage) > 1 ? 1.16 : 1));
+      const displayBoost = MONSTER_DISPLAY_BOOST_OVERRIDES[node.id] || defaultDisplayBoost;
       const style = `--monster-image:url('${node.sprite.sheet}');--monster-size:${guardedSize};--monster-position:${node.sprite.position};--monster-aspect:${aspect};--monster-zoom:${node.sprite.zoom || 1};--monster-display-boost:${displayBoost}`;
       const facing = node.sprite.facing === "right" ? "right" : "left";
       return `<svg class="monster-sprite${extraClass ? ` ${extraClass}` : ""}" data-monster-facing="${facing}" style="${style}" viewBox="${-padding} ${-padding} ${viewBoxWidth + (padding * 2)} ${1000 + (padding * 2)}" preserveAspectRatio="xMidYMid meet" aria-hidden="true" focusable="false"><foreignObject x="0" y="0" width="${viewBoxWidth}" height="1000"><div xmlns="http://www.w3.org/1999/xhtml" class="monster-sprite-surface"></div></foreignObject></svg>`;
@@ -12936,7 +12974,11 @@
       if (activeBgmKey === "monsterBattleBgm") stopManagedBgm();
       if (els.monsterBattleFinish) els.monsterBattleFinish.hidden = true;
       document.querySelectorAll(".battle-projectile,.battle-damage,.battle-impact-effect,.battle-target-line,.monster-special-cutin,.monster-link-cutin,.monster-revive-burst").forEach((node) => node.remove());
-      if (state.adminMonsterBattleActive) state.adminMonsterBattleActive = false;
+      if (state.territoryBattleReplayActive) {
+        state.territoryBattleReplayActive = false;
+        state.adminMonsterBattleActive = false;
+        startTerritoryBgm();
+      } else if (state.adminMonsterBattleActive) state.adminMonsterBattleActive = false;
       else renderVictoryMonsterLineups();
     }
 
@@ -17240,7 +17282,7 @@
       const red = Array.isArray(battle?.replay?.red?.lineup) ? battle.replay.red.lineup : [];
       const blue = Array.isArray(battle?.replay?.blue?.lineup) ? battle.replay.blue.lineup : [];
       if (!red.length || !blue.length) return;
-      window.TeamBingoTerritoryMode?.close();
+      state.territoryBattleReplayActive = true;
       state.adminMonsterBattleActive = true;
       void runMonsterBattle(Number(battle.seed) || Date.now(), {
         adminBattle: true,

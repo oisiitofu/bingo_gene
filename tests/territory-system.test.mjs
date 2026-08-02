@@ -256,6 +256,10 @@ test("戦闘履歴は既存バトル画面で再生できる編成を保持す�
     assert.ok(Number.isFinite(battle.replay.red.hype));
     assert.ok(Number.isFinite(battle.replay.blue.hype));
   }
+  const battleLogs = result.state.logs.filter((log) => log.battleId);
+  assert.ok(battleLogs.length > 0);
+  assert.ok(battleLogs.every((log) => log.tileId && Array.isArray(log.sourceTileIds)));
+  assert.ok(battleLogs.some((log) => log.sourceTileIds.some((tileId) => tileId !== log.tileId)));
 });
 
 test("占領したPTは領地へ移動し出発地へ新しいPTが自動配置される", () => {

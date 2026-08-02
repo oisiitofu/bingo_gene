@@ -608,6 +608,7 @@
       tileMesh.userData.selectionAuraMaterial = auraMaterial;
       tileMesh.userData.selectionRing = ring;
       tileMesh.userData.selectionRingMaterial = ringMaterial;
+      tileMesh.userData.selectionColor = auraColor.clone();
       animatedObjects.push(
         { object: aura, type: "selectionAura", material: auraMaterial },
         { object: ring, type: "selectionRing", material: ringMaterial, phase: seededValue(tile.id, "selection-ring") * 6 }
@@ -1026,7 +1027,7 @@
         .join("|");
     }
 
-    function update(nextState, nextSelectedTileId, nextHighlightedOwnerId = "") {
+    function update(nextState, nextSelectedTileId, nextHighlightedOwnerId = "", attackFocus = null) {
       state = nextState;
       selectedTileId = nextSelectedTileId || selectedTileId;
       highlightedOwnerId = nextHighlightedOwnerId || "";
@@ -1038,18 +1039,27 @@
           .sort((a, b) => a.id.localeCompare(b.id))
           .forEach(createTile);
       }
-      updateSelection();
+      updateSelection(attackFocus);
       renderOnce();
     }
 
-    function updateSelection() {
+    function updateSelection(attackFocus = null) {
+      const attackSources = new Set(attackFocus?.sourceTileIds || []);
+      const attackTarget = attackFocus?.targetTileId || "";
       container.dataset.selectedTile = selectedTileId;
       container.dataset.highlightedOwner = highlightedOwnerId;
       tileMeshes.forEach((mesh, tileId) => {
         const selected = tileId === selectedTileId;
         const ownerFocused = Boolean(highlightedOwnerId && mesh.userData.ownerId === highlightedOwnerId);
+        const attackSource = attackSources.has(tileId);
+        const attackTargeted = tileId === attackTarget;
+        const attackHighlighted = attackSource || attackTargeted;
+        const attackColor = attackTargeted ? new THREE.Color(0xff385d) : new THREE.Color(0xffd45d);
         mesh.scale.set(1, 1, 1);
-        if (selected) {
+        if (attackHighlighted) {
+          mesh.material.emissive.copy(attackColor);
+          mesh.material.emissiveIntensity = attackTargeted ? .95 : .78;
+        } else if (selected) {
           mesh.material.emissive.setHex(mesh.userData.ownerId === "tofu" ? 0x4d535a : 0x6b4b18);
           mesh.material.emissiveIntensity = .48;
         } else if (ownerFocused) {
@@ -1060,18 +1070,20 @@
           mesh.material.emissiveIntensity = mesh.userData.surfaceEmissiveIntensity;
         }
         if (mesh.userData.boundaryLine) {
-          mesh.userData.boundaryLine.opacity = selected || ownerFocused ? 1 : .86;
+          mesh.userData.boundaryLine.opacity = selected || ownerFocused || attackHighlighted ? 1 : .86;
         }
         if (mesh.userData.boundaryAura) {
-          mesh.userData.boundaryAura.uniforms.strength.value = selected ? .38 : (ownerFocused ? .34 : .24);
+          mesh.userData.boundaryAura.uniforms.strength.value = attackHighlighted ? .5 : (selected ? .38 : (ownerFocused ? .34 : .24));
         }
         if (mesh.userData.selectionAura) {
-          mesh.userData.selectionAura.visible = selected || ownerFocused;
-          mesh.userData.selectionAuraMaterial.uniforms.strength.value = selected ? .72 : (ownerFocused ? .48 : 0);
+          mesh.userData.selectionAura.visible = selected || ownerFocused || attackHighlighted;
+          mesh.userData.selectionAuraMaterial.uniforms.auraColor.value.copy(attackHighlighted ? attackColor : mesh.userData.selectionColor);
+          mesh.userData.selectionAuraMaterial.uniforms.strength.value = attackTargeted ? .96 : (attackSource ? .82 : (selected ? .72 : (ownerFocused ? .48 : 0)));
         }
         if (mesh.userData.selectionRing) {
-          mesh.userData.selectionRing.visible = selected || ownerFocused;
-          mesh.userData.selectionRingMaterial.opacity = selected ? .92 : (ownerFocused ? .7 : 0);
+          mesh.userData.selectionRing.visible = selected || ownerFocused || attackHighlighted;
+          mesh.userData.selectionRingMaterial.color.copy(attackHighlighted ? attackColor : mesh.userData.selectionColor);
+          mesh.userData.selectionRingMaterial.opacity = attackTargeted ? 1 : (attackSource ? .9 : (selected ? .92 : (ownerFocused ? .7 : 0)));
         }
       });
     }

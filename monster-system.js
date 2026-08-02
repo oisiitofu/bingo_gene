@@ -37,6 +37,23 @@
     { id: "ryu", sheet: "lineage-ryu.png", aspect: 1, mature: "マキモノリュウ", perfect: ["翠河龍", "白雲龍"], ultimate: ["紅帝龍", "蒼海龍王", "黄金天龍", "陰陽双龍"] }
   ];
 
+  const INDIVIDUAL_SPRITE_OVERRIDES = Object.freeze({
+    fossil: { "perfect-b": { sheet: "singles/amber-ptera.png" } },
+    dojo: { "perfect-a": { sheet: "singles/jade-gorilla-monk.png" } },
+    slime: { "ultimate-1": { sheet: "singles/pudding-hydra.png" } },
+    candy: { "ultimate-2": { sheet: "singles/candywork-dragon.png" } },
+    glacier: { "ultimate-1": { sheet: "singles/permafrost-garm.png" } },
+    bloom: {
+      "ultimate-0": { sheet: "singles/world-flower-dragon.png" },
+      "ultimate-1": { sheet: "singles/spring-kirin.png" },
+      "ultimate-3": { sheet: "singles/rainbow-garden-phoenix.png" }
+    }
+  });
+  LINEAGES.forEach((lineage) => {
+    const overrides = INDIVIDUAL_SPRITE_OVERRIDES[lineage.id];
+    if (overrides) lineage.spriteOverrides = { ...(lineage.spriteOverrides || {}), ...overrides };
+  });
+
   const LEGENDARY_IDS = ["legend-sun", "legend-night", "legend-world", "legend-time"];
   const LEGENDARY_CHANCE = .01;
 
@@ -424,16 +441,16 @@
       const perfectB = `${lineage.id}-perfect-b`;
       const aspect = lineage.aspect || 1;
       const facingFor = (slot) => lineage.rightFacing?.includes(slot) ? "right" : "left";
-      const lineageSprite = (slot, position) => {
+      const lineageSprite = (slot, position, zoom = 1.16) => {
         const override = lineage.spriteOverrides?.[slot];
         return override
           ? sprite(override.sheet, "contain", "center", override.aspect || 1, override.zoom || 1.04, facingFor(slot))
-          : sprite(lineage.sheet, "400% 200%", position, aspect, 1.16, facingFor(slot));
+          : sprite(lineage.sheet, "400% 200%", position, aspect, zoom, facingFor(slot));
       };
       add({ id: matureId, name: lineage.mature, stage: 3, lineage: lineage.id, sprite: lineageSprite("mature", "0% 0%"), next: [perfectA, perfectB] });
       add({ id: perfectA, name: lineage.perfect[0], stage: 4, lineage: lineage.id, sprite: lineageSprite("perfect-a", "33.333% 0%"), next: [`${lineage.id}-ultimate-0`, `${lineage.id}-ultimate-1`] });
       add({ id: perfectB, name: lineage.perfect[1], stage: 4, lineage: lineage.id, sprite: lineageSprite("perfect-b", "66.667% 0%"), next: [`${lineage.id}-ultimate-2`, `${lineage.id}-ultimate-3`] });
-      lineage.ultimate.forEach((name, index) => add({ id: `${lineage.id}-ultimate-${index}`, name, stage: 5, lineage: lineage.id, sprite: sprite(lineage.sheet, "400% 200%", `${index * 33.333}% 100%`, aspect, 1.14, facingFor(`ultimate-${index}`)), next: [`${lineage.id}-rank6`] }));
+      lineage.ultimate.forEach((name, index) => add({ id: `${lineage.id}-ultimate-${index}`, name, stage: 5, lineage: lineage.id, sprite: lineageSprite(`ultimate-${index}`, `${index * 33.333}% 100%`, 1.14), next: [`${lineage.id}-rank6`] }));
     });
     LINEAGES.forEach((lineage) => {
       const rank6Sprite = sprite(
