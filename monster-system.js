@@ -39,65 +39,88 @@
 
   const INDIVIDUAL_SPRITE_OVERRIDES = Object.freeze({
     inferno: {
-      "ultimate-2": { sheet: "singles/flame-crown-dragon.png", attackSheet: "singles/flame-crown-dragon-attack.png" }
+      "ultimate-2": { sheet: "singles/flame-crown-dragon.png", attackSheet: "singles/flame-crown-dragon-attack.png", poseMatched: true }
     },
     beetle: {
-      "ultimate-1": { sheet: "singles/steam-giant.png", attackSheet: "singles/steam-giant-attack.png" }
+      "ultimate-1": { sheet: "singles/steam-giant.png", attackSheet: "singles/steam-giant-attack.png", poseMatched: true }
     },
     abyss: {
-      "ultimate-3": { sheet: "singles/submarine-dragon.png", attackSheet: "singles/submarine-dragon-attack.png" }
+      "ultimate-3": { sheet: "singles/submarine-dragon.png", attackSheet: "singles/submarine-dragon-attack.png", poseMatched: true }
     },
     glacier: {
       "ultimate-1": { sheet: "singles/permafrost-garm.png" },
-      "ultimate-2": { sheet: "singles/silver-ice-dragon.png", attackSheet: "singles/silver-ice-dragon-attack.png" }
+      "ultimate-2": { sheet: "singles/silver-ice-dragon.png", attackSheet: "singles/silver-ice-dragon-attack.png", poseMatched: true }
     },
     candy: {
       "ultimate-2": { sheet: "singles/candywork-dragon.png" },
-      "ultimate-3": { sheet: "singles/chaos-sweets-god.png", attackSheet: "singles/chaos-sweets-god-attack.png" }
+      "ultimate-3": { sheet: "singles/chaos-sweets-god.png", attackSheet: "singles/chaos-sweets-god-attack.png", poseMatched: true }
     },
     junk: {
-      "ultimate-2": { sheet: "singles/racing-junk-dragon.png", attackSheet: "singles/racing-junk-dragon-attack.png" }
+      "ultimate-2": { sheet: "singles/racing-junk-dragon.png", attackSheet: "singles/racing-junk-dragon-attack.png", poseMatched: true }
     },
     corsair: {
-      "ultimate-1": { sheet: "singles/battleship-whale-admira.png", attackSheet: "singles/battleship-whale-admira-attack.png" },
-      "ultimate-3": { sheet: "singles/treasure-island-crab-emperor.png", attackSheet: "singles/treasure-island-crab-emperor-attack.png" }
+      "ultimate-1": { sheet: "singles/battleship-whale-admira.png", attackSheet: "singles/battleship-whale-admira-attack.png", poseMatched: true },
+      "ultimate-3": { sheet: "singles/treasure-island-crab-emperor.png", attackSheet: "singles/treasure-island-crab-emperor-attack.png", poseMatched: true }
     },
     fossil: {
-      "perfect-a": { sheet: "singles/fossil-triceratops.png", attackSheet: "singles/fossil-triceratops-attack.png" },
+      "perfect-a": { sheet: "singles/fossil-triceratops.png", attackSheet: "singles/fossil-triceratops-attack.png", poseMatched: true },
       "perfect-b": { sheet: "singles/amber-ptera.png" },
-      "ultimate-0": { sheet: "singles/bone-king-tyranno.png", attackSheet: "singles/bone-king-tyranno-attack.png" },
+      "ultimate-0": { sheet: "singles/bone-king-tyranno.png", attackSheet: "singles/bone-king-tyranno-attack.png", poseMatched: true },
       "ultimate-1": { sheet: "singles/fossil-amber-phoenix.png", attackSheet: "singles/fossil-amber-phoenix-attack.png" },
-      "ultimate-2": { sheet: "singles/ancient-mammoth.png", attackSheet: "singles/ancient-mammoth-attack.png" },
-      "ultimate-3": { sheet: "singles/fossil-nether-hydra.png", attackSheet: "singles/fossil-nether-hydra-attack.png" }
+      "ultimate-2": { sheet: "singles/ancient-mammoth.png", attackSheet: "singles/ancient-mammoth-attack.png", poseMatched: true },
+      "ultimate-3": { sheet: "singles/fossil-nether-hydra.png", attackSheet: "singles/fossil-nether-hydra-attack.png", poseMatched: true }
     },
     dojo: {
       "perfect-a": { sheet: "singles/jade-gorilla-monk.png" },
-      "perfect-b": { sheet: "singles/white-rabbit-kicker.png", attackSheet: "singles/white-rabbit-kicker-attack.png" }
+      "perfect-b": { sheet: "singles/white-rabbit-kicker.png", attackSheet: "singles/white-rabbit-kicker-attack.png", poseMatched: true }
     },
     sonic: {
-      "perfect-a": { sheet: "singles/thunder-string-wolf.png", attackSheet: "singles/thunder-string-wolf-attack.png" }
+      "perfect-a": { sheet: "singles/thunder-string-wolf.png", attackSheet: "singles/thunder-string-wolf-attack.png", poseMatched: true }
     },
     festival: {
-      "ultimate-3": { sheet: "singles/dance-god-octopus.png", attackSheet: "singles/dance-god-octopus-attack.png" }
+      "ultimate-3": { sheet: "singles/dance-god-octopus.png", attackSheet: "singles/dance-god-octopus-attack.png", poseMatched: true }
     },
     bloom: {
-      "perfect-b": { sheet: "singles/lotus-crane.png", attackSheet: "singles/lotus-crane-attack.png" },
+      "perfect-b": { sheet: "singles/lotus-crane.png", attackSheet: "singles/lotus-crane-attack.png", poseMatched: true },
       "ultimate-0": { sheet: "singles/world-flower-dragon.png" },
       "ultimate-1": { sheet: "singles/spring-kirin.png" },
       "ultimate-3": { sheet: "singles/rainbow-garden-phoenix.png" }
     },
     slime: {
       "ultimate-1": { sheet: "singles/pudding-hydra.png" },
-      "ultimate-2": { sheet: "singles/mercury-knight-god.png", attackSheet: "singles/mercury-knight-god-attack.png" }
+      "ultimate-2": { sheet: "singles/mercury-knight-god.png", attackSheet: "singles/mercury-knight-god-attack.png", poseMatched: true }
     },
     gourmet: {
-      "ultimate-1": { sheet: "singles/hotpot-crab-king.png", attackSheet: "singles/hotpot-crab-king-attack.png" },
-      "ultimate-2": { sheet: "singles/sushi-phoenix.png", attackSheet: "singles/sushi-phoenix-attack.png" }
+      "ultimate-1": { sheet: "singles/hotpot-crab-king.png", attackSheet: "singles/hotpot-crab-king-attack.png", poseMatched: true },
+      "ultimate-2": { sheet: "singles/sushi-phoenix.png", attackSheet: "singles/sushi-phoenix-attack.png", poseMatched: true }
     }
   });
   LINEAGES.forEach((lineage) => {
     const overrides = INDIVIDUAL_SPRITE_OVERRIDES[lineage.id];
     if (overrides) lineage.spriteOverrides = { ...(lineage.spriteOverrides || {}), ...overrides };
+  });
+
+  // Individual artwork added after the pair atlases were generated changes
+  // runtime group sizes. Keep the remaining monsters on their generated slots.
+  const REPACKED_PAIR_CORRECTIONS = Object.freeze({
+    "inferno-ultimate-3": ["lineage-inferno", 4, 0, 1],
+    "beetle-ultimate-2": ["lineage-beetle", 3, 1, 2],
+    "beetle-ultimate-3": ["lineage-beetle", 4, 0, 1],
+    "glacier-ultimate-3": ["lineage-glacier", 4, 0, 1],
+    "candy-ultimate-1": ["lineage-candy", 3, 0, 2],
+    "junk-ultimate-3": ["lineage-junk", 4, 0, 1],
+    "corsair-ultimate-2": ["lineage-corsair", 3, 1, 2],
+    "dojo-ultimate-0": ["lineage-dojo", 2, 1, 2],
+    "dojo-ultimate-1": ["lineage-dojo", 3, 0, 2],
+    "dojo-ultimate-2": ["lineage-dojo", 3, 1, 2],
+    "dojo-ultimate-3": ["lineage-dojo", 4, 0, 1],
+    "sonic-ultimate-0": ["lineage-sonic", 2, 0, 2],
+    "sonic-ultimate-1": ["lineage-sonic", 2, 1, 2],
+    "sonic-ultimate-2": ["lineage-sonic", 3, 0, 2],
+    "sonic-ultimate-3": ["lineage-sonic", 3, 1, 2],
+    "bloom-ultimate-2": ["lineage-bloom", 3, 1, 2],
+    "slime-ultimate-3": ["lineage-slime", 4, 0, 1],
+    "gourmet-ultimate-3": ["lineage-gourmet", 4, 0, 1]
   });
 
   const LEGENDARY_IDS = ["legend-sun", "legend-night", "legend-world", "legend-time"];
@@ -492,7 +515,7 @@
         if (!override) return sprite(lineage.sheet, "400% 200%", position, aspect, zoom, facingFor(slot));
         const isolatedSprite = sprite(override.sheet, "contain", "center", override.aspect || 1, override.zoom || 1.04, facingFor(slot));
         return override.attackSheet
-          ? { ...isolatedSprite, attackSheet: `images/monsters/${override.attackSheet}` }
+          ? { ...isolatedSprite, attackSheet: `images/monsters/${override.attackSheet}`, poseMatched: Boolean(override.poseMatched) }
           : isolatedSprite;
       };
       add({ id: matureId, name: lineage.mature, stage: 3, lineage: lineage.id, sprite: lineageSprite("mature", "0% 0%"), next: [perfectA, perfectB] });
@@ -549,6 +572,19 @@
           aspect: 1,
           zoom: 1.06
         });
+      });
+    });
+    Object.entries(REPACKED_PAIR_CORRECTIONS).forEach(([nodeId, [stem, pairNumber, slot, count]]) => {
+      const node = nodes[nodeId];
+      if (!node?.sprite?.sheet?.includes("/pairs/")) return;
+      const pair = String(pairNumber).padStart(2, "0");
+      Object.assign(node.sprite, {
+        sheet: `images/monsters/pairs/${stem}-${pair}.png`,
+        attackSheet: `images/monsters/pairs/${stem}-${pair}-attack.png`,
+        size: count === 1 ? "contain" : "200% 100%",
+        position: count === 1 ? "center" : `${slot * 100}% 50%`,
+        aspect: 1,
+        zoom: 1.06
       });
     });
     return Object.freeze(nodes);

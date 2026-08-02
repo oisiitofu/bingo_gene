@@ -8810,7 +8810,7 @@
       els.monsterZoomPreviousButton?.addEventListener("click", () => navigateMonsterZoom(-1));
       els.monsterZoomNextButton?.addEventListener("click", () => navigateMonsterZoom(1));
       els.monsterZoomAnimationButton?.addEventListener("click", () => {
-        if (!els.monsterZoomArt?.classList.contains("has-pose-animation")) return;
+        if (!els.monsterZoomArt?.classList.contains("has-motion-animation")) return;
         const paused = els.monsterZoomArt.classList.toggle("animation-paused");
         els.monsterZoomAnimationButton.textContent = paused ? "ANIMATION OFF" : "ANIMATION ON";
         els.monsterZoomAnimationButton.setAttribute("aria-pressed", String(!paused));
@@ -9893,81 +9893,34 @@
       return monsterSpriteMarkup(node, "monster-dex-sprite", 80);
     }
 
-    const MONSTER_ATTACK_SHEETS = Object.freeze({
-      "images/monsters/childhood.png": "images/monsters/childhood-attack.png",
-      "images/monsters/childhood-new.png": "images/monsters/childhood-new-attack.png",
-      "images/monsters/childhood-extra.png": "images/monsters/childhood-extra-attack.png",
-      "images/monsters/growth-v2.png": "images/monsters/growth-v2-attack.png",
-      "images/monsters/growth-extra-v2.png": "images/monsters/growth-extra-v2-attack.png",
-      "images/monsters/growth-new-a.png": "images/monsters/growth-new-a-attack.png",
-      "images/monsters/growth-new-b.png": "images/monsters/growth-new-b-attack.png",
-      "images/monsters/lineage-inferno.png": "images/monsters/lineage-inferno-attack.png",
-      "images/monsters/lineage-thunder.png": "images/monsters/lineage-thunder-attack.png",
-      "images/monsters/lineage-mecha.png": "images/monsters/lineage-mecha-attack.png",
-      "images/monsters/lineage-beetle.png": "images/monsters/lineage-beetle-attack.png",
-      "images/monsters/lineage-grove.png": "images/monsters/lineage-grove-attack.png",
-      "images/monsters/lineage-spore.png": "images/monsters/lineage-spore-attack.png",
-      "images/monsters/lineage-abyss.png": "images/monsters/lineage-abyss-attack.png",
-      "images/monsters/lineage-cosmic.png": "images/monsters/lineage-cosmic-attack.png",
-      "images/monsters/lineage-glacier.png": "images/monsters/lineage-glacier-attack.png",
-      "images/monsters/lineage-crystal.png": "images/monsters/lineage-crystal-attack.png",
-      "images/monsters/lineage-sky.png": "images/monsters/lineage-sky-attack.png",
-      "images/monsters/lineage-tempest.png": "images/monsters/lineage-tempest-attack.png",
-      "images/monsters/lineage-shadow.png": "images/monsters/lineage-shadow-attack.png",
-      "images/monsters/lineage-spirit.png": "images/monsters/lineage-spirit-attack.png",
-      "images/monsters/lineage-candy.png": "images/monsters/lineage-candy-attack.png",
-      "images/monsters/lineage-junk.png": "images/monsters/lineage-junk-attack.png",
-      "images/monsters/lineage-coral.png": "images/monsters/lineage-coral-attack.png",
-      "images/monsters/lineage-corsair.png": "images/monsters/lineage-corsair-attack.png",
-      "images/monsters/lineage-dune.png": "images/monsters/lineage-dune-attack.png",
-      "images/monsters/lineage-fossil.png": "images/monsters/lineage-fossil-attack.png",
-      "images/monsters/lineage-samurai.png": "images/monsters/lineage-samurai-attack.png",
-      "images/monsters/lineage-dojo.png": "images/monsters/lineage-dojo-attack.png",
-      "images/monsters/lineage-sonic.png": "images/monsters/lineage-sonic-attack.png",
-      "images/monsters/lineage-festival.png": "images/monsters/lineage-festival-attack.png",
-      "images/monsters/lineage-bloom.png": "images/monsters/lineage-bloom-attack.png",
-      "images/monsters/lineage-dream.png": "images/monsters/lineage-dream-attack.png",
-      "images/monsters/lineage-slime.png": "images/monsters/lineage-slime-attack.png",
-      "images/monsters/lineage-gourmet.png": "images/monsters/lineage-gourmet-attack.png",
-      "images/monsters/lineage-ink.png": "images/monsters/lineage-ink-attack.png",
-      "images/monsters/lineage-ninja.png": "images/monsters/lineage-ninja-attack.png",
-      "images/monsters/lineage-rail.png": "images/monsters/lineage-rail-attack.png",
-      "images/monsters/lineage-ryu.png": "images/monsters/lineage-ryu-attack.png",
-      "images/monsters/singles/chibi-dragon.png": "images/monsters/singles/chibi-dragon-attack.png",
-      "images/monsters/singles/electric-owl.png": "images/monsters/singles/electric-owl-attack.png",
-      "images/monsters/singles/bone-raptor.png": "images/monsters/singles/bone-raptor-attack.png",
-      "images/monsters/singles/fossil-triceratops.png": "images/monsters/singles/fossil-triceratops-attack.png",
-      "images/monsters/legendary.png": "images/monsters/legendary-attack.png",
-      "images/monsters/legendary-new.png": "images/monsters/legendary-new-attack.png",
-      "images/monsters/egg.png": "images/monsters/egg-attack.png"
-    });
-
-    const MONSTER_ATTACK_ASPECTS = Object.freeze({
-      "images/monsters/lineage-bloom.png": 1,
-      "images/monsters/lineage-samurai.png": 1,
-      "images/monsters/lineage-slime.png": 1
-    });
+    function matchedMonsterAttackSheet(node) {
+      const attackSheet = node?.sprite?.poseMatched ? node.sprite.attackSheet : "";
+      return attackSheet && attackSheet !== node?.sprite?.sheet ? attackSheet : "";
+    }
 
     function hasMonsterPoseAnimation(node) {
-      return Boolean(node?.sprite?.attackSheet || MONSTER_ATTACK_SHEETS[node?.sprite?.sheet]);
+      return Boolean(matchedMonsterAttackSheet(node));
+    }
+
+    function hasMonsterMotionAnimation(node) {
+      return Boolean(node?.sprite?.sheet);
     }
 
     function monsterAttackSpriteMarkup(node) {
-      const attackSheet = node?.sprite?.attackSheet || MONSTER_ATTACK_SHEETS[node?.sprite?.sheet];
+      const attackSheet = matchedMonsterAttackSheet(node);
       if (!attackSheet) return "";
       return monsterSpriteMarkup({
         ...node,
         sprite: {
           ...node.sprite,
-          sheet: attackSheet,
-          aspect: MONSTER_ATTACK_ASPECTS[node.sprite.sheet] || node.sprite.aspect
+          sheet: attackSheet
         }
       }, "monster-sprite-attack");
     }
 
     function monsterNodeAssetUrls(node) {
       if (!node?.sprite?.sheet) return [];
-      const attackSheet = node.sprite.attackSheet || MONSTER_ATTACK_SHEETS[node.sprite.sheet];
+      const attackSheet = matchedMonsterAttackSheet(node);
       return [...new Set([node.sprite.sheet, attackSheet].filter(Boolean))];
     }
 
@@ -10031,11 +9984,12 @@
       const identity = MONSTER_SYSTEM.monsterKey(monster.playerName, monster.slot);
       const slotLabel = state.doubleMonsterMode ? `<small>MONSTER ${monster.slot + 1}</small>` : "";
       const poseAnimated = hasMonsterPoseAnimation(node);
+      const motionAnimated = hasMonsterMotionAnimation(node);
       const actionDelay = -((monsterIndex * 1.65) + (team === "blue" ? .8 : 0));
       return `
-        <article class="monster-player-card${poseAnimated ? " monster-pose-animated" : ""}" data-monster-player="${escapeHtml(identity)}" data-monster-node="${escapeHtml(node.id)}" data-monster-stage="${Number(node.stage) || 0}" style="--monster-action-delay:${actionDelay}s">
+        <article class="monster-player-card${motionAnimated ? " monster-pose-animated" : ""}" data-monster-player="${escapeHtml(identity)}" data-monster-node="${escapeHtml(node.id)}" data-monster-stage="${Number(node.stage) || 0}" style="--monster-action-delay:${actionDelay}s">
           <button type="button" class="monster-portrait-button" data-monster-team="${team}" data-monster-zoom="${escapeHtml(identity)}" title="${escapeHtml(node.name)}を拡大">
-            ${monsterSpriteMarkup(node, poseAnimated ? "monster-sprite-base" : "")}
+            ${monsterSpriteMarkup(node, poseAnimated ? "monster-sprite-base" : (motionAnimated ? "monster-sprite-motion" : ""))}
             ${poseAnimated ? monsterAttackSpriteMarkup(node) : ""}
           </button>
           <div class="monster-player-info">
@@ -10373,15 +10327,17 @@
         ? TERRITORY_EQUIPMENT.applyEquipmentStats(baseStats, loadout, node.id)
         : baseStats;
       const attackMarkup = monsterAttackSpriteMarkup(node);
+      const motionAnimated = hasMonsterMotionAnimation(node);
       els.monsterZoomOverlay.style.setProperty("--zoom-team", accent);
       els.monsterZoomPlayer.textContent = playerLabel;
       els.monsterZoomArt.classList.toggle("has-pose-animation", Boolean(attackMarkup));
+      els.monsterZoomArt.classList.toggle("has-motion-animation", motionAnimated);
       els.monsterZoomArt.classList.remove("animation-paused");
-      els.monsterZoomArt.innerHTML = `${monsterSpriteMarkup(node, attackMarkup ? "monster-sprite-base" : "")}${attackMarkup}`;
+      els.monsterZoomArt.innerHTML = `${monsterSpriteMarkup(node, attackMarkup ? "monster-sprite-base" : (motionAnimated ? "monster-sprite-motion" : ""))}${attackMarkup}`;
       if (els.monsterZoomAnimationButton) {
-        els.monsterZoomAnimationButton.disabled = !attackMarkup;
-        els.monsterZoomAnimationButton.textContent = attackMarkup ? "ANIMATION ON" : "ANIMATION PREPARING";
-        els.monsterZoomAnimationButton.setAttribute("aria-pressed", String(Boolean(attackMarkup)));
+        els.monsterZoomAnimationButton.disabled = !motionAnimated;
+        els.monsterZoomAnimationButton.textContent = motionAnimated ? "ANIMATION ON" : "ANIMATION OFF";
+        els.monsterZoomAnimationButton.setAttribute("aria-pressed", String(motionAnimated));
       }
       els.monsterZoomName.textContent = node.name;
       els.monsterZoomStage.textContent = `${monsterRankLabel(node)} / ${element.name}属性 / ${role.name} / ${stats.attackType === "magic" ? "魔法" : "物理"}タイプ / 絆 Lv.${MONSTER_SYSTEM.masteryLevel(masteryXp)}${node.legendary ? " / 伝説のモンスター" : ""}${node.rank6 ? " / 4体融合モンスター" : ""}`;
