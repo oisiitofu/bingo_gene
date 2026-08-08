@@ -15994,6 +15994,9 @@
       if (activeBgmAudio && activeBgmKey) {
         activeBgmAudio.volume = getAudioVolume(activeBgmKey);
         activeBgmAudio.muted = !state.soundEnabled;
+        if (state.soundEnabled && activeBgmAudio.paused && !activeBgmAudio.ended) {
+          activeBgmAudio.play().catch(() => {});
+        }
       }
       activeTransientAudios.forEach((audio) => {
         applyTrackedAudioVolume(audio);
@@ -16307,7 +16310,6 @@
       if (!audio) return;
       cancelActiveBgmFade();
       const startTime = performance.now();
-      const startVolume = audio.volume;
       const duration = Math.max(120, fadeDuration);
       const step = (now) => {
         if (isManagedBgmKey(key) && activeBgmAudio !== audio) {
@@ -16316,7 +16318,10 @@
         }
         const progress = Math.min(1, (now - startTime) / duration);
         const eased = 1 - Math.pow(progress, 1.8);
-        audio.volume = clampVolume(startVolume * eased);
+        const volumeMeta = activeAudioVolumeMeta.get(audio);
+        const volumeKey = volumeMeta?.volumeKey || key;
+        const volumeMultiplier = volumeMeta?.volumeMultiplier || 1;
+        audio.volume = clampVolume(getAudioVolume(volumeKey) * volumeMultiplier * eased);
         if (progress < 1) {
           activeBgmFadeFrame = window.requestAnimationFrame(step);
           return;
@@ -16366,28 +16371,29 @@
     }
 
     function playAudio(key) {
-      if (!state.soundEnabled) return null;
+      const managedBgm = isManagedBgmKey(key);
+      if (!state.soundEnabled && !managedBgm) return null;
       ensureAudioReady();
-      if (isManagedBgmKey(key)) {
+      if (managedBgm) {
         stopSetupTheme();
         stopManagedBgm();
       }
       const audio = createAudioPlayback(key);
       if (!audio) return null;
       try {
-        audio.muted = false;
+        audio.muted = !state.soundEnabled;
         audio.volume = getAudioVolume(key);
         try { audio.currentTime = 0; } catch {}
         const playAttempt = audio.play();
         if (playAttempt && playAttempt.catch) {
           playAttempt.catch(() => {
-            if (!state.soundEnabled) return;
+            if (!state.soundEnabled && !managedBgm) return;
             const fallback = resolveAudio(key);
             if (!fallback || fallback === audio) return;
             try {
               fallback.pause();
               fallback.currentTime = 0;
-              fallback.muted = false;
+              fallback.muted = !state.soundEnabled;
               fallback.volume = getAudioVolume(key);
               registerManagedBgm(key, fallback);
               retainTransientAudio(fallback, key);
@@ -16414,7 +16420,6 @@
 
     function startTerritoryBgm() {
       stopSetupTheme();
-      if (!state.soundEnabled) return null;
       if (activeBgmKey === "territoryBgm" && activeBgmAudio) {
         activeBgmAudio.volume = getAudioVolume("territoryBgm");
         return activeBgmAudio;
@@ -16428,7 +16433,7 @@
     }
 
     function playManagedAudioUrl(src, key, volumeKey = "skillBgm", onFail = null) {
-      if (!state.soundEnabled || !src || !key) return null;
+      if (!src || !key) return null;
       ensureAudioReady();
       if (isManagedBgmKey(key)) {
         stopSetupTheme();
@@ -16439,7 +16444,7 @@
         audio.preload = "auto";
         audio.autoplay = false;
         audio.loop = true;
-        audio.muted = false;
+        audio.muted = !state.soundEnabled;
         audio.volume = getAudioVolume(volumeKey);
         let failed = false;
         let retryCount = 0;
@@ -16453,7 +16458,6 @@
         };
         audio.addEventListener("error", clearIfCurrent, { once: true });
         const tryPlay = () => {
-          if (!state.soundEnabled) return;
           const playAttempt = audio.play();
           if (playAttempt?.catch) {
             playAttempt.catch((error) => {
@@ -16572,7 +16576,6 @@
       if (!els.setupScreen) return false;
       const territoryOpen = window.TeamBingoTerritoryMode?.isOpen?.() === true;
       return Boolean(
-        state.soundEnabled &&
         !state.gameStarted &&
         els.setupScreen.classList.contains("active") &&
         !els.playScreen?.classList.contains("active") &&
@@ -16607,7 +16610,7 @@
       playAttempt
         .then(() => promoteSetupThemeAudio(audio))
         .catch(() => {
-          if (!isSetupThemePlaybackAllowed()) return;
+          if (!isSetupThemePlaybackAllowed() || !state.soundEnabled) return;
           audio.muted = false;
           audio.volume = getAudioVolume("setupTheme");
           audio.play()
@@ -16624,8 +16627,8 @@
       const makeAudible = () => {
         if (!isSetupThemePlaybackAllowed()) return;
         audio.volume = getAudioVolume("setupTheme");
-        audio.muted = false;
-        if (!audio.paused) setupThemeAudible = true;
+        audio.muted = !state.soundEnabled;
+        setupThemeAudible = state.soundEnabled && !audio.paused;
       };
       makeAudible();
       window.setTimeout(makeAudible, 80);

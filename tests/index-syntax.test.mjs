@@ -19,7 +19,7 @@ test("online lobby boot bypasses stale browser modules and retries once", () => 
 
   assert.match(html, /online-room\.js\?v=20260801-hatch-sync-1/);
   assert.match(html, /retry=\$\{Date\.now\(\)\}/);
-  assert.match(serviceWorker, /20260808-hatch-sync-territory-106/);
+  assert.match(serviceWorker, /20260808-bgm-resume-107/);
 });
 
 test("consecutive skills cancel stale audio and setup snapshots clear persistent effects", () => {
@@ -58,7 +58,7 @@ test("mobile skill presentations use bounded assets and compositor layers", () =
   assert.match(html, /\.board-card\.kento-ally \.board-body::after,[\s\S]*?\.special-cell-art \{\s*animation: none/);
 });
 
-test("sound toggle mutes live HTML audio for mobile browsers", () => {
+test("sound toggle keeps BGM timelines running while muted and resumes them in place", () => {
   const html = readFileSync(new URL("../index.html", import.meta.url), "utf8");
 
   assert.match(html, /audioCache\.forEach\(\(audio, key\) => \{[\s\S]*?audio\.muted = !state\.soundEnabled/);
@@ -66,8 +66,12 @@ test("sound toggle mutes live HTML audio for mobile browsers", () => {
   assert.match(html, /function applyTrackedAudioVolume\(audio\) \{[\s\S]*?audio\.muted = !state\.soundEnabled/);
   assert.match(html, /activeOpenSoundNodes\.forEach\(\(node\) => \{[\s\S]*?applyTrackedOpenSoundVolume\(node\)/);
   assert.match(html, /if \(!state\.soundEnabled\) pendingAudioRetries\.clear\(\)/);
-  assert.match(html, /playAttempt\.catch\(\(\) => \{\s*if \(!state\.soundEnabled\) return/);
-  assert.match(html, /\.catch\(\(\) => \{\s*if \(!isSetupThemePlaybackAllowed\(\)\) return/);
+  assert.match(html, /const managedBgm = isManagedBgmKey\(key\);\s*if \(!state\.soundEnabled && !managedBgm\) return null/);
+  assert.match(html, /function playManagedAudioUrl\([\s\S]*?audio\.muted = !state\.soundEnabled;[\s\S]*?const playAttempt = audio\.play\(\)/);
+  assert.match(html, /state\.soundEnabled && activeBgmAudio\.paused && !activeBgmAudio\.ended[\s\S]*?activeBgmAudio\.play\(\)/);
+  assert.match(html, /function isSetupThemePlaybackAllowed\(\)[\s\S]*?return Boolean\(\s*!state\.gameStarted/);
+  assert.match(html, /function promoteSetupThemeAudio\(audio\)[\s\S]*?audio\.muted = !state\.soundEnabled/);
+  assert.match(html, /getAudioVolume\(volumeKey\) \* volumeMultiplier \* eased/);
 });
 
 test("setup theme cannot resume after a mobile transition into a match", () => {
