@@ -1321,6 +1321,62 @@ test("simultaneous teammates can open different cells without losing either upda
   assert.deepEqual(store.value.teamBingoV1.globalStats.ranking, { 53: 1, 69: 1 });
 });
 
+test("four online players can alternate cell opens and team skills without losing shared state", async () => {
+  const store = createStore();
+  const room = store.value.teamBingoV1.rooms.ROOM;
+  room.setup = { redMembers: ["master", "red-player"], blueMembers: ["blue-player", "blue-player-2"] };
+  room.participants = {
+    master: { uid: "master", role: "master", team: "red", memberName: "master", online: true },
+    "red-player": { uid: "red-player", role: "player", team: "red", memberName: "red-player", online: true },
+    "blue-player": { uid: "blue-player", role: "player", team: "blue", memberName: "blue-player", online: true },
+    "blue-player-2": { uid: "blue-player-2", role: "player", team: "blue", memberName: "blue-player-2", online: true }
+  };
+  room.game.red.marked = [false, false, false, false];
+  room.game.blue.marked = [false, false, false, false];
+
+  const players = [
+    createCoordinator(store, "master", "master", "red"),
+    createCoordinator(store, "red-player", "player", "red"),
+    createCoordinator(store, "blue-player", "player", "blue"),
+    createCoordinator(store, "blue-player-2", "player", "blue")
+  ];
+  const open = (coordinator, team, index) => coordinator.requestAction(
+    {
+      type: "toggle-cell",
+      payload: { team, index, expectedMarked: false, openerName: coordinator.memberName }
+    },
+    () => { coordinator.testState.game[team].marked[index] = true; }
+  );
+  const useSkill = (coordinator, team, skillId) => coordinator.requestAction(
+    { type: "activate-skill", payload: { team, skillId } },
+    () => {
+      coordinator.testState.game.skillEffects ||= {};
+      coordinator.testState.game.skillEffects[skillId] = { team, active: true };
+    }
+  );
+
+  assert.deepEqual(await Promise.all([
+    open(players[0], "red", 0),
+    open(players[1], "red", 1),
+    open(players[2], "blue", 0),
+    open(players[3], "blue", 1)
+  ]), [true, true, true, true]);
+  assert.deepEqual(await Promise.all([
+    useSkill(players[0], "red", "jan"),
+    useSkill(players[1], "red", "eda"),
+    useSkill(players[2], "blue", "lickey"),
+    useSkill(players[3], "blue", "kento")
+  ]), [true, true, true, true]);
+
+  const finalRoom = store.value.teamBingoV1.rooms.ROOM;
+  assert.deepEqual(finalRoom.game.red.marked, [true, true, false, false]);
+  assert.deepEqual(finalRoom.game.blue.marked, [true, true, false, false]);
+  assert.deepEqual(Object.keys(finalRoom.game.skillEffects).sort(), ["eda", "jan", "kento", "lickey"]);
+  assert.equal(finalRoom.meta.revision, 8);
+  assert.equal(Object.keys(finalRoom.events).length, 8);
+  assert.equal(finalRoom.lock, undefined);
+});
+
 test("spectators cannot submit HYPE or any other game action", async () => {
   const store = createStore();
   const spectator = createCoordinator(store, "guest", "spectator", "");
