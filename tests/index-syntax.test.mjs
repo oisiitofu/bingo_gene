@@ -19,7 +19,7 @@ test("online lobby boot bypasses stale browser modules and retries once", () => 
 
   assert.match(html, /online-room\.js\?v=20260801-hatch-sync-1/);
   assert.match(html, /retry=\$\{Date\.now\(\)\}/);
-  assert.match(serviceWorker, /20260808-monster-audit-109/);
+  assert.match(serviceWorker, /20260809-monster-detail-110/);
 });
 
 test("one-bingo audio, Likecy skill timing, and reach badge rules stay aligned", () => {
@@ -923,6 +923,15 @@ test("monster encyclopedia switches static poses only through pose buttons", () 
   assert.match(html, /selectMonsterZoomPose\(2\)/);
   assert.match(html, /document\.addEventListener\("keydown", onMonsterZoomKeydown\)/);
   assert.match(html, /function onMonsterZoomKeydown\(event\)[\s\S]*event\.key === "ArrowLeft"[\s\S]*navigateMonsterZoom\(-1\)[\s\S]*event\.key === "ArrowRight"[\s\S]*navigateMonsterZoom\(1\)/);
+  assert.match(html, /id="monsterZoomNumber"/);
+  assert.match(html, /els\.monsterZoomNumber\.textContent = `No\.\$\{String\(Math\.max\(0, dexNumber\)\)\.padStart\(3, "0"\)\}`/);
+  [
+    "growth-bloom", "growth-slime", "bloom-mature", "cosmic-perfect-b",
+    "rail-perfect-b", "rail-perfect-a", "glacier-perfect-b", "samurai-perfect-b",
+    "gourmet-perfect-b", "bloom-perfect-a", "bloom-ultimate-2", "inferno-ultimate-3"
+  ].forEach((id) => {
+    assert.match(html, new RegExp(`"${id}": 1`), `${id} must use neutral display scale`);
+  });
   assert.doesNotMatch(battleCss, /@keyframes monsterZoomSingleMotion/);
   assert.match(battleCss, /\.monster-zoom-card[\s\S]*width: min\(1680px, 98vw\)/);
   assert.match(battleCss, /\.monster-zoom-art\.has-pose-animation\.show-pose-2 \.monster-sprite-attack/);

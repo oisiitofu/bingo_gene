@@ -449,6 +449,7 @@
 .monster-zoom-art { position:relative; grid-area:art; align-self:stretch; min-width:0; min-height:0; display:flex; align-items:center; justify-content:center; overflow:hidden; }
 .monster-zoom-art .monster-sprite { width:auto; max-width:100%; height:100%; scale:var(--monster-display-boost,1); }
 .monster-zoom-details { grid-area:details; min-width:0; max-height:100%; display:grid; align-content:center; gap:10px; padding-right:4px; overflow-x:hidden; overflow-y:auto; }
+.monster-zoom-number { color:#ffe96c; font-family:Impact,"Arial Black",sans-serif; font-size:18px; line-height:1; letter-spacing:0; }
 .monster-zoom-name { min-width:0; width:100%; overflow:hidden; color:#fff; font-family:Impact,"Arial Black",sans-serif; font-size:70px; line-height:.95; letter-spacing:0; text-overflow:clip; white-space:nowrap; text-shadow:0 0 28px var(--zoom-team,#ff385d); }
 .monster-zoom-stage { color: #ced7e6; font-size: 16px; line-height:1.35; font-weight: 900; }
 .monster-zoom-animation-control { display:flex; align-items:center; gap:6px; }

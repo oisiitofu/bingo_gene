@@ -7713,6 +7713,7 @@
       <div class="monster-zoom-player" id="monsterZoomPlayer"></div>
       <div class="monster-zoom-art" id="monsterZoomArt"></div>
       <div class="monster-zoom-details">
+        <div class="monster-zoom-number" id="monsterZoomNumber"></div>
         <div class="monster-zoom-name" id="monsterZoomName"></div>
         <div class="monster-zoom-stage" id="monsterZoomStage"></div>
         <div class="monster-zoom-animation-control">
@@ -8751,7 +8752,7 @@
         "feverAura", "fxLayer", "openedByPopover", "victoryParticles", "setupThemePlayer", "copyrightToggle",
         "monsterEvolutionOverlay", "monsterEvolutionStage", "monsterEvolutionBefore", "monsterEvolutionAfter", "monsterEvolutionName", "monsterHatchOverlay", "monsterHatchGrid", "victoryEvolutionOverlay", "victoryEvolutionTeam", "victoryEvolutionGrid",
         "victoryMonsterSection", "victoryMonsterLineups", "monsterBattleStartButton",
-        "monsterZoomOverlay", "monsterZoomCloseButton", "monsterZoomPreviousButton", "monsterZoomNextButton", "monsterZoomPlayer", "monsterZoomArt", "monsterZoomName", "monsterZoomStage", "monsterZoomPose1Button", "monsterZoomPose2Button", "monsterZoomStats", "monsterZoomSpecial",
+        "monsterZoomOverlay", "monsterZoomCloseButton", "monsterZoomPreviousButton", "monsterZoomNextButton", "monsterZoomPlayer", "monsterZoomArt", "monsterZoomNumber", "monsterZoomName", "monsterZoomStage", "monsterZoomPose1Button", "monsterZoomPose2Button", "monsterZoomStats", "monsterZoomSpecial",
         "monsterBattleOverlay", "monsterBattleEntrance", "monsterBattleEntryCard", "monsterBattleEntryArt", "monsterBattleEntryTeam", "monsterBattleEntryIndex", "monsterBattleEntryName", "monsterBattleEntryPlayer", "monsterBattleEntrySpecial", "monsterBattleEntryStart", "monsterBattleRedLabel", "monsterBattleBlueLabel", "monsterBattleClock", "monsterBattleSpeedButton", "monsterBattleRedParty", "monsterBattleBlueParty", "monsterBattleTimeline", "monsterBattleMatchup", "monsterBattleCall", "monsterBattleLog", "monsterBattleFinish", "monsterBattleResult", "monsterBattleCloseButton"
       ].forEach((id) => { els[id] = document.getElementById(id); });
       els.players = Array.from(document.querySelectorAll("#playerInputs input"));
@@ -9841,13 +9842,22 @@
 
     const MONSTER_DISPLAY_BOOST_OVERRIDES = Object.freeze({
         "growth-rail": 1.02,
-        "bloom-mature": 1.12,
+        "growth-bloom": 1,
+        "growth-slime": 1,
+        "bloom-mature": 1,
         "fossil-mature": 1.02,
         "fossil-perfect-a": 1.02,
         "sonic-perfect-b": 1.02,
         "dune-perfect-a": 1.12,
-        "bloom-perfect-a": 1.12,
-        "bloom-ultimate-2": 1.1,
+        "bloom-perfect-a": 1,
+        "bloom-ultimate-2": 1,
+        "cosmic-perfect-b": 1,
+        "rail-perfect-b": 1,
+        "rail-perfect-a": 1,
+        "glacier-perfect-b": 1,
+        "samurai-perfect-b": 1,
+        "gourmet-perfect-b": 1,
+        "inferno-ultimate-3": 1,
         "bloom-perfect-b": 1.02,
         "dojo-perfect-b": 1.02,
         "sonic-perfect-a": 1.02,
@@ -10354,6 +10364,8 @@
       if (els.monsterZoomPose1Button) els.monsterZoomPose1Button.disabled = false;
       if (els.monsterZoomPose2Button) els.monsterZoomPose2Button.disabled = !attackMarkup;
       selectMonsterZoomPose(1);
+      const dexNumber = getMonsterDexNodes().findIndex((item) => item.id === node.id) + 1;
+      els.monsterZoomNumber.textContent = `No.${String(Math.max(0, dexNumber)).padStart(3, "0")}`;
       els.monsterZoomName.textContent = node.name;
       els.monsterZoomStage.textContent = `${monsterRankLabel(node)} / ${element.name}属性 / ${role.name} / ${stats.attackType === "magic" ? "魔法" : "物理"}タイプ / 絆 Lv.${MONSTER_SYSTEM.masteryLevel(masteryXp)}${node.legendary ? " / 伝説のモンスター" : ""}${node.rank6 ? " / 4体融合モンスター" : ""}`;
       els.monsterZoomStats.innerHTML = [
