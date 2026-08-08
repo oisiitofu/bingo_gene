@@ -363,6 +363,7 @@
         <span class="territory-monster-equipment">${equipped.length ? equipped.map((item) => (
           `<i style="--item-color:${equipment.RARITY_BY_ID[item.rarity].color}" title="${escapeHtml(item.name)}">${escapeHtml(equipment.SLOT_BY_ID[item.slot].mark)}</i>`
         )).join("") : "NO GEAR"}</span>
+        <span class="territory-monster-hp">HP ${Math.round(Number.isFinite(Number(member.hp)) ? Number(member.hp) : 100)}%</span>
         <span class="territory-monster-detail-label">DETAIL</span>
       </button>
     `;

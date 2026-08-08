@@ -772,6 +772,7 @@ export class OnlineCoordinator {
     this.localActionIds = new Set();
     this.lastEventSeq = 0;
     this.busy = false;
+    this.pendingCellActions = new Map();
     this.applyingRemote = false;
     this.pendingRoom = null;
     this.lastAppliedSetupSignature = "";
@@ -3067,7 +3068,12 @@ export class OnlineCoordinator {
 
   async requestAction(action, localMutator) {
     if (!this.isOnline() || this.applyingRemote) return localMutator();
-    if (this.busy) return false;
+    if (this.busy) {
+      if (action?.type === "toggle-cell" || action?.type === "toggle-cell-player") {
+        return this.queueCellAction(action, localMutator);
+      }
+      return false;
+    }
     if (this.role === "spectator") {
       this.bridge.showOnlineMessage?.("WATCH ONLY", "観戦者はゲーム操作を送信できません。");
       return false;
@@ -3165,6 +3171,34 @@ export class OnlineCoordinator {
         this.syncLobbyFromMasterRoom(pending);
       }
     }
+  }
+
+  queueCellAction(action, localMutator) {
+    if (!(this.pendingCellActions instanceof Map)) this.pendingCellActions = new Map();
+    const payload = action?.payload || {};
+    const key = `${payload.team || ""}:${Number(payload.index)}:${payload.openerName || ""}`;
+    if (this.pendingCellActions.has(key)) return this.pendingCellActions.get(key);
+    const queued = new Promise((resolve) => {
+      const startedAt = Date.now();
+      const runWhenReady = () => {
+        if (!this.isOnline()) {
+          resolve(false);
+          return;
+        }
+        if (!this.busy) {
+          Promise.resolve(this.requestAction(action, localMutator)).then(resolve, () => resolve(false));
+          return;
+        }
+        if (Date.now() - startedAt >= 8000) {
+          resolve(false);
+          return;
+        }
+        window.setTimeout(runWhenReady, 60);
+      };
+      window.setTimeout(runWhenReady, 30);
+    }).finally(() => this.pendingCellActions.delete(key));
+    this.pendingCellActions.set(key, queued);
+    return queued;
   }
 
   async acquireActionLock(actionId) {

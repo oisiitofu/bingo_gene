@@ -1,7 +1,7 @@
 (function bootstrapTerritorySystem(global) {
   "use strict";
 
-  const VERSION = 4;
+  const VERSION = 5;
   const MAP_RADIUS = 4;
   const TICK_MINUTES = 10;
   const TICK_MS = TICK_MINUTES * 60 * 1000;
@@ -13,6 +13,7 @@
   const TERRITORY_POINT_BASE = 2;
   const TERRITORY_SCORE_WEIGHT = 12;
   const ACTIVITY_CATCHUP_MARGIN = 4;
+  const INJURY_MS = 24 * 60 * 60 * 1000;
   const EVENT_REROLL_TICKS = 6;
   const JST_OFFSET = 9 * 60 * 60 * 1000;
 
@@ -302,6 +303,7 @@
       lastRosterDay: "",
       lastEquipmentDay: "",
       equipmentAssignments: {},
+      injuredMonsters: {},
       squads: [],
       partySerial: 0,
       championCount: 0
@@ -377,6 +379,23 @@
     }).sort((a, b) => b.score - a.score || a.nodeId.localeCompare(b.nodeId));
   }
 
+  function activeInjuredMonsterIds(playerState, now = Date.now()) {
+    const injuries = playerState?.injuredMonsters || {};
+    const active = new Set();
+    Object.entries(injuries).forEach(([nodeId, until]) => {
+      if ((Number(until) || 0) > Number(now)) active.add(nodeId);
+      else delete injuries[nodeId];
+    });
+    if (playerState) playerState.injuredMonsters = injuries;
+    return active;
+  }
+
+  function normalizeMemberHealth(member) {
+    const next = clone(member);
+    next.hp = Math.max(0, Math.min(100, Number.isFinite(Number(next.hp)) ? Number(next.hp) : 100));
+    return next;
+  }
+
   function eggMonster() {
     const system = monsterSystem();
     const node = system?.NODES?.egg;
@@ -394,7 +413,8 @@
       power: combatPower("egg", 0),
       equipment: {},
       cost: 0,
-      score: 0
+      score: 0,
+      hp: 100
     };
   }
 
@@ -504,7 +524,7 @@
     const lineup = candidates.slice(0, PARTY_SIZE).map((candidate) => {
       const member = clone(candidate);
       delete member.partyScore;
-      return member;
+      return normalizeMemberHealth(member);
     });
     while (lineup.length < PARTY_SIZE) lineup.push(eggMonster());
     return lineup;
@@ -520,6 +540,7 @@
     const record = resolvePlayerRecord(playerStats, player);
     const seed = `${state.season.id}:${state.season.tick}:${playerId}:${tileId}:${serial}`;
     const unavailable = assignedMonsterIds(state, playerId);
+    activeInjuredMonsterIds(playerState, now).forEach((nodeId) => unavailable.add(nodeId));
     return {
       id: `${playerId}-${state.season.id}-${serial}`,
       ownerId: playerId,
@@ -550,8 +571,9 @@
     current.wins = Math.max(0, Number(current.wins) || 0);
     current.losses = Math.max(0, Number(current.losses) || 0);
     const assignments = state.players[tile.ownerId]?.equipmentAssignments || {};
+    const injured = activeInjuredMonsterIds(state.players[tile.ownerId], now);
     current.lineup = current.lineup
-      .filter((member) => member?.nodeId && monsterSystem()?.NODES?.[member.nodeId])
+      .filter((member) => member?.nodeId && monsterSystem()?.NODES?.[member.nodeId] && !injured.has(member.nodeId))
       .slice(0, PARTY_SIZE)
       .map((member) => {
         const next = clone(member);
@@ -560,7 +582,7 @@
           : next.equipment;
         next.equipment = equipmentSystem()?.normalizeLoadout?.(assigned) || {};
         next.power = combatPower(next.nodeId, next.masteryXp, next.equipment);
-        return next;
+        return normalizeMemberHealth(next);
       });
     while (current.lineup.length < PARTY_SIZE) current.lineup.push(eggMonster());
     return current;
@@ -578,6 +600,7 @@
       const record = resolvePlayerRecord(playerStats, player);
       const candidates = candidateMonsters(record, player, `${state.season.id}:${rosterDay(now)}:garrisons`);
       const candidateById = new Map(candidates.map((candidate) => [candidate.nodeId, candidate]));
+      const injured = activeInjuredMonsterIds(state.players[player.id], now);
       const parties = Object.values(state.tiles || {})
         .filter((tile) => tile.ownerId === player.id && tile.garrison?.ownerId === player.id)
         .sort((a, b) => a.id.localeCompare(b.id))
@@ -588,13 +611,13 @@
         party.lineup = Array.from({ length: PARTY_SIZE }, (_, index) => {
           const member = party.lineup?.[index];
           const candidate = candidateById.get(member?.nodeId);
-          if (!candidate || used.has(candidate.nodeId)) return eggMonster();
+          if (!candidate || used.has(candidate.nodeId) || injured.has(candidate.nodeId)) return eggMonster();
           used.add(candidate.nodeId);
           return clone(candidate);
         });
       });
 
-      const available = candidates.filter((candidate) => !used.has(candidate.nodeId));
+      const available = candidates.filter((candidate) => !used.has(candidate.nodeId) && !injured.has(candidate.nodeId));
       parties.forEach((party) => {
         party.lineup = party.lineup.map((member) => {
           if (member.nodeId !== "egg" || !available.length) return member;
@@ -692,7 +715,7 @@
   function normalizeState(raw, playerStats = {}, now = Date.now()) {
     const expectedSeason = seasonWindow(now);
     const sourceVersion = Number(raw?.version);
-    if (!raw || ![1, 2, 3, VERSION].includes(sourceVersion) || raw.season?.id !== expectedSeason.id) {
+    if (!raw || ![1, 2, 3, 4, VERSION].includes(sourceVersion) || raw.season?.id !== expectedSeason.id) {
       return createInitialState(playerStats, now);
     }
     const state = clone(raw);
@@ -705,6 +728,8 @@
     PLAYERS.forEach((player) => {
       state.players[player.id] = { ...emptyPlayerState(player), ...(state.players[player.id] || {}) };
       state.players[player.id].squads = Array.isArray(state.players[player.id].squads) ? state.players[player.id].squads : [];
+      state.players[player.id].injuredMonsters = { ...(state.players[player.id].injuredMonsters || {}) };
+      activeInjuredMonsterIds(state.players[player.id], now);
     });
     if (sourceVersion < 3) {
       Object.values(state.tiles).forEach((tile) => {
@@ -740,9 +765,10 @@
   function partyTerrainPower(party, terrainId, player, event = null, mode = "attack", counts = {}) {
     const lineup = party?.lineup || [];
     if (!lineup.length) return 1;
-    const base = lineup.reduce((sum, monster) => (
-      sum + (Number(monster.power) || 1) * (equipmentSystem()?.equipmentMultiplier?.(monster) || 1)
-    ), 0);
+    const base = lineup.reduce((sum, monster) => {
+      const hpRatio = Math.max(.05, Math.min(1, (Number.isFinite(Number(monster.hp)) ? Number(monster.hp) : 100) / 100));
+      return sum + (Number(monster.power) || 1) * hpRatio * (equipmentSystem()?.equipmentMultiplier?.(monster) || 1);
+    }, 0);
     const matches = lineup.filter((monster) => monster.element === terrainId).length;
     const roleBonus = new Set(lineup.map((monster) => monster.role)).size >= 3 ? 1.06 : 1;
     const terrainBonus = matches ? 1.1 + Math.max(0, matches - 1) * .025 : 1;
@@ -771,7 +797,7 @@
     ownedTiles(state, player.id).forEach((tile) => {
       neighbors(tile.id).forEach((targetId) => {
         const target = state.tiles[targetId];
-        if (!target || target.ownerId === player.id || target.baseFor) return;
+        if (!target || target.ownerId === player.id) return;
         const currentOwnerCount = target.ownerId ? counts[target.ownerId] || 0 : 0;
         const ownCount = counts[player.id] || 0;
         let score = target.ownerId ? 22 : 31;
@@ -930,6 +956,52 @@
     return Number.isFinite(Number(party?.hype)) ? clampHype(party.hype) : DEFAULT_HYPE;
   }
 
+  function applyBattleHealth(state, winner, losers, at) {
+    const strongestLoser = Math.max(1, ...losers.map((side) => Number(side.power) || 1));
+    const pressure = Math.max(.25, Math.min(1.5, strongestLoser / Math.max(1, Number(winner.power) || 1)));
+    const remainingRatio = Math.max(.18, Math.min(.62, .62 - pressure * .28));
+    const changes = [];
+    if (winner.party) {
+      winner.party.lineup = (winner.party.lineup || []).map((member) => {
+        const next = normalizeMemberHealth(member);
+        const before = next.hp;
+        const afterDamage = Math.max(1, Math.round(before * remainingRatio));
+        next.hp = Math.min(99, afterDamage + 50);
+        changes.push({ playerId: winner.playerId, nodeId: next.nodeId, result: "win", before, after: next.hp });
+        return next;
+      });
+    }
+    losers.forEach((loser) => {
+      const playerState = state.players[loser.playerId];
+      if (!playerState) return;
+      playerState.injuredMonsters ||= {};
+      (loser.party?.lineup || []).forEach((member) => {
+        if (!member?.nodeId || member.nodeId === "egg") return;
+        const before = Number.isFinite(Number(member.hp)) ? Number(member.hp) : 100;
+        member.hp = 0;
+        playerState.injuredMonsters[member.nodeId] = Number(at) + INJURY_MS;
+        changes.push({
+          playerId: loser.playerId,
+          nodeId: member.nodeId,
+          result: "injured",
+          before,
+          after: 0,
+          injuredUntil: Number(at) + INJURY_MS
+        });
+      });
+    });
+    return changes;
+  }
+
+  function replaceDefeatedAttackParties(state, playerStats, losers, targetId, at) {
+    losers.forEach((loser) => {
+      if (!loser?.sourceTileId || loser.sourceTileId === targetId) return;
+      const source = state.tiles?.[loser.sourceTileId];
+      if (!source || source.ownerId !== loser.playerId || source.garrison?.id !== loser.partyId) return;
+      source.garrison = createGarrison(state, playerStats, loser.playerId, source.id, at, "injury-replacement");
+    });
+  }
+
   function replenishSourceTile(state, playerStats, sourceTileId, playerId, movedPartyId, at) {
     const source = state.tiles?.[sourceTileId];
     if (!source || source.ownerId !== playerId || source.garrison?.id !== movedPartyId) return null;
@@ -1050,10 +1122,12 @@
     }
     const captured = applyCapture(state, tile, winner.playerId, previousOwnerId, at);
     const hypeChanges = applyEventHype(event, winner, sides, captured);
+    const healthChanges = applyBattleHealth(state, winner, sides.slice(1), at);
     const movement = captured && winner.sourceTileId !== tile.id
       ? movePartyIntoTile(state, playerStats, tile, winner, at)
       : { movedParty: tile.garrison, replacementParty: null };
     if (!captured && winner.playerId === previousOwnerId) tile.garrison = winner.party;
+    replaceDefeatedAttackParties(state, playerStats, sides.slice(1), targetId, at);
     const seed = hashText(`${state.season.id}:${state.season.tick}:${targetId}:${sides.map((side) => side.playerId).join(":")}`);
     const battle = {
       id: `frontier-${state.season.id}-${state.season.tick}-${targetId.replace(",", "_")}`,
@@ -1074,6 +1148,7 @@
       movedPartyId: movement.movedParty?.id || "",
       sourceReplacementPartyId: movement.replacementParty?.id || "",
       hypeChanges,
+      healthChanges,
       sides: sides.map((side) => ({
         playerId: side.playerId,
         playerName: side.playerName,
@@ -1083,6 +1158,7 @@
         power: side.power,
         hype: side.hype,
         hypeAfter: clampHype(side.party?.hype),
+        hp: (side.party?.lineup || []).map((member) => Number(member.hp) || 0),
         skill: side.skill
       })),
       replay: {
@@ -1150,6 +1226,12 @@
     refreshAllEquipment(state, playerStats, at);
     recoverFatigue(state);
     const actions = createActions(state, random);
+    state.lastInvasions = actions.map((action) => ({
+      playerId: action.playerId,
+      fromId: action.fromId,
+      targetId: action.targetId,
+      partyId: action.partyId
+    }));
     const byTarget = actions.reduce((map, action) => {
       if (!map[action.targetId]) map[action.targetId] = [];
       map[action.targetId].push(action);
@@ -1236,7 +1318,7 @@
   }
 
   global.TeamBingoTerritorySystem = Object.freeze({
-    VERSION, MAP_RADIUS, TICK_MINUTES, TICK_MS, SEASON_DAYS, PARTY_SIZE, DEFAULT_HYPE, EVENT_REROLL_TICKS,
+    VERSION, MAP_RADIUS, TICK_MINUTES, TICK_MS, SEASON_DAYS, PARTY_SIZE, DEFAULT_HYPE, EVENT_REROLL_TICKS, INJURY_MS,
     TERRITORY_POINT_BASE, TERRITORY_SCORE_WEIGHT, ACTIVITY_CATCHUP_MARGIN,
     PLAYERS, PLAYER_BY_ID, TERRAINS, TERRAIN_BY_ID, TILE_EVENTS, TILE_EVENT_BY_ID,
     tileId, parseTileId, neighbors, axialDistance, seasonWindow, createMap, createInitialState, normalizeState,

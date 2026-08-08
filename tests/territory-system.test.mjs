@@ -305,7 +305,7 @@ test("バージョン2の重複PTを所有権を保ったままバージョン4�
   });
   const beforeOwners = Object.fromEntries(Object.entries(legacy.tiles).map(([id, tile]) => [id, tile.ownerId]));
   const migrated = Territory.normalizeState(legacy, stats, MONDAY_JST + Territory.TICK_MS);
-  assert.equal(migrated.version, 4);
+  assert.equal(migrated.version, Territory.VERSION);
   assert.deepEqual(
     Object.fromEntries(Object.entries(migrated.tiles).map(([id, tile]) => [id, tile.ownerId])),
     beforeOwners
@@ -340,6 +340,38 @@ test("activity catch-up keeps every ruler invading during automatic progression"
 
   assert.ok(battleCounts.every((count) => count >= 18));
   assert.ok(Math.max(...battleCounts) - Math.min(...battleCounts) <= 12);
+});
+
+test("every ruler receives an invasion action on every automatic turn", () => {
+  const stats = createStats();
+  let state = Territory.createInitialState(stats, MONDAY_JST);
+  for (let turn = 0; turn < 12; turn += 1) {
+    state = Territory.advanceState(state, stats, state.season.nextTickAt, { maxTicks: 1 }).state;
+    const invaders = new Set((state.lastInvasions || []).map((action) => action.playerId));
+    assert.deepEqual([...invaders].sort(), Territory.PLAYERS.map((player) => player.id).sort());
+  }
+});
+
+test("territory losers are unavailable for 24 hours and winners recover only 50 HP", () => {
+  const stats = createStats();
+  let state = Territory.createInitialState(stats, MONDAY_JST);
+  let battle = null;
+  for (let turn = 0; turn < 40 && !battle; turn += 1) {
+    const previousCount = state.battles.length;
+    state = Territory.advanceState(state, stats, state.season.nextTickAt, { maxTicks: 1 }).state;
+    battle = state.battles.slice(previousCount).find((entry) => entry.healthChanges?.length) || null;
+  }
+  assert.ok(battle, "A battle with persistent health changes should occur");
+  const winners = battle.healthChanges.filter((entry) => entry.result === "win");
+  const injured = battle.healthChanges.filter((entry) => entry.result === "injured");
+  assert.ok(winners.length > 0 && winners.every((entry) => entry.after > 50 && entry.after < 100));
+  assert.ok(injured.length > 0);
+  injured.forEach((entry) => {
+    assert.equal(state.players[entry.playerId].injuredMonsters[entry.nodeId], battle.at + Territory.INJURY_MS);
+    assert.ok(!territoryLineupForPlayer(state, entry.playerId).some((member) => member.nodeId === entry.nodeId));
+  });
+  const recovered = Territory.normalizeState(state, stats, battle.at + Territory.INJURY_MS + 1);
+  injured.forEach((entry) => assert.equal(recovered.players[entry.playerId].injuredMonsters[entry.nodeId], undefined));
 });
 
 test("saved territory uses the current terrain distribution after normalization", () => {

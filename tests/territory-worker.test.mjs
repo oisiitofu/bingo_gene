@@ -56,7 +56,7 @@ test("六王領土戦WorkerはOAuth認証後にETag付きで初期状態を保�
 
     assert.equal(result.ok, true);
     assert.equal(result.changed, true);
-    assert.equal(savedState.version, 4);
+    assert.equal(savedState.version, 5);
     assert.equal(Object.keys(savedState.players).length, 6);
     assert.ok(Object.values(savedState.tiles).filter((tile) => tile.ownerId).every((tile) => (
       tile.garrison?.lineup?.length === 3 && tile.garrison?.hype === 20
@@ -170,7 +170,7 @@ test("定刻前でもバージョン2の領土状態をバージョン4へ保存
 
     assert.equal(result.changed, true);
     assert.equal(result.processed, 0);
-    assert.equal(savedState.version, 4);
+    assert.equal(savedState.version, 5);
     assert.ok(Object.values(savedState.tiles).filter((tile) => tile.ownerId).every((tile) => (
       tile.garrison?.lineup?.length === 3 && tile.garrison?.hype === 20
     )));

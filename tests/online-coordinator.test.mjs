@@ -368,6 +368,20 @@ test("online busy state notifies the app bridge", () => {
   assert.deepEqual(changes, [true, false]);
 });
 
+test("a cell click waits for a short in-flight sync instead of being dropped", async () => {
+  const store = createStore();
+  const guest = createCoordinator(store, "guest", "player", "blue");
+  guest.setBusy(true);
+  const queued = guest.requestAction(
+    { type: "toggle-cell", payload: { team: "blue", index: 0, expectedMarked: false } },
+    () => { guest.testState.game.blue.marked[0] = true; }
+  );
+  setTimeout(() => guest.setBusy(false), 90);
+  assert.equal(await queued, true);
+  assert.equal(store.value.teamBingoV1.rooms.ROOM.game.blue.marked[0], true);
+  assert.equal(guest.pendingCellActions.size, 0);
+});
+
 test("online reaction types are a closed allowlist", () => {
   assert.equal(ONLINE_REACTIONS.length, 32);
   assert.equal(new Set(ONLINE_REACTIONS.map(({ id }) => id)).size, 32);

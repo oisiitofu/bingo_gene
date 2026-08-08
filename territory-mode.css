@@ -729,6 +729,14 @@
   font-style: normal;
 }
 
+.territory-monster-hp {
+  display: block;
+  margin-top: 2px;
+  color: #6ee7a8;
+  font-size: 7px;
+  font-weight: 900;
+}
+
 .territory-monster-detail-label {
   display: block;
   margin-top: 4px;

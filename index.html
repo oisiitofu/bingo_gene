@@ -8557,6 +8557,7 @@
       monsterBattleSpeed: 1,
       monsterZoomNavigation: null,
       monsterHatches: [],
+      monsterHatchPending: false,
       winner: null,
       readyShown: false,
       ranking: {},
@@ -9553,6 +9554,7 @@
       state.gameStarted = true;
       unlockCurrentMonsterEggs();
       state.monsterHatches = hatchAllPlayerMonsters();
+      state.monsterHatchPending = state.monsterHatches.length > 0;
       recordMatchStart();
       state.inputLocked = true;
       state.readyShown = false;
@@ -9563,6 +9565,8 @@
       enqueueEffect(async () => {
         await showIntroWithBlackout();
         await showAllMonsterHatches(state.monsterHatches);
+        state.monsterHatchPending = false;
+        renderAll();
         await showReadyOnce();
         state.inputLocked = false;
         renderAll();
@@ -9584,7 +9588,10 @@
       state.monsterBattle = null;
       state.monsterBattleRunId += 1;
       state.monsterBattlePresentationSeed = 0;
+      state.monsterBattleSpeed = 1;
+      applyMonsterBattleSpeed();
       state.monsterHatches = [];
+      state.monsterHatchPending = false;
       state.skillCharges = { red: false, blue: false };
       state.skillChargeAnnounced = { red: false, blue: false };
       state.skillEffects = createSkillEffects();
@@ -9991,16 +9998,16 @@
     }
 
     function renderPlayerMonsterCard(team, monster, monsterIndex = 0) {
-      const node = MONSTER_NODES[monster.nodeId] || MONSTER_NODES.egg;
+      const actualNode = MONSTER_NODES[monster.nodeId] || MONSTER_NODES.egg;
+      const node = state.monsterHatchPending ? MONSTER_NODES.egg : actualNode;
       const identity = MONSTER_SYSTEM.monsterKey(monster.playerName, monster.slot);
       const slotLabel = state.doubleMonsterMode ? `<small>MONSTER ${monster.slot + 1}</small>` : "";
       const poseAnimated = hasMonsterPoseAnimation(node);
-      const motionAnimated = hasMonsterMotionAnimation(node);
       const actionDelay = -((monsterIndex * 1.65) + (team === "blue" ? .8 : 0));
       return `
-        <article class="monster-player-card${motionAnimated ? " monster-pose-animated" : ""}" data-monster-player="${escapeHtml(identity)}" data-monster-node="${escapeHtml(node.id)}" data-monster-stage="${Number(node.stage) || 0}" style="--monster-action-delay:${actionDelay}s">
+        <article class="monster-player-card${poseAnimated ? " monster-pose-animated" : ""}" data-monster-player="${escapeHtml(identity)}" data-monster-node="${escapeHtml(node.id)}" data-monster-stage="${Number(node.stage) || 0}" style="--monster-action-delay:${actionDelay}s">
           <button type="button" class="monster-portrait-button" data-monster-team="${team}" data-monster-zoom="${escapeHtml(identity)}" title="${escapeHtml(node.name)}を拡大">
-            ${monsterSpriteMarkup(node, poseAnimated ? "monster-sprite-base" : (motionAnimated ? "monster-sprite-motion" : ""))}
+            ${monsterSpriteMarkup(node, poseAnimated ? "monster-sprite-base" : "")}
             ${poseAnimated ? monsterAttackSpriteMarkup(node) : ""}
           </button>
           <div class="monster-player-info">
@@ -10793,7 +10800,7 @@
       if (canApplySkillToCell(state.pendingSkill, team, index)) classes.push("skill-targetable");
       if (pairEntries.length > 1) classes.push("pair-multi");
       if (side.winningCells.has(index)) classes.push("winning");
-      const disabled = state.inputLocked || isOnlineInputBusy() || cell.free;
+      const disabled = state.inputLocked || cell.free;
       const defaultCellImage = cell.free ? "" : imagePath(cell.id);
       const tofuSourceImage = useTofuCellSkin ? tofuCellSkinPath(cell.id) : "";
       const tofuThumbnailImage = useTofuCellSkin ? tofuCellThumbnailPath(cell.id) : "";
@@ -10862,7 +10869,7 @@
           ${members.map((member, memberIndex) => {
             const key = playerStatsKey(member);
             const active = selected.has(key);
-            const disabled = isOnlineInputBusy() || (!active && maxReached) || !canUseOnlinePlayerChoice(team, member);
+            const disabled = (!active && maxReached) || !canUseOnlinePlayerChoice(team, member);
             return `<button type="button" class="cell-player-choice${active ? " active" : ""}" data-testid="bingo-cell-player-${team}-${index}-${memberIndex}" data-cell-player-index="${memberIndex}" ${disabled ? "disabled" : ""} title="${escapeHtml(member)}">${escapeHtml(member)}</button>`;
           }).join("")}
         </div>
@@ -12135,12 +12142,15 @@
 
     function applyMonsterBattleSpeed() {
       const speed = getMonsterBattleSpeed();
+      const canControlSpeed = !onlineSession.roomId || Boolean(onlineSession.master);
       document.body.classList.toggle("monster-battle-speed-2", speed === 2);
       els.monsterBattleOverlay?.classList.toggle("speed-2", speed === 2);
       if (els.monsterBattleSpeedButton) {
         els.monsterBattleSpeedButton.textContent = speed === 2 ? "2x ON" : "2x";
         els.monsterBattleSpeedButton.classList.toggle("active", speed === 2);
         els.monsterBattleSpeedButton.setAttribute("aria-pressed", String(speed === 2));
+        els.monsterBattleSpeedButton.disabled = !canControlSpeed;
+        els.monsterBattleSpeedButton.title = canControlSpeed ? "BATTLE SPEED" : "MASTER ONLY";
       }
       els.monsterBattleOverlay?.getAnimations?.({ subtree: true }).forEach((animation) => {
         animation.playbackRate = speed;
@@ -12152,9 +12162,19 @@
       });
     }
 
-    function toggleMonsterBattleSpeed() {
-      state.monsterBattleSpeed = getMonsterBattleSpeed() === 2 ? 1 : 2;
+    function toggleMonsterBattleSpeed(options = {}) {
+      const nextSpeed = Number(options.speed) === 2
+        ? 2
+        : (Number(options.speed) === 1 ? 1 : (getMonsterBattleSpeed() === 2 ? 1 : 2));
+      if (shouldUseOnlineAction(options)) {
+        return runOnlineAction(
+          { type: "monster-battle-speed", masterOnly: true, payload: { speed: nextSpeed } },
+          () => toggleMonsterBattleSpeed({ ...options, onlineBypass: true, speed: nextSpeed })
+        );
+      }
+      state.monsterBattleSpeed = nextSpeed;
       applyMonsterBattleSpeed();
+      return true;
     }
 
     function startMonsterBattle(options = {}) {
@@ -16909,6 +16929,7 @@
     function skipOnlinePresentation(options = {}) {
       if (!state.gameStarted || state.winner) return false;
       resetMatchPresentation();
+      state.monsterHatchPending = false;
       state.readyShown = true;
       state.inputLocked = Boolean(state.emergencyPaused);
       renderAll();
@@ -16965,7 +16986,9 @@
         monsterBattleMode: state.monsterBattleMode,
         doubleMonsterMode: state.doubleMonsterMode,
         monsterBattle: cloneOnlineValue(state.monsterBattle),
+        monsterBattleSpeed: getMonsterBattleSpeed(),
         monsterHatches: cloneOnlineValue(state.monsterHatches),
+        monsterHatchPending: state.monsterHatchPending,
         skillCharges: cloneOnlineValue(state.skillCharges),
         skillChargeAnnounced: cloneOnlineValue(state.skillChargeAnnounced),
         skillEffects: cloneOnlineValue(state.skillEffects),
@@ -17036,7 +17059,9 @@
       state.monsterBattle = incomingBattle && (
         !incomingMatchId || String(incomingBattle.matchId || "") === incomingMatchId
       ) ? incomingBattle : null;
+      state.monsterBattleSpeed = Number(snapshot.monsterBattleSpeed) === 2 ? 2 : 1;
       state.monsterHatches = Array.isArray(snapshot.monsterHatches) ? cloneOnlineValue(snapshot.monsterHatches) : [];
+      state.monsterHatchPending = Boolean(snapshot.monsterHatchPending);
       const shouldPresentMonsterBattle = onlineMonsterBattlePresentationDetector(
         state.monsterBattle,
         state.monsterBattlePresentationSeed
@@ -17060,6 +17085,7 @@
       updateRandomEventButton();
       updateMonsterBattleMode();
       updateDoubleMonsterMode();
+      applyMonsterBattleSpeed();
       renderSetupPreview();
       renderAll();
       updateHypeUi();
@@ -17124,8 +17150,17 @@
       if (!remainingMs) return;
       [els.startBlackoutOverlay, els.introOverlay, els.monsterHatchOverlay, els.readyOverlay].forEach((overlay) => hideOverlay(overlay));
       if (phase.kind === "hatch") {
-        void showAllMonsterHatches(state.monsterHatches, remainingMs);
+        state.monsterHatchPending = true;
+        renderAll();
+        void showAllMonsterHatches(state.monsterHatches, remainingMs).finally(() => {
+          state.monsterHatchPending = false;
+          renderAll();
+        });
         return;
+      }
+      if (phase.kind === "ready") {
+        state.monsterHatchPending = false;
+        renderAll();
       }
       const overlay = phase.kind === "blackout"
         ? els.startBlackoutOverlay
@@ -17331,6 +17366,7 @@
         event.payload.monsterId = after?.[payload.team]?.monster?.nodeId || payload.nodeId;
       }
       if (type === "monster-battle-start") event.effects.push("monster-battle-start");
+      if (type === "monster-battle-speed") event.effects.push("monster-battle-speed");
       if (type === "hype-voice") event.effects.push("hype-voice");
       if (type === "emergency-pause") event.effects.push("emergency-pause");
       if (type === "emergency-skip") event.effects.push("emergency-skip");
@@ -17364,6 +17400,8 @@
         enqueueEffect(async () => {
           await showIntroWithBlackout();
           if (effects.has("monster-hatch")) await showAllMonsterHatches(payload.monsterHatches);
+          state.monsterHatchPending = false;
+          renderAll();
           await showReadyOnce();
         });
       }
@@ -17404,6 +17442,10 @@
         if (skill) enqueueEffect(() => showSkillActivation(payload.team, skill));
       }
       if (effects.has("monster-battle-start")) startMonsterBattle({ seed: payload.seed, onlineBypass: true, remotePresentation: true });
+      if (effects.has("monster-battle-speed")) {
+        state.monsterBattleSpeed = Number(payload.speed) === 2 ? 2 : 1;
+        applyMonsterBattleSpeed();
+      }
       if (effects.has("hype-voice")) playAudio("hype");
       if (effects.has("emergency-pause")) {
         showCommentary(payload.paused ? "MATCH PAUSED" : "MATCH RESUME", payload.paused ? "マスターが試合を一時停止しました。" : "試合を再開します。", 5000);
@@ -17473,6 +17515,7 @@
       onlineSession = { ...onlineSession, ...(session || {}) };
       document.body.classList.toggle("online-active", Boolean(onlineSession.roomId));
       updateMonsterBattleMode();
+      applyMonsterBattleSpeed();
       if (state.gameStarted) renderAll();
       if (state.winner) renderVictoryMonsterLineups();
     }

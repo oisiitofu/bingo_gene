@@ -19,7 +19,7 @@ test("online lobby boot bypasses stale browser modules and retries once", () => 
 
   assert.match(html, /online-room\.js\?v=20260801-hatch-sync-1/);
   assert.match(html, /retry=\$\{Date\.now\(\)\}/);
-  assert.match(serviceWorker, /20260802-single-monster-art-105/);
+  assert.match(serviceWorker, /20260808-hatch-sync-territory-106/);
 });
 
 test("consecutive skills cancel stale audio and setup snapshots clear persistent effects", () => {
@@ -475,6 +475,17 @@ test("monster evolution has eight childhood entries, rank six fusions, passives,
     assert.equal(node.sprite.size, "contain", `No.${number} must fit inside its frame`);
     assert.equal(node.sprite.poseMatched, true, `No.${number} pose pair must remain verified`);
   });
+  [
+    "glacier-ultimate-1", "candy-ultimate-2", "fossil-perfect-b",
+    "dojo-perfect-a", "sonic-perfect-b", "bloom-ultimate-0",
+    "bloom-ultimate-1", "bloom-ultimate-3", "slime-ultimate-1"
+  ].forEach((id) => {
+    const node = result.NODES[id];
+    const attackSheet = node.sprite.attackSheet || node.sprite.sheet.replace(/\.png$/i, "-attack.png");
+    const base = readFileSync(new URL(`../${node.sprite.sheet}`, import.meta.url));
+    const attack = readFileSync(new URL(`../${attackSheet}`, import.meta.url));
+    assert.notEqual(Buffer.compare(base, attack), 0, `${id} pose 2 must differ from pose 1`);
+  });
   Object.values(result.NODES).filter((node) => node.stage === 2).forEach((node) => {
     if (node.id === "growth-rail") {
       assert.equal(node.sprite.size, "contain", "growth-rail must use isolated artwork without the adjacent sprite");
@@ -676,6 +687,8 @@ test("monster evolution has eight childhood entries, rank six fusions, passives,
   assert.match(html, /matchId: String\(state\.matchTracker\?\.id \|\| ""\)/, "Monster battle results must be scoped to one match");
   assert.match(html, /String\(incomingBattle\.matchId \|\| ""\) === incomingMatchId/, "Online rematches must reject stale monster battle results");
   assert.match(html, /state\.monsterHatches = hatchAllPlayerMonsters\(\)/, "Every match must hatch all player eggs together");
+  assert.match(html, /state\.monsterHatchPending = state\.monsterHatches\.length > 0/);
+  assert.match(html, /const node = state\.monsterHatchPending \? MONSTER_NODES\.egg : actualNode/);
   assert.match(html, /effects\.push\("intro", "monster-hatch", "ready"\)/, "Online hatch presentation must be part of the shared start sequence");
   assert.match(html, /function preloadMonsterNodes\(/, "Visible monster pose assets must be warmed before animation");
   assert.ok(existsSync(new URL("../skill-assets/Lickey/castle-tofu-curse.png", import.meta.url)), "Missing tofu-cursed Likecy castle artwork");
@@ -697,6 +710,9 @@ test("monster evolution has eight childhood entries, rank six fusions, passives,
   assert.match(html, /function battleDelay\(/);
   assert.match(html, /const readBattleElapsed = \(\) =>/);
   assert.match(html, /state\.monsterBattleSpeed === 2/);
+  assert.match(html, /type: "monster-battle-speed", masterOnly: true/);
+  assert.match(html, /monsterBattleSpeed: getMonsterBattleSpeed\(\)/);
+  assert.match(html, /els\.monsterBattleSpeedButton\.disabled = !canControlSpeed/);
   assert.match(html, /id="victoryEvolutionOverlay"/);
   assert.match(html, /function evolveWinningTeamMonstersToFinal\(/);
   assert.match(html, /finalEvolutions/);
@@ -820,21 +836,20 @@ test("monster battle audio is dedicated stereo material", () => {
   });
 });
 
-test("generated pair slots and audited singles restore attack poses without dex walking", () => {
+test("generated pair slots and audited singles switch poses without board walking", () => {
   const html = readFileSync(new URL("../index.html", import.meta.url), "utf8");
   const battleCss = readFileSync(new URL("../monster-battle.css", import.meta.url), "utf8");
   const monsterSystem = readFileSync(new URL("../monster-system.js", import.meta.url), "utf8");
 
   assert.match(html, /hasMonsterPoseAnimation\(node\)/);
-  assert.match(html, /hasMonsterMotionAnimation\(node\)/);
   assert.match(html, /matchedMonsterAttackSheet\(node\)/);
   assert.match(html, /monster-pose-animated/);
-  assert.match(html, /monster-sprite-motion/);
+  assert.doesNotMatch(html, /motionAnimated \? " monster-pose-animated"/);
   assert.match(html, /data-monster-stage=/);
   assert.match(html, /--monster-action-delay:/);
-  assert.match(battleCss, /@keyframes monsterBoardActionRed/);
-  assert.match(battleCss, /@keyframes monsterBoardActionBlue/);
-  assert.match(battleCss, /@keyframes monsterBoardRunDust/);
+  assert.match(battleCss, /monsterBasePose 11s/);
+  assert.match(battleCss, /monsterAttackPose 11s/);
+  assert.match(battleCss, /\.monster-player-card\.monster-pose-animated \.monster-portrait-button::before[\s\S]*?animation: none/);
   assert.doesNotMatch(battleCss, /@keyframes monsterZoomSingleMotion/);
   assert.match(battleCss, /@keyframes monsterBasePose/);
   assert.match(battleCss, /@keyframes monsterAttackPose/);
@@ -848,6 +863,15 @@ test("generated pair slots and audited singles restore attack poses without dex 
   assert.doesNotMatch(battleCss, /stage-one-animated/);
   assert.doesNotMatch(battleCss, /effects\/physical-v2\.png/);
   assert.match(battleCss, /prefers-reduced-motion: reduce/);
+
+  const singlesUrl = new URL("../images/monsters/singles/", import.meta.url);
+  readdirSync(singlesUrl).filter((name) => name.endsWith("-attack.png")).forEach((attackName) => {
+    const baseName = attackName.replace(/-attack\.png$/, ".png");
+    if (!existsSync(new URL(baseName, singlesUrl))) return;
+    const base = readFileSync(new URL(baseName, singlesUrl));
+    const attack = readFileSync(new URL(attackName, singlesUrl));
+    assert.notEqual(Buffer.compare(base, attack), 0, `${attackName} must differ from ${baseName}`);
+  });
 });
 
 test("monster encyclopedia switches static poses only through pose buttons", () => {

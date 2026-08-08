@@ -132,7 +132,7 @@
     radial-gradient(circle at 42% 42%, color-mix(in srgb, var(--monster-card-accent) 58%, white) 0 4%, transparent 5%),
     radial-gradient(circle at 68% 68%, rgba(255,228,128,.72) 0 3%, transparent 4%);
   filter: blur(.2px) drop-shadow(0 0 7px var(--monster-card-accent));
-  animation: monsterBoardRunDust 8s linear var(--monster-action-delay, 0s) infinite;
+  animation: none;
 }
 
 .monster-player-card.monster-pose-animated .monster-sprite {
@@ -149,9 +149,7 @@
 }
 
 .monster-panel.red .monster-player-card.monster-pose-animated .monster-sprite-base {
-  animation:
-    monsterBoardActionRed 8s linear var(--monster-action-delay, 0s) infinite,
-    monsterBasePose 8s steps(1, end) var(--monster-action-delay, 0s) infinite;
+  animation: monsterBasePose 11s steps(1, end) var(--monster-action-delay, 0s) infinite;
 }
 
 .monster-panel.red .monster-player-card.monster-pose-animated .monster-sprite-motion {
@@ -159,15 +157,11 @@
 }
 
 .monster-panel.red .monster-player-card.monster-pose-animated .monster-sprite-attack {
-  animation:
-    monsterBoardActionRed 8s linear var(--monster-action-delay, 0s) infinite,
-    monsterAttackPose 8s steps(1, end) var(--monster-action-delay, 0s) infinite;
+  animation: monsterAttackPose 11s steps(1, end) var(--monster-action-delay, 0s) infinite;
 }
 
 .monster-panel.blue .monster-player-card.monster-pose-animated .monster-sprite-base {
-  animation:
-    monsterBoardActionBlue 8s linear var(--monster-action-delay, 0s) infinite,
-    monsterBasePose 8s steps(1, end) var(--monster-action-delay, 0s) infinite;
+  animation: monsterBasePose 11s steps(1, end) var(--monster-action-delay, 0s) infinite;
 }
 
 .monster-panel.blue .monster-player-card.monster-pose-animated .monster-sprite-motion {
@@ -175,9 +169,7 @@
 }
 
 .monster-panel.blue .monster-player-card.monster-pose-animated .monster-sprite-attack {
-  animation:
-    monsterBoardActionBlue 8s linear var(--monster-action-delay, 0s) infinite,
-    monsterAttackPose 8s steps(1, end) var(--monster-action-delay, 0s) infinite;
+  animation: monsterAttackPose 11s steps(1, end) var(--monster-action-delay, 0s) infinite;
 }
 
 .monster-player-card.monster-pose-animated:not(.monster-assets-ready) .monster-sprite-base {
@@ -232,13 +224,13 @@
 }
 
 @keyframes monsterBasePose {
-  0%, 56%, 84%, 100% { opacity:1; visibility:visible; }
-  58%, 82% { opacity:0; visibility:hidden; }
+  0%, 72%, 86%, 100% { opacity:1; visibility:visible; }
+  73%, 85% { opacity:0; visibility:hidden; }
 }
 
 @keyframes monsterAttackPose {
-  0%, 56%, 84%, 100% { opacity:0; visibility:hidden; }
-  58%, 82% { opacity:1; visibility:visible; }
+  0%, 72%, 86%, 100% { opacity:0; visibility:hidden; }
+  73%, 85% { opacity:1; visibility:visible; }
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -523,6 +515,9 @@
 
 #victoryOverlay .victory-card {
   width: min(1240px, 97vw);
+  max-height: min(94vh, 920px);
+  overflow-x: hidden;
+  overflow-y: auto;
   display: grid;
   grid-template-columns: minmax(0, 1.15fr) minmax(420px, .85fr);
   align-items: center;
@@ -575,6 +570,12 @@
 }
 #victoryOverlay .match-result-panel,
 #victoryOverlay #closeVictoryButton { grid-column: 1 / -1; }
+#victoryOverlay #closeVictoryButton {
+  position: sticky;
+  z-index: 12;
+  bottom: 0;
+  justify-self: center;
+}
 
 .monster-battle-overlay {
   z-index: 280;
