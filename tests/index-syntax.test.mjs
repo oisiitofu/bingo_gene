@@ -19,7 +19,7 @@ test("online lobby boot bypasses stale browser modules and retries once", () => 
 
   assert.match(html, /online-room\.js\?v=20260801-hatch-sync-1/);
   assert.match(html, /retry=\$\{Date\.now\(\)\}/);
-  assert.match(serviceWorker, /20260809-monster-pose-scale-111/);
+  assert.match(serviceWorker, /20260809-monster-pose-scale-112/);
 });
 
 test("one-bingo audio, Likecy skill timing, and reach badge rules stay aligned", () => {
@@ -933,14 +933,14 @@ test("monster encyclopedia switches static poses only through pose buttons", () 
     assert.match(html, new RegExp(`"${id}": 1`), `${id} must use neutral display scale`);
   });
   [
-    ["rail-mature", "base: 1.6, attack: 1.6"],
-    ["cosmic-perfect-b", "base: 1.08, attack: 1.08"],
-    ["rail-perfect-b", "base: 1.18"],
-    ["rail-perfect-a", "base: 1.18"],
-    ["festival-perfect-a", "attack: 1.65"],
-    ["samurai-perfect-b", "base: 1.18"],
-    ["gourmet-perfect-b", "base: 1.18"],
-    ["dune-perfect-a", "base: 1.2, attack: 1.2"]
+    ["rail-mature", "base: 1.92, attack: 1.92"],
+    ["cosmic-perfect-b", "base: 1.4, attack: 1.4"],
+    ["rail-perfect-b", "base: 1.5"],
+    ["rail-perfect-a", "base: 1.5"],
+    ["festival-perfect-a", "attack: 1.9"],
+    ["samurai-perfect-b", "base: 1.5"],
+    ["gourmet-perfect-b", "base: 1.5"],
+    ["dune-perfect-a", "base: 1.52, attack: 1.52"]
   ].forEach(([id, scale]) => {
     assert.match(html, new RegExp(`"${id}": Object\\.freeze\\(\\{ ${scale.replaceAll(".", "\\.")} \\}\\)`));
   });
