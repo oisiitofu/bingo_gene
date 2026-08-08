@@ -8201,7 +8201,7 @@
 
     const SKILL_BGM_DURATION_MS = {
       kento: 102000,
-      lickey: 98000,
+      lickey: 65000,
       eda: 110000,
       tofu: 94000,
       jan: 112000,
@@ -10822,9 +10822,12 @@
       const pairMarkers = pairEntries.map((pair) => (
         `<span class="pair-chip" style="background:${pair.color}">${pair.id}</span>`
       )).join("");
-      const reachLabel = isFinalReach
-        ? (side.winnerReachCells.has(index) ? "WIN" : "REACH")
-        : (pairEntries.length ? "PAIR" : "");
+      const reachLabel = isVictoryReach
+        ? "WIN"
+        : (!isFinalReach && pairEntries.length ? "PAIR" : "");
+      const reachLabelMarkup = reachLabel
+        ? `<div class="reach-label">${reachLabel}</div>`
+        : "";
       const victoryCellArt = isVictoryReach
         ? `<span class="victory-cell-art" aria-hidden="true"></span>`
         : "";
@@ -10846,7 +10849,7 @@
           ${victoryCellArt}
           ${specialCellArt}
           ${rimaAimArt}
-          <div class="reach-label">${reachLabel}</div>
+          ${reachLabelMarkup}
           <div class="pair-markers">${pairMarkers}</div>
           <div class="open-label"><span>OPEN</span></div>
           ${playerChoices}
@@ -11945,7 +11948,7 @@
       addMatchHighlight("bingo", `${getTeamLabel(team)} 1 BINGO`, "最初の1ラインを獲得", team);
       showCommentary("あと1本で勝利！", `${getTeamLabel(team)}が1ビンゴ。`, 10000);
       playAudio("firstBingoSe");
-      playAudioFor("firstBingoBgm", 30000);
+      playAudioFor("firstBingoBgm", 35000);
       spawnArenaStripes(team, 8);
       screenShake();
       return showTimedOverlay(els.firstBingoOverlay, 2100);

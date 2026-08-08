@@ -19,7 +19,17 @@ test("online lobby boot bypasses stale browser modules and retries once", () => 
 
   assert.match(html, /online-room\.js\?v=20260801-hatch-sync-1/);
   assert.match(html, /retry=\$\{Date\.now\(\)\}/);
-  assert.match(serviceWorker, /20260808-bgm-resume-107/);
+  assert.match(serviceWorker, /20260808-bingo-panic-108/);
+});
+
+test("one-bingo audio, Likecy skill timing, and reach badge rules stay aligned", () => {
+  const html = readFileSync(new URL("../index.html", import.meta.url), "utf8");
+
+  assert.match(html, /lickey:\s*65000/);
+  assert.match(html, /playAudioFor\("firstBingoBgm", 35000\)/);
+  assert.match(html, /const reachLabel = isVictoryReach\s*\? "WIN"\s*:\s*\(!isFinalReach && pairEntries\.length \? "PAIR" : ""\)/);
+  assert.match(html, /const reachLabelMarkup = reachLabel[\s\S]*?<div class="reach-label">\$\{reachLabel\}<\/div>/);
+  assert.doesNotMatch(html, /side\.winnerReachCells\.has\(index\) \? "WIN" : "REACH"/);
 });
 
 test("consecutive skills cancel stale audio and setup snapshots clear persistent effects", () => {
