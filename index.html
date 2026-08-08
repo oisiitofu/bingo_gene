@@ -8813,6 +8813,7 @@
       els.monsterZoomNextButton?.addEventListener("click", () => navigateMonsterZoom(1));
       els.monsterZoomPose1Button?.addEventListener("click", () => selectMonsterZoomPose(1));
       els.monsterZoomPose2Button?.addEventListener("click", () => selectMonsterZoomPose(2));
+      document.addEventListener("keydown", onMonsterZoomKeydown);
       els.monsterZoomOverlay?.addEventListener("click", (event) => {
         if (event.target === els.monsterZoomOverlay) closeMonsterZoom();
       });
@@ -10403,6 +10404,19 @@
         navigation.accent,
         { dexNavigation: true }
       );
+    }
+
+    function onMonsterZoomKeydown(event) {
+      if (!state.monsterZoomNavigation?.nodeIds?.length || !els.monsterZoomOverlay?.classList.contains("show")) return;
+      const tagName = String(event.target?.tagName || "").toUpperCase();
+      if (event.target?.isContentEditable || ["INPUT", "TEXTAREA", "SELECT"].includes(tagName)) return;
+      if (event.key === "ArrowLeft") {
+        event.preventDefault();
+        navigateMonsterZoom(-1);
+      } else if (event.key === "ArrowRight") {
+        event.preventDefault();
+        navigateMonsterZoom(1);
+      }
     }
 
     function showMonsterZoom(team, playerKey) {

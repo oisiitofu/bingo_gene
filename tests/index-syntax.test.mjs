@@ -19,7 +19,7 @@ test("online lobby boot bypasses stale browser modules and retries once", () => 
 
   assert.match(html, /online-room\.js\?v=20260801-hatch-sync-1/);
   assert.match(html, /retry=\$\{Date\.now\(\)\}/);
-  assert.match(serviceWorker, /20260808-bingo-panic-108/);
+  assert.match(serviceWorker, /20260808-monster-audit-109/);
 });
 
 test("one-bingo audio, Likecy skill timing, and reach badge rules stay aligned", () => {
@@ -470,7 +470,7 @@ test("monster evolution has eight childhood entries, rank six fusions, passives,
   assert.equal(result.NODES["growth-rail"].sprite.poseMatched, true);
   assert.equal(result.NODES["fossil-mature"].sprite.sheet, "images/monsters/singles/bone-raptor-v2.png");
   assert.equal(result.NODES["fossil-perfect-a"].sprite.sheet, "images/monsters/singles/fossil-triceratops-v2.png");
-  assert.equal(Object.values(result.NODES).filter((node) => node.sprite.poseMatched).length, 56, "Audited singles and every rank-six monster need a second pose");
+  assert.equal(Object.values(result.NODES).filter((node) => node.sprite.poseMatched).length, 68, "Audited singles and every rank-six monster need a second pose");
   const numberedNodes = Object.values(result.NODES).sort((a, b) => (
     Number(Boolean(a.legendary)) - Number(Boolean(b.legendary)) ||
     a.stage - b.stage ||
@@ -490,6 +490,24 @@ test("monster evolution has eight childhood entries, rank six fusions, passives,
     assert.equal(node.sprite.poseMatched, true, `No.${number} pose pair must remain verified`);
   });
   [
+    [21, "growth-bloom"], [22, "growth-slime"], [44, "bloom-mature"],
+    [75, "cosmic-perfect-b"], [88, "rail-perfect-b"], [89, "rail-perfect-a"],
+    [96, "glacier-perfect-b"], [102, "samurai-perfect-b"], [109, "gourmet-perfect-b"],
+    [121, "bloom-perfect-a"], [128, "bloom-ultimate-2"], [247, "inferno-ultimate-3"]
+  ].forEach(([number, id]) => {
+    const node = numberedNodes[number - 1];
+    const slug = `audited-${id}`;
+    assert.equal(node.id, id, `No.${number} identity changed`);
+    assert.equal(node.sprite.sheet, `images/monsters/singles/${slug}.png`);
+    assert.equal(node.sprite.attackSheet, `images/monsters/singles/${slug}-attack.png`);
+    assert.equal(node.sprite.size, "contain");
+    assert.equal(node.sprite.position, "center");
+    assert.equal(node.sprite.poseMatched, true);
+    const base = readFileSync(new URL(`../${node.sprite.sheet}`, import.meta.url));
+    const attack = readFileSync(new URL(`../${node.sprite.attackSheet}`, import.meta.url));
+    assert.notEqual(Buffer.compare(base, attack), 0, `No.${number} poses must be separate artwork`);
+  });
+  [
     "glacier-ultimate-1", "candy-ultimate-2", "fossil-perfect-b",
     "dojo-perfect-a", "sonic-perfect-b", "bloom-ultimate-0",
     "bloom-ultimate-1", "bloom-ultimate-3", "slime-ultimate-1"
@@ -500,10 +518,11 @@ test("monster evolution has eight childhood entries, rank six fusions, passives,
     const attack = readFileSync(new URL(`../${attackSheet}`, import.meta.url));
     assert.notEqual(Buffer.compare(base, attack), 0, `${id} pose 2 must differ from pose 1`);
   });
+  const isolatedStageTwo = new Set(["growth-rail", "growth-bloom", "growth-slime"]);
   Object.values(result.NODES).filter((node) => node.stage === 2).forEach((node) => {
-    if (node.id === "growth-rail") {
+    if (isolatedStageTwo.has(node.id)) {
       assert.equal(node.sprite.size, "contain", "growth-rail must use isolated artwork without the adjacent sprite");
-      assert.match(node.sprite.sheet, /singles\/chibi-dragon-v2\.png$/);
+      assert.match(node.sprite.sheet, /images\/monsters\/singles\//);
     } else {
       assert.match(node.sprite.sheet, /images\/monsters\/pairs\//, `${node.id} must use repacked artwork`);
       assert.match(node.sprite.size, /^(?:200% 100%|contain)$/, `${node.id} must use no more than a two-column sheet`);
@@ -563,14 +582,14 @@ test("monster evolution has eight childhood entries, rank six fusions, passives,
   rank3Source.nodeId = "inferno-mature";
   rank3Source.stage = 3;
   const rank4Candidates = result.NODES[rank3Source.nodeId].next;
-  const noveltyRolls = [.59, 0];
+  const noveltyRolls = [.69, 0];
   const rank4Priority = result.evolvePlayerMonster(
     rank3Source,
     "red:rank4-priority",
     () => noveltyRolls.shift() ?? 0,
     { [rank4Candidates[0]]: 1 }
   );
-  assert.equal(rank4Priority.monster.nodeId, rank4Candidates[1], "Evolution through rank four must favor an undiscovered branch on a sixty-percent roll");
+  assert.equal(rank4Priority.monster.nodeId, rank4Candidates[1], "Evolution through rank four must favor an undiscovered branch on a seventy-percent roll");
 
   const doubleParty = result.syncPlayerMonsters([], ["PLAYER A", "PLAYER B"], "red", 2);
   assert.equal(doubleParty.length, 4, "Double Monster Mode must create two eggs for every player");
@@ -870,7 +889,7 @@ test("generated pair slots and audited singles switch poses without board walkin
   assert.doesNotMatch(monsterSystem, /rank6-[ab]-v3\.png/);
   assert.doesNotMatch(html, /rank6-[ab]-v3-attack\.png/);
   assert.doesNotMatch(html, /MONSTER_ATTACK_SHEETS/);
-  assert.equal((monsterSystem.match(/poseMatched: true/g) || []).length, 24);
+  assert.equal((monsterSystem.match(/poseMatched: true/g) || []).length, 25);
   assert.match(monsterSystem, /rank6Sprite\.poseMatched = true/);
   assert.match(battleCss, /\.monster-zoom-art\.has-pose-animation \.monster-sprite \{[\s\S]*?position:absolute !important;[\s\S]*?width:100% !important;/);
   assert.doesNotMatch(battleCss, /stageOneAttackEffect/);
@@ -902,6 +921,8 @@ test("monster encyclopedia switches static poses only through pose buttons", () 
   assert.match(html, /classList\.toggle\("show-pose-2"/);
   assert.match(html, /selectMonsterZoomPose\(1\)/);
   assert.match(html, /selectMonsterZoomPose\(2\)/);
+  assert.match(html, /document\.addEventListener\("keydown", onMonsterZoomKeydown\)/);
+  assert.match(html, /function onMonsterZoomKeydown\(event\)[\s\S]*event\.key === "ArrowLeft"[\s\S]*navigateMonsterZoom\(-1\)[\s\S]*event\.key === "ArrowRight"[\s\S]*navigateMonsterZoom\(1\)/);
   assert.doesNotMatch(battleCss, /@keyframes monsterZoomSingleMotion/);
   assert.match(battleCss, /\.monster-zoom-card[\s\S]*width: min\(1680px, 98vw\)/);
   assert.match(battleCss, /\.monster-zoom-art\.has-pose-animation\.show-pose-2 \.monster-sprite-attack/);

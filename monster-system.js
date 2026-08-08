@@ -126,6 +126,21 @@
     "gourmet-ultimate-3": ["lineage-gourmet", 4, 0, 1]
   });
 
+  const AUDITED_SPRITE_OVERRIDES = Object.freeze({
+    "growth-bloom": "audited-growth-bloom",
+    "growth-slime": "audited-growth-slime",
+    "bloom-mature": "audited-bloom-mature",
+    "cosmic-perfect-b": "audited-cosmic-perfect-b",
+    "rail-perfect-b": "audited-rail-perfect-b",
+    "rail-perfect-a": "audited-rail-perfect-a",
+    "glacier-perfect-b": "audited-glacier-perfect-b",
+    "samurai-perfect-b": "audited-samurai-perfect-b",
+    "gourmet-perfect-b": "audited-gourmet-perfect-b",
+    "bloom-perfect-a": "audited-bloom-perfect-a",
+    "bloom-ultimate-2": "audited-bloom-ultimate-2",
+    "inferno-ultimate-3": "audited-inferno-ultimate-3"
+  });
+
   const LEGENDARY_IDS = ["legend-sun", "legend-night", "legend-world", "legend-time"];
   const LEGENDARY_CHANCE = .01;
 
@@ -593,6 +608,19 @@
         zoom: 1.06
       });
     });
+    Object.entries(AUDITED_SPRITE_OVERRIDES).forEach(([nodeId, stem]) => {
+      const node = nodes[nodeId];
+      if (!node) return;
+      Object.assign(node.sprite, {
+        sheet: `images/monsters/singles/${stem}.png`,
+        attackSheet: `images/monsters/singles/${stem}-attack.png`,
+        size: "contain",
+        position: "center",
+        aspect: 1,
+        zoom: 1.04,
+        poseMatched: true
+      });
+    });
     return Object.freeze(nodes);
   }
 
@@ -700,7 +728,7 @@
     let candidates = current.next;
     if (undiscovered.length && targetStage === 5) {
       candidates = undiscovered;
-    } else if (undiscovered.length && targetStage <= 4 && random() < .6) {
+    } else if (undiscovered.length && targetStage <= 4 && random() < .7) {
       candidates = undiscovered;
     }
     const nextIndex = Math.max(0, Math.min(candidates.length - 1, Math.floor(branchRoll * candidates.length)));
