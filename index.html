@@ -9889,7 +9889,18 @@
         "bloom-ultimate-3": 1.02
       });
 
-    function monsterSpriteMarkup(node, extraClass = "", viewportPadding = 0) {
+    const MONSTER_POSE_DISPLAY_BOOST_OVERRIDES = Object.freeze({
+      "rail-mature": Object.freeze({ base: 1.6, attack: 1.6 }),
+      "cosmic-perfect-b": Object.freeze({ base: 1.08, attack: 1.08 }),
+      "rail-perfect-b": Object.freeze({ base: 1.18 }),
+      "rail-perfect-a": Object.freeze({ base: 1.18 }),
+      "festival-perfect-a": Object.freeze({ attack: 1.65 }),
+      "samurai-perfect-b": Object.freeze({ base: 1.18 }),
+      "gourmet-perfect-b": Object.freeze({ base: 1.18 }),
+      "dune-perfect-a": Object.freeze({ base: 1.2, attack: 1.2 })
+    });
+
+    function monsterSpriteMarkup(node, extraClass = "", viewportPadding = 0, pose = 1) {
       if (!node?.sprite) return "";
       const guardedSize = spriteSheetSizeWithBleedGuard(node.sprite.size);
       const aspect = Math.max(.1, Number(node.sprite.aspect) || 1);
@@ -9898,7 +9909,10 @@
       const defaultDisplayBoost = node.legendary || node.rank6
         ? 1
         : (Number(node.stage) >= 3 ? 1.52 : (Number(node.stage) > 1 ? 1.16 : 1));
-      const displayBoost = MONSTER_DISPLAY_BOOST_OVERRIDES[node.id] || defaultDisplayBoost;
+      const poseKey = Number(pose) === 2 ? "attack" : "base";
+      const displayBoost = MONSTER_POSE_DISPLAY_BOOST_OVERRIDES[node.id]?.[poseKey]
+        ?? MONSTER_DISPLAY_BOOST_OVERRIDES[node.id]
+        ?? defaultDisplayBoost;
       const style = `--monster-image:url('${node.sprite.sheet}');--monster-size:${guardedSize};--monster-position:${node.sprite.position};--monster-aspect:${aspect};--monster-zoom:${node.sprite.zoom || 1};--monster-display-boost:${displayBoost}`;
       const facing = node.sprite.facing === "right" ? "right" : "left";
       return `<svg class="monster-sprite${extraClass ? ` ${extraClass}` : ""}" data-monster-facing="${facing}" style="${style}" viewBox="${-padding} ${-padding} ${viewBoxWidth + (padding * 2)} ${1000 + (padding * 2)}" preserveAspectRatio="xMidYMid meet" aria-hidden="true" focusable="false"><foreignObject x="0" y="0" width="${viewBoxWidth}" height="1000"><div xmlns="http://www.w3.org/1999/xhtml" class="monster-sprite-surface"></div></foreignObject></svg>`;
@@ -9944,7 +9958,7 @@
           ...node.sprite,
           sheet: attackSheet
         }
-      }, "monster-sprite-attack");
+      }, "monster-sprite-attack", 0, 2);
     }
 
     function monsterNodeAssetUrls(node) {

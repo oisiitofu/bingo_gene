@@ -19,7 +19,7 @@ test("online lobby boot bypasses stale browser modules and retries once", () => 
 
   assert.match(html, /online-room\.js\?v=20260801-hatch-sync-1/);
   assert.match(html, /retry=\$\{Date\.now\(\)\}/);
-  assert.match(serviceWorker, /20260809-monster-detail-110/);
+  assert.match(serviceWorker, /20260809-monster-pose-scale-111/);
 });
 
 test("one-bingo audio, Likecy skill timing, and reach badge rules stay aligned", () => {
@@ -932,6 +932,21 @@ test("monster encyclopedia switches static poses only through pose buttons", () 
   ].forEach((id) => {
     assert.match(html, new RegExp(`"${id}": 1`), `${id} must use neutral display scale`);
   });
+  [
+    ["rail-mature", "base: 1.6, attack: 1.6"],
+    ["cosmic-perfect-b", "base: 1.08, attack: 1.08"],
+    ["rail-perfect-b", "base: 1.18"],
+    ["rail-perfect-a", "base: 1.18"],
+    ["festival-perfect-a", "attack: 1.65"],
+    ["samurai-perfect-b", "base: 1.18"],
+    ["gourmet-perfect-b", "base: 1.18"],
+    ["dune-perfect-a", "base: 1.2, attack: 1.2"]
+  ].forEach(([id, scale]) => {
+    assert.match(html, new RegExp(`"${id}": Object\\.freeze\\(\\{ ${scale.replaceAll(".", "\\.")} \\}\\)`));
+  });
+  assert.match(html, /function monsterSpriteMarkup\(node, extraClass = "", viewportPadding = 0, pose = 1\)/);
+  assert.match(html, /MONSTER_POSE_DISPLAY_BOOST_OVERRIDES\[node\.id\]\?\.\[poseKey\]/);
+  assert.match(html, /"monster-sprite-attack", 0, 2/);
   assert.doesNotMatch(battleCss, /@keyframes monsterZoomSingleMotion/);
   assert.match(battleCss, /\.monster-zoom-card[\s\S]*width: min\(1680px, 98vw\)/);
   assert.match(battleCss, /\.monster-zoom-art\.has-pose-animation\.show-pose-2 \.monster-sprite-attack/);
