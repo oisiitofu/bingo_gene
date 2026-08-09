@@ -146,7 +146,12 @@ test("六王領土戦のクライアント、Worker、Firebaseルールが公開
     rules.rules.teamBingoV1.frontier.current[".write"].includes("adminSessions"),
     true
   );
-  assert.match(rules.rules.teamBingoV1.frontier.current[".validate"], /version'\)\.val\(\) === 4/);
+  const territoryVersion = Number(territorySystem.match(/const VERSION = (\d+);/)?.[1]);
+  assert.ok(Number.isInteger(territoryVersion));
+  assert.match(
+    rules.rules.teamBingoV1.frontier.current[".validate"],
+    new RegExp(`version'\\)\\.val\\(\\) === ${territoryVersion}`)
+  );
   assert.match(territorySystem, /const DEFAULT_HYPE = 20/);
   assert.match(territorySystem, /const PARTY_SIZE = 3/);
   assert.match(territorySystem, /TILE_EVENTS/);
