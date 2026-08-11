@@ -114,6 +114,15 @@ test("bingo cells are operated only through player-name buttons", () => {
   assert.match(html, /selected\.length === 1 && selected\[0\] === playerStatsKey\(member\)/);
 });
 
+test("stats render every opened character instead of only the top entries", () => {
+  const html = readFileSync(new URL("../index.html", import.meta.url), "utf8");
+  assert.match(
+    html,
+    /renderMiniCharacterChips\(record\.openedCharacters, Number\.POSITIVE_INFINITY\)/
+  );
+  assert.match(html, /class="character-log opened-character-log"/);
+});
+
 test("六王領土戦のクライアント、Worker、Firebaseルールが公開構成へ接続されている", () => {
   const html = readFileSync(new URL("../index.html", import.meta.url), "utf8");
   const serviceWorker = readFileSync(new URL("../sw.js", import.meta.url), "utf8");

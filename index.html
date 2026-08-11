@@ -5476,6 +5476,18 @@
       min-height: 46px;
     }
 
+    .character-log.opened-character-log {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(46px, 1fr));
+      align-content: start;
+    }
+
+    .opened-character-log .character-chip {
+      justify-content: center;
+      min-width: 0;
+      padding-right: 5px;
+    }
+
     .stats-subtitle {
       margin: 9px 0 5px;
       color: rgba(248,250,252,.72);
@@ -15766,7 +15778,7 @@
       const winRate = getPlayerWinRate(record);
       const completedPlays = getCompletedPlayCount(record);
       const titleHtml = derivePlayerTitles(record, 3).map((title) => `<span class="title-badge">${escapeHtml(title)}</span>`).join("");
-      const characterHtml = renderMiniCharacterChips(record.openedCharacters, 10) || `<span class="character-chip">NO OPEN</span>`;
+      const characterHtml = renderMiniCharacterChips(record.openedCharacters, Number.POSITIVE_INFINITY) || `<span class="character-chip">NO OPEN</span>`;
       const specialCharacterHtml = renderMiniCharacterChips(record.specialCharacters, 8) || `<span class="character-chip">NO SPECIAL</span>`;
       return `
         <article class="stats-player-card">
@@ -15791,7 +15803,7 @@
             ${renderStatPill(record.comebackMoves, "逆転一手")}
           </div>
           <div class="stats-subtitle">OPENED CHARACTERS</div>
-          <div class="character-log">${characterHtml}</div>
+          <div class="character-log opened-character-log">${characterHtml}</div>
           <div class="stats-subtitle">SPECIAL CELLS</div>
           <div class="character-log">${specialCharacterHtml}</div>
         </article>
