@@ -19,7 +19,7 @@ test("online lobby boot bypasses stale browser modules and retries once", () => 
 
   assert.match(html, /online-room\.js\?v=20260817-tournament-setup-2/);
   assert.match(html, /retry=\$\{Date\.now\(\)\}/);
-  assert.match(serviceWorker, /20260817-tournament-setup-116/);
+  assert.match(serviceWorker, /20260817-player-entry-117/);
 });
 
 test("one-bingo audio, Likecy skill timing, and reach badge rules stay aligned", () => {
@@ -124,8 +124,9 @@ test("Lite Mode keeps two operable boards visible and opens cells after choosing
   assert.match(html, /body\.compact-ipad-mode \.game-top \{[\s\S]*?display: grid/);
   assert.match(html, /body\.compact-ipad-mode \.board-body,[\s\S]*?container-type: size/);
   assert.match(html, /body\.compact-ipad-mode \.grid \{[\s\S]*?width: min\(100%, 100cqh\)/);
-  assert.match(html, /body\.compact-ipad-mode \.board-actions \{[\s\S]*?position: absolute[\s\S]*?top: calc\(100% \+ 11px\)/);
+  assert.match(html, /body\.compact-ipad-mode \.board-actions \{[\s\S]*?position: absolute[\s\S]*?top: calc\(100% \+ 8px\)/);
   assert.match(html, /body\.compact-ipad-mode \.board-tools \{ display: none; \}/);
+  assert.match(html, /body\.compact-ipad-mode \.team-skill \{[\s\S]*?min-width: 158px;[\s\S]*?min-height: 52px;[\s\S]*?background: var\(--skill-button-image\)/);
   assert.match(html, /showOpenedByPopover\(team, index, cellElement\.getBoundingClientRect\(\), \{ pendingOpen: !side\.marked\[index\] \}\)/);
   assert.match(html, /compactMode: state\.compactMode/);
   assert.match(html, /state\.compactMode = snapshot\.compactMode === true/);
@@ -310,7 +311,10 @@ test("setup controls keep utility links by ROOM ID and combine monster count int
   const html = readFileSync(new URL("../index.html", import.meta.url), "utf8");
 
   assert.match(html, /class="setup-quick-links">[\s\S]*?id="setupStatsButton"[\s\S]*?id="setupMonsterButton"[\s\S]*?id="territoryModeButton"/);
-  assert.match(html, /class="setup-player-controls">[\s\S]*?id="mode5"[\s\S]*?id="deckModeButton"[\s\S]*?id="randomEventButton"[\s\S]*?class="monster-battle-setup-control"[\s\S]*?id="compactModeButton"/);
+  assert.match(html, /id="fixedMemberList"[\s\S]*?id="customPlayersToggleButton"[\s\S]*?id="playerInputs" hidden/);
+  assert.match(html, /id="customPlayersToggleButton"[^>]*aria-expanded="false"[^>]*>追加\.\.\.<\/button>/);
+  assert.match(html, /function toggleCustomPlayerInputs\(\)[\s\S]*?els\.playerInputs\.hidden = !expanded/);
+  assert.match(html, /class="setup-player-controls">[\s\S]*?id="mode5"[\s\S]*?id="deckModeButton"[\s\S]*?class="monster-battle-setup-control"[\s\S]*?id="randomEventButton"[\s\S]*?id="compactModeButton"/);
   assert.match(html, /id="singleMonsterModeButton"[^>]*>x1<\/button>/);
   assert.match(html, /id="doubleMonsterModeButton"[^>]*>x2<\/button>/);
   assert.match(html, /randomEventsEnabled: false/);

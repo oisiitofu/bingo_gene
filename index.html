@@ -458,7 +458,7 @@
 
     .setup-player-controls {
       display: grid;
-      grid-template-columns: minmax(150px, .9fr) minmax(150px, 1fr) minmax(130px, .85fr) minmax(250px, 1.45fr) minmax(150px, 1fr);
+      grid-template-columns: minmax(150px, .9fr) minmax(150px, 1fr) minmax(250px, 1.45fr) minmax(130px, .85fr) minmax(150px, 1fr);
       gap: 10px;
       align-items: center;
       margin: 14px 0 12px;
@@ -773,7 +773,28 @@
       display: flex;
       flex-wrap: wrap;
       gap: 8px;
-      margin-top: 14px;
+    }
+
+    .custom-player-entry {
+      margin-top: 12px;
+    }
+
+    .custom-player-toggle {
+      width: auto;
+      min-width: 112px;
+      min-height: 36px;
+      padding: 8px 14px;
+      justify-content: center;
+    }
+
+    .custom-player-inputs {
+      margin-top: 10px;
+      padding-top: 10px;
+      border-top: 1px solid rgba(148, 163, 184, .18);
+    }
+
+    .custom-player-inputs[hidden] {
+      display: none;
     }
 
     .chip {
@@ -782,6 +803,13 @@
       border: 1px solid rgba(255, 255, 255, .22);
       background: linear-gradient(180deg, rgba(255,255,255,.12), rgba(255,255,255,.04));
       box-shadow: 0 8px 18px rgba(0,0,0,.2), inset 0 1px 0 rgba(255,255,255,.08);
+    }
+
+    .chip.active {
+      color: #10131a;
+      border-color: #ffe57d;
+      background: linear-gradient(180deg, #fff2a8, #e5b934);
+      box-shadow: 0 0 16px rgba(249,199,79,.38), inset 0 1px 0 #fff;
     }
 
     .setup-actions,
@@ -7509,7 +7537,6 @@
     body.compact-ipad-mode .top-left > .btn,
     body.compact-ipad-mode .play-volume .btn,
     body.compact-ipad-mode .top-buttons .btn,
-    body.compact-ipad-mode .team-skill,
     body.compact-ipad-mode .team-shuffle {
       border: 1px solid rgba(148,163,184,.5) !important;
       border-radius: 4px !important;
@@ -7526,8 +7553,6 @@
     body.compact-ipad-mode .play-volume .btn::after,
     body.compact-ipad-mode .top-buttons .btn::before,
     body.compact-ipad-mode .top-buttons .btn::after,
-    body.compact-ipad-mode .team-skill::before,
-    body.compact-ipad-mode .team-skill::after,
     body.compact-ipad-mode .team-shuffle::before,
     body.compact-ipad-mode .team-shuffle::after {
       content: none !important;
@@ -7560,7 +7585,7 @@
 
     body.compact-ipad-mode .board-card {
       width: 100%;
-      height: calc(100% - 42px);
+      height: calc(100% - 64px);
       display: grid;
       grid-template-rows: auto minmax(0, 1fr);
       padding: 7px;
@@ -7643,9 +7668,9 @@
       position: absolute;
       left: 0;
       right: 0;
-      top: calc(100% + 11px);
+      top: calc(100% + 8px);
       z-index: 12;
-      min-height: 34px;
+      min-height: 52px;
       margin: 0;
       gap: 5px;
       align-items: center;
@@ -7655,18 +7680,26 @@
     body.compact-ipad-mode .team-skill-list {
       justify-content: center;
       min-width: 0;
-      min-height: 34px;
+      min-height: 52px;
       flex-wrap: nowrap;
       gap: 4px;
       overflow-x: auto;
     }
     body.compact-ipad-mode .board-tools { display: none; }
-    body.compact-ipad-mode .team-skill,
     body.compact-ipad-mode .team-shuffle {
       min-width: 0;
       min-height: 34px;
       padding: 6px 8px;
       font-size: 9px;
+    }
+
+    body.compact-ipad-mode .team-skill {
+      flex: 0 0 158px;
+      min-width: 158px;
+      min-height: 52px;
+      padding: 12px 16px 12px 54px;
+      font-size: 14px;
+      background: var(--skill-button-image) center / 100% 100% no-repeat;
     }
 
     body.compact-ipad-mode .cell {
@@ -7730,18 +7763,21 @@
             <div class="panel-title">PLAYERS</div>
           </div>
           <div class="panel-body">
-            <div class="player-grid" id="playerInputs">
-              <input id="player1" autocomplete="off" placeholder="PLAYER 1" />
-              <input id="player2" autocomplete="off" placeholder="PLAYER 2" />
-              <input id="player3" autocomplete="off" placeholder="PLAYER 3" />
-              <input id="player4" autocomplete="off" placeholder="PLAYER 4" />
-              <input id="player5" autocomplete="off" placeholder="PLAYER 5" />
-              <input id="player6" autocomplete="off" placeholder="PLAYER 6" />
-              <input id="player7" autocomplete="off" placeholder="PLAYER 7" />
-              <input id="player8" autocomplete="off" placeholder="PLAYER 8" />
-            </div>
-
             <div class="member-bank" id="fixedMemberList"></div>
+
+            <div class="custom-player-entry">
+              <button type="button" class="btn simple-ui-btn custom-player-toggle" id="customPlayersToggleButton" aria-expanded="false" aria-controls="playerInputs">追加...</button>
+              <div class="player-grid custom-player-inputs" id="playerInputs" hidden>
+                <input id="player1" autocomplete="off" placeholder="PLAYER 1" />
+                <input id="player2" autocomplete="off" placeholder="PLAYER 2" />
+                <input id="player3" autocomplete="off" placeholder="PLAYER 3" />
+                <input id="player4" autocomplete="off" placeholder="PLAYER 4" />
+                <input id="player5" autocomplete="off" placeholder="PLAYER 5" />
+                <input id="player6" autocomplete="off" placeholder="PLAYER 6" />
+                <input id="player7" autocomplete="off" placeholder="PLAYER 7" />
+                <input id="player8" autocomplete="off" placeholder="PLAYER 8" />
+              </div>
+            </div>
 
             <div class="setup-player-controls">
               <div class="segmented" aria-label="grid size">
@@ -7749,7 +7785,6 @@
                 <button type="button" id="mode7" data-size="7">7x7</button>
               </div>
               <button type="button" class="btn" id="deckModeButton">DECK MODE</button>
-              <button type="button" class="btn" id="randomEventButton" aria-pressed="false">EVENT OFF</button>
               <div class="monster-battle-setup-control">
                 <button type="button" class="btn active" id="monsterBattleModeButton" aria-pressed="true">MONSTER BATTLE</button>
                 <div class="monster-count-segment" aria-label="monsters per player">
@@ -7757,6 +7792,7 @@
                   <button type="button" id="doubleMonsterModeButton" aria-pressed="false">x2</button>
                 </div>
               </div>
+              <button type="button" class="btn" id="randomEventButton" aria-pressed="false">EVENT OFF</button>
               <button type="button" class="btn simple-ui-btn" id="compactModeButton" aria-pressed="false">LITE MODE OFF</button>
             </div>
 
@@ -9099,7 +9135,7 @@
 
     function cacheElements() {
       [
-        "setupScreen", "playScreen", "mode5", "mode7", "fixedMemberList", "setupStartButton",
+        "setupScreen", "playScreen", "mode5", "mode7", "fixedMemberList", "customPlayersToggleButton", "playerInputs", "setupStartButton",
         "soundButton", "playSoundButton", "volumeSliderSetup", "volumeSliderPlay",
         "volumeValueSetup", "volumeValuePlay", "deckModeButton", "setupStatsButton", "playStatsButton", "setupMonsterButton", "playMonsterButton", "deckHub", "deckGrid",
         "deckStatusMessage", "generatedDeckCode", "randomDeckButton", "clearDeckButton",
@@ -9155,6 +9191,7 @@
       els.mode5.addEventListener("click", () => setGridSize(5));
       els.mode7.addEventListener("click", () => setGridSize(7));
       els.deckModeButton.addEventListener("click", () => els.deckHub.classList.toggle("show"));
+      els.customPlayersToggleButton?.addEventListener("click", toggleCustomPlayerInputs);
       els.randomEventButton?.addEventListener("click", toggleRandomEvents);
       els.monsterBattleModeButton?.addEventListener("click", toggleMonsterBattleMode);
       els.singleMonsterModeButton?.addEventListener("click", () => setDoubleMonsterMode(false));
@@ -9293,6 +9330,7 @@
         if (onlineCoordinator?.isOnline?.() && !onlineCoordinator.canEditSetup?.()) return;
         divideTeams();
         renderSetupPreview();
+        updateFixedMemberSelection();
         scheduleOnlineSetupPublish();
       }));
       const onFirstAudioGesture = () => {
@@ -9733,6 +9771,7 @@
       if (Array.isArray(settings.players)) {
         els.players.forEach((input, index) => { input.value = settings.players[index] || ""; });
         divideTeams();
+        updateFixedMemberSelection();
       }
       localStorage.setItem(STORAGE.ranking, JSON.stringify(state.ranking));
       localStorage.setItem(STORAGE.playerStats, JSON.stringify(state.playerStats));
@@ -9762,22 +9801,48 @@
 
     function renderFixedMembers() {
       els.fixedMemberList.innerHTML = FIXED_MEMBERS.map((name) => (
-        `<button type="button" class="chip" data-member="${escapeHtml(name)}">${escapeHtml(name)}</button>`
+        `<button type="button" class="chip" data-member="${escapeHtml(name)}" aria-pressed="false">${escapeHtml(name)}</button>`
       )).join("");
       els.fixedMemberList.querySelectorAll("[data-member]").forEach((button) => {
         button.addEventListener("click", () => addFixedMember(button.dataset.member));
+      });
+      updateFixedMemberSelection();
+    }
+
+    function toggleCustomPlayerInputs() {
+      const expanded = els.customPlayersToggleButton?.getAttribute("aria-expanded") !== "true";
+      els.customPlayersToggleButton?.setAttribute("aria-expanded", String(expanded));
+      if (els.customPlayersToggleButton) els.customPlayersToggleButton.textContent = expanded ? "閉じる" : "追加...";
+      if (els.playerInputs) els.playerInputs.hidden = !expanded;
+      if (expanded) els.players.find((input) => !input.value.trim())?.focus();
+    }
+
+    function updateFixedMemberSelection() {
+      const selected = new Set(getPlayerInputs().map(canonicalFixedMemberName).filter(Boolean));
+      els.fixedMemberList?.querySelectorAll("[data-member]").forEach((button) => {
+        const active = selected.has(canonicalFixedMemberName(button.dataset.member));
+        button.classList.toggle("active", active);
+        button.setAttribute("aria-pressed", String(active));
       });
     }
 
     function addFixedMember(name) {
       if (onlineCoordinator?.isOnline?.() && !onlineCoordinator.canEditSetup?.()) return;
-      const exists = getPlayerInputs().includes(name);
-      if (exists) return;
+      const existing = els.players.find((input) => canonicalFixedMemberName(input.value) === canonicalFixedMemberName(name));
+      if (existing) {
+        existing.value = "";
+        divideTeams();
+        renderSetupPreview();
+        updateFixedMemberSelection();
+        scheduleOnlineSetupPublish();
+        return;
+      }
       const target = els.players.find((input) => !input.value.trim());
       if (target) {
         target.value = name;
         divideTeams();
         renderSetupPreview();
+        updateFixedMemberSelection();
         scheduleOnlineSetupPublish();
       }
     }
@@ -17473,6 +17538,7 @@
       if (Number(snapshot.gridSize) === 5 || Number(snapshot.gridSize) === 7) state.gridSize = Number(snapshot.gridSize);
       if (Array.isArray(snapshot.players)) {
         els.players.forEach((input, index) => { input.value = snapshot.players[index] || ""; });
+        updateFixedMemberSelection();
       }
       if (Array.isArray(snapshot.redMembers)) state.red.members = [...snapshot.redMembers];
       if (Array.isArray(snapshot.blueMembers)) state.blue.members = [...snapshot.blueMembers];
