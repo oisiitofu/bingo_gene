@@ -146,3 +146,9 @@ test("a server snapshot replaces the browser cache so every browser sees the sam
   assert.deepEqual(api._getRooms().map((room) => room.name), ["SHARED"]);
   assert.deepEqual(read().map((room) => room.name), ["SHARED"]);
 });
+
+test("world tournament room deletion is visible and executable only in Admin mode", () => {
+  assert.match(source, /const canDelete = host\.isAdmin\?\.\(\) === true/);
+  assert.match(source, /\$\{canDelete \? `<button[^`]+data-world-delete/);
+  assert.match(source, /if \(host\.isAdmin\?\.\(\) !== true\) return/);
+});

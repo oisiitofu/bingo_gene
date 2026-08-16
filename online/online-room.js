@@ -30,6 +30,8 @@ const START_READY_END_MS = 9230;
 const ADMIN_PIN = "9071";
 const ADMIN_PIN_HASH = "6440e6a91202aeddb45b070a80533f65a689c37d0cf1842ab2bd962e33377880";
 const REACTION_TTL_MS = 12000;
+const ADMIN_COUNT_PLAYERS = Object.freeze(["おいしいとうふ", "えだ", "ジャン", "リーマ", "Kento", "Lickey"]);
+const ADMIN_CHARACTER_COUNT = 87;
 
 export const ONLINE_REACTIONS = Object.freeze([
   { id: "clap", label: "拍手", mark: "👏" },
@@ -1119,6 +1121,29 @@ export class OnlineCoordinator {
                 <input id="onlineAdminImportFile" type="file" accept="application/json,.json" hidden aria-label="カウントデータJSON" />
               </div>
             </div>
+            <div class="online-admin-operation online-admin-count-operation">
+              <div>
+                <strong>PLAYER OPEN COUNTS</strong>
+                <span>プレイヤーごとのマス開封記録を1回ずつ補正します。</span>
+              </div>
+              <div class="online-admin-count-editor">
+                <label>
+                  <span>PLAYER</span>
+                  <select id="onlineAdminCountPlayer" aria-label="補正するプレイヤー">
+                    ${ADMIN_COUNT_PLAYERS.map((name) => `<option value="${escapeHtml(name)}">${escapeHtml(name)}</option>`).join("")}
+                  </select>
+                </label>
+                <label>
+                  <span>CELL</span>
+                  <select id="onlineAdminCountCharacter" aria-label="補正するマス番号">
+                    ${Array.from({ length: ADMIN_CHARACTER_COUNT }, (_, index) => `<option value="${index + 1}">No.${String(index + 1).padStart(2, "0")}</option>`).join("")}
+                  </select>
+                </label>
+                <output id="onlineAdminCountValue">0 OPEN</output>
+                <button type="button" class="online-simple-button danger" id="onlineAdminCountMinus" aria-label="開封数を1減らす">-1</button>
+                <button type="button" class="online-simple-button primary" id="onlineAdminCountPlus" aria-label="開封数を1増やす">+1</button>
+              </div>
+            </div>
             <div class="online-admin-operation">
               <div>
                 <strong>GHOST ROOMS</strong>
@@ -1293,6 +1318,11 @@ export class OnlineCoordinator {
       adminExportCounts: document.getElementById("onlineAdminExportCounts"),
       adminImportCounts: document.getElementById("onlineAdminImportCounts"),
       adminImportFile: document.getElementById("onlineAdminImportFile"),
+      adminCountPlayer: document.getElementById("onlineAdminCountPlayer"),
+      adminCountCharacter: document.getElementById("onlineAdminCountCharacter"),
+      adminCountValue: document.getElementById("onlineAdminCountValue"),
+      adminCountMinus: document.getElementById("onlineAdminCountMinus"),
+      adminCountPlus: document.getElementById("onlineAdminCountPlus"),
       adminDeleteGhosts: document.getElementById("onlineAdminDeleteGhosts"),
       adminGhostSummary: document.getElementById("onlineAdminGhostSummary"),
       adminAssets: document.getElementById("onlineAdminAssets"),
@@ -1397,6 +1427,10 @@ export class OnlineCoordinator {
       const file = this.ui.adminImportFile.files?.[0];
       if (file) this.importCountData(file);
     });
+    this.ui.adminCountPlayer.addEventListener("change", () => this.renderAdminPlayerCountEditor());
+    this.ui.adminCountCharacter.addEventListener("change", () => this.renderAdminPlayerCountEditor());
+    this.ui.adminCountMinus.addEventListener("click", () => this.adjustAdminPlayerOpenCount(-1));
+    this.ui.adminCountPlus.addEventListener("click", () => this.adjustAdminPlayerOpenCount(1));
     this.ui.adminDeleteGhosts.addEventListener("click", async () => {
       const count = this.getGhostRooms().length;
       if (!count) return;
@@ -1553,6 +1587,7 @@ export class OnlineCoordinator {
     this.hideLobby();
     this.syncAdminGhostControls();
     this.syncAdminBackupControls();
+    this.renderAdminPlayerCountEditor();
     this.ui.adminResult.textContent = "管理操作を選択してください。";
     this.ui.adminPage.classList.add("show");
     this.ui.adminPage.setAttribute("aria-hidden", "false");
@@ -3326,6 +3361,7 @@ export class OnlineCoordinator {
       };
       this.standaloneStatsBaseline = clone(this.globalStatsSnapshot);
       this.bridge.applyOnlineStatsSnapshot?.(this.globalStatsSnapshot);
+      if (this.ui?.adminPage?.classList?.contains?.("show")) this.renderAdminPlayerCountEditor();
     });
   }
 
@@ -3637,6 +3673,84 @@ export class OnlineCoordinator {
       this.ui.adminImportFile.value = "";
       this.ui.adminExportCounts.disabled = false;
       this.ui.adminImportCounts.disabled = false;
+    }
+  }
+
+  renderAdminPlayerCountEditor() {
+    if (!this.ui?.adminCountPlayer || !this.ui?.adminCountCharacter || !this.ui?.adminCountValue) return;
+    const name = ADMIN_COUNT_PLAYERS.includes(this.ui.adminCountPlayer.value)
+      ? this.ui.adminCountPlayer.value
+      : ADMIN_COUNT_PLAYERS[0];
+    const characterId = Math.max(1, Math.min(ADMIN_CHARACTER_COUNT, Number(this.ui.adminCountCharacter.value) || 1));
+    const record = this.globalStatsSnapshot?.playerStats?.players?.[playerKey(name)] || {};
+    const count = Math.max(0, Number(record.openedCharacters?.[characterId]) || 0);
+    const total = Math.max(0, Number(record.opens) || 0);
+    this.ui.adminCountPlayer.value = name;
+    this.ui.adminCountCharacter.value = String(characterId);
+    this.ui.adminCountValue.textContent = `${count} OPEN / TOTAL ${total}`;
+    if (this.ui.adminCountMinus) this.ui.adminCountMinus.disabled = count <= 0;
+  }
+
+  async adjustAdminPlayerOpenCount(direction) {
+    if (!this.enabled || !this.isAdminMode() || ![-1, 1].includes(Number(direction))) return false;
+    if (!await this.verifyAdminSession()) return false;
+    const name = normalizeName(this.ui?.adminCountPlayer?.value);
+    const characterId = Math.max(1, Math.min(ADMIN_CHARACTER_COUNT, Number(this.ui?.adminCountCharacter?.value) || 0));
+    if (!ADMIN_COUNT_PLAYERS.includes(name) || !characterId) return false;
+    const delta = Number(direction) < 0 ? -1 : 1;
+    const actionId = randomId("admin-open-count");
+    [this.ui?.adminCountMinus, this.ui?.adminCountPlus].filter(Boolean).forEach((button) => { button.disabled = true; });
+    try {
+      const result = await this.backend.transaction(this.path("globalStats"), (stats) => {
+        const next = isPlainObject(stats) ? stats : {};
+        next.ranking ||= {};
+        next.playerStats ||= { players: {}, rivalries: {}, recentMatches: [] };
+        next.playerStats.players ||= {};
+        next.playerStats.rivalries ||= {};
+        next.playerStats.recentMatches ||= [];
+        const key = playerKey(name);
+        const record = isPlainObject(next.playerStats.players[key]) ? next.playerStats.players[key] : { name };
+        record.name = name;
+        record.openedCharacters = isPlainObject(record.openedCharacters) ? record.openedCharacters : {};
+        const current = Math.max(0, Number(record.openedCharacters[characterId]) || 0);
+        if (delta < 0 && current <= 0) return undefined;
+        const updated = Math.max(0, current + delta);
+        if (updated) record.openedCharacters[characterId] = updated;
+        else delete record.openedCharacters[characterId];
+        record.opens = Math.max(0, (Number(record.opens) || 0) + delta);
+        next.playerStats.players[key] = record;
+        const updatedAt = this.backend.serverNow();
+        next.playerStatsUpdatedAt = updatedAt;
+        next.processedActions ||= {};
+        next.processedActions[actionId] = updatedAt;
+        next.processedActions = Object.fromEntries(
+          Object.entries(next.processedActions).sort(([, a], [, b]) => Number(b) - Number(a)).slice(0, 500)
+        );
+        return next;
+      });
+      if (!result.committed) {
+        this.ui.adminResult.textContent = `${name} / No.${characterId} はすでに 0 OPEN です。`;
+        this.renderAdminPlayerCountEditor();
+        return false;
+      }
+      this.globalStatsSnapshot = {
+        ranking: clone(result.value?.ranking || {}),
+        playerStats: clone(result.value?.playerStats || { players: {}, rivalries: {}, recentMatches: [] }),
+        rankingResetAt: Number(result.value?.rankingResetAt) || 0,
+        playerStatsResetAt: Number(result.value?.playerStatsResetAt) || 0
+      };
+      this.standaloneStatsBaseline = clone(this.globalStatsSnapshot);
+      this.bridge.applyOnlineStatsSnapshot?.(this.globalStatsSnapshot);
+      this.renderAdminPlayerCountEditor();
+      const count = Number(this.globalStatsSnapshot.playerStats.players?.[playerKey(name)]?.openedCharacters?.[characterId]) || 0;
+      this.ui.adminResult.textContent = `${name} / No.${characterId} を ${delta > 0 ? "+1" : "-1"} 補正しました。現在 ${count} OPEN。`;
+      return true;
+    } catch (error) {
+      this.ui.adminResult.textContent = `COUNT EDIT ERROR: ${String(error?.message || error)}`;
+      return false;
+    } finally {
+      if (this.ui?.adminCountPlus) this.ui.adminCountPlus.disabled = false;
+      this.renderAdminPlayerCountEditor();
     }
   }
 

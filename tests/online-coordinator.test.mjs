@@ -485,7 +485,12 @@ function prepareAdminCoordinator(store, uid = "master") {
     adminResult: { textContent: "" },
     adminExportCounts: { disabled: false },
     adminImportCounts: { disabled: false },
-    adminImportFile: { value: "" }
+    adminImportFile: { value: "" },
+    adminCountPlayer: { value: "ジャン" },
+    adminCountCharacter: { value: "53" },
+    adminCountValue: { textContent: "" },
+    adminCountMinus: { disabled: false },
+    adminCountPlus: { disabled: false }
   };
   coordinator.hideAdminPage = () => {};
   coordinator.showLobby = () => {};
@@ -1036,6 +1041,29 @@ test("admin ranking reset preserves player stats and bounds processed action his
   assert.equal(Number(store.value.teamBingoV1.globalStats.rankingResetAt) > 0, true);
   assert.equal(store.value.teamBingoV1.globalStats.playerStats.players.jan.games, 3);
   assert.equal(Object.keys(store.value.teamBingoV1.globalStats.processedActions).length, 500);
+});
+
+test("admin can correct one player's per-cell opens without changing the shared cell ranking", async () => {
+  const store = createStore();
+  const stats = store.value.teamBingoV1.globalStats;
+  stats.ranking = { 53: 9 };
+  stats.playerStats.players["ジャン"] = {
+    name: "ジャン",
+    opens: 3,
+    openedCharacters: { 53: 2, 69: 1 }
+  };
+  const admin = prepareAdminCoordinator(store);
+  admin.globalStatsSnapshot = clone(stats);
+
+  assert.equal(await admin.adjustAdminPlayerOpenCount(-1), true);
+  assert.equal(store.value.teamBingoV1.globalStats.playerStats.players["ジャン"].opens, 2);
+  assert.deepEqual(store.value.teamBingoV1.globalStats.playerStats.players["ジャン"].openedCharacters, { 53: 1, 69: 1 });
+  assert.deepEqual(store.value.teamBingoV1.globalStats.ranking, { 53: 9 });
+  assert.match(admin.ui.adminResult.textContent, /-1/);
+
+  assert.equal(await admin.adjustAdminPlayerOpenCount(1), true);
+  assert.equal(store.value.teamBingoV1.globalStats.playerStats.players["ジャン"].opens, 3);
+  assert.equal(store.value.teamBingoV1.globalStats.playerStats.players["ジャン"].openedCharacters[53], 2);
 });
 
 test("delayed stats queued before an admin reset cannot restore cleared counts", async () => {

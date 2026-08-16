@@ -485,12 +485,13 @@
     `;
   }
 
-  function characterSummary(stat) {
+  function characterSummary(stat, options = {}) {
     const entries = Object.entries(stat.characters || {}).sort((a, b) => Number(b[1]) - Number(a[1]));
     if (!entries.length) return `<span class="world-empty-character">まだ使用記録なし</span>`;
     return entries.map(([id, count]) => `
-      <span class="world-character-chip">
+      <span class="world-character-chip${options.showNumber ? " numbered" : ""}" title="No.${escapeHtml(id)} / ${Number(count) || 0} OPEN">
         ${typeof host.characterMarkup === "function" ? host.characterMarkup(id) : `<b>${escapeHtml(id)}</b>`}
+        ${options.showNumber ? `<em>No.${String(id).padStart(2, "0")}</em>` : ""}
         <small>x${Number(count) || 0}</small>
       </span>
     `).join("");
@@ -530,7 +531,10 @@
                   <dt>SKILL</dt><dd>${stat.skills}</dd>
                   <dt>COMEBACK</dt><dd>${stat.comebackMoves}</dd>
                 </dl>
-                <div class="world-character-list">${characterSummary(stat)}</div>
+                <div class="world-opened-cells">
+                  <h4>OPENED CELLS <span>${Object.keys(stat.characters || {}).length} TYPES</span></h4>
+                  <div class="world-character-list">${characterSummary(stat, { showNumber: true })}</div>
+                </div>
               </article>
             `;
           }).join("") : `<div class="world-empty-detail"><strong>累計記録はまだありません</strong></div>`}
@@ -562,6 +566,8 @@
     }
     const complete = room.matches.filter((match) => match.status === "complete").length;
     const shuffleEnabled = canShuffleRoom(room);
+    const canDelete = host.isAdmin?.() === true;
+    if (!canDelete) deleteArmedId = "";
     const leaderboard = Object.values(room.stats).sort((a, b) => (
       b.wins - a.wins || b.opens - a.opens || b.mvps - a.mvps || a.name.localeCompare(b.name, "ja-JP")
     ));
@@ -575,7 +581,7 @@
         <div>
           <button type="button" class="world-simple-button" data-world-shuffle="${escapeHtml(room.id)}" ${shuffleEnabled ? "" : "disabled"} title="${shuffleEnabled ? "全対戦カードをシャッフル" : "試合開始後はシャッフルできません"}">SHUFFLE</button>
           <button type="button" class="world-simple-button" data-world-csv="${escapeHtml(room.id)}">CSV</button>
-          <button type="button" class="world-simple-button danger" data-world-delete="${escapeHtml(room.id)}">${deleteArmedId === room.id ? "CONFIRM DELETE" : "DELETE"}</button>
+          ${canDelete ? `<button type="button" class="world-simple-button danger" data-world-delete="${escapeHtml(room.id)}">${deleteArmedId === room.id ? "CONFIRM DELETE" : "DELETE"}</button>` : ""}
         </div>
       </header>
       <section class="world-progress"><i style="width:${room.matches.length ? (complete / room.matches.length) * 100 : 0}%"></i></section>
@@ -723,6 +729,7 @@
     }
     const remove = event.target.closest("[data-world-delete]");
     if (remove) {
+      if (host.isAdmin?.() !== true) return;
       const id = remove.dataset.worldDelete;
       if (deleteArmedId !== id) {
         deleteArmedId = id;

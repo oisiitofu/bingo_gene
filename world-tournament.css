@@ -282,9 +282,23 @@ body.world-tournament-open {
   grid-template-columns: repeat(4, auto minmax(18px, 1fr));
 }
 
-.world-all-player-stat .world-character-list {
+.world-all-player-stat .world-opened-cells {
   grid-column: 2 / -1;
   width: 100%;
+}
+
+.world-opened-cells h4 {
+  display: flex;
+  justify-content: space-between;
+  gap: 8px;
+  margin: 0 0 5px;
+  color: #d9e0e8;
+  font-size: 8px;
+}
+
+.world-opened-cells h4 span {
+  color: #788493;
+  font-size: 7px;
 }
 
 .world-all-stats .world-empty-detail {
@@ -338,6 +352,27 @@ body.world-tournament-open {
   color: #fff;
   background: rgba(0, 0, 0, .8);
   font-size: 6px;
+}
+
+.world-character-chip.numbered {
+  flex-basis: 48px;
+  width: 48px;
+  height: 43px;
+  padding-bottom: 12px;
+}
+
+.world-character-chip.numbered img {
+  min-height: 0;
+}
+
+.world-character-chip em {
+  position: absolute;
+  left: 2px;
+  bottom: 1px;
+  color: #17202b;
+  font-size: 6px;
+  font-style: normal;
+  font-weight: 1000;
 }
 
 .world-empty-character {

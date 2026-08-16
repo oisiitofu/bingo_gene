@@ -17,9 +17,9 @@ test("online lobby boot bypasses stale browser modules and retries once", () => 
   const html = readFileSync(new URL("../index.html", import.meta.url), "utf8");
   const serviceWorker = readFileSync(new URL("../sw.js", import.meta.url), "utf8");
 
-  assert.match(html, /online-room\.js\?v=20260801-hatch-sync-1/);
+  assert.match(html, /online-room\.js\?v=20260816-lite-mode-1/);
   assert.match(html, /retry=\$\{Date\.now\(\)\}/);
-  assert.match(serviceWorker, /20260809-monster-pose-scale-112/);
+  assert.match(serviceWorker, /20260816-lite-mode-114/);
 });
 
 test("one-bingo audio, Likecy skill timing, and reach badge rules stay aligned", () => {
@@ -112,6 +112,30 @@ test("bingo cells are operated only through player-name buttons", () => {
   assert.doesNotMatch(html, /role="button"[^>]+data-testid="bingo-cell-/);
   assert.match(html, /function canUseOnlinePlayerChoice\(team, memberName\)/);
   assert.match(html, /selected\.length === 1 && selected\[0\] === playerStatsKey\(member\)/);
+});
+
+test("Lite Mode keeps two operable boards visible and opens cells after choosing a player", () => {
+  const html = readFileSync(new URL("../index.html", import.meta.url), "utf8");
+
+  assert.match(html, /class="btn simple-ui-btn" id="compactModeButton"[^>]*>LITE MODE OFF/);
+  assert.match(html, /document\.body\.classList\.toggle\("compact-ipad-mode", state\.compactMode\)/);
+  assert.match(html, /body\.compact-ipad-mode \.boards \{[\s\S]*?grid-template-columns: repeat\(2, minmax\(0, 1fr\)\)/);
+  assert.match(html, /body\.compact-ipad-mode \.commentary,[\s\S]*?body\.compact-ipad-mode \.voice-lane/);
+  assert.match(html, /body\.compact-ipad-mode \.game-top \{[\s\S]*?display: grid/);
+  assert.match(html, /body\.compact-ipad-mode \.board-actions \{[\s\S]*?min-height: 34px/);
+  assert.match(html, /showOpenedByPopover\(team, index, cellElement\.getBoundingClientRect\(\), \{ pendingOpen: !side\.marked\[index\] \}\)/);
+  assert.match(html, /compactMode: state\.compactMode/);
+  assert.match(html, /state\.compactMode = snapshot\.compactMode === true/);
+});
+
+test("world tournament all stats exposes every player's numbered opened cells", () => {
+  const source = readFileSync(new URL("../world-tournament.js", import.meta.url), "utf8");
+  const css = readFileSync(new URL("../world-tournament.css", import.meta.url), "utf8");
+
+  assert.match(source, /OPENED CELLS/);
+  assert.match(source, /characterSummary\(stat, \{ showNumber: true \}\)/);
+  assert.match(source, /No\.\$\{String\(id\)\.padStart\(2, "0"\)\}/);
+  assert.match(css, /\.world-character-chip\.numbered/);
 });
 
 test("stats render every opened character instead of only the top entries", () => {

@@ -2302,6 +2302,22 @@
       font-weight: 1000;
     }
 
+    .opened-by-actions {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 7px;
+    }
+
+    .opened-by-close {
+      min-height: 32px;
+      color: #fff;
+      background: rgba(218, 38, 69, .8);
+      border: 1px solid rgba(255,255,255,.28);
+      border-radius: 6px;
+      font-size: 11px;
+      font-weight: 1000;
+    }
+
     .score-box {
       position: relative;
       isolation: isolate;
@@ -7335,6 +7351,278 @@
       .replay-controls { grid-template-columns: auto auto 1fr; }
       .replay-step-label { grid-column: 1 / -1; justify-self: end; }
     }
+
+    body.compact-ipad-mode {
+      overflow: hidden;
+      background: #02050b;
+    }
+
+    body.compact-ipad-mode .app {
+      width: 100vw;
+      max-width: none;
+      height: 100dvh;
+      padding: 6px;
+      overflow: hidden;
+    }
+
+    body.compact-ipad-mode #playScreen.active {
+      height: 100%;
+      min-height: 0;
+      display: grid;
+      grid-template-rows: auto minmax(0, 1fr);
+      gap: 4px;
+    }
+
+    body.compact-ipad-mode .commentary,
+    body.compact-ipad-mode .ranking-band,
+    body.compact-ipad-mode .monster-panel,
+    body.compact-ipad-mode .voice-lane,
+    body.compact-ipad-mode .fever-aura,
+    body.compact-ipad-mode #fxLayer,
+    body.compact-ipad-mode .copyright,
+    body.compact-ipad-mode .online-session-bar,
+    body.compact-ipad-mode .online-reaction-dock {
+      display: none !important;
+    }
+
+    body.compact-ipad-mode .game-top {
+      display: grid;
+      grid-template-columns: minmax(300px, 330px) minmax(0, 1fr);
+      gap: 6px;
+      align-items: center;
+      margin: 0;
+    }
+
+    body.compact-ipad-mode .top-left,
+    body.compact-ipad-mode .top-center {
+      min-width: 0;
+      min-height: 48px;
+      gap: 5px;
+    }
+
+    body.compact-ipad-mode .top-left { flex-wrap: nowrap; }
+    body.compact-ipad-mode .top-center { flex-direction: row; }
+    body.compact-ipad-mode .top-right { display: none; }
+
+    body.compact-ipad-mode .top-left > .btn,
+    body.compact-ipad-mode .play-volume .btn,
+    body.compact-ipad-mode .top-buttons .btn,
+    body.compact-ipad-mode #playScreen .top-buttons .btn.primary {
+      min-height: 34px;
+      padding: 6px 8px;
+      border-radius: 4px;
+      font-size: 9px;
+    }
+
+    body.compact-ipad-mode .top-left > .btn { flex: 0 0 auto; }
+    body.compact-ipad-mode .play-volume {
+      flex: 1 1 auto;
+      width: auto;
+      min-width: 0;
+      grid-template-columns: auto minmax(0, 1fr);
+      gap: 5px;
+      padding: 4px;
+    }
+    body.compact-ipad-mode .play-volume .volume-slider {
+      grid-template-columns: auto minmax(46px, 1fr) 24px;
+      gap: 4px;
+      font-size: 8px;
+    }
+
+    body.compact-ipad-mode .hype-wrap {
+      flex: 1 1 52%;
+      min-width: 250px;
+      min-height: 44px;
+      grid-template-columns: minmax(72px, 1fr) 48px minmax(72px, 1fr);
+      gap: 4px;
+      padding: 7px 9px;
+    }
+    body.compact-ipad-mode .hype { height: 24px; }
+    body.compact-ipad-mode .hype-center { font-size: 11px; }
+    body.compact-ipad-mode .top-buttons {
+      flex: 1 1 48%;
+      min-width: 0;
+      gap: 4px;
+    }
+    body.compact-ipad-mode .top-buttons .btn {
+      flex: 1 1 0;
+      min-width: 0;
+      padding-inline: 3px !important;
+      font-size: 8px !important;
+      letter-spacing: 0 !important;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    body.compact-ipad-mode .top-left > .btn,
+    body.compact-ipad-mode .play-volume .btn,
+    body.compact-ipad-mode .top-buttons .btn,
+    body.compact-ipad-mode .team-skill,
+    body.compact-ipad-mode .team-shuffle {
+      border: 1px solid rgba(148,163,184,.5) !important;
+      border-radius: 4px !important;
+      color: #edf2f8 !important;
+      background: #111925 !important;
+      background-image: none !important;
+      box-shadow: inset 0 1px 0 rgba(255,255,255,.07) !important;
+      text-shadow: none !important;
+      clip-path: none !important;
+    }
+    body.compact-ipad-mode .top-left > .btn::before,
+    body.compact-ipad-mode .top-left > .btn::after,
+    body.compact-ipad-mode .play-volume .btn::before,
+    body.compact-ipad-mode .play-volume .btn::after,
+    body.compact-ipad-mode .top-buttons .btn::before,
+    body.compact-ipad-mode .top-buttons .btn::after,
+    body.compact-ipad-mode .team-skill::before,
+    body.compact-ipad-mode .team-skill::after,
+    body.compact-ipad-mode .team-shuffle::before,
+    body.compact-ipad-mode .team-shuffle::after {
+      content: none !important;
+      display: none !important;
+    }
+
+    body.compact-ipad-mode .arena {
+      width: 100%;
+      height: auto;
+      min-height: 0;
+      margin: 0;
+      transform: none;
+      overflow: hidden;
+    }
+
+    body.compact-ipad-mode .boards {
+      width: 100%;
+      height: 100%;
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 7px;
+    }
+
+    body.compact-ipad-mode .team-battle-unit,
+    body.compact-ipad-mode .team-battle-unit.blue {
+      min-width: 0;
+      min-height: 0;
+      display: block;
+    }
+
+    body.compact-ipad-mode .board-card {
+      width: 100%;
+      height: 100%;
+      display: grid;
+      grid-template-rows: auto minmax(0, 1fr);
+      padding: 7px;
+      border-radius: 7px;
+      box-shadow: 0 0 22px color-mix(in srgb, var(--team-accent) 28%, transparent);
+    }
+
+    body.compact-ipad-mode .board-card::before {
+      padding: 12px;
+      opacity: .64;
+    }
+
+    body.compact-ipad-mode .board-head,
+    body.compact-ipad-mode .board-card.kento-ally .board-head {
+      min-height: 50px;
+      padding: 6px 9px;
+      gap: 6px;
+      clip-path: none;
+      border-radius: 5px;
+    }
+
+    body.compact-ipad-mode .board-title {
+      font-size: clamp(15px, 2.2vw, 23px);
+      line-height: 1;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    body.compact-ipad-mode .board-members {
+      margin-top: 2px;
+      gap: 2px;
+      font-size: clamp(8px, 1.15vw, 11px);
+      flex-wrap: nowrap;
+      overflow: hidden;
+    }
+
+    body.compact-ipad-mode .board-member-chip {
+      padding: 1px 4px 2px;
+    }
+
+    body.compact-ipad-mode .score-box {
+      width: 58px;
+      min-height: 39px;
+      padding: 4px 6px;
+    }
+
+    body.compact-ipad-mode .score-box span { font-size: 7px; }
+    body.compact-ipad-mode .score-box strong { font-size: 25px; }
+
+    body.compact-ipad-mode .board-body,
+    body.compact-ipad-mode .board-card.kento-ally .board-body {
+      min-height: 0;
+      margin-top: 5px;
+      padding: 6px;
+      display: grid;
+      grid-template-rows: minmax(0, 1fr) auto;
+      align-content: stretch;
+      overflow: hidden;
+      border-radius: 5px;
+    }
+
+    body.compact-ipad-mode .board-card.kento-ally .board-body::after {
+      display: none;
+    }
+
+    body.compact-ipad-mode .grid {
+      width: 100%;
+      max-height: 100%;
+      align-self: center;
+      gap: clamp(2px, .45vw, 5px);
+    }
+
+    body.compact-ipad-mode .board-actions {
+      min-height: 34px;
+      margin-top: 5px;
+      gap: 5px;
+      align-items: center;
+    }
+    body.compact-ipad-mode .board-actions .status { display: none; }
+    body.compact-ipad-mode .team-skill-list {
+      min-width: 0;
+      min-height: 34px;
+      flex-wrap: nowrap;
+      gap: 4px;
+      overflow-x: auto;
+    }
+    body.compact-ipad-mode .board-tools { flex-wrap: nowrap; gap: 4px; }
+    body.compact-ipad-mode .team-skill,
+    body.compact-ipad-mode .team-shuffle {
+      min-width: 0;
+      min-height: 34px;
+      padding: 6px 8px;
+      font-size: 9px;
+    }
+
+    body.compact-ipad-mode .cell {
+      border-radius: clamp(4px, .7vw, 8px);
+      cursor: pointer;
+      transition: filter .08s ease, transform .08s ease;
+    }
+
+    body.compact-ipad-mode .cell-player-choices { display: none !important; }
+    body.compact-ipad-mode .opened-by-popover {
+      left: 50%;
+      top: 50%;
+      width: min(430px, 86vw);
+      transform: translate(-50%, -50%);
+    }
+    body.compact-ipad-mode .opened-by-popover::after { display: none; }
+    body.compact-ipad-mode .opened-by-choice { flex: 1 1 120px; min-height: 48px; font-size: 15px; }
+    body.compact-ipad-mode .opened-by-done,
+    body.compact-ipad-mode .opened-by-close { min-height: 44px; font-size: 13px; }
   </style>
   <link rel="stylesheet" href="monster-battle.css" />
 </head>
@@ -7397,6 +7685,7 @@
               <button type="button" class="btn active" id="randomEventButton" aria-pressed="true">EVENT ON</button>
               <button type="button" class="btn active" id="monsterBattleModeButton" aria-pressed="true">MONSTER BATTLE ON</button>
               <button type="button" class="btn" id="doubleMonsterModeButton" aria-pressed="false">DOUBLE MONSTER OFF</button>
+              <button type="button" class="btn simple-ui-btn" id="compactModeButton" aria-pressed="false">LITE MODE OFF</button>
               <button type="button" class="btn territory-entry-btn" id="territoryModeButton">六王領土戦</button>
               <button type="button" class="btn" id="worldTournamentButton">世界大会</button>
             </div>
@@ -7960,6 +8249,7 @@
       randomEvents: "teamBingo.randomEvents.v1",
       monsterBattleMode: "teamBingo.monsterBattleMode.v1",
       doubleMonsterMode: "teamBingo.doubleMonsterMode.v1",
+      compactMode: "teamBingo.compactMode.v1",
       autoBackups: "teamBingo.autoBackups.v1"
     };
 
@@ -8564,6 +8854,7 @@
       randomEventMilestones: [],
       monsterBattleMode: true,
       doubleMonsterMode: false,
+      compactMode: false,
       monsterBattle: null,
       monsterBattleRunId: 0,
       monsterBattlePresentationSeed: 0,
@@ -8758,7 +9049,7 @@
         "adminMonsterBattleModal", "adminMonsterRed1", "adminMonsterRed2", "adminMonsterBlue1", "adminMonsterBlue2", "adminMonsterBattleShuffle", "adminMonsterBattleCancel", "adminMonsterBattleStart",
         "teamSelectModal", "teamSelectList", "teamSelectRedMembers", "teamSelectBlueMembers", "teamSelectShuffleButton", "teamSelectConfirmButton", "teamSelectCancelButton", "teamSelectError",
         "statsSeasonSelect", "statsSeasonList", "statsTournamentList", "statsTerritoryList",
-        "randomEventButton", "monsterBattleModeButton", "doubleMonsterModeButton", "territoryModeButton", "playTerritoryModeButton", "worldTournamentButton",
+        "randomEventButton", "monsterBattleModeButton", "doubleMonsterModeButton", "compactModeButton", "territoryModeButton", "playTerritoryModeButton", "worldTournamentButton",
         "matchReplayModal", "replayMatchMeta", "replaySummary", "replayBoards", "replayTimeline", "replayCloseButton",
         "replayPrevButton", "replayPlayButton", "replayRange", "replayStepLabel",
         "feverAura", "fxLayer", "openedByPopover", "victoryParticles", "setupThemePlayer", "copyrightToggle",
@@ -8797,6 +9088,7 @@
       els.randomEventButton?.addEventListener("click", toggleRandomEvents);
       els.monsterBattleModeButton?.addEventListener("click", toggleMonsterBattleMode);
       els.doubleMonsterModeButton?.addEventListener("click", toggleDoubleMonsterMode);
+      els.compactModeButton?.addEventListener("click", toggleCompactMode);
       els.territoryModeButton?.addEventListener("click", openTerritoryWindow);
       els.playTerritoryModeButton?.addEventListener("click", openTerritoryWindow);
       els.worldTournamentButton?.addEventListener("click", openWorldTournament);
@@ -8914,6 +9206,8 @@
         }
         const done = event.target.closest("[data-opened-by-done]");
         if (done && els.openedByPopover.contains(done)) hideOpenedByPopover();
+        const close = event.target.closest("[data-opened-by-close]");
+        if (close && els.openedByPopover.contains(close)) closeOpenedByCell();
       });
       els.closeVictoryButton.addEventListener("click", closeVictoryOverlay);
       els.victoryResultPanel?.addEventListener("click", (event) => {
@@ -9262,6 +9556,7 @@
       state.randomEventsEnabled = localStorage.getItem(STORAGE.randomEvents) !== "off";
       state.monsterBattleMode = localStorage.getItem(STORAGE.monsterBattleMode) !== "off";
       state.doubleMonsterMode = localStorage.getItem(STORAGE.doubleMonsterMode) === "on";
+      state.compactMode = localStorage.getItem(STORAGE.compactMode) === "on";
       state.teamDecks.red = loadJson(STORAGE.redDeck, null);
       state.teamDecks.blue = loadJson(STORAGE.blueDeck, null);
       els.setupRoomIdInput.value = state.roomId;
@@ -9271,6 +9566,7 @@
       updateRandomEventButton();
       updateMonsterBattleMode();
       updateDoubleMonsterMode();
+      updateCompactMode();
       scheduleAutoBackup("startup", 1500);
     }
 
@@ -9317,6 +9613,7 @@
           randomEventsEnabled: state.randomEventsEnabled,
           monsterBattleMode: state.monsterBattleMode,
           doubleMonsterMode: state.doubleMonsterMode,
+          compactMode: state.compactMode,
           teamDecks: cloneOnlineValue(state.teamDecks),
           players: els.players?.map((input) => input.value.trim()) || []
         }
@@ -9361,6 +9658,7 @@
       state.randomEventsEnabled = settings.randomEventsEnabled !== false;
       state.monsterBattleMode = settings.monsterBattleMode !== false;
       state.doubleMonsterMode = settings.doubleMonsterMode === true;
+      state.compactMode = settings.compactMode === true;
       state.teamDecks = cloneOnlineValue(settings.teamDecks || { red: null, blue: null });
       if (Array.isArray(settings.players)) {
         els.players.forEach((input, index) => { input.value = settings.players[index] || ""; });
@@ -9374,12 +9672,14 @@
       localStorage.setItem(STORAGE.randomEvents, state.randomEventsEnabled ? "on" : "off");
       localStorage.setItem(STORAGE.monsterBattleMode, state.monsterBattleMode ? "on" : "off");
       localStorage.setItem(STORAGE.doubleMonsterMode, state.doubleMonsterMode ? "on" : "off");
+      localStorage.setItem(STORAGE.compactMode, state.compactMode ? "on" : "off");
       localStorage.setItem(STORAGE.redDeck, JSON.stringify(state.teamDecks.red));
       localStorage.setItem(STORAGE.blueDeck, JSON.stringify(state.teamDecks.blue));
       updateGridButtons();
       updateRandomEventButton();
       updateMonsterBattleMode();
       updateDoubleMonsterMode();
+      updateCompactMode();
       updateSoundButton();
       updateVolumeControls();
       updateCachedAudioVolume();
@@ -9538,6 +9838,27 @@
       els.doubleMonsterModeButton.disabled = Boolean(onlineCoordinator?.isOnline?.() && !onlineCoordinator.canEditSetup?.());
     }
 
+    function toggleCompactMode() {
+      if (onlineCoordinator?.isOnline?.() && !onlineCoordinator.canEditSetup?.()) return;
+      state.compactMode = !state.compactMode;
+      localStorage.setItem(STORAGE.compactMode, state.compactMode ? "on" : "off");
+      updateCompactMode();
+      renderAll();
+      scheduleAutoBackup("compact-mode-setting");
+      scheduleOnlineSetupPublish(40);
+    }
+
+    function updateCompactMode() {
+      document.body.classList.toggle("compact-ipad-mode", state.compactMode);
+      if (!els.compactModeButton) return;
+      els.compactModeButton.classList.toggle("active", state.compactMode);
+      els.compactModeButton.setAttribute("aria-pressed", String(state.compactMode));
+      els.compactModeButton.textContent = state.compactMode ? "LITE MODE ON" : "LITE MODE OFF";
+      els.compactModeButton.disabled = Boolean(onlineCoordinator?.isOnline?.() && !onlineCoordinator.canEditSetup?.());
+      if (els.playStartButton) els.playStartButton.textContent = state.compactMode ? "START" : "GAME START";
+      if (els.playTerritoryModeButton) els.playTerritoryModeButton.textContent = state.compactMode ? "領土戦" : "六王領土戦";
+    }
+
     function startGame(options = {}) {
       if (!options.teamsConfirmed) return openTeamSelection();
       const requestedTeams = options.teams || { red: state.red.members, blue: state.blue.members };
@@ -9574,6 +9895,14 @@
       state.readyShown = false;
       showScreen("play");
       renderAll();
+      if (state.compactMode) {
+        state.monsterHatchPending = false;
+        state.readyShown = true;
+        state.inputLocked = false;
+        renderAll();
+        scheduleOnlineStateSync("match-ready", 40);
+        return true;
+      }
       playDealAnimation();
       showCommentary("開幕準備完了！", "チーム紹介からREADYへ。", 3600);
       enqueueEffect(async () => {
@@ -10544,11 +10873,12 @@
       return value ? [value] : [];
     }
 
-    function showOpenedByPopover(team, index, rect = null) {
+    function showOpenedByPopover(team, index, rect = null, options = {}) {
       const side = state[team];
       const cell = side.card[index];
-      if (!cell || !side.marked[index] || !els.openedByPopover) return;
-      state.currentOpenAttribution = { team, index };
+      const pendingOpen = options.pendingOpen === true && !side.marked[index];
+      if (!cell || cell.free || (!side.marked[index] && !pendingOpen) || !els.openedByPopover) return;
+      state.currentOpenAttribution = { team, index, pendingOpen };
       renderOpenedByPopover();
       const fallbackRect = rect || document.querySelector(`[data-team="${team}"][data-index="${index}"]`)?.getBoundingClientRect();
       if (fallbackRect) {
@@ -10572,18 +10902,22 @@
       const maxReached = selected.size >= 2;
       els.openedByPopover.innerHTML = `
         <div class="opened-by-title">
-          <span>OPENED BY</span>
-          <span class="opened-by-count">${selected.size} / 2</span>
+          <span>${current.pendingOpen ? "OPEN PLAYER" : "OPENED BY"}</span>
+          <span class="opened-by-count">${current.pendingOpen ? "SELECT 1" : `${selected.size} / 2`}</span>
         </div>
         <div class="opened-by-options">
           ${members.map((member, index) => {
             const key = playerStatsKey(member);
             const active = selected.has(key);
-            const disabled = !active && maxReached;
+            const disabled = (!active && maxReached) || !canUseOnlinePlayerChoice(current.team, member);
             return `<button type="button" class="opened-by-choice${active ? " active" : ""}" data-opened-by-index="${index}" ${disabled ? "disabled" : ""} title="${escapeHtml(member)}">${escapeHtml(member)}</button>`;
           }).join("")}
         </div>
-        <button type="button" class="opened-by-done" data-opened-by-done="1">DONE</button>
+        ${current.pendingOpen ? `<button type="button" class="opened-by-done" data-opened-by-done="1">CANCEL</button>` : `
+          <div class="opened-by-actions">
+            <button type="button" class="opened-by-close" data-opened-by-close="1">CLOSE CELL</button>
+            <button type="button" class="opened-by-done" data-opened-by-done="1">DONE</button>
+          </div>`}
       `;
     }
 
@@ -10605,6 +10939,22 @@
         (onlineSession.team !== current.team || playerStatsKey(requestedMember) !== playerStatsKey(onlineSession.memberName))
       ) {
         showCommentary("YOUR NAME ONLY", "参加者は自分の名前だけ担当者に設定できます。", 5000);
+        return;
+      }
+      if (current.pendingOpen) {
+        const side = state[current.team];
+        const member = side?.members?.[memberIndex];
+        const element = document.querySelector(`[data-team="${current.team}"][data-index="${current.index}"]`);
+        if (!member || !element || side.marked[current.index]) {
+          hideOpenedByPopover();
+          return;
+        }
+        hideOpenedByPopover();
+        toggleCell(current.team, current.index, element, {
+          openerName: member,
+          advanceOpener: false,
+          onlineBypass: options.onlineBypass
+        });
         return;
       }
       if (shouldUseOnlineAction(options)) {
@@ -10643,6 +10993,18 @@
       renderOpenedByPopover();
       if (state.openedByPopoverTimer) window.clearTimeout(state.openedByPopoverTimer);
       state.openedByPopoverTimer = window.setTimeout(hideOpenedByPopover, 6200);
+    }
+
+    function closeOpenedByCell() {
+      const current = state.currentOpenAttribution;
+      if (!current || current.pendingOpen) return;
+      const side = state[current.team];
+      const selected = getOpenedByKeys(side, current.index);
+      const member = side.members.find((name) => selected.includes(playerStatsKey(name))) || side.members[0] || "";
+      const element = document.querySelector(`[data-team="${current.team}"][data-index="${current.index}"]`);
+      if (!element || !member || !canUseOnlinePlayerChoice(current.team, member)) return;
+      hideOpenedByPopover();
+      toggleCell(current.team, current.index, element, { openerName: member, advanceOpener: false });
     }
 
     function updateSkillButton(team) {
@@ -10894,7 +11256,7 @@
       const styleParts = [`--deal-delay:${index * 18}ms`];
       if (pairEntries[0]) styleParts.push(`--pair-color-1:${pairEntries[0].color}`);
       if (pairEntries[1]) styleParts.push(`--pair-color-2:${pairEntries[1].color}`);
-      const playerChoices = cell.free ? "" : renderCellPlayerChoices(team, index, openedByKeys);
+      const playerChoices = cell.free || state.compactMode ? "" : renderCellPlayerChoices(team, index, openedByKeys);
       return `
         <div class="${classes.join(" ")}" data-testid="bingo-cell-${team}-${index}" data-team="${team}" data-index="${index}" data-disabled="${disabled ? "1" : "0"}" style="${styleParts.join(";")}">
           ${content}
@@ -10952,6 +11314,19 @@
         toggleCellPlayer(cellElement.dataset.team, Number(cellElement.dataset.index), Number(playerChoice.dataset.cellPlayerIndex), cellElement);
         return;
       }
+      if (!state.compactMode) return;
+      const cellElement = event.target.closest(".cell[data-team][data-index]");
+      if (!cellElement || cellElement.dataset.disabled === "1") return;
+      const team = cellElement.dataset.team;
+      const index = Number(cellElement.dataset.index);
+      const side = state[team];
+      const cell = side?.card?.[index];
+      if (!cell || cell.free || !state.gameStarted || state.inputLocked) return;
+      if (state.pendingSkill && !side.marked[index]) {
+        applyPendingSkillToCell(team, index, cellElement);
+        return;
+      }
+      showOpenedByPopover(team, index, cellElement.getBoundingClientRect(), { pendingOpen: !side.marked[index] });
     }
 
     function canUseOnlinePlayerChoice(team, memberName) {
@@ -13561,6 +13936,7 @@
     }
 
     function showCommentary(main, sub = "", duration = 10000, options = {}) {
+      if (state.compactMode) return;
       if (state.karaokeActive) return;
       window.clearTimeout(state.commentaryTimer);
       const faceIndex = updateCommentaryMascotFace(options.faceIndex);
@@ -13591,6 +13967,7 @@
     }
 
     function startSkillKaraoke(skillId, audio = null) {
+      if (state.compactMode) return;
       const lyrics = getSkillKaraokeLyrics(skillId);
       if (!lyrics?.length || !els.commentary) return;
       stopSkillKaraoke(false);
@@ -13722,6 +14099,7 @@
     }
 
     function showVoiceLine(team, characterId, options = {}) {
+      if (state.compactMode) return "";
       if (state.karaokeActive || state.kentoLiveChatTeam) return "";
       const lane = team === "red" ? els.voiceLogLaneLeft : els.voiceLogLaneRight;
       const tofuMode = Boolean(options.tofuMode || isTofuCurseActive(team));
@@ -13841,6 +14219,7 @@
     }
 
     function spawnArenaStripes(team, count = 6) {
+      if (state.compactMode) return;
       if (!els.fxLayer) return;
       const colors = team === "blue"
         ? ["#2f80ff", "#8ad7ff", "#ffffff", "#f9c74f"]
@@ -13863,6 +14242,7 @@
 
     function startKentoLiveChat(team) {
       stopKentoLiveChat();
+      if (state.compactMode) return;
       if (!state.gameStarted || state.winner) return;
       state.kentoLiveChatTeam = team;
       clearVoiceLogs();
@@ -13897,6 +14277,7 @@
     }
 
     function spawnKentoLiveComment(team) {
+      if (state.compactMode) return;
       const lane = document.querySelector(`.kento-live-chat.${team}`);
       if (!lane) return;
       const isSuperchat = Math.random() < .22;
@@ -16802,7 +17183,7 @@
       if ("serviceWorker" in navigator && /^https?:$/.test(location.protocol)) {
         navigator.serviceWorker.register("./sw.js").then((registration) => registration.update()).catch((error) => console.warn("Service worker registration failed", error));
       }
-      const onlineRoomModuleUrl = "./online/online-room.js?v=20260801-hatch-sync-1";
+      const onlineRoomModuleUrl = "./online/online-room.js?v=20260816-lite-mode-1";
       import(onlineRoomModuleUrl)
         .catch((firstError) => import(`${onlineRoomModuleUrl}&retry=${Date.now()}`)
           .catch((retryError) => {
@@ -16966,7 +17347,8 @@
         selectedDeck: [...state.selectedDeck],
         randomEventsEnabled: state.randomEventsEnabled,
         monsterBattleMode: state.monsterBattleMode,
-        doubleMonsterMode: state.doubleMonsterMode
+        doubleMonsterMode: state.doubleMonsterMode,
+        compactMode: state.compactMode
       };
     }
 
@@ -17011,14 +17393,17 @@
       state.randomEventsEnabled = snapshot.randomEventsEnabled !== false;
       state.monsterBattleMode = snapshot.monsterBattleMode !== false;
       state.doubleMonsterMode = snapshot.doubleMonsterMode === true;
+      state.compactMode = snapshot.compactMode === true;
       localStorage.setItem(STORAGE.randomEvents, state.randomEventsEnabled ? "on" : "off");
       localStorage.setItem(STORAGE.monsterBattleMode, state.monsterBattleMode ? "on" : "off");
       localStorage.setItem(STORAGE.doubleMonsterMode, state.doubleMonsterMode ? "on" : "off");
+      localStorage.setItem(STORAGE.compactMode, state.compactMode ? "on" : "off");
       syncTeamMemberIndexes();
       updateGridButtons();
       updateRandomEventButton();
       updateMonsterBattleMode();
       updateDoubleMonsterMode();
+      updateCompactMode();
       renderSetupPreview();
       updateDeckStatus();
       if (!options.silent) renderAll();
@@ -17043,6 +17428,7 @@
         randomEventMilestones: cloneOnlineValue(state.randomEventMilestones),
         monsterBattleMode: state.monsterBattleMode,
         doubleMonsterMode: state.doubleMonsterMode,
+        compactMode: state.compactMode,
         monsterBattle: cloneOnlineValue(state.monsterBattle),
         monsterBattleSpeed: getMonsterBattleSpeed(),
         monsterHatches: cloneOnlineValue(state.monsterHatches),
@@ -17103,6 +17489,8 @@
       state.winner = snapshot.winner || null;
       state.readyShown = Boolean(snapshot.readyShown);
       state.doubleMonsterMode = snapshot.doubleMonsterMode === true;
+      state.compactMode = snapshot.compactMode === true;
+      updateCompactMode();
       hydrateOnlineTeam("red", snapshot.red);
       hydrateOnlineTeam("blue", snapshot.blue);
       state.teamDecks = cloneOnlineValue(snapshot.teamDecks || state.teamDecks);
@@ -17263,6 +17651,7 @@
       window.TeamBingoWorldTournament?.configure({
         getPlayers: getTeamSelectionPlayers,
         repository: onlineCoordinator,
+        isAdmin: () => Boolean(onlineCoordinator?.isAdminMode?.()),
         characterMarkup: (characterId) => {
           const id = Math.max(1, Math.min(CHARACTER_COUNT, Number(characterId) || 1));
           return `<img src="${imagePath(id)}" alt="" loading="lazy" />`;
