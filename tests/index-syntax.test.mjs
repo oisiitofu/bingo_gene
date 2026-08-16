@@ -19,7 +19,7 @@ test("online lobby boot bypasses stale browser modules and retries once", () => 
 
   assert.match(html, /online-room\.js\?v=20260816-lite-mode-1/);
   assert.match(html, /retry=\$\{Date\.now\(\)\}/);
-  assert.match(serviceWorker, /20260816-lite-mode-114/);
+  assert.match(serviceWorker, /20260816-lite-pc-fit-115/);
 });
 
 test("one-bingo audio, Likecy skill timing, and reach badge rules stay aligned", () => {
@@ -122,7 +122,10 @@ test("Lite Mode keeps two operable boards visible and opens cells after choosing
   assert.match(html, /body\.compact-ipad-mode \.boards \{[\s\S]*?grid-template-columns: repeat\(2, minmax\(0, 1fr\)\)/);
   assert.match(html, /body\.compact-ipad-mode \.commentary,[\s\S]*?body\.compact-ipad-mode \.voice-lane/);
   assert.match(html, /body\.compact-ipad-mode \.game-top \{[\s\S]*?display: grid/);
-  assert.match(html, /body\.compact-ipad-mode \.board-actions \{[\s\S]*?min-height: 34px/);
+  assert.match(html, /body\.compact-ipad-mode \.board-body,[\s\S]*?container-type: size/);
+  assert.match(html, /body\.compact-ipad-mode \.grid \{[\s\S]*?width: min\(100%, 100cqh\)/);
+  assert.match(html, /body\.compact-ipad-mode \.board-actions \{[\s\S]*?position: absolute[\s\S]*?top: calc\(100% \+ 11px\)/);
+  assert.match(html, /body\.compact-ipad-mode \.board-tools \{ display: none; \}/);
   assert.match(html, /showOpenedByPopover\(team, index, cellElement\.getBoundingClientRect\(\), \{ pendingOpen: !side\.marked\[index\] \}\)/);
   assert.match(html, /compactMode: state\.compactMode/);
   assert.match(html, /state\.compactMode = snapshot\.compactMode === true/);

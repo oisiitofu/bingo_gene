@@ -7509,11 +7509,12 @@
 
     body.compact-ipad-mode .board-card {
       width: 100%;
-      height: 100%;
+      height: calc(100% - 42px);
       display: grid;
       grid-template-rows: auto minmax(0, 1fr);
       padding: 7px;
       border-radius: 7px;
+      overflow: visible;
       box-shadow: 0 0 22px color-mix(in srgb, var(--team-accent) 28%, transparent);
     }
 
@@ -7568,8 +7569,9 @@
       display: grid;
       grid-template-rows: minmax(0, 1fr) auto;
       align-content: stretch;
-      overflow: hidden;
+      overflow: visible;
       border-radius: 5px;
+      container-type: size;
     }
 
     body.compact-ipad-mode .board-card.kento-ally .board-body::after {
@@ -7578,26 +7580,36 @@
 
     body.compact-ipad-mode .grid {
       width: 100%;
-      max-height: 100%;
+      width: min(100%, 100cqh);
+      max-width: 100%;
+      max-height: none;
       align-self: center;
+      justify-self: center;
       gap: clamp(2px, .45vw, 5px);
     }
 
     body.compact-ipad-mode .board-actions {
+      position: absolute;
+      left: 0;
+      right: 0;
+      top: calc(100% + 11px);
+      z-index: 12;
       min-height: 34px;
-      margin-top: 5px;
+      margin: 0;
       gap: 5px;
       align-items: center;
+      justify-content: center;
     }
     body.compact-ipad-mode .board-actions .status { display: none; }
     body.compact-ipad-mode .team-skill-list {
+      justify-content: center;
       min-width: 0;
       min-height: 34px;
       flex-wrap: nowrap;
       gap: 4px;
       overflow-x: auto;
     }
-    body.compact-ipad-mode .board-tools { flex-wrap: nowrap; gap: 4px; }
+    body.compact-ipad-mode .board-tools { display: none; }
     body.compact-ipad-mode .team-skill,
     body.compact-ipad-mode .team-shuffle {
       min-width: 0;
