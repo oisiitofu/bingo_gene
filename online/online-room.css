@@ -291,8 +291,8 @@ html.territory-standalone .online-reaction-dock {
 
 .online-lobby-mode-actions {
   display: grid;
-  flex: 0 1 420px;
-  grid-template-columns: repeat(2, minmax(150px, 1fr));
+  flex: 0 1 680px;
+  grid-template-columns: repeat(4, minmax(130px, 1fr));
   gap: 8px;
 }
 

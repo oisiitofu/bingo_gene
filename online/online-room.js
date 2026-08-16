@@ -1067,6 +1067,7 @@ export class OnlineCoordinator {
               <button type="button" class="online-simple-button primary" id="onlineCreateRoom">部屋を作る</button>
               <button type="button" class="online-simple-button" id="onlineLocalMode">LOCAL MODE</button>
               <button type="button" class="online-simple-button" id="onlineTerritoryMode">六王領土戦</button>
+              <button type="button" class="online-simple-button" id="onlineWorldTournament">世界大会</button>
             </div>
             <div class="online-lobby-audio">
               <button type="button" class="online-simple-button" id="onlineLobbySound">SOUND ON</button>
@@ -1309,6 +1310,7 @@ export class OnlineCoordinator {
       createRoom: document.getElementById("onlineCreateRoom"),
       localMode: document.getElementById("onlineLocalMode"),
       territoryMode: document.getElementById("onlineTerritoryMode"),
+      worldTournament: document.getElementById("onlineWorldTournament"),
       adminMode: document.getElementById("onlineAdminMode"),
       errorBanner: document.getElementById("onlineErrorBanner"),
       adminPage: document.getElementById("onlineAdminPage"),
@@ -1396,6 +1398,10 @@ export class OnlineCoordinator {
     });
     this.ui.localMode.addEventListener("click", () => this.enterLocalMode());
     this.ui.territoryMode.addEventListener("click", () => this.openTerritoryWindow());
+    this.ui.worldTournament.addEventListener("click", async () => {
+      await this.enterLocalMode();
+      this.bridge.openWorldTournament?.();
+    });
     this.ui.adminMode.addEventListener("click", () => {
       this.ui.adminPassword.value = "";
       this.ui.adminError.textContent = "";

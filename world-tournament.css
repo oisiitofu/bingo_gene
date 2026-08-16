@@ -1,5 +1,7 @@
 .world-tournament[hidden],
-.world-create-dialog[hidden] {
+.world-create-dialog[hidden],
+.world-settings-dialog[hidden],
+.world-result-dialog[hidden] {
   display: none;
 }
 
@@ -509,11 +511,260 @@ body.world-tournament-open {
   font-size: 9px;
 }
 
-.world-create-card > div:last-child {
+.world-create-card > footer {
   display: flex;
   justify-content: flex-end;
   gap: 8px;
 }
+
+.world-create-dialog,
+.world-settings-dialog,
+.world-result-dialog {
+  overflow: auto;
+}
+
+.world-create-dialog {
+  place-items: stretch;
+  background: #070a0f;
+}
+
+.world-create-card {
+  width: min(1180px, 100%);
+  min-height: calc(100vh - 36px);
+  margin: auto;
+  padding: 0;
+  display: grid;
+  grid-template-rows: auto minmax(0, 1fr) auto;
+}
+
+.world-create-head,
+.world-settings-card > header,
+.world-result-card > header {
+  min-height: 76px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+  padding: 14px 18px;
+  border-bottom: 1px solid rgba(255, 255, 255, .12);
+  background: #0c111a;
+}
+
+.world-create-head h2,
+.world-settings-card h2,
+.world-result-card h2 {
+  margin: 3px 0 0;
+  color: #fff;
+  font-size: 24px;
+}
+
+.world-create-head span,
+.world-settings-card header span,
+.world-result-card header span,
+.world-create-size > span,
+.world-create-player-section > div:first-child > span,
+.world-settings-grid section > span {
+  color: #e7bd58;
+  font-size: 9px;
+  font-weight: 1000;
+}
+
+.world-create-body {
+  width: min(920px, 100%);
+  margin: 0 auto;
+  padding: 22px;
+}
+
+.world-create-body > label {
+  margin-top: 0;
+}
+
+.world-create-size {
+  display: grid;
+  grid-template-columns: 120px minmax(0, 260px);
+  align-items: center;
+  gap: 14px;
+  margin-top: 16px;
+}
+
+.world-create-size > div,
+.world-settings-grid section > div {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 5px;
+}
+
+.world-create-player-section {
+  margin-top: 22px;
+  padding: 16px;
+  border: 1px solid rgba(255, 255, 255, .12);
+  background: #0a1018;
+}
+
+.world-create-player-section > div:first-child {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 10px;
+}
+
+.world-create-player-section small { color: #778493; font-size: 8px; }
+
+.world-create-player-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.world-create-player-grid input { min-width: 0; }
+
+.world-create-member-bank {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: 10px;
+}
+
+.world-create-member-bank button,
+.world-settings-grid button {
+  min-height: 34px;
+  padding: 7px 9px;
+  border: 1px solid #465363;
+  border-radius: 3px;
+  color: #dce5ee;
+  background: #111923;
+  font-size: 9px;
+  font-weight: 900;
+}
+
+.world-settings-grid button.active,
+.world-create-size .world-simple-button.active {
+  border-color: #e5c15c;
+  color: #fff4b8;
+  background: #302712;
+}
+
+.world-create-card > footer,
+.world-settings-card > footer {
+  min-height: 70px;
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+  gap: 8px;
+  padding: 12px 18px;
+  border-top: 1px solid rgba(255,255,255,.1);
+  background: #0a0f17;
+}
+
+.world-settings-dialog,
+.world-result-dialog {
+  position: fixed;
+  z-index: 6120;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  padding: 18px;
+  background: rgba(0, 0, 0, .84);
+}
+
+.world-settings-card {
+  width: min(860px, 96vw);
+  border: 1px solid rgba(232, 194, 87, .42);
+  background: #0b111a;
+  box-shadow: 0 24px 70px rgba(0,0,0,.7);
+}
+
+.world-settings-match {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 12px;
+  padding: 17px 20px;
+  color: #e6bd55;
+  background: linear-gradient(90deg, rgba(190,29,57,.17), transparent 48%, rgba(31,112,190,.17));
+}
+
+.world-settings-match strong { min-width: 0; overflow: hidden; color: #fff; font-size: 12px; text-overflow: ellipsis; white-space: nowrap; }
+.world-settings-match strong:nth-of-type(2) { text-align: right; }
+.world-settings-match em { color: #9ba7b5; font-size: 9px; font-style: normal; }
+
+.world-settings-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+  padding: 18px;
+}
+
+.world-settings-grid section {
+  display: grid;
+  gap: 7px;
+  padding: 12px;
+  border: 1px solid rgba(255,255,255,.1);
+  background: #0e151f;
+}
+
+.world-result-card {
+  width: min(1320px, 98vw);
+  max-height: calc(100vh - 36px);
+  overflow: auto;
+  border: 1px solid rgba(255,255,255,.16);
+  background: #080d14;
+  box-shadow: 0 24px 80px rgba(0,0,0,.75);
+}
+
+.world-result-boards {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 14px;
+  padding: 16px;
+}
+
+.world-result-board {
+  min-width: 0;
+  padding: 10px;
+  border: 1px solid color-mix(in srgb, var(--result-team) 58%, white);
+  background: color-mix(in srgb, var(--result-team) 14%, #080d14);
+}
+
+.world-result-board.red { --result-team: #e72a4d; }
+.world-result-board.blue { --result-team: #3296ed; }
+
+.world-result-board > header {
+  min-height: 48px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 0 3px 8px;
+}
+
+.world-result-board > header div { display: grid; gap: 2px; }
+.world-result-board > header span { color: var(--result-team); font-size: 8px; font-weight: 1000; }
+.world-result-board > header strong { color: #fff; font-size: 15px; }
+.world-result-board > header small { max-width: 52%; color: #aab4c0; font-size: 8px; text-align: right; }
+
+.world-result-grid {
+  display: grid;
+  grid-template-columns: repeat(var(--world-grid-size), minmax(0, 1fr));
+  gap: 4px;
+}
+
+.world-result-cell {
+  position: relative;
+  aspect-ratio: 1;
+  display: grid;
+  place-items: center;
+  overflow: hidden;
+  border: 1px solid rgba(255,255,255,.22);
+  background: #f4f5f7;
+}
+
+.world-result-cell img { width: 100%; height: 100%; object-fit: contain; }
+.world-result-cell.marked { background: color-mix(in srgb, var(--result-team) 75%, #111); }
+.world-result-cell.marked::after { content: "OPEN"; position: absolute; right: 2px; bottom: 2px; padding: 1px 3px; color: #fff; background: rgba(0,0,0,.72); font-size: 5px; font-weight: 1000; }
+.world-result-cell.free { color: #fff; background: var(--result-team); font-size: 9px; }
+.world-result-empty { grid-column: 1 / -1; min-height: 320px; display: grid; place-items: center; color: #8793a1; font-size: 12px; }
 
 .world-empty-room,
 .world-empty-detail {
@@ -616,4 +867,18 @@ body.world-tournament-open {
   .world-all-player-stat .world-character-list {
     grid-column: 2;
   }
+
+  .world-create-dialog,
+  .world-settings-dialog,
+  .world-result-dialog { padding: 0; }
+
+  .world-create-card { min-height: 100vh; }
+  .world-create-body { padding: 14px; }
+  .world-create-player-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .world-create-size { grid-template-columns: 90px minmax(0, 1fr); }
+  .world-settings-grid { grid-template-columns: 1fr; padding: 12px; }
+  .world-settings-match { grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr); }
+  .world-settings-match em { grid-column: 1 / -1; text-align: center; }
+  .world-result-card { max-height: 100vh; }
+  .world-result-boards { grid-template-columns: 1fr; padding: 8px; }
 }

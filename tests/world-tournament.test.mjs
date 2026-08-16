@@ -93,6 +93,47 @@ test("room statistics start independently and record completed tournament matche
   assert.equal(saved.stats[loserKey].losses, 1);
 });
 
+test("tournament rooms preserve card size, per-match settings, and final bingo boards", () => {
+  const { api } = createApi();
+  const room = api.createRoom("7x7 CUP", ["A", "B"], new Date("2026-08-17T00:00:00+09:00"), { gridSize: 7 });
+  api.configure({
+    storage: {
+      value: JSON.stringify([room]),
+      getItem() { return this.value; },
+      setItem(_key, value) { this.value = value; }
+    }
+  });
+  const loaded = api._getRooms()[0];
+  const match = loaded.matches[0];
+  const card = Array.from({ length: 49 }, (_, index) => ({ id: index + 1, free: index === 24, marked: index % 3 === 0 }));
+
+  assert.equal(loaded.settings.gridSize, 7);
+  assert.equal(api.recordMatch(loaded.id, match.id, {
+    winnerTeam: "blue",
+    settings: {
+      gridSize: 7,
+      deckMode: "custom",
+      randomEventsEnabled: true,
+      monsterBattleMode: true,
+      doubleMonsterMode: true,
+      compactMode: true
+    },
+    boardResult: {
+      gridSize: 7,
+      red: { title: "RED", members: ["A"], card },
+      blue: { title: "BLUE", members: ["B"], card }
+    }
+  }), true);
+
+  const saved = api._getRooms()[0].matches[0];
+  assert.equal(saved.settings.deckMode, "custom");
+  assert.equal(saved.settings.doubleMonsterMode, true);
+  assert.equal(saved.boardResult.gridSize, 7);
+  assert.equal(saved.boardResult.red.card.length, 49);
+  assert.equal(saved.boardResult.red.card[0].marked, true);
+  assert.equal(saved.boardResult.blue.members[0], "B");
+});
+
 test("world tournament CSV includes match, player, and character records", () => {
   const { api } = createApi();
   const room = api.createRoom("2026/07/30", ["A", "B"]);

@@ -410,7 +410,7 @@
 
     .setup-top-bar {
       display: grid;
-      grid-template-columns: minmax(260px, 1fr) minmax(300px, 620px) minmax(210px, 1fr);
+      grid-template-columns: minmax(260px, .8fr) minmax(390px, 1.2fr) minmax(210px, auto);
       gap: 10px;
       align-items: start;
       width: min(1180px, 100%);
@@ -426,8 +426,23 @@
     }
 
     .setup-top-left { justify-content: flex-start; }
-    .setup-top-center { justify-content: center; }
+    .setup-top-center { justify-content: flex-end; }
     .setup-top-right { justify-content: flex-end; }
+
+    .setup-quick-links {
+      width: min(420px, 100%);
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 8px;
+    }
+
+    .setup-quick-links .btn,
+    .setup-quick-links #territoryModeButton {
+      width: 100%;
+      min-width: 0;
+      min-height: 40px;
+      padding: 9px 10px;
+    }
 
     .setup-top-bar .volume-control {
       width: min(340px, 100%);
@@ -443,7 +458,7 @@
 
     .setup-player-controls {
       display: grid;
-      grid-template-columns: minmax(170px, .9fr) repeat(5, minmax(120px, 1fr));
+      grid-template-columns: minmax(150px, .9fr) minmax(150px, 1fr) minmax(130px, .85fr) minmax(250px, 1.45fr) minmax(150px, 1fr);
       gap: 10px;
       align-items: center;
       margin: 14px 0 12px;
@@ -453,6 +468,43 @@
     .setup-player-controls .btn {
       width: 100%;
     }
+
+    .monster-battle-setup-control {
+      min-width: 0;
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) 94px;
+      gap: 5px;
+      align-items: stretch;
+    }
+
+    .monster-count-segment {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 3px;
+      padding: 4px;
+      border: 1px solid rgba(148, 163, 184, .38);
+      border-radius: 7px;
+      background: rgba(3, 5, 11, .68);
+    }
+
+    .monster-count-segment button {
+      min-width: 0;
+      min-height: 32px;
+      padding: 5px;
+      border: 1px solid transparent;
+      border-radius: 4px;
+      color: #8995a4;
+      background: #101620;
+      font-size: 10px;
+    }
+
+    .monster-count-segment button.active {
+      border-color: #e5c15c;
+      color: #fff4b8;
+      background: #342a12;
+    }
+
+    .monster-count-segment button:disabled { opacity: .35; }
 
     #randomEventButton.active {
       color: #071019;
@@ -7109,9 +7161,8 @@
         grid-template-columns: 1fr;
       }
 
-      .setup-top-center {
-        display: none;
-      }
+      .setup-top-center { display: flex; }
+      .setup-quick-links { width: 100%; }
 
       .setup-top-left,
       .setup-top-right {
@@ -7658,7 +7709,13 @@
             </label>
           </div>
         </div>
-        <div class="setup-top-center"></div>
+        <div class="setup-top-center">
+          <div class="setup-quick-links">
+            <button type="button" class="btn" id="setupStatsButton">STATS</button>
+            <button type="button" class="btn" id="setupMonsterButton">MONSTER</button>
+            <button type="button" class="btn territory-entry-btn" id="territoryModeButton">六王領土戦</button>
+          </div>
+        </div>
         <div class="setup-top-right">
           <div class="room-wrap">
             <span>ROOM ID</span>
@@ -7692,14 +7749,15 @@
                 <button type="button" id="mode7" data-size="7">7x7</button>
               </div>
               <button type="button" class="btn" id="deckModeButton">DECK MODE</button>
-              <button type="button" class="btn" id="setupStatsButton">STATS</button>
-              <button type="button" class="btn" id="setupMonsterButton">MONSTER</button>
-              <button type="button" class="btn active" id="randomEventButton" aria-pressed="true">EVENT ON</button>
-              <button type="button" class="btn active" id="monsterBattleModeButton" aria-pressed="true">MONSTER BATTLE ON</button>
-              <button type="button" class="btn" id="doubleMonsterModeButton" aria-pressed="false">DOUBLE MONSTER OFF</button>
+              <button type="button" class="btn" id="randomEventButton" aria-pressed="false">EVENT OFF</button>
+              <div class="monster-battle-setup-control">
+                <button type="button" class="btn active" id="monsterBattleModeButton" aria-pressed="true">MONSTER BATTLE</button>
+                <div class="monster-count-segment" aria-label="monsters per player">
+                  <button type="button" class="active" id="singleMonsterModeButton" aria-pressed="true">x1</button>
+                  <button type="button" id="doubleMonsterModeButton" aria-pressed="false">x2</button>
+                </div>
+              </div>
               <button type="button" class="btn simple-ui-btn" id="compactModeButton" aria-pressed="false">LITE MODE OFF</button>
-              <button type="button" class="btn territory-entry-btn" id="territoryModeButton">六王領土戦</button>
-              <button type="button" class="btn" id="worldTournamentButton">世界大会</button>
             </div>
 
             <div class="deck-hub" id="deckHub">
@@ -8862,7 +8920,7 @@
       gameStarted: false,
       inputLocked: false,
       emergencyPaused: false,
-      randomEventsEnabled: true,
+      randomEventsEnabled: false,
       randomEventMilestones: [],
       monsterBattleMode: true,
       doubleMonsterMode: false,
@@ -9061,7 +9119,7 @@
         "adminMonsterBattleModal", "adminMonsterRed1", "adminMonsterRed2", "adminMonsterBlue1", "adminMonsterBlue2", "adminMonsterBattleShuffle", "adminMonsterBattleCancel", "adminMonsterBattleStart",
         "teamSelectModal", "teamSelectList", "teamSelectRedMembers", "teamSelectBlueMembers", "teamSelectShuffleButton", "teamSelectConfirmButton", "teamSelectCancelButton", "teamSelectError",
         "statsSeasonSelect", "statsSeasonList", "statsTournamentList", "statsTerritoryList",
-        "randomEventButton", "monsterBattleModeButton", "doubleMonsterModeButton", "compactModeButton", "territoryModeButton", "playTerritoryModeButton", "worldTournamentButton",
+        "randomEventButton", "monsterBattleModeButton", "singleMonsterModeButton", "doubleMonsterModeButton", "compactModeButton", "territoryModeButton", "playTerritoryModeButton",
         "matchReplayModal", "replayMatchMeta", "replaySummary", "replayBoards", "replayTimeline", "replayCloseButton",
         "replayPrevButton", "replayPlayButton", "replayRange", "replayStepLabel",
         "feverAura", "fxLayer", "openedByPopover", "victoryParticles", "setupThemePlayer", "copyrightToggle",
@@ -9099,11 +9157,11 @@
       els.deckModeButton.addEventListener("click", () => els.deckHub.classList.toggle("show"));
       els.randomEventButton?.addEventListener("click", toggleRandomEvents);
       els.monsterBattleModeButton?.addEventListener("click", toggleMonsterBattleMode);
-      els.doubleMonsterModeButton?.addEventListener("click", toggleDoubleMonsterMode);
+      els.singleMonsterModeButton?.addEventListener("click", () => setDoubleMonsterMode(false));
+      els.doubleMonsterModeButton?.addEventListener("click", () => setDoubleMonsterMode(true));
       els.compactModeButton?.addEventListener("click", toggleCompactMode);
       els.territoryModeButton?.addEventListener("click", openTerritoryWindow);
       els.playTerritoryModeButton?.addEventListener("click", openTerritoryWindow);
-      els.worldTournamentButton?.addEventListener("click", openWorldTournament);
       els.setupStatsButton.addEventListener("click", showStatsPage);
       els.playStatsButton.addEventListener("click", showStatsPage);
       els.setupMonsterButton?.addEventListener("click", showMonsterDexPage);
@@ -9565,7 +9623,7 @@
       state.audioVolume = storedVolume === null ? .7 : clampVolume(Number(storedVolume));
       if (state.audioVolume === 0) state.soundEnabled = false;
       state.gridSize = Number(localStorage.getItem(STORAGE.gridSize)) || 5;
-      state.randomEventsEnabled = localStorage.getItem(STORAGE.randomEvents) !== "off";
+      state.randomEventsEnabled = localStorage.getItem(STORAGE.randomEvents) === "on";
       state.monsterBattleMode = localStorage.getItem(STORAGE.monsterBattleMode) !== "off";
       state.doubleMonsterMode = localStorage.getItem(STORAGE.doubleMonsterMode) === "on";
       state.compactMode = localStorage.getItem(STORAGE.compactMode) === "on";
@@ -9667,7 +9725,7 @@
       state.gridSize = Number(settings.gridSize) === 7 ? 7 : 5;
       state.soundEnabled = settings.soundEnabled !== false;
       state.audioVolume = clampVolume(Number(settings.audioVolume ?? .7));
-      state.randomEventsEnabled = settings.randomEventsEnabled !== false;
+      state.randomEventsEnabled = settings.randomEventsEnabled === true;
       state.monsterBattleMode = settings.monsterBattleMode !== false;
       state.doubleMonsterMode = settings.doubleMonsterMode === true;
       state.compactMode = settings.compactMode === true;
@@ -9819,8 +9877,9 @@
       if (!els.monsterBattleModeButton) return;
       els.monsterBattleModeButton.classList.toggle("active", state.monsterBattleMode);
       els.monsterBattleModeButton.setAttribute("aria-pressed", String(state.monsterBattleMode));
-      els.monsterBattleModeButton.textContent = state.monsterBattleMode ? "MONSTER BATTLE ON" : "MONSTER BATTLE OFF";
+      els.monsterBattleModeButton.textContent = state.monsterBattleMode ? "MONSTER BATTLE" : "MONSTER BATTLE OFF";
       els.monsterBattleModeButton.disabled = Boolean(onlineCoordinator?.isOnline?.() && !onlineCoordinator.canEditSetup?.());
+      updateDoubleMonsterMode();
     }
 
     function monstersPerPlayer() {
@@ -9831,9 +9890,9 @@
       return MONSTER_SYSTEM.syncPlayerMonsters(existing, members, team, monstersPerPlayer());
     }
 
-    function toggleDoubleMonsterMode() {
+    function setDoubleMonsterMode(enabled) {
       if (onlineCoordinator?.isOnline?.() && !onlineCoordinator.canEditSetup?.()) return;
-      state.doubleMonsterMode = !state.doubleMonsterMode;
+      state.doubleMonsterMode = Boolean(enabled);
       localStorage.setItem(STORAGE.doubleMonsterMode, state.doubleMonsterMode ? "on" : "off");
       ["red", "blue"].forEach((team) => { state[team].monsters = syncTeamMonsters(team); });
       updateDoubleMonsterMode();
@@ -9842,12 +9901,18 @@
       scheduleOnlineSetupPublish(40);
     }
 
+    function toggleDoubleMonsterMode() {
+      setDoubleMonsterMode(!state.doubleMonsterMode);
+    }
+
     function updateDoubleMonsterMode() {
-      if (!els.doubleMonsterModeButton) return;
+      const locked = Boolean(onlineCoordinator?.isOnline?.() && !onlineCoordinator.canEditSetup?.());
+      els.singleMonsterModeButton?.classList.toggle("active", !state.doubleMonsterMode);
+      els.singleMonsterModeButton?.setAttribute("aria-pressed", String(!state.doubleMonsterMode));
       els.doubleMonsterModeButton.classList.toggle("active", state.doubleMonsterMode);
       els.doubleMonsterModeButton.setAttribute("aria-pressed", String(state.doubleMonsterMode));
-      els.doubleMonsterModeButton.textContent = state.doubleMonsterMode ? "DOUBLE MONSTER ON" : "DOUBLE MONSTER OFF";
-      els.doubleMonsterModeButton.disabled = Boolean(onlineCoordinator?.isOnline?.() && !onlineCoordinator.canEditSetup?.());
+      if (els.singleMonsterModeButton) els.singleMonsterModeButton.disabled = locked || !state.monsterBattleMode;
+      els.doubleMonsterModeButton.disabled = locked || !state.monsterBattleMode;
     }
 
     function toggleCompactMode() {
@@ -9897,7 +9962,7 @@
       stopSetupTheme();
       clearMatchState();
       assignTeamTitles();
-      dealCards();
+      dealCards({ ignoreTeamDeck: options.ignoreTeamDeck === true });
       state.gameStarted = true;
       unlockCurrentMonsterEggs();
       state.monsterHatches = hatchAllPlayerMonsters();
@@ -10045,9 +10110,9 @@
       return factory();
     }
 
-    function dealCards() {
+    function dealCards(options = {}) {
       ["red", "blue"].forEach((team) => {
-        const card = makeCardForTeam(team);
+        const card = makeCardForTeam(team, options);
         state[team].card = card;
         state[team].marked = initialMarked(card);
         state[team].specialCells = new Map();
@@ -15121,6 +15186,19 @@
         victoryKind,
         mvpName,
         score: { red: state.red.bingoCount, blue: state.blue.bingoCount },
+        boardResult: {
+          gridSize: state.gridSize,
+          red: {
+            title: state.red.teamTitle,
+            members: [...state.red.members],
+            card: state.red.card.map((cell, index) => ({ id: Number(cell?.id) || 0, free: Boolean(cell?.free), marked: Boolean(state.red.marked[index]) }))
+          },
+          blue: {
+            title: state.blue.teamTitle,
+            members: [...state.blue.members],
+            card: state.blue.card.map((cell, index) => ({ id: Number(cell?.id) || 0, free: Boolean(cell?.free), marked: Boolean(state.blue.marked[index]) }))
+          }
+        },
         players,
         startedAt: state.matchTracker?.startedAt,
         endedAt: new Date().toISOString()
@@ -17195,7 +17273,7 @@
       if ("serviceWorker" in navigator && /^https?:$/.test(location.protocol)) {
         navigator.serviceWorker.register("./sw.js").then((registration) => registration.update()).catch((error) => console.warn("Service worker registration failed", error));
       }
-      const onlineRoomModuleUrl = "./online/online-room.js?v=20260816-lite-mode-1";
+      const onlineRoomModuleUrl = "./online/online-room.js?v=20260817-tournament-setup-2";
       import(onlineRoomModuleUrl)
         .catch((firstError) => import(`${onlineRoomModuleUrl}&retry=${Date.now()}`)
           .catch((retryError) => {
@@ -17265,6 +17343,7 @@
         skipOnlinePresentation,
         onOnlineReaction: () => {},
         setOnlineSession,
+        openWorldTournament,
         setRoomDraftMode: (active) => {
           els.setupStartButton.textContent = active ? "ROOM CREATE" : "GAME START";
           els.setupStartButton.classList.toggle("online-room-create", Boolean(active));
@@ -17402,7 +17481,7 @@
         blue: Array.isArray(snapshot.teamDecks?.blue) ? [...snapshot.teamDecks.blue] : null
       };
       state.selectedDeck = new Set(snapshot.selectedDeck || []);
-      state.randomEventsEnabled = snapshot.randomEventsEnabled !== false;
+      state.randomEventsEnabled = snapshot.randomEventsEnabled === true;
       state.monsterBattleMode = snapshot.monsterBattleMode !== false;
       state.doubleMonsterMode = snapshot.doubleMonsterMode === true;
       state.compactMode = snapshot.compactMode === true;
@@ -17509,7 +17588,7 @@
       state.lastOpenTeam = snapshot.lastOpenTeam || null;
       state.streak = Number(snapshot.streak) || 0;
       state.streakAnnounced = Boolean(snapshot.streakAnnounced);
-      state.randomEventsEnabled = snapshot.randomEventsEnabled !== false;
+      state.randomEventsEnabled = snapshot.randomEventsEnabled === true;
       state.randomEventMilestones = Array.isArray(snapshot.randomEventMilestones) ? cloneOnlineValue(snapshot.randomEventMilestones) : [];
       state.monsterBattleMode = snapshot.monsterBattleMode !== false;
       const incomingMatchId = String(snapshot.matchTracker?.id || "");
@@ -17662,22 +17741,42 @@
     function configureWorldTournament() {
       window.TeamBingoWorldTournament?.configure({
         getPlayers: getTeamSelectionPlayers,
+        getFixedPlayers: () => [...FIXED_MEMBERS],
+        getTournamentSettings: () => ({
+          gridSize: state.gridSize,
+          deckMode: state.teamDecks.red || state.teamDecks.blue ? "custom" : "default",
+          randomEventsEnabled: state.randomEventsEnabled,
+          monsterBattleMode: state.monsterBattleMode,
+          doubleMonsterMode: state.doubleMonsterMode,
+          compactMode: state.compactMode
+        }),
         repository: onlineCoordinator,
         isAdmin: () => Boolean(onlineCoordinator?.isAdminMode?.()),
         characterMarkup: (characterId) => {
           const id = Math.max(1, Math.min(CHARACTER_COUNT, Number(characterId) || 1));
           return `<img src="${imagePath(id)}" alt="" loading="lazy" />`;
         },
-        startMatch: ({ red, blue }) => {
+        startMatch: ({ red, blue, settings = {} }) => {
           if (onlineCoordinator?.isOnline?.()) {
             showCommentary("LOCAL ONLY", "世界大会はローカルモードで開催してください。", 6000);
             window.TeamBingoWorldTournament?.returnToRoom?.();
             return false;
           }
+          state.gridSize = Number(settings.gridSize) === 7 ? 7 : 5;
+          state.randomEventsEnabled = settings.randomEventsEnabled === true;
+          state.monsterBattleMode = settings.monsterBattleMode !== false;
+          state.doubleMonsterMode = settings.doubleMonsterMode === true;
+          state.compactMode = settings.compactMode === true;
+          updateGridButtons();
+          updateRandomEventButton();
+          updateMonsterBattleMode();
+          updateDoubleMonsterMode();
+          updateCompactMode();
           return startGame({
             teamsConfirmed: true,
             lockedTeams: true,
-            teams: { red, blue }
+            teams: { red, blue },
+            ignoreTeamDeck: settings.deckMode !== "custom"
           });
         }
       });

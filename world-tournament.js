@@ -11,6 +11,8 @@
   let returnPending = false;
   let deleteArmedId = "";
   let viewMode = "room";
+  let pendingMatchId = "";
+  let pendingMatchSettings = null;
   let repository = null;
   let repositoryUnsubscribe = null;
   let repositoryQueue = Promise.resolve();
@@ -36,6 +38,36 @@
       month: "2-digit",
       day: "2-digit"
     }).format(date);
+  }
+
+  function normalizeRoomSettings(value = {}) {
+    return { gridSize: Number(value.gridSize) === 7 ? 7 : 5 };
+  }
+
+  function normalizeMatchSettings(value = {}, roomSettings = {}) {
+    return {
+      gridSize: Number(value.gridSize ?? roomSettings.gridSize) === 7 ? 7 : 5,
+      deckMode: value.deckMode === "custom" ? "custom" : "default",
+      randomEventsEnabled: value.randomEventsEnabled === true,
+      monsterBattleMode: value.monsterBattleMode !== false,
+      doubleMonsterMode: value.doubleMonsterMode === true,
+      compactMode: value.compactMode === true
+    };
+  }
+
+  function normalizeBoardResult(value) {
+    if (!value || typeof value !== "object") return null;
+    const gridSize = Number(value.gridSize) === 7 ? 7 : 5;
+    const normalizeSide = (side = {}) => ({
+      title: String(side.title || ""),
+      members: Array.isArray(side.members) ? side.members.map(String) : [],
+      card: Array.isArray(side.card) ? side.card.slice(0, gridSize * gridSize).map((cell) => ({
+        id: Math.max(0, Number(cell?.id) || 0),
+        free: Boolean(cell?.free),
+        marked: Boolean(cell?.marked)
+      })) : []
+    });
+    return { gridSize, red: normalizeSide(value.red), blue: normalizeSide(value.blue) };
   }
 
   function normalizePlayers(values) {
@@ -95,6 +127,8 @@
         victoryKind: "",
         score: { red: 0, blue: 0 },
         playerResults: [],
+        settings: null,
+        boardResult: null,
         startedAt: "",
         endedAt: ""
       };
@@ -143,7 +177,7 @@
     };
   }
 
-  function createRoom(name, playerValues, now = new Date()) {
+  function createRoom(name, playerValues, now = new Date(), options = {}) {
     const players = normalizePlayers(playerValues);
     if (players.length < 2 || players.length % 2 !== 0) {
       throw new Error("参加人数は2人以上の偶数にしてください。");
@@ -155,6 +189,7 @@
       name: String(name || "").trim() || localDateName(now),
       createdAt,
       updatedAt: createdAt,
+      settings: normalizeRoomSettings(options),
       players,
       matches: randomizeMatchups(generateMatchups(players)),
       stats: Object.fromEntries(players.map((player) => [player.key, emptyPlayerStat(player)]))
@@ -175,7 +210,9 @@
         redKeys: Array.isArray(source.redKeys) ? source.redKeys : fallback.redKeys,
         blueKeys: Array.isArray(source.blueKeys) ? source.blueKeys : fallback.blueKeys,
         score: { ...fallback.score, ...(source.score || {}) },
-        playerResults: Array.isArray(source.playerResults) ? source.playerResults : []
+        playerResults: Array.isArray(source.playerResults) ? source.playerResults : [],
+        settings: source.settings ? normalizeMatchSettings(source.settings, value.settings) : null,
+        boardResult: normalizeBoardResult(source.boardResult)
       };
     });
     const stats = Object.fromEntries(players.map((player) => [
@@ -194,6 +231,7 @@
       name: String(value.name || localDateName()),
       createdAt: String(value.createdAt || new Date().toISOString()),
       updatedAt: String(value.updatedAt || value.createdAt || new Date().toISOString()),
+      settings: normalizeRoomSettings(value.settings),
       players,
       matches,
       stats
@@ -351,6 +389,8 @@
       red: Math.max(0, Number(result.score?.red) || 0),
       blue: Math.max(0, Number(result.score?.blue) || 0)
     };
+    match.settings = normalizeMatchSettings(result.settings || match.settings || {}, room.settings);
+    match.boardResult = normalizeBoardResult(result.boardResult);
     match.startedAt = String(result.startedAt || match.startedAt || new Date().toISOString());
     match.endedAt = String(result.endedAt || new Date().toISOString());
     match.playerResults = (Array.isArray(result.players) ? result.players : []).map((entry) => ({
@@ -441,21 +481,60 @@
       </div>
       <section class="world-create-dialog" data-world-create hidden>
         <form class="world-create-card" data-world-create-form>
-          <span>SHARED TOURNAMENT ROOM</span>
-          <h2>世界大会を作成</h2>
-          <label>大会名<input type="text" maxlength="40" data-world-room-name /></label>
-          <div class="world-create-players" data-world-create-players></div>
-          <p data-world-create-error></p>
-          <div>
+          <header class="world-create-head">
+            <div><span>NEW WORLD TOURNAMENT</span><h2>世界大会 準備</h2></div>
+            <button type="button" class="world-simple-button" data-world-create-cancel>CANCEL</button>
+          </header>
+          <div class="world-create-body">
+            <label>大会名<input type="text" maxlength="40" data-world-room-name /></label>
+            <div class="world-create-size">
+              <span>BINGO CARD</span>
+              <div>
+                <button type="button" class="world-simple-button active" data-world-create-size="5">5x5</button>
+                <button type="button" class="world-simple-button" data-world-create-size="7">7x7</button>
+              </div>
+            </div>
+            <section class="world-create-player-section">
+              <div><span>PLAYERS</span><small>2人以上の偶数で登録</small></div>
+              <div class="world-create-player-grid" data-world-create-players>
+                ${Array.from({ length: 8 }, (_, index) => `<input type="text" maxlength="24" placeholder="PLAYER ${index + 1}" data-world-create-player="${index}" />`).join("")}
+              </div>
+              <div class="world-create-member-bank" data-world-create-members></div>
+            </section>
+            <p data-world-create-error></p>
+          </div>
+          <footer>
             <button type="button" class="world-simple-button" data-world-create-cancel>CANCEL</button>
             <button type="submit" class="world-simple-button primary">CREATE</button>
-          </div>
+          </footer>
         </form>
+      </section>
+      <section class="world-settings-dialog" data-world-match-settings hidden>
+        <form class="world-settings-card" data-world-match-settings-form>
+          <header><div><span>MATCH SETTINGS</span><h2>試合設定</h2></div><button type="button" class="world-simple-button" data-world-settings-cancel>CANCEL</button></header>
+          <div class="world-settings-match" data-world-settings-match></div>
+          <div class="world-settings-grid">
+            <section><span>DECK MODE</span><div><button type="button" data-world-setting="deckMode" data-world-value="default">DEFAULT</button><button type="button" data-world-setting="deckMode" data-world-value="custom">SETUP DECK</button></div></section>
+            <section><span>EVENT</span><div><button type="button" data-world-setting="randomEventsEnabled" data-world-value="false">OFF</button><button type="button" data-world-setting="randomEventsEnabled" data-world-value="true">ON</button></div></section>
+            <section><span>MONSTER BATTLE</span><div><button type="button" data-world-setting="monsterBattleMode" data-world-value="false">OFF</button><button type="button" data-world-setting="monsterBattleMode" data-world-value="true">ON</button></div></section>
+            <section><span>MONSTERS / PLAYER</span><div><button type="button" data-world-setting="doubleMonsterMode" data-world-value="false">x1</button><button type="button" data-world-setting="doubleMonsterMode" data-world-value="true">x2</button></div></section>
+            <section><span>LITE MODE</span><div><button type="button" data-world-setting="compactMode" data-world-value="false">OFF</button><button type="button" data-world-setting="compactMode" data-world-value="true">ON</button></div></section>
+          </div>
+          <footer><button type="submit" class="world-simple-button primary">MATCH START</button></footer>
+        </form>
+      </section>
+      <section class="world-result-dialog" data-world-result hidden>
+        <div class="world-result-card">
+          <header><div><span>FINAL BINGO CARDS</span><h2 data-world-result-title>試合結果</h2></div><button type="button" class="world-simple-button" data-world-result-close>CLOSE</button></header>
+          <div class="world-result-boards" data-world-result-boards></div>
+        </div>
       </section>
     `;
     document.body.append(root);
     root.addEventListener("click", onClick);
     root.querySelector("[data-world-create-form]").addEventListener("submit", onCreate);
+    root.querySelector("[data-world-create-form]").addEventListener("input", updateCreateSummary);
+    root.querySelector("[data-world-match-settings-form]").addEventListener("submit", onMatchSettingsSubmit);
     return root;
   }
 
@@ -576,7 +655,7 @@
         <div>
           <span>SHARED / PERSISTENT</span>
           <h2>${escapeHtml(room.name)}</h2>
-          <p>${room.players.length} PLAYERS / ${complete} OF ${room.matches.length} COMPLETE</p>
+          <p>${room.players.length} PLAYERS / ${room.settings.gridSize}x${room.settings.gridSize} / ${complete} OF ${room.matches.length} COMPLETE</p>
         </div>
         <div>
           <button type="button" class="world-simple-button" data-world-shuffle="${escapeHtml(room.id)}" ${shuffleEnabled ? "" : "disabled"} title="${shuffleEnabled ? "全対戦カードをシャッフル" : "試合開始後はシャッフルできません"}">SHUFFLE</button>
@@ -614,9 +693,9 @@
                 <div class="world-match-result">${match.status === "complete"
                   ? `<b>${escapeHtml(winner.join(" / "))} WIN</b><span>${match.score.red} - ${match.score.blue}</span>`
                   : `<span>PENDING</span>`}</div>
-                <button type="button" class="world-simple-button ${match.status === "complete" ? "" : "primary"}" data-world-play="${escapeHtml(match.id)}" ${match.status === "complete" ? "disabled" : ""}>
-                  ${match.status === "complete" ? "DONE" : "PLAY"}
-                </button>
+                ${match.status === "complete"
+                  ? `<button type="button" class="world-simple-button" data-world-result="${escapeHtml(match.id)}">DONE</button>`
+                  : `<button type="button" class="world-simple-button primary" data-world-play="${escapeHtml(match.id)}">SETTINGS</button>`}
               </article>
             `;
           }).join("")}
@@ -630,9 +709,27 @@
     const dialog = root.querySelector("[data-world-create]");
     dialog.hidden = false;
     dialog.querySelector("[data-world-room-name]").value = localDateName();
-    dialog.querySelector("[data-world-create-players]").innerHTML = players.map((player) => `<span>${escapeHtml(player.name)}</span>`).join("");
+    dialog.dataset.gridSize = "5";
+    dialog.querySelectorAll("[data-world-create-size]").forEach((button) => button.classList.toggle("active", button.dataset.worldCreateSize === "5"));
+    dialog.querySelectorAll("[data-world-create-player]").forEach((input, index) => { input.value = players[index]?.name || ""; });
+    const fixedPlayers = normalizePlayers(host.getFixedPlayers?.() || players);
+    dialog.querySelector("[data-world-create-members]").innerHTML = fixedPlayers.map((player) => (
+      `<button type="button" data-world-create-member="${escapeHtml(player.name)}">${escapeHtml(player.name)}</button>`
+    )).join("");
+    updateCreateSummary();
+  }
+
+  function createPlayerValues() {
+    return Array.from(root.querySelectorAll("[data-world-create-player]")).map((input) => input.value);
+  }
+
+  function updateCreateSummary() {
+    if (!root) return;
+    const dialog = root.querySelector("[data-world-create]");
+    if (!dialog || dialog.hidden) return;
+    const players = normalizePlayers(createPlayerValues());
     dialog.querySelector("[data-world-create-error]").textContent = players.length >= 2 && players.length % 2 === 0
-      ? `${players.length}人 / ${generateMatchups(players).length}試合を生成`
+      ? `${players.length}人 / ${generateMatchups(players).length}試合 / ${dialog.dataset.gridSize || 5}x${dialog.dataset.gridSize || 5}`
       : "プレイヤー入力を2人以上の偶数にしてください。";
   }
 
@@ -643,9 +740,13 @@
   function onCreate(event) {
     event.preventDefault();
     const dialog = root.querySelector("[data-world-create]");
-    const players = normalizePlayers(host.getPlayers?.() || []);
+    const rawPlayers = createPlayerValues().map((name) => String(name || "").trim()).filter(Boolean);
+    const players = normalizePlayers(rawPlayers);
     try {
-      const room = createRoom(dialog.querySelector("[data-world-room-name]").value, players);
+      if (rawPlayers.length !== players.length) throw new Error("同じプレイヤー名は登録できません。");
+      const room = createRoom(dialog.querySelector("[data-world-room-name]").value, players, new Date(), {
+        gridSize: Number(dialog.dataset.gridSize) === 7 ? 7 : 5
+      });
       rooms.unshift(room);
       selectedRoomId = room.id;
       viewMode = "room";
@@ -655,6 +756,72 @@
     } catch (error) {
       dialog.querySelector("[data-world-create-error]").textContent = error.message;
     }
+  }
+
+  function syncMatchSettingsUi() {
+    if (!root || !pendingMatchSettings) return;
+    root.querySelectorAll("[data-world-setting]").forEach((button) => {
+      const key = button.dataset.worldSetting;
+      const raw = button.dataset.worldValue;
+      const value = raw === "true" ? true : (raw === "false" ? false : raw);
+      button.classList.toggle("active", pendingMatchSettings[key] === value);
+      button.disabled = key === "doubleMonsterMode" && !pendingMatchSettings.monsterBattleMode;
+    });
+  }
+
+  function showMatchSettings(matchId) {
+    const room = selectedRoom();
+    const match = room?.matches.find((entry) => entry.id === matchId);
+    if (!room || !match || match.status === "complete") return false;
+    pendingMatchId = match.id;
+    pendingMatchSettings = normalizeMatchSettings(match.settings || host.getTournamentSettings?.() || {}, room.settings);
+    const dialog = root.querySelector("[data-world-match-settings]");
+    const red = playerNames(room, match.redKeys).map(escapeHtml).join(" / ");
+    const blue = playerNames(room, match.blueKeys).map(escapeHtml).join(" / ");
+    dialog.querySelector("[data-world-settings-match]").innerHTML = `<strong>${red}</strong><span>VS</span><strong>${blue}</strong><em>${room.settings.gridSize}x${room.settings.gridSize}</em>`;
+    dialog.hidden = false;
+    syncMatchSettingsUi();
+    return true;
+  }
+
+  function hideMatchSettings() {
+    root.querySelector("[data-world-match-settings]").hidden = true;
+    pendingMatchId = "";
+    pendingMatchSettings = null;
+  }
+
+  function onMatchSettingsSubmit(event) {
+    event.preventDefault();
+    if (!pendingMatchId || !pendingMatchSettings) return;
+    const matchId = pendingMatchId;
+    const settings = { ...pendingMatchSettings };
+    hideMatchSettings();
+    playMatch(matchId, settings);
+  }
+
+  function boardSideMarkup(side, gridSize, team) {
+    const cells = Array.isArray(side?.card) ? side.card : [];
+    return `
+      <article class="world-result-board ${team}">
+        <header><div><span>${team.toUpperCase()} TEAM</span><strong>${escapeHtml(side?.title || "BINGO CARD")}</strong></div><small>${(side?.members || []).map(escapeHtml).join(" / ")}</small></header>
+        <div class="world-result-grid" style="--world-grid-size:${gridSize}">
+          ${cells.map((cell) => `<div class="world-result-cell${cell.marked ? " marked" : ""}${cell.free ? " free" : ""}">${cell.free ? "<b>FREE</b>" : (typeof host.characterMarkup === "function" ? host.characterMarkup(cell.id) : `<b>${cell.id}</b>`)}</div>`).join("")}
+        </div>
+      </article>`;
+  }
+
+  function showBoardResult(matchId) {
+    const room = selectedRoom();
+    const match = room?.matches.find((entry) => entry.id === matchId);
+    if (!room || !match || match.status !== "complete") return false;
+    const dialog = root.querySelector("[data-world-result]");
+    dialog.querySelector("[data-world-result-title]").textContent = `${room.name} / MATCH ${String(match.order).padStart(2, "0")}`;
+    const board = normalizeBoardResult(match.boardResult);
+    dialog.querySelector("[data-world-result-boards]").innerHTML = board
+      ? `${boardSideMarkup(board.red, board.gridSize, "red")}${boardSideMarkup(board.blue, board.gridSize, "blue")}`
+      : `<div class="world-result-empty">この試合は盤面保存機能の追加前に終了したため、最終カードがありません。</div>`;
+    dialog.hidden = false;
+    return true;
   }
 
   function downloadCsv(room) {
@@ -667,18 +834,19 @@
     global.setTimeout(() => URL.revokeObjectURL(url), 1000);
   }
 
-  function playMatch(matchId) {
+  function playMatch(matchId, settings = {}) {
     const room = selectedRoom();
     const match = room?.matches.find((entry) => entry.id === matchId);
     if (!room || !match || match.status === "complete") return;
     const red = playerNames(room, match.redKeys);
     const blue = playerNames(room, match.blueKeys);
     match.startedAt = new Date().toISOString();
+    match.settings = normalizeMatchSettings(settings, room.settings);
     room.updatedAt = match.startedAt;
     activeMatch = { roomId: room.id, matchId: match.id };
     saveRooms(room);
     close();
-    host.startMatch?.({ roomId: room.id, matchId: match.id, red, blue });
+    host.startMatch?.({ roomId: room.id, matchId: match.id, red, blue, settings: match.settings });
   }
 
   function onClick(event) {
@@ -699,6 +867,40 @@
       hideCreate();
       return;
     }
+    const createSize = event.target.closest("[data-world-create-size]");
+    if (createSize) {
+      const dialog = root.querySelector("[data-world-create]");
+      dialog.dataset.gridSize = createSize.dataset.worldCreateSize === "7" ? "7" : "5";
+      dialog.querySelectorAll("[data-world-create-size]").forEach((button) => button.classList.toggle("active", button === createSize));
+      updateCreateSummary();
+      return;
+    }
+    const createMember = event.target.closest("[data-world-create-member]");
+    if (createMember) {
+      const name = createMember.dataset.worldCreateMember;
+      const inputs = Array.from(root.querySelectorAll("[data-world-create-player]"));
+      const same = inputs.find((input) => playerKey(input.value) === playerKey(name));
+      if (same) same.value = "";
+      else (inputs.find((input) => !input.value.trim()) || inputs.at(-1)).value = name;
+      updateCreateSummary();
+      return;
+    }
+    if (event.target.closest("[data-world-settings-cancel]")) {
+      hideMatchSettings();
+      return;
+    }
+    const setting = event.target.closest("[data-world-setting]");
+    if (setting && pendingMatchSettings) {
+      const raw = setting.dataset.worldValue;
+      pendingMatchSettings[setting.dataset.worldSetting] = raw === "true" ? true : (raw === "false" ? false : raw);
+      if (setting.dataset.worldSetting === "monsterBattleMode" && raw === "false") pendingMatchSettings.doubleMonsterMode = false;
+      syncMatchSettingsUi();
+      return;
+    }
+    if (event.target.closest("[data-world-result-close]")) {
+      root.querySelector("[data-world-result]").hidden = true;
+      return;
+    }
     const roomButton = event.target.closest("[data-world-room]");
     if (roomButton) {
       selectedRoomId = roomButton.dataset.worldRoom;
@@ -709,7 +911,12 @@
     }
     const play = event.target.closest("[data-world-play]");
     if (play) {
-      playMatch(play.dataset.worldPlay);
+      showMatchSettings(play.dataset.worldPlay);
+      return;
+    }
+    const result = event.target.closest("[data-world-result]");
+    if (result && result.dataset.worldResult) {
+      showBoardResult(result.dataset.worldResult);
       return;
     }
     const csv = event.target.closest("[data-world-csv]");
@@ -768,6 +975,10 @@
     if (!root) return;
     root.hidden = true;
     hideCreate();
+    root.querySelector("[data-world-match-settings]").hidden = true;
+    root.querySelector("[data-world-result]").hidden = true;
+    pendingMatchId = "";
+    pendingMatchSettings = null;
     document.body.classList.remove("world-tournament-open");
   }
 

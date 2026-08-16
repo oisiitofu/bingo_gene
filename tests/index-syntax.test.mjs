@@ -17,9 +17,9 @@ test("online lobby boot bypasses stale browser modules and retries once", () => 
   const html = readFileSync(new URL("../index.html", import.meta.url), "utf8");
   const serviceWorker = readFileSync(new URL("../sw.js", import.meta.url), "utf8");
 
-  assert.match(html, /online-room\.js\?v=20260816-lite-mode-1/);
+  assert.match(html, /online-room\.js\?v=20260817-tournament-setup-2/);
   assert.match(html, /retry=\$\{Date\.now\(\)\}/);
-  assert.match(serviceWorker, /20260816-lite-pc-fit-115/);
+  assert.match(serviceWorker, /20260817-tournament-setup-116/);
 });
 
 test("one-bingo audio, Likecy skill timing, and reach badge rules stay aligned", () => {
@@ -277,7 +277,9 @@ test("世界大会は独立部屋、全組み合わせ、通常戦績加算へ�
   const rules = JSON.parse(readFileSync(new URL("../firebase-database.rules.json", import.meta.url), "utf8"));
   const serviceWorker = readFileSync(new URL("../sw.js", import.meta.url), "utf8");
 
-  assert.match(html, /id="worldTournamentButton">世界大会</);
+  assert.doesNotMatch(html, /id="worldTournamentButton"/);
+  assert.match(online, /id="onlineWorldTournament">世界大会</);
+  assert.match(online, /this\.bridge\.openWorldTournament\?\.\(\)/);
   assert.match(html, /src="world-tournament\.js"/);
   assert.match(html, /href="world-tournament\.css"/);
   assert.match(html, /function recordWorldTournamentMatch\(/);
@@ -289,6 +291,10 @@ test("世界大会は独立部屋、全組み合わせ、通常戦績加算へ�
   assert.match(tournament, /data-world-shuffle/);
   assert.match(tournament, /function canShuffleRoom\(/);
   assert.match(tournament, /function aggregateAllTimeStats\(/);
+  assert.match(tournament, /data-world-create-player/);
+  assert.match(tournament, /data-world-match-settings/);
+  assert.match(tournament, /data-world-result=/);
+  assert.match(tournament, /boardResult: normalizeBoardResult/);
   assert.match(tournament, /data-world-all-stats/);
   assert.match(tournament, /SHARED \/ PERSISTENT/);
   assert.match(tournament, /function roomCsv\(/);
@@ -298,6 +304,17 @@ test("世界大会は独立部屋、全組み合わせ、通常戦績加算へ�
   assert.equal(rules.rules.teamBingoV1.worldTournaments.rooms[".write"], "auth != null");
   assert.match(serviceWorker, /\.\/world-tournament\.js/);
   assert.match(serviceWorker, /\.\/world-tournament\.css/);
+});
+
+test("setup controls keep utility links by ROOM ID and combine monster count into battle mode", () => {
+  const html = readFileSync(new URL("../index.html", import.meta.url), "utf8");
+
+  assert.match(html, /class="setup-quick-links">[\s\S]*?id="setupStatsButton"[\s\S]*?id="setupMonsterButton"[\s\S]*?id="territoryModeButton"/);
+  assert.match(html, /class="setup-player-controls">[\s\S]*?id="mode5"[\s\S]*?id="deckModeButton"[\s\S]*?id="randomEventButton"[\s\S]*?class="monster-battle-setup-control"[\s\S]*?id="compactModeButton"/);
+  assert.match(html, /id="singleMonsterModeButton"[^>]*>x1<\/button>/);
+  assert.match(html, /id="doubleMonsterModeButton"[^>]*>x2<\/button>/);
+  assert.match(html, /randomEventsEnabled: false/);
+  assert.match(html, /localStorage\.getItem\(STORAGE\.randomEvents\) === "on"/);
 });
 
 test("おいしいとうふモードは静的軽量画像だけを使い継続再描画しない", () => {
