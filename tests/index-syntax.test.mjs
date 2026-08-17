@@ -19,7 +19,7 @@ test("online lobby boot bypasses stale browser modules and retries once", () => 
 
   assert.match(html, /online-room\.js\?v=20260817-tournament-test-120/);
   assert.match(html, /retry=\$\{Date\.now\(\)\}/);
-  assert.match(serviceWorker, /20260817-monster-pose-fit-123/);
+  assert.match(serviceWorker, /20260817-ipad-normal-performance-124/);
 });
 
 test("one-bingo audio, Likecy skill timing, and reach badge rules stay aligned", () => {
@@ -133,6 +133,20 @@ test("Lite Mode keeps two operable boards visible and opens cells after choosing
   assert.match(html, /showOpenedByPopover\(team, index, cellElement\.getBoundingClientRect\(\), \{ pendingOpen: !side\.marked\[index\] \}\)/);
   assert.match(html, /compactMode: state\.compactMode/);
   assert.match(html, /state\.compactMode = snapshot\.compactMode === true/);
+});
+
+test("iPad normal mode bounds full-mode rendering and releases presentation textures", () => {
+  const html = readFileSync(new URL("../index.html", import.meta.url), "utf8");
+
+  assert.match(html, /const FORCE_IPAD_PERFORMANCE = new URLSearchParams\(window\.location\.search\)\.get\("ipadPerformance"\) === "1"/);
+  assert.match(html, /const IS_IPAD_DEVICE = FORCE_IPAD_PERFORMANCE \|\| \/iPad\/i\.test\(navigator\.userAgent \|\| ""\)/);
+  assert.match(html, /document\.body\.classList\.toggle\("ipad-performance-mode", IS_IPAD_DEVICE\)/);
+  assert.match(html, /body\.ipad-performance-mode:not\(\.compact-ipad-mode\) \.boards \{[\s\S]*?grid-template-columns: repeat\(2, minmax\(0, 1fr\)\)/);
+  assert.match(html, /body\.ipad-performance-mode:not\(\.compact-ipad-mode\)::after \{[\s\S]*?animation: none;[\s\S]*?mix-blend-mode: normal/);
+  assert.match(html, /function releaseIpadPresentationMedia\(overlay\)[\s\S]*?image\.removeAttribute\("src"\)[\s\S]*?els\.monsterHatchGrid\.innerHTML = ""[\s\S]*?els\.monsterEvolutionBefore\.innerHTML = ""[\s\S]*?els\.victoryEvolutionGrid\.innerHTML = ""/);
+  assert.match(html, /function restoreIpadPresentationMedia\(overlay\)[\s\S]*?image\.src = src/);
+  assert.match(html, /function ipadFxCount\(count, minimum = 1\)[\s\S]*?Math\.ceil\(Number\(count \|\| 0\) \* \.46\)/);
+  assert.match(html, /const confettiCount = ipadFxCount\(/);
 });
 
 test("7x7 and three-player teams select the opener after the cell while JAN and EDA accept image targets", () => {

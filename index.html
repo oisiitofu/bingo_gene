@@ -7814,6 +7814,84 @@
     body.compact-ipad-mode .opened-by-choice { flex: 1 1 120px; min-height: 48px; font-size: 15px; }
     body.compact-ipad-mode .opened-by-done,
     body.compact-ipad-mode .opened-by-close { min-height: 44px; font-size: 13px; }
+
+    /* Keep the full interface on iPad while avoiding oversized Safari layers. */
+    body.ipad-performance-mode:not(.compact-ipad-mode) {
+      background-attachment: scroll;
+    }
+
+    body.ipad-performance-mode:not(.compact-ipad-mode)::after {
+      animation: none;
+      mix-blend-mode: normal;
+      transform: none;
+      opacity: .22;
+    }
+
+    body.ipad-performance-mode:not(.compact-ipad-mode) .board-card,
+    body.ipad-performance-mode:not(.compact-ipad-mode) .monster-panel {
+      box-shadow: 0 8px 0 rgba(0,0,0,.64), 0 16px 34px rgba(0,0,0,.4);
+    }
+
+    body.ipad-performance-mode:not(.compact-ipad-mode) .board-card::before {
+      filter: brightness(1.08) saturate(1.08);
+    }
+
+    body.ipad-performance-mode:not(.compact-ipad-mode) .board-card::after {
+      filter: saturate(1.04);
+    }
+
+    body.ipad-performance-mode:not(.compact-ipad-mode) .cell {
+      contain: layout paint style;
+    }
+
+    body.ipad-performance-mode:not(.compact-ipad-mode) .cell img {
+      filter: drop-shadow(0 2px 2px rgba(0, 0, 0, .3));
+    }
+
+    body.ipad-performance-mode:not(.compact-ipad-mode) .monster-portrait::after,
+    body.ipad-performance-mode:not(.compact-ipad-mode) .board-card.kento-ally .board-body::after,
+    body.ipad-performance-mode:not(.compact-ipad-mode) .board-card.kento-ally .cell:not(.free):not(.open):not(.victory-reach-cell):not(.winning)::after {
+      animation: none;
+    }
+
+    body.ipad-performance-mode:not(.compact-ipad-mode) .overlay-fg {
+      filter: saturate(1.08) contrast(1.03);
+    }
+
+    body.ipad-performance-mode:not(.compact-ipad-mode) .overlay.show .overlay-fg {
+      animation: overlayAssetIn .55s cubic-bezier(.12, .82, .18, 1) both;
+    }
+
+    body.ipad-performance-mode:not(.compact-ipad-mode) .fever-aura {
+      mix-blend-mode: normal;
+    }
+
+    body.ipad-performance-mode:not(.compact-ipad-mode) .fever-aura::before,
+    body.ipad-performance-mode:not(.compact-ipad-mode) .fever-aura::after {
+      width: 126vw;
+      box-shadow: 0 0 24px var(--fever-color);
+    }
+
+    @media (min-width: 721px) and (max-width: 1100px) {
+      body.ipad-performance-mode:not(.compact-ipad-mode) .boards {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 8px;
+      }
+
+      body.ipad-performance-mode:not(.compact-ipad-mode) .board-card {
+        min-width: 0;
+        padding: 10px;
+        border-radius: 8px;
+      }
+
+      body.ipad-performance-mode:not(.compact-ipad-mode) .board-head {
+        padding: 8px 10px;
+      }
+
+      body.ipad-performance-mode:not(.compact-ipad-mode) .board-body {
+        padding: 9px;
+      }
+    }
   </style>
   <link rel="stylesheet" href="monster-battle.css" />
 </head>
@@ -8432,6 +8510,10 @@
   <script>
     "use strict";
 
+    const FORCE_IPAD_PERFORMANCE = new URLSearchParams(window.location.search).get("ipadPerformance") === "1";
+    const IS_IPAD_DEVICE = FORCE_IPAD_PERFORMANCE || /iPad/i.test(navigator.userAgent || "") || (
+      navigator.platform === "MacIntel" && Number(navigator.maxTouchPoints) > 1
+    );
     const CHARACTER_COUNT = 87;
     const FIXED_MEMBERS = ["おいしいとうふ", "えだ", "ジャン", "リーマ", "Kento", "Lickey"];
     const FIXED_MEMBER_LOOKUP = new Map(FIXED_MEMBERS.map((name) => [
@@ -9218,6 +9300,7 @@
     }
 
     function init() {
+      document.body.classList.toggle("ipad-performance-mode", IS_IPAD_DEVICE);
       cacheElements();
       loadState();
       renderFixedMembers();
@@ -14210,6 +14293,7 @@
 
     function showOverlay(overlay) {
       clearRareCutins();
+      restoreIpadPresentationMedia(overlay);
       overlay.classList.add("show");
       overlay.setAttribute("aria-hidden", "false");
     }
@@ -14222,6 +14306,37 @@
         overlay.classList.remove("red", "blue");
         delete overlay.dataset.skillId;
         releaseSkillPresentationMedia();
+      }
+      releaseIpadPresentationMedia(overlay);
+    }
+
+    function restoreIpadPresentationMedia(overlay) {
+      if (!IS_IPAD_DEVICE || !overlay) return;
+      overlay.querySelectorAll("img[data-ipad-released-src]").forEach((image) => {
+        const src = image.dataset.ipadReleasedSrc;
+        delete image.dataset.ipadReleasedSrc;
+        if (src) image.src = src;
+      });
+    }
+
+    function releaseIpadPresentationMedia(overlay) {
+      if (!IS_IPAD_DEVICE || !overlay) return;
+      overlay.querySelectorAll("img[src]").forEach((image) => {
+        if (image === els.skillTitleArt) return;
+        const src = image.getAttribute("src");
+        if (!src) return;
+        image.dataset.ipadReleasedSrc = src;
+        image.removeAttribute("src");
+      });
+      if (overlay === els.monsterHatchOverlay && els.monsterHatchGrid) {
+        els.monsterHatchGrid.innerHTML = "";
+      }
+      if (overlay === els.monsterEvolutionOverlay) {
+        if (els.monsterEvolutionBefore) els.monsterEvolutionBefore.innerHTML = "";
+        if (els.monsterEvolutionAfter) els.monsterEvolutionAfter.innerHTML = "";
+      }
+      if (overlay === els.victoryEvolutionOverlay && els.victoryEvolutionGrid) {
+        els.victoryEvolutionGrid.innerHTML = "";
       }
     }
 
@@ -14494,7 +14609,7 @@
         <div class="open-ring"></div>
         ${isSkillBurst ? skillLabelHtml : `<div class="open-hit-label">${escapeHtml(label)}</div>`}
       `;
-      for (let i = 0; i < (isSkillBurst ? 11 : 7); i += 1) {
+      for (let i = 0; i < ipadFxCount(isSkillBurst ? 11 : 7, 4); i += 1) {
         const line = document.createElement("div");
         line.className = "open-speedline";
         line.style.setProperty("--angle", `${-28 + i * 18 + Math.random() * 10}deg`);
@@ -14502,7 +14617,7 @@
       }
       els.fxLayer.appendChild(burst);
 
-      for (let i = 0; i < 22; i += 1) {
+      for (let i = 0; i < ipadFxCount(22, 8); i += 1) {
         const spark = document.createElement("i");
         spark.className = "fx-spark";
         spark.style.setProperty("--x", `${x}px`);
@@ -14546,7 +14661,7 @@
       const colors = team === "blue"
         ? ["#2f80ff", "#8ad7ff", "#ffffff", "#f9c74f"]
         : ["#ff304d", "#ff8aa0", "#ffffff", "#f9c74f"];
-      for (let i = 0; i < count; i += 1) {
+      for (let i = 0; i < ipadFxCount(count, 3); i += 1) {
         const stripe = document.createElement("i");
         const fromLeft = Math.random() > .5;
         stripe.className = "arena-stripe";
@@ -14707,8 +14822,8 @@
         : team === "red"
         ? ["#ff304d", "#ff8aa0", "#ffffff", "#f9c74f"]
         : ["#2f80ff", "#8ad7ff", "#ffffff", "#f9c74f"];
-      const confettiCount = victoryKind === "normal" ? 110 : 170;
-      const fireworkCount = victoryKind === "normal" ? 8 : 13;
+      const confettiCount = ipadFxCount(victoryKind === "normal" ? 110 : 170, 48);
+      const fireworkCount = ipadFxCount(victoryKind === "normal" ? 8 : 13, 4);
       for (let i = 0; i < confettiCount; i += 1) {
         const piece = document.createElement("i");
         piece.className = "confetti-piece";
@@ -14731,8 +14846,9 @@
         core.style.setProperty("--x", `${x}%`);
         core.style.setProperty("--y", `${y}%`);
         els.victoryParticles.appendChild(core);
-        for (let j = 0; j < 22; j += 1) {
-          const angle = (Math.PI * 2 * j) / 22;
+        const sparkCount = ipadFxCount(22, 12);
+        for (let j = 0; j < sparkCount; j += 1) {
+          const angle = (Math.PI * 2 * j) / sparkCount;
           const distance = 48 + Math.random() * 82;
           const spark = document.createElement("i");
           spark.className = "firework-spark";
@@ -14745,6 +14861,11 @@
         }
       }
       window.setTimeout(cleanupVictoryParticles, 7600);
+    }
+
+    function ipadFxCount(count, minimum = 1) {
+      if (!IS_IPAD_DEVICE) return count;
+      return Math.max(minimum, Math.ceil(Number(count || 0) * .46));
     }
 
     function cleanupVictoryParticles() {
