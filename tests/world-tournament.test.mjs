@@ -134,6 +134,45 @@ test("tournament rooms preserve card size, per-match settings, and final bingo b
   assert.equal(saved.boardResult.blue.members[0], "B");
 });
 
+test("test tournaments save DONE boards without adding room or all-time statistics", () => {
+  const { api } = createApi();
+  const room = api.createRoom("TEST CUP", ["A", "B"], new Date("2026-08-17T00:00:00+09:00"), {
+    gridSize: 5,
+    testMode: true
+  });
+  const storage = {
+    value: JSON.stringify([room]),
+    getItem() { return this.value; },
+    setItem(_key, value) { this.value = value; }
+  };
+  api.configure({ storage });
+  const loaded = api._getRooms()[0];
+  const match = loaded.matches[0];
+  const card = Array.from({ length: 25 }, (_, index) => ({ id: index + 1, free: index === 12, marked: index < 5 }));
+
+  assert.equal(api.recordMatch(loaded.id, match.id, {
+    winnerTeam: "red",
+    boardResult: {
+      gridSize: 5,
+      red: { title: "RED", members: ["A"], card },
+      blue: { title: "BLUE", members: ["B"], card }
+    },
+    players: [
+      { key: "a", name: "A", team: "red", opens: 5, characters: { 1: 1 } },
+      { key: "b", name: "B", team: "blue", opens: 4, characters: { 2: 1 } }
+    ]
+  }), true);
+
+  const saved = api._getRooms()[0];
+  assert.equal(saved.matches[0].status, "complete");
+  assert.equal(saved.matches[0].settings.testMode, true);
+  assert.equal(saved.matches[0].boardResult.red.card.length, 25);
+  assert.equal(saved.matches[0].boardResult.red.card[0].marked, true);
+  assert.equal(saved.stats.a.games, 0);
+  assert.equal(saved.stats.a.opens, 0);
+  assert.deepEqual(api.aggregateAllTimeStats([saved]), []);
+});
+
 test("world tournament CSV includes match, player, and character records", () => {
   const { api } = createApi();
   const room = api.createRoom("2026/07/30", ["A", "B"]);
@@ -192,4 +231,10 @@ test("world tournament room deletion is visible and executable only in Admin mod
   assert.match(source, /const canDelete = host\.isAdmin\?\.\(\) === true/);
   assert.match(source, /\$\{canDelete \? `<button[^`]+data-world-delete/);
   assert.match(source, /if \(host\.isAdmin\?\.\(\) !== true\) return/);
+});
+
+test("DONE buttons and the final-board dialog use distinct selectors", () => {
+  assert.match(source, /data-world-result="\$\{escapeHtml\(match\.id\)\}"/);
+  assert.match(source, /class="world-result-dialog" data-world-result-dialog/);
+  assert.doesNotMatch(source, /class="world-result-dialog" data-world-result(?:\s|>)/);
 });

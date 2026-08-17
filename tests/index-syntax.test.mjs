@@ -17,9 +17,9 @@ test("online lobby boot bypasses stale browser modules and retries once", () => 
   const html = readFileSync(new URL("../index.html", import.meta.url), "utf8");
   const serviceWorker = readFileSync(new URL("../sw.js", import.meta.url), "utf8");
 
-  assert.match(html, /online-room\.js\?v=20260817-tournament-setup-2/);
+  assert.match(html, /online-room\.js\?v=20260817-tournament-test-120/);
   assert.match(html, /retry=\$\{Date\.now\(\)\}/);
-  assert.match(serviceWorker, /20260817-test-mode-119/);
+  assert.match(serviceWorker, /20260817-tournament-test-120/);
 });
 
 test("one-bingo audio, Likecy skill timing, and reach badge rules stay aligned", () => {
@@ -295,7 +295,11 @@ test("世界大会は独立部屋、全組み合わせ、通常戦績加算へ�
   assert.match(tournament, /data-world-create-player/);
   assert.match(tournament, /data-world-match-settings/);
   assert.match(tournament, /data-world-result=/);
+  assert.match(tournament, /data-world-result-dialog/);
+  assert.match(tournament, /root\.querySelector\("\[data-world-result-dialog\]"\)/);
   assert.match(tournament, /boardResult: normalizeBoardResult/);
+  assert.match(tournament, /data-world-create-test-mode/);
+  assert.match(tournament, /if \(!match\.settings\.testMode\)/);
   assert.match(tournament, /data-world-all-stats/);
   assert.match(tournament, /SHARED \/ PERSISTENT/);
   assert.match(tournament, /function roomCsv\(/);
@@ -332,9 +336,22 @@ test("TEST MODE syncs online while keeping every persistent bingo result untouch
   assert.match(html, /function getPlayerStat\(name\)[\s\S]*?state\.testPlayerStats/);
   assert.match(html, /function recordOpen\(characterId\)[\s\S]*?if \(state\.testMode\) return/);
   assert.match(html, /function savePlayerStats\(\) \{\s*if \(state\.testMode\) return/);
-  assert.match(html, /function recordMatchFinish\([\s\S]*?state\.matchStatsFinalized = true;\s*if \(state\.testMode\) return/);
+  assert.match(html, /function recordMatchFinish\([\s\S]*?if \(state\.testMode\) \{\s*recordWorldTournamentMatch\(winnerTeam, victoryKind, mvpName\);\s*return/);
   assert.match(html, /function awardTerritoryEquipmentForMatch\([\s\S]*?if \(state\.testMode\) return/);
   assert.match(html, /function recordMonsterBattleOutcome\([\s\S]*?if \(state\.testMode\) return false/);
+});
+
+test("Admin player open counts use an image grid with visible per-character counts", () => {
+  const html = readFileSync(new URL("../index.html", import.meta.url), "utf8");
+  const online = readFileSync(new URL("../online/online-room.js", import.meta.url), "utf8");
+  const css = readFileSync(new URL("../online/online-room.css", import.meta.url), "utf8");
+
+  assert.match(html, /getCharacterImage: imagePath/);
+  assert.match(online, /id="onlineAdminCountCharacterGrid"/);
+  assert.match(online, /data-admin-count-character="\$\{id\}"/);
+  assert.match(online, /const cellCount = Math\.max\(0, Number\(record\.openedCharacters\?\.\[id\]\) \|\| 0\)/);
+  assert.match(css, /\.online-admin-character-grid \{/);
+  assert.match(css, /\.online-admin-character\.selected/);
 });
 
 test("おいしいとうふモードは静的軽量画像だけを使い継続再描画しない", () => {

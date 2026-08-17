@@ -586,6 +586,22 @@ body.world-tournament-open {
   gap: 14px;
   margin-top: 16px;
 }
+.world-create-test-mode {
+  display: flex !important;
+  align-items: center;
+  gap: 12px;
+  min-height: 58px;
+  margin-top: 16px !important;
+  padding: 10px 14px;
+  border: 1px solid #3e4a5d;
+  background: #0b111b;
+  cursor: pointer;
+}
+.world-create-test-mode input { width: 20px; height: 20px; accent-color: #f2c74f; }
+.world-create-test-mode span { display: grid; gap: 4px; }
+.world-create-test-mode b { color: #fff; font-size: 12px; }
+.world-create-test-mode small { color: #9ba7b8; font-size: 9px; line-height: 1.4; }
+.world-create-test-mode:has(input:checked) { border-color: #f2c74f; box-shadow: inset 3px 0 #f2c74f; }
 
 .world-create-size > div,
 .world-settings-grid section > div {

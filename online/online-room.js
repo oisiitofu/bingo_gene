@@ -1125,7 +1125,7 @@ export class OnlineCoordinator {
             <div class="online-admin-operation online-admin-count-operation">
               <div>
                 <strong>PLAYER OPEN COUNTS</strong>
-                <span>プレイヤーごとのマス開封記録を1回ずつ補正します。</span>
+                <span>画像と現在回数を確認して、プレイヤーごとの開封記録を補正します。</span>
               </div>
               <div class="online-admin-count-editor">
                 <label>
@@ -1134,15 +1134,13 @@ export class OnlineCoordinator {
                     ${ADMIN_COUNT_PLAYERS.map((name) => `<option value="${escapeHtml(name)}">${escapeHtml(name)}</option>`).join("")}
                   </select>
                 </label>
-                <label>
-                  <span>CELL</span>
-                  <select id="onlineAdminCountCharacter" aria-label="補正するマス番号">
-                    ${Array.from({ length: ADMIN_CHARACTER_COUNT }, (_, index) => `<option value="${index + 1}">No.${String(index + 1).padStart(2, "0")}</option>`).join("")}
-                  </select>
-                </label>
-                <output id="onlineAdminCountValue">0 OPEN</output>
-                <button type="button" class="online-simple-button danger" id="onlineAdminCountMinus" aria-label="開封数を1減らす">-1</button>
-                <button type="button" class="online-simple-button primary" id="onlineAdminCountPlus" aria-label="開封数を1増やす">+1</button>
+                <input id="onlineAdminCountCharacter" type="hidden" value="1" />
+                <output id="onlineAdminCountValue">SELECT CELL</output>
+                <div class="online-admin-count-actions">
+                  <button type="button" class="online-simple-button danger" id="onlineAdminCountMinus" aria-label="選択中の画像の開封数を1減らす">-1</button>
+                  <button type="button" class="online-simple-button primary" id="onlineAdminCountPlus" aria-label="選択中の画像の開封数を1増やす">+1</button>
+                </div>
+                <div class="online-admin-character-grid" id="onlineAdminCountCharacterGrid" aria-label="開封数を補正する画像"></div>
               </div>
             </div>
             <div class="online-admin-operation">
@@ -1322,6 +1320,7 @@ export class OnlineCoordinator {
       adminImportFile: document.getElementById("onlineAdminImportFile"),
       adminCountPlayer: document.getElementById("onlineAdminCountPlayer"),
       adminCountCharacter: document.getElementById("onlineAdminCountCharacter"),
+      adminCountCharacterGrid: document.getElementById("onlineAdminCountCharacterGrid"),
       adminCountValue: document.getElementById("onlineAdminCountValue"),
       adminCountMinus: document.getElementById("onlineAdminCountMinus"),
       adminCountPlus: document.getElementById("onlineAdminCountPlus"),
@@ -1434,7 +1433,12 @@ export class OnlineCoordinator {
       if (file) this.importCountData(file);
     });
     this.ui.adminCountPlayer.addEventListener("change", () => this.renderAdminPlayerCountEditor());
-    this.ui.adminCountCharacter.addEventListener("change", () => this.renderAdminPlayerCountEditor());
+    this.ui.adminCountCharacterGrid.addEventListener("click", (event) => {
+      const cell = event.target.closest("[data-admin-count-character]");
+      if (!cell) return;
+      this.ui.adminCountCharacter.value = cell.dataset.adminCountCharacter;
+      this.renderAdminPlayerCountEditor();
+    });
     this.ui.adminCountMinus.addEventListener("click", () => this.adjustAdminPlayerOpenCount(-1));
     this.ui.adminCountPlus.addEventListener("click", () => this.adjustAdminPlayerOpenCount(1));
     this.ui.adminDeleteGhosts.addEventListener("click", async () => {
@@ -3683,7 +3687,7 @@ export class OnlineCoordinator {
   }
 
   renderAdminPlayerCountEditor() {
-    if (!this.ui?.adminCountPlayer || !this.ui?.adminCountCharacter || !this.ui?.adminCountValue) return;
+    if (!this.ui?.adminCountPlayer || !this.ui?.adminCountCharacter || !this.ui?.adminCountValue || !this.ui?.adminCountCharacterGrid) return;
     const name = ADMIN_COUNT_PLAYERS.includes(this.ui.adminCountPlayer.value)
       ? this.ui.adminCountPlayer.value
       : ADMIN_COUNT_PLAYERS[0];
@@ -3693,7 +3697,16 @@ export class OnlineCoordinator {
     const total = Math.max(0, Number(record.opens) || 0);
     this.ui.adminCountPlayer.value = name;
     this.ui.adminCountCharacter.value = String(characterId);
-    this.ui.adminCountValue.textContent = `${count} OPEN / TOTAL ${total}`;
+    this.ui.adminCountValue.textContent = `No.${String(characterId).padStart(2, "0")} / ${count} OPEN / TOTAL ${total}`;
+    this.ui.adminCountCharacterGrid.innerHTML = Array.from({ length: ADMIN_CHARACTER_COUNT }, (_, index) => {
+      const id = index + 1;
+      const cellCount = Math.max(0, Number(record.openedCharacters?.[id]) || 0);
+      const image = this.bridge.getCharacterImage?.(id) || `images/characters/${id}.png`;
+      return `<button type="button" class="online-admin-character${id === characterId ? " selected" : ""}${cellCount > 0 ? " has-count" : ""}" data-admin-count-character="${id}" aria-label="No.${id} ${cellCount}回開封">
+        <img src="${escapeHtml(image)}" alt="" loading="lazy" />
+        <b>${cellCount}</b>
+      </button>`;
+    }).join("");
     if (this.ui.adminCountMinus) this.ui.adminCountMinus.disabled = count <= 0;
   }
 

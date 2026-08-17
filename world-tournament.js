@@ -41,7 +41,10 @@
   }
 
   function normalizeRoomSettings(value = {}) {
-    return { gridSize: Number(value.gridSize) === 7 ? 7 : 5 };
+    return {
+      gridSize: Number(value.gridSize) === 7 ? 7 : 5,
+      testMode: value.testMode === true
+    };
   }
 
   function normalizeMatchSettings(value = {}, roomSettings = {}) {
@@ -51,7 +54,8 @@
       randomEventsEnabled: value.randomEventsEnabled === true,
       monsterBattleMode: value.monsterBattleMode !== false,
       doubleMonsterMode: value.doubleMonsterMode === true,
-      compactMode: value.compactMode === true
+      compactMode: value.compactMode === true,
+      testMode: value.testMode === true || (value.testMode == null && roomSettings.testMode === true)
     };
   }
 
@@ -344,6 +348,7 @@
   function aggregateAllTimeStats(roomValues = rooms) {
     const totals = {};
     (Array.isArray(roomValues) ? roomValues : []).forEach((room) => {
+      if (room?.settings?.testMode === true) return;
       const roomStats = Object.values(room?.stats || {});
       const complete = Boolean(room?.matches?.length) && room.matches.every((match) => match.status === "complete");
       const bestWins = complete ? Math.max(0, ...roomStats.map((stat) => Number(stat.wins) || 0)) : -1;
@@ -402,20 +407,22 @@
       comebackMoves: Math.max(0, Number(entry.comebackMoves) || 0),
       characters: { ...(entry.characters || {}) }
     }));
-    room.players.forEach((player) => {
-      const stat = room.stats[player.key] || (room.stats[player.key] = emptyPlayerStat(player));
-      const entry = match.playerResults.find((item) => item.key === player.key);
-      stat.games += 1;
-      stat.wins += winnerKeys.includes(player.key) ? 1 : 0;
-      stat.losses += winnerKeys.includes(player.key) ? 0 : 1;
-      stat.opens += Number(entry?.opens) || 0;
-      stat.skills += Number(entry?.skills) || 0;
-      stat.comebackMoves += Number(entry?.comebackMoves) || 0;
-      if (playerKey(match.mvpName) === player.key) stat.mvps += 1;
-      Object.entries(entry?.characters || {}).forEach(([characterId, count]) => {
-        stat.characters[characterId] = (Number(stat.characters[characterId]) || 0) + (Number(count) || 0);
+    if (!match.settings.testMode) {
+      room.players.forEach((player) => {
+        const stat = room.stats[player.key] || (room.stats[player.key] = emptyPlayerStat(player));
+        const entry = match.playerResults.find((item) => item.key === player.key);
+        stat.games += 1;
+        stat.wins += winnerKeys.includes(player.key) ? 1 : 0;
+        stat.losses += winnerKeys.includes(player.key) ? 0 : 1;
+        stat.opens += Number(entry?.opens) || 0;
+        stat.skills += Number(entry?.skills) || 0;
+        stat.comebackMoves += Number(entry?.comebackMoves) || 0;
+        if (playerKey(match.mvpName) === player.key) stat.mvps += 1;
+        Object.entries(entry?.characters || {}).forEach(([characterId, count]) => {
+          stat.characters[characterId] = (Number(stat.characters[characterId]) || 0) + (Number(count) || 0);
+        });
       });
-    });
+    }
     room.updatedAt = match.endedAt;
     saveRooms(room);
     activeMatch = null;
@@ -494,6 +501,10 @@
                 <button type="button" class="world-simple-button" data-world-create-size="7">7x7</button>
               </div>
             </div>
+            <label class="world-create-test-mode">
+              <input type="checkbox" data-world-create-test-mode />
+              <span><b>TEST MODE</b><small>盤面結果だけ保存し、STATS・装備・モンスター記録には加算しない</small></span>
+            </label>
             <section class="world-create-player-section">
               <div><span>PLAYERS</span><small>2人以上の偶数で登録</small></div>
               <div class="world-create-player-grid" data-world-create-players>
@@ -523,7 +534,7 @@
           <footer><button type="submit" class="world-simple-button primary">MATCH START</button></footer>
         </form>
       </section>
-      <section class="world-result-dialog" data-world-result hidden>
+      <section class="world-result-dialog" data-world-result-dialog hidden>
         <div class="world-result-card">
           <header><div><span>FINAL BINGO CARDS</span><h2 data-world-result-title>試合結果</h2></div><button type="button" class="world-simple-button" data-world-result-close>CLOSE</button></header>
           <div class="world-result-boards" data-world-result-boards></div>
@@ -559,7 +570,7 @@
     return `
       <button type="button" class="world-room-card ${room.id === selectedRoomId ? "active" : ""}" data-world-room="${escapeHtml(room.id)}">
         <strong>${escapeHtml(room.name)}</strong>
-        <span>${complete} / ${room.matches.length} MATCH</span>
+        <span>${complete} / ${room.matches.length} MATCH${room.settings.testMode ? " / TEST" : ""}</span>
       </button>
     `;
   }
@@ -577,8 +588,9 @@
   }
 
   function allTimeStatsMarkup() {
-    const totals = aggregateAllTimeStats();
-    const completedMatches = rooms.reduce((count, room) => (
+    const statsRooms = rooms.filter((room) => room.settings.testMode !== true);
+    const totals = aggregateAllTimeStats(statsRooms);
+    const completedMatches = statsRooms.reduce((count, room) => (
       count + room.matches.filter((match) => match.status === "complete").length
     ), 0);
     return `
@@ -586,7 +598,7 @@
         <div>
           <span>ALL TOURNAMENT HISTORY</span>
           <h2>世界大会 累計STATS</h2>
-          <p>${rooms.length} TOURNAMENTS / ${completedMatches} MATCHES / ${totals.length} PLAYERS</p>
+          <p>${statsRooms.length} TOURNAMENTS / ${completedMatches} MATCHES / ${totals.length} PLAYERS</p>
         </div>
       </header>
       <section class="world-leaderboard world-all-stats">
@@ -653,7 +665,7 @@
     detail.innerHTML = `
       <header class="world-room-head">
         <div>
-          <span>SHARED / PERSISTENT</span>
+          <span>${room.settings.testMode ? "TEST MODE / STATS OFF" : "SHARED / PERSISTENT"}</span>
           <h2>${escapeHtml(room.name)}</h2>
           <p>${room.players.length} PLAYERS / ${room.settings.gridSize}x${room.settings.gridSize} / ${complete} OF ${room.matches.length} COMPLETE</p>
         </div>
@@ -710,6 +722,7 @@
     dialog.hidden = false;
     dialog.querySelector("[data-world-room-name]").value = localDateName();
     dialog.dataset.gridSize = "5";
+    dialog.querySelector("[data-world-create-test-mode]").checked = false;
     dialog.querySelectorAll("[data-world-create-size]").forEach((button) => button.classList.toggle("active", button.dataset.worldCreateSize === "5"));
     dialog.querySelectorAll("[data-world-create-player]").forEach((input, index) => { input.value = players[index]?.name || ""; });
     const fixedPlayers = normalizePlayers(host.getFixedPlayers?.() || players);
@@ -729,7 +742,7 @@
     if (!dialog || dialog.hidden) return;
     const players = normalizePlayers(createPlayerValues());
     dialog.querySelector("[data-world-create-error]").textContent = players.length >= 2 && players.length % 2 === 0
-      ? `${players.length}人 / ${generateMatchups(players).length}試合 / ${dialog.dataset.gridSize || 5}x${dialog.dataset.gridSize || 5}`
+      ? `${players.length}人 / ${generateMatchups(players).length}試合 / ${dialog.dataset.gridSize || 5}x${dialog.dataset.gridSize || 5}${dialog.querySelector("[data-world-create-test-mode]")?.checked ? " / TEST MODE" : ""}`
       : "プレイヤー入力を2人以上の偶数にしてください。";
   }
 
@@ -745,7 +758,8 @@
     try {
       if (rawPlayers.length !== players.length) throw new Error("同じプレイヤー名は登録できません。");
       const room = createRoom(dialog.querySelector("[data-world-room-name]").value, players, new Date(), {
-        gridSize: Number(dialog.dataset.gridSize) === 7 ? 7 : 5
+        gridSize: Number(dialog.dataset.gridSize) === 7 ? 7 : 5,
+        testMode: dialog.querySelector("[data-world-create-test-mode]").checked
       });
       rooms.unshift(room);
       selectedRoomId = room.id;
@@ -774,7 +788,11 @@
     const match = room?.matches.find((entry) => entry.id === matchId);
     if (!room || !match || match.status === "complete") return false;
     pendingMatchId = match.id;
-    pendingMatchSettings = normalizeMatchSettings(match.settings || host.getTournamentSettings?.() || {}, room.settings);
+    pendingMatchSettings = normalizeMatchSettings({
+      ...(host.getTournamentSettings?.() || {}),
+      ...(match.settings || {}),
+      testMode: room.settings.testMode
+    }, room.settings);
     const dialog = root.querySelector("[data-world-match-settings]");
     const red = playerNames(room, match.redKeys).map(escapeHtml).join(" / ");
     const blue = playerNames(room, match.blueKeys).map(escapeHtml).join(" / ");
@@ -814,7 +832,7 @@
     const room = selectedRoom();
     const match = room?.matches.find((entry) => entry.id === matchId);
     if (!room || !match || match.status !== "complete") return false;
-    const dialog = root.querySelector("[data-world-result]");
+    const dialog = root.querySelector("[data-world-result-dialog]");
     dialog.querySelector("[data-world-result-title]").textContent = `${room.name} / MATCH ${String(match.order).padStart(2, "0")}`;
     const board = normalizeBoardResult(match.boardResult);
     dialog.querySelector("[data-world-result-boards]").innerHTML = board
@@ -898,7 +916,7 @@
       return;
     }
     if (event.target.closest("[data-world-result-close]")) {
-      root.querySelector("[data-world-result]").hidden = true;
+      root.querySelector("[data-world-result-dialog]").hidden = true;
       return;
     }
     const roomButton = event.target.closest("[data-world-room]");
@@ -976,7 +994,7 @@
     root.hidden = true;
     hideCreate();
     root.querySelector("[data-world-match-settings]").hidden = true;
-    root.querySelector("[data-world-result]").hidden = true;
+    root.querySelector("[data-world-result-dialog]").hidden = true;
     pendingMatchId = "";
     pendingMatchSettings = null;
     document.body.classList.remove("world-tournament-open");

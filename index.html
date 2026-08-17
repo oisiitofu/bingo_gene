@@ -15330,7 +15330,10 @@
     function recordMatchFinish(winnerTeam, victoryKind = "normal", mvpName = "") {
       if (state.matchStatsFinalized) return;
       state.matchStatsFinalized = true;
-      if (state.testMode) return;
+      if (state.testMode) {
+        recordWorldTournamentMatch(winnerTeam, victoryKind, mvpName);
+        return;
+      }
       ["red", "blue"].forEach((team) => {
         const won = team === winnerTeam;
         getUniqueTeamMembers(team).forEach((member) => {
@@ -15357,7 +15360,6 @@
     }
 
     function recordWorldTournamentMatch(winnerTeam, victoryKind = "normal", mvpName = "") {
-      if (state.testMode) return false;
       if (!window.TeamBingoWorldTournament?.hasActiveMatch?.()) return false;
       const players = ["red", "blue"].flatMap((team) => getMatchPlayerEntries(team).map((entry) => ({
         key: playerStatsKey(entry.name),
@@ -17461,7 +17463,7 @@
       if ("serviceWorker" in navigator && /^https?:$/.test(location.protocol)) {
         navigator.serviceWorker.register("./sw.js").then((registration) => registration.update()).catch((error) => console.warn("Service worker registration failed", error));
       }
-      const onlineRoomModuleUrl = "./online/online-room.js?v=20260817-tournament-setup-2";
+      const onlineRoomModuleUrl = "./online/online-room.js?v=20260817-tournament-test-120";
       import(onlineRoomModuleUrl)
         .catch((firstError) => import(`${onlineRoomModuleUrl}&retry=${Date.now()}`)
           .catch((retryError) => {
@@ -17526,6 +17528,7 @@
         restoreAutoBackup: (backupId) => restoreAutoBackup(backupId),
         openAdminMonsterDex: showAdminMonsterDex,
         openAdminMonsterBattleLab,
+        getCharacterImage: imagePath,
         showOnlineMessage: (main, sub) => showCommentary(main, sub, 7000),
         setEmergencyPause,
         skipOnlinePresentation,
@@ -17942,7 +17945,8 @@
           randomEventsEnabled: state.randomEventsEnabled,
           monsterBattleMode: state.monsterBattleMode,
           doubleMonsterMode: state.doubleMonsterMode,
-          compactMode: state.compactMode
+          compactMode: state.compactMode,
+          testMode: state.testMode
         }),
         repository: onlineCoordinator,
         isAdmin: () => Boolean(onlineCoordinator?.isAdminMode?.()),
@@ -17961,6 +17965,7 @@
           state.monsterBattleMode = settings.monsterBattleMode !== false;
           state.doubleMonsterMode = settings.doubleMonsterMode === true;
           state.compactMode = settings.compactMode === true;
+          setTestModeState(settings.testMode === true);
           updateGridButtons();
           updateRandomEventButton();
           updateMonsterBattleMode();
