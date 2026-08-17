@@ -32,6 +32,7 @@ const ADMIN_PIN_HASH = "6440e6a91202aeddb45b070a80533f65a689c37d0cf1842ab2bd962e
 const REACTION_TTL_MS = 12000;
 const ADMIN_COUNT_PLAYERS = Object.freeze(["おいしいとうふ", "えだ", "ジャン", "リーマ", "Kento", "Lickey"]);
 const ADMIN_CHARACTER_COUNT = 87;
+const FIXED_RANKING_PLAYER_KEYS = new Set(ADMIN_COUNT_PLAYERS.map((name) => playerKey(name)));
 
 export const ONLINE_REACTIONS = Object.freeze([
   { id: "clap", label: "拍手", mark: "👏" },
@@ -220,6 +221,19 @@ function normalizeNumberMap(value) {
   return mergeNumberMap({}, value && typeof value === "object" ? value : {});
 }
 
+export function createFixedMemberRanking(playerStats = {}) {
+  const ranking = {};
+  Object.entries(playerStats?.players || {}).forEach(([key, record]) => {
+    const normalizedKey = playerKey(record?.name || key);
+    if (!FIXED_RANKING_PLAYER_KEYS.has(normalizedKey)) return;
+    Object.entries(normalizeNumberMap(record?.openedCharacters)).forEach(([characterId, count]) => {
+      const amount = Math.max(0, Number(count) || 0);
+      if (amount) ranking[characterId] = (Number(ranking[characterId]) || 0) + amount;
+    });
+  });
+  return ranking;
+}
+
 function mergePlayerRecord(target = {}, incoming = {}) {
   const result = { ...target };
   const numberFields = [
@@ -275,7 +289,7 @@ function mergePlayerStats(target = {}, incoming = {}) {
 export function mergeLegacyStats(globalStats = {}, legacy = {}) {
   return {
     ...globalStats,
-    ranking: mergeNumberMap(globalStats.ranking, legacy.ranking),
+    ranking: mergeNumberMap(globalStats.ranking, createFixedMemberRanking(legacy.playerStats)),
     playerStats: mergePlayerStats(globalStats.playerStats, legacy.playerStats),
     processedActions: globalStats.processedActions || {}
   };
@@ -454,7 +468,10 @@ export function filterStatsDeltaAfterReset(delta = {}, stats = {}, occurredAt = 
 
 export function createStatsDelta(before = {}, after = {}) {
   const delta = {
-    ranking: diffNumberMap(before.ranking, after.ranking),
+    ranking: diffNumberMap(
+      createFixedMemberRanking(before.playerStats),
+      createFixedMemberRanking(after.playerStats)
+    ),
     players: {},
     rivalries: {},
     recentMatches: []

@@ -475,6 +475,16 @@ function prepareJoinCoordinator(store, uid, deviceId) {
   return coordinator;
 }
 
+function adjustFixedTestOpen(stats, characterId, delta, name = "ジャン") {
+  const key = name.toLocaleLowerCase("ja-JP");
+  const record = stats.playerStats.players[key] || { name, opens: 0, openedCharacters: {} };
+  record.opens = Math.max(0, (Number(record.opens) || 0) + delta);
+  const next = Math.max(0, (Number(record.openedCharacters[characterId]) || 0) + delta);
+  if (next) record.openedCharacters[characterId] = next;
+  else delete record.openedCharacters[characterId];
+  stats.playerStats.players[key] = record;
+}
+
 function prepareAdminCoordinator(store, uid = "master") {
   const coordinator = createCoordinator(store, uid, "master", "red");
   coordinator.adminMode = true;
@@ -846,7 +856,7 @@ test("standalone browsers merge local-match stats into one server-authoritative 
     first.syncStandaloneStats({
       ranking: { 53: 1 },
       playerStats: {
-        players: { jan: { name: "JAN", opens: 1, openedCharacters: { 53: 1 } } },
+        players: { jan: { name: "ジャン", opens: 1, openedCharacters: { 53: 1 } } },
         rivalries: {},
         recentMatches: []
       }
@@ -854,7 +864,7 @@ test("standalone browsers merge local-match stats into one server-authoritative 
     second.syncStandaloneStats({
       ranking: { 69: 1 },
       playerStats: {
-        players: { eda: { name: "EDA", opens: 1, openedCharacters: { 69: 1 } } },
+        players: { eda: { name: "えだ", opens: 1, openedCharacters: { 69: 1 } } },
         rivalries: {},
         recentMatches: []
       }
@@ -892,6 +902,7 @@ test("consecutive room actions survive transient stats failures and retry exactl
       () => {
         master.testState.game.red.marked[0] = true;
         master.testState.stats.ranking[53] = 1;
+        adjustFixedTestOpen(master.testState.stats, 53, 1);
       }
     );
     master.backend.failTransactions["teamBingoV1/globalStats"] = 1;
@@ -900,6 +911,7 @@ test("consecutive room actions survive transient stats failures and retry exactl
       () => {
         master.testState.game.red.marked[1] = true;
         master.testState.stats.ranking[54] = 1;
+        adjustFixedTestOpen(master.testState.stats, 54, 1);
       }
     );
 
@@ -941,6 +953,7 @@ test("the active master recovers a committed action's stats after its actor lose
       () => {
         guest.testState.game.blue.marked[0] = true;
         guest.testState.stats.ranking[53] = 1;
+        adjustFixedTestOpen(guest.testState.stats, 53, 1, "えだ");
       }
     ), true);
     const event = store.value.teamBingoV1.rooms.ROOM.events[1];
@@ -979,6 +992,7 @@ test("a replacement master recovers stats left behind by the former master", asy
       () => {
         formerMaster.testState.game.red.marked[0] = true;
         formerMaster.testState.stats.ranking[69] = 1;
+        adjustFixedTestOpen(formerMaster.testState.stats, 69, 1);
       }
     ), true);
     const event = store.value.teamBingoV1.rooms.ROOM.events[1];
@@ -1012,6 +1026,7 @@ test("closing a room retries its master's committed but unsynced stats before de
       () => {
         master.testState.game.red.marked[0] = true;
         master.testState.stats.ranking[84] = 1;
+        adjustFixedTestOpen(master.testState.stats, 84, 1);
       }
     ), true);
     assert.equal(store.value.teamBingoV1.globalStats.ranking[84], undefined);
@@ -1395,6 +1410,7 @@ test("simultaneous actions on both teams preserve both room and ranking updates"
     () => {
       coordinator.testState.game[team].marked[index] = true;
       coordinator.testState.stats.ranking[characterId] = 1;
+      adjustFixedTestOpen(coordinator.testState.stats, characterId, 1, team === "blue" ? "えだ" : "ジャン");
     }
   );
 
@@ -1423,6 +1439,7 @@ test("simultaneous teammates can open different cells without losing either upda
     () => {
       coordinator.testState.game.red.marked[index] = true;
       coordinator.testState.stats.ranking[characterId] = 1;
+      adjustFixedTestOpen(coordinator.testState.stats, characterId, 1);
     }
   );
 
@@ -1603,6 +1620,7 @@ test("same-cell races reject the stale second action without double counting", a
       () => {
         coordinator.testState.game.red.marked[0] = true;
         coordinator.testState.stats.ranking[53] = 1;
+        adjustFixedTestOpen(coordinator.testState.stats, 53, 1);
       }
     );
     const [firstResult, secondResult] = await Promise.all([open(first), open(second)]);
@@ -1640,6 +1658,7 @@ test("an offline action failure restores the local game and stats snapshots", as
       () => {
         master.testState.game.red.marked[0] = true;
         master.testState.stats.ranking[53] = 1;
+        adjustFixedTestOpen(master.testState.stats, 53, 1);
       }
     );
 
@@ -1677,16 +1696,19 @@ test("a second opener on the same cell persists the shared player attribution", 
   assert.equal(store.value.teamBingoV1.rooms.ROOM.events[1].type, "toggle-cell-player");
 });
 
-test("concurrent secondary openers preserve every player attribution without changing rankings", async () => {
+test("concurrent fixed-member secondary openers add each attribution to rankings", async () => {
   const store = createStore();
   const room = store.value.teamBingoV1.rooms.ROOM;
   room.participants.guest.team = "red";
-  room.participants.guest.memberName = "EDA";
+  room.participants.master.memberName = "ジャン";
+  room.participants.guest.memberName = "えだ";
   room.game.red.marked[0] = true;
   room.game.red.openedBy = { 0: ["master"] };
   store.value.teamBingoV1.globalStats.ranking = { 53: 1 };
   const master = createCoordinator(store, "master", "master", "red");
   const guest = createCoordinator(store, "guest", "player", "red");
+  master.memberName = "ジャン";
+  guest.memberName = "えだ";
   master.testState.game.red.openedBy = { 0: ["master"] };
   guest.testState.game.red.openedBy = { 0: ["master"] };
   const addOpener = (coordinator, playerKey, openerName) => coordinator.requestAction(
@@ -1697,20 +1719,22 @@ test("concurrent secondary openers preserve every player attribution without cha
     () => {
       const current = coordinator.testState.game.red.openedBy[0] || [];
       coordinator.testState.game.red.openedBy[0] = [...new Set([...current, playerKey])];
+      coordinator.testState.stats.ranking[53] = (coordinator.testState.stats.ranking[53] || 0) + 1;
+      adjustFixedTestOpen(coordinator.testState.stats, 53, 1, openerName);
     }
   );
 
   const [first, second] = await Promise.all([
-    addOpener(master, "jan", "JAN"),
-    addOpener(guest, "eda", "EDA")
+    addOpener(master, "ジャン", "ジャン"),
+    addOpener(guest, "えだ", "えだ")
   ]);
 
   assert.deepEqual([first, second], [true, true]);
   assert.deepEqual(
     new Set(store.value.teamBingoV1.rooms.ROOM.game.red.openedBy[0]),
-    new Set(["master", "jan", "eda"])
+    new Set(["master", "ジャン", "えだ"])
   );
-  assert.deepEqual(store.value.teamBingoV1.globalStats.ranking, { 53: 1 });
+  assert.deepEqual(store.value.teamBingoV1.globalStats.ranking, { 53: 3 });
 });
 
 test("a replaced stale tab cannot submit actions for its former seat", async () => {
@@ -2262,6 +2286,7 @@ test("rapid follow-up actions never subtract another client ranking entry", asyn
     () => {
       master.testState.game.red.marked[index] = true;
       master.testState.stats.ranking[characterId] = (master.testState.stats.ranking[characterId] || 0) + 1;
+      adjustFixedTestOpen(master.testState.stats, characterId, 1);
     }
   );
 
@@ -2285,6 +2310,7 @@ test("a long alternating run keeps room revisions and reversible rankings consis
       const next = (ranking[characterId] || 0) + (opened ? 1 : -1);
       if (next > 0) ranking[characterId] = next;
       else delete ranking[characterId];
+      adjustFixedTestOpen(coordinator.testState.stats, characterId, opened ? 1 : -1, team === "blue" ? "えだ" : "ジャン");
     }
   );
 

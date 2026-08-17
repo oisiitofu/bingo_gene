@@ -4,6 +4,7 @@ import assert from "node:assert/strict";
 import {
   applyStatsDelta,
   createCountBackupPayload,
+  createFixedMemberRanking,
   createOnlineSeatRecord,
   createStatsDelta,
   filterStatsDeltaAfterReset,
@@ -82,13 +83,37 @@ test("new online seats keep their browser reclaim token on the seat record", () 
 
 test("cell opens and closes produce reversible ranking deltas", () => {
   const before = emptyStats();
-  const afterOpen = { ...emptyStats(), ranking: { 53: 2, 69: 1 } };
+  const afterOpen = emptyStats();
+  afterOpen.playerStats.players["ジャン"] = {
+    name: "ジャン",
+    opens: 3,
+    openedCharacters: { 53: 2, 69: 1 }
+  };
   const opened = applyStatsDelta(before, createStatsDelta(before, afterOpen));
   assert.deepEqual(opened.ranking, { 53: 2, 69: 1 });
 
-  const afterClose = { ...afterOpen, ranking: { 53: 1, 69: 1 } };
+  const afterClose = structuredClone(afterOpen);
+  afterClose.playerStats.players["ジャン"].opens = 2;
+  afterClose.playerStats.players["ジャン"].openedCharacters[53] = 1;
   const closed = applyStatsDelta(opened, createStatsDelta(afterOpen, afterClose));
   assert.deepEqual(closed.ranking, { 53: 1, 69: 1 });
+});
+
+test("shared cell ranking includes only the fixed six players", () => {
+  const playerStats = {
+    players: {
+      "おいしいとうふ": { name: "おいしいとうふ", openedCharacters: { 1: 2, 53: 1 } },
+      kento: { name: "Kento", openedCharacters: { 53: 3 } },
+      guest: { name: "Guest Player", openedCharacters: { 1: 99, 69: 99 } }
+    }
+  };
+
+  assert.deepEqual(createFixedMemberRanking(playerStats), { 1: 2, 53: 4 });
+  const before = emptyStats();
+  const after = structuredClone(before);
+  after.ranking = { 69: 1 };
+  after.playerStats.players.guest = { name: "Guest Player", opens: 1, openedCharacters: { 69: 1 } };
+  assert.deepEqual(createStatsDelta(before, after).ranking, {});
 });
 
 test("stats reset cutoffs independently discard stale ranking and player updates", () => {
@@ -180,10 +205,22 @@ test("manual equipment can be returned to AUTO through a negative shared delta",
   assert.deepEqual(result.playerStats.players.jan.territoryManualEquipment, {});
 });
 
-test("legacy rankings merge into shared online stats", () => {
+test("legacy stats import rebuilds rankings from fixed players only", () => {
+  const legacy = emptyStats();
+  legacy.ranking = { 53: 2, 69: 3, 87: 99 };
+  legacy.playerStats.players["おいしいとうふ"] = {
+    name: "おいしいとうふ",
+    opens: 5,
+    openedCharacters: { 53: 2, 69: 3 }
+  };
+  legacy.playerStats.players.guest = {
+    name: "Guest Player",
+    opens: 99,
+    openedCharacters: { 87: 99 }
+  };
   const merged = mergeLegacyStats(
     { ...emptyStats(), ranking: { 53: 4 } },
-    { ...emptyStats(), ranking: { 53: 2, 69: 3 } }
+    legacy
   );
   assert.deepEqual(merged.ranking, { 53: 6, 69: 3 });
 });

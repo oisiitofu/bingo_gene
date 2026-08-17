@@ -17,9 +17,9 @@ test("online lobby boot bypasses stale browser modules and retries once", () => 
   const html = readFileSync(new URL("../index.html", import.meta.url), "utf8");
   const serviceWorker = readFileSync(new URL("../sw.js", import.meta.url), "utf8");
 
-  assert.match(html, /online-room\.js\?v=20260818-admin-count-draft-126/);
+  assert.match(html, /online-room\.js\?v=20260818-fixed-ranking-127/);
   assert.match(html, /retry=\$\{Date\.now\(\)\}/);
-  assert.match(serviceWorker, /20260818-admin-count-draft-126/);
+  assert.match(serviceWorker, /20260818-fixed-ranking-127/);
 });
 
 test("one-bingo audio, Likecy skill timing, and reach badge rules stay aligned", () => {
@@ -368,7 +368,7 @@ test("TEST MODE syncs online while keeping every persistent bingo result untouch
   assert.match(html, /testMode: state\.testMode/);
   assert.match(html, /setTestModeState\(snapshot\.testMode === true\)/);
   assert.match(html, /function getPlayerStat\(name\)[\s\S]*?state\.testPlayerStats/);
-  assert.match(html, /function recordOpen\(characterId\)[\s\S]*?if \(state\.testMode\) return/);
+  assert.match(html, /function recordOpen\(characterId, playerName\)[\s\S]*?!isFixedMemberName\(playerName\)/);
   assert.match(html, /function savePlayerStats\(\) \{\s*if \(state\.testMode\) return/);
   assert.match(html, /function recordMatchFinish\([\s\S]*?if \(state\.testMode\) \{\s*recordWorldTournamentMatch\(winnerTeam, victoryKind, mvpName\);\s*return/);
   assert.match(html, /function awardTerritoryEquipmentForMatch\([\s\S]*?if \(state\.testMode\) return/);
@@ -511,6 +511,8 @@ test("persistent player stats are limited to the fixed six members", () => {
   assert.match(html, /const FIXED_MEMBERS = \["おいしいとうふ", "えだ", "ジャン", "リーマ", "Kento", "Lickey"\]/);
   assert.match(html, /function canonicalFixedMemberName\(name\)/);
   assert.match(html, /if \(!fixedName\) return createPlayerStat\(normalized\)/);
+  assert.match(html, /if \(fixedName\) recordOpen\(characterId, fixedName\)/);
+  assert.match(html, /if \(fixedName\) recordClose\(characterId, fixedName\)/);
   assert.match(html, /\.filter\(\(record\) => isFixedMemberName\(record\?\.name\)\)/);
   assert.match(html, /!isFixedMemberName\(fighter\.playerName\)/);
 });

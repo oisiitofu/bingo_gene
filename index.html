@@ -11799,7 +11799,6 @@
         side.marked[index] = false;
         if (!state.winner) recordReplayStep("close", { team, index, characterId: cell.id, title: `${cell.id} CLOSE` });
         if (!isSpecialCell) {
-          recordClose(cell.id);
           recordPlayerClose(openerKeys, cell.id);
         }
         if (side.comebackMoveCells.has(index)) {
@@ -11852,7 +11851,6 @@
         sub: openerName
       });
       if (!isSpecialCell) {
-        recordOpen(cell.id);
         recordPlayerOpen(openerName, cell.id, team);
       }
       if (options.advanceOpener !== false) advanceActiveOpener(team);
@@ -14978,18 +14976,17 @@
       }
     }
 
-    function recordOpen(characterId) {
-      if (!characterId) return;
+    function recordOpen(characterId, playerName) {
+      if (!characterId || !isFixedMemberName(playerName)) return;
       if (state.testMode) return;
       const key = String(characterId);
       state.ranking[key] = (state.ranking[key] || 0) + 1;
       saveJson(STORAGE.ranking, state.ranking);
-      syncStandaloneStats();
       renderRankingTicker();
     }
 
-    function recordClose(characterId) {
-      if (!characterId) return;
+    function recordClose(characterId, playerName) {
+      if (!characterId || !isFixedMemberName(playerName)) return;
       if (state.testMode) return;
       const key = String(characterId);
       const next = Math.max(0, (state.ranking[key] || 0) - 1);
@@ -14999,7 +14996,6 @@
         delete state.ranking[key];
       }
       saveJson(STORAGE.ranking, state.ranking);
-      syncStandaloneStats();
       renderRankingTicker();
     }
 
@@ -15679,12 +15675,14 @@
 
     function recordPlayerOpen(playerName, characterId, team) {
       if (!characterId) return;
+      const fixedName = canonicalFixedMemberName(playerName);
       const stat = getPlayerStat(playerName);
       const key = String(characterId);
       stat.opens += 1;
       stat.openedCharacters[key] = (stat.openedCharacters[key] || 0) + 1;
       touchPlayerStat(stat, team);
       trackMatchOpen(playerName, characterId, team);
+      if (fixedName) recordOpen(characterId, fixedName);
       savePlayerStats();
     }
 
@@ -15705,6 +15703,7 @@
       keys.filter(Boolean).forEach((playerKey) => {
         const stat = (state.testMode ? state.testPlayerStats : state.playerStats)?.players?.[playerKey];
         if (!stat) return;
+        const fixedName = canonicalFixedMemberName(stat.name || playerKey);
         const key = String(characterId);
         stat.opens = Math.max(0, stat.opens - 1);
         if (countClose) stat.closes += 1;
@@ -15713,6 +15712,7 @@
         else delete stat.openedCharacters[key];
         adjustMatchOpenByKey(playerKey, characterId, -1);
         touchPlayerStat(stat, stat.lastTeam);
+        if (fixedName) recordClose(characterId, fixedName);
       });
       savePlayerStats();
     }
@@ -17651,7 +17651,7 @@
       if ("serviceWorker" in navigator && /^https?:$/.test(location.protocol)) {
         navigator.serviceWorker.register("./sw.js").then((registration) => registration.update()).catch((error) => console.warn("Service worker registration failed", error));
       }
-      const onlineRoomModuleUrl = "./online/online-room.js?v=20260818-admin-count-draft-126";
+      const onlineRoomModuleUrl = "./online/online-room.js?v=20260818-fixed-ranking-127";
       import(onlineRoomModuleUrl)
         .catch((firstError) => import(`${onlineRoomModuleUrl}&retry=${Date.now()}`)
           .catch((retryError) => {
