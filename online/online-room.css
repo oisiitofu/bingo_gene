@@ -117,6 +117,16 @@ html.territory-standalone .online-reaction-dock {
   justify-content: flex-end;
   gap: 8px;
 }
+.online-admin-backup-select {
+  width: min(330px, 40vw);
+  height: 38px;
+  padding: 0 30px 0 10px;
+  border: 1px solid #435068;
+  border-radius: 3px;
+  background: #0b111b;
+  color: #f4f7fb;
+  font: 800 11px/1 system-ui, sans-serif;
+}
 .online-admin-count-operation { grid-template-columns: minmax(180px, .48fr) minmax(0, 1.52fr); align-items: start; }
 .online-admin-count-editor {
   display: grid;

@@ -1066,6 +1066,79 @@ test("admin can correct one player's per-cell opens without changing the shared 
   assert.equal(store.value.teamBingoV1.globalStats.playerStats.players["ジャン"].openedCharacters[53], 2);
 });
 
+test("admin count correction preserves dense Firebase array maps", async () => {
+  const store = createStore();
+  const openedCharacters = Array(88).fill(null);
+  openedCharacters[1] = 2;
+  openedCharacters[53] = 4;
+  openedCharacters[87] = 3;
+  store.value.teamBingoV1.globalStats.ranking = { 53: 12 };
+  store.value.teamBingoV1.globalStats.playerStats.players["ジャン"] = {
+    name: "ジャン",
+    opens: 9,
+    openedCharacters
+  };
+  const admin = prepareAdminCoordinator(store);
+  admin.globalStatsSnapshot = clone(store.value.teamBingoV1.globalStats);
+
+  assert.equal(await admin.adjustAdminPlayerOpenCount(-1), true);
+  const record = store.value.teamBingoV1.globalStats.playerStats.players["ジャン"];
+  assert.equal(record.opens, 8);
+  assert.equal(record.openedCharacters[1], 2);
+  assert.equal(record.openedCharacters[53], 3);
+  assert.equal(record.openedCharacters[87], 3);
+  assert.deepEqual(store.value.teamBingoV1.globalStats.ranking, { 53: 12 });
+});
+
+test("admin restores only one player's open counts from a selected backup", async () => {
+  const store = createStore();
+  const stats = store.value.teamBingoV1.globalStats;
+  stats.ranking = { 53: 99 };
+  stats.playerStats.players["おいしいとうふ"] = {
+    name: "おいしいとうふ",
+    opens: 157,
+    wins: 12,
+    openedCharacters: { 23: 1 }
+  };
+  stats.playerStats.players["ジャン"] = { name: "ジャン", opens: 56, openedCharacters: { 53: 56 } };
+  const backup = {
+    id: "before-corruption",
+    createdAt: "2026-08-17T01:00:00.000Z",
+    data: {
+      ranking: { 53: 80 },
+      playerStats: {
+        players: {
+          "おいしいとうふ": { name: "おいしいとうふ", opens: 156, wins: 10, openedCharacters: { 1: 50, 23: 40, 87: 66 } },
+          "ジャン": { name: "ジャン", opens: 40, openedCharacters: { 53: 40 } }
+        },
+        rivalries: {},
+        recentMatches: []
+      }
+    }
+  };
+  const admin = prepareAdminCoordinator(store);
+  admin.globalStatsSnapshot = clone(stats);
+  admin.ui.adminCountPlayer.value = "おいしいとうふ";
+  admin.ui.adminBackupGeneration = { value: backup.id };
+  admin.ui.adminBackupPlayerRestore = { disabled: false };
+  admin.bridge.getAutoBackupById = () => clone(backup);
+  const previousConfirm = window.confirm;
+  window.confirm = () => true;
+
+  try {
+    assert.equal(await admin.restoreAdminPlayerBackup(), true);
+    const restored = store.value.teamBingoV1.globalStats;
+    assert.deepEqual(restored.ranking, { 53: 99 });
+    assert.equal(restored.playerStats.players["おいしいとうふ"].opens, 156);
+    assert.equal(restored.playerStats.players["おいしいとうふ"].wins, 12);
+    assert.deepEqual(restored.playerStats.players["おいしいとうふ"].openedCharacters, { 1: 50, 23: 40, 87: 66 });
+    assert.equal(restored.playerStats.players["ジャン"].opens, 56);
+    assert.match(admin.ui.adminResult.textContent, /開封記録だけを復元/);
+  } finally {
+    window.confirm = previousConfirm;
+  }
+});
+
 test("delayed stats queued before an admin reset cannot restore cleared counts", async () => {
   localStorage.clear();
   const store = createStore();

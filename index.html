@@ -17651,7 +17651,7 @@
       if ("serviceWorker" in navigator && /^https?:$/.test(location.protocol)) {
         navigator.serviceWorker.register("./sw.js").then((registration) => registration.update()).catch((error) => console.warn("Service worker registration failed", error));
       }
-      const onlineRoomModuleUrl = "./online/online-room.js?v=20260817-tournament-test-120";
+      const onlineRoomModuleUrl = "./online/online-room.js?v=20260817-count-recovery-125";
       import(onlineRoomModuleUrl)
         .catch((firstError) => import(`${onlineRoomModuleUrl}&retry=${Date.now()}`)
           .catch((retryError) => {
@@ -17710,7 +17710,17 @@
         setOnlineVolume: (value) => setVolumePercent(value),
         getOnlineSoundEnabled: () => state.soundEnabled,
         toggleOnlineSound: () => toggleSound(),
-        getAutoBackups: () => getAutoBackups().map((backup) => ({ id: backup.id, createdAt: backup.createdAt, reason: backup.reason })),
+        getAutoBackups: () => getAutoBackups().map((backup) => ({
+          id: backup.id,
+          createdAt: backup.createdAt,
+          reason: backup.reason,
+          players: Object.fromEntries(Object.entries(backup.data?.playerStats?.players || {}).map(([key, record]) => [key, {
+            name: record?.name || key,
+            opens: Math.max(0, Number(record?.opens) || 0),
+            breakdown: Object.values(record?.openedCharacters || {}).reduce((sum, value) => sum + (Number(value) || 0), 0)
+          }]))
+        })),
+        getAutoBackupById: (backupId) => cloneOnlineValue(getAutoBackups().find((backup) => backup.id === backupId) || null),
         getLatestAutoBackup: () => cloneOnlineValue(getAutoBackups()[0] || null),
         createAutoBackupNow: (reason = "admin-manual") => cloneOnlineValue(createAutoBackup(reason, true)),
         restoreAutoBackup: (backupId) => restoreAutoBackup(backupId),

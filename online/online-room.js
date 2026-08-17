@@ -216,6 +216,10 @@ function mergeNumberMap(target = {}, incoming = {}) {
   return result;
 }
 
+function normalizeNumberMap(value) {
+  return mergeNumberMap({}, value && typeof value === "object" ? value : {});
+}
+
 function mergePlayerRecord(target = {}, incoming = {}) {
   const result = { ...target };
   const numberFields = [
@@ -1187,8 +1191,10 @@ export class OnlineCoordinator {
                 <span id="onlineAdminBackupSummary">バックアップ状態を確認しています。</span>
               </div>
               <div class="online-admin-operation-actions">
+                <select class="online-admin-backup-select" id="onlineAdminBackupGeneration" aria-label="復元するバックアップ世代"></select>
                 <button type="button" class="online-simple-button" id="onlineAdminBackupNow">BACKUP</button>
                 <button type="button" class="online-simple-button" id="onlineAdminBackupExport">EXPORT</button>
+                <button type="button" class="online-simple-button primary" id="onlineAdminBackupPlayerRestore">PLAYER RESTORE</button>
                 <button type="button" class="online-simple-button primary" id="onlineAdminBackupRestore">RESTORE</button>
               </div>
             </div>
@@ -1332,8 +1338,10 @@ export class OnlineCoordinator {
       adminTerritoryOpen: document.getElementById("onlineAdminTerritoryOpen"),
       adminTerritoryReset: document.getElementById("onlineAdminTerritoryReset"),
       adminBackupSummary: document.getElementById("onlineAdminBackupSummary"),
+      adminBackupGeneration: document.getElementById("onlineAdminBackupGeneration"),
       adminBackupNow: document.getElementById("onlineAdminBackupNow"),
       adminBackupExport: document.getElementById("onlineAdminBackupExport"),
+      adminBackupPlayerRestore: document.getElementById("onlineAdminBackupPlayerRestore"),
       adminBackupRestore: document.getElementById("onlineAdminBackupRestore"),
       adminResult: document.getElementById("onlineAdminResult"),
       assetDialog: document.getElementById("onlineAssetDialog"),
@@ -1432,7 +1440,10 @@ export class OnlineCoordinator {
       const file = this.ui.adminImportFile.files?.[0];
       if (file) this.importCountData(file);
     });
-    this.ui.adminCountPlayer.addEventListener("change", () => this.renderAdminPlayerCountEditor());
+    this.ui.adminCountPlayer.addEventListener("change", () => {
+      this.renderAdminPlayerCountEditor();
+      this.syncAdminBackupControls();
+    });
     this.ui.adminCountCharacterGrid.addEventListener("click", (event) => {
       const cell = event.target.closest("[data-admin-count-character]");
       if (!cell) return;
@@ -1472,6 +1483,7 @@ export class OnlineCoordinator {
     });
     this.ui.adminBackupNow.addEventListener("click", () => this.createAdminBackup());
     this.ui.adminBackupExport.addEventListener("click", () => this.exportAdminBackup());
+    this.ui.adminBackupPlayerRestore.addEventListener("click", () => this.restoreAdminPlayerBackup());
     this.ui.adminBackupRestore.addEventListener("click", () => this.restoreAdminBackup());
     this.ui.seatClose.addEventListener("click", () => this.ui.seatDialog.close());
     this.ui.masterClose.addEventListener("click", () => {
@@ -1642,11 +1654,25 @@ export class OnlineCoordinator {
     if (!this.ui?.adminBackupSummary) return;
     const backups = this.bridge.getAutoBackups?.() || [];
     const latest = backups[0];
+    const playerName = normalizeName(this.ui.adminCountPlayer?.value);
+    const selectedId = this.ui.adminBackupGeneration?.value;
+    if (this.ui.adminBackupGeneration) {
+      this.ui.adminBackupGeneration.innerHTML = backups.map((backup, index) => {
+        const player = Object.values(backup.players || {}).find((record) => normalizeName(record?.name) === playerName);
+        const opens = Math.max(0, Number(player?.opens) || 0);
+        const breakdown = Math.max(0, Number(player?.breakdown) || 0);
+        const label = `${index + 1}: ${new Date(backup.createdAt).toLocaleString("ja-JP")} / ${playerName || "PLAYER"} ${opens} (${breakdown})`;
+        return `<option value="${escapeHtml(backup.id)}">${escapeHtml(label)}</option>`;
+      }).join("");
+      this.ui.adminBackupGeneration.value = backups.some((backup) => backup.id === selectedId) ? selectedId : (latest?.id || "");
+      this.ui.adminBackupGeneration.disabled = !latest;
+    }
     this.ui.adminBackupSummary.textContent = latest
-      ? `${backups.length}世代保存 / 最新 ${new Date(latest.createdAt).toLocaleString("ja-JP")}`
+      ? `${backups.length}世代保存 / 括弧内はキャラ別内訳の合計です。対象プレイヤーだけ復元できます。`
       : "まだ自動バックアップがありません。";
     this.ui.adminBackupRestore.disabled = !latest;
     this.ui.adminBackupExport.disabled = !latest;
+    if (this.ui.adminBackupPlayerRestore) this.ui.adminBackupPlayerRestore.disabled = !latest;
   }
 
   async openAssetManager() {
@@ -1808,6 +1834,70 @@ export class OnlineCoordinator {
       return false;
     } finally {
       this.ui.adminBackupRestore.disabled = false;
+    }
+  }
+
+  async restoreAdminPlayerBackup() {
+    if (!this.isAdminMode()) return false;
+    const backupId = this.ui.adminBackupGeneration?.value || "";
+    const backup = this.bridge.getAutoBackupById?.(backupId);
+    const name = normalizeName(this.ui.adminCountPlayer?.value);
+    if (!backup?.data || !ADMIN_COUNT_PLAYERS.includes(name)) {
+      this.ui.adminResult.textContent = "PLAYER RESTORE ERROR: 復元データが見つかりません。";
+      return false;
+    }
+    const imported = normalizeCountBackup(backup.data);
+    const key = playerKey(name);
+    const backupRecord = imported.playerStats.players?.[key]
+      || Object.values(imported.playerStats.players || {}).find((record) => normalizeName(record?.name) === name);
+    if (!backupRecord) {
+      this.ui.adminResult.textContent = `PLAYER RESTORE ERROR: ${name} の記録がありません。`;
+      return false;
+    }
+    const openedCharacters = normalizeNumberMap(backupRecord.openedCharacters);
+    const breakdownTotal = Object.values(openedCharacters).reduce((sum, value) => sum + (Number(value) || 0), 0);
+    const opens = Math.max(0, Number(backupRecord.opens) || 0);
+    const createdAt = new Date(backup.createdAt).toLocaleString("ja-JP");
+    if (!window.confirm(`${createdAt} の ${name} を復元しますか？\nTOTAL ${opens} / キャラ別内訳 ${breakdownTotal}\nランキング・勝敗・他プレイヤーは変更しません。`)) return false;
+    this.ui.adminBackupPlayerRestore.disabled = true;
+    try {
+      if (!await this.verifyAdminSession()) throw new Error("管理者モードの有効期限が切れました");
+      const actionId = randomId("player-count-restore");
+      const result = await this.backend.transaction(this.path("globalStats"), (stats) => {
+        const next = isPlainObject(stats) ? stats : {};
+        next.playerStats ||= { players: {}, rivalries: {}, recentMatches: [] };
+        next.playerStats.players ||= {};
+        const current = isPlainObject(next.playerStats.players[key]) ? next.playerStats.players[key] : { name };
+        current.name = name;
+        current.opens = opens;
+        current.openedCharacters = clone(openedCharacters);
+        next.playerStats.players[key] = current;
+        const updatedAt = this.backend.serverNow();
+        next.playerStatsUpdatedAt = updatedAt;
+        next.processedActions ||= {};
+        next.processedActions[actionId] = updatedAt;
+        next.processedActions = Object.fromEntries(
+          Object.entries(next.processedActions).sort(([, a], [, b]) => Number(b) - Number(a)).slice(0, 500)
+        );
+        return next;
+      });
+      if (!result.committed) throw new Error("データベースを更新できませんでした");
+      this.globalStatsSnapshot = {
+        ranking: clone(result.value?.ranking || {}),
+        playerStats: clone(result.value?.playerStats || { players: {}, rivalries: {}, recentMatches: [] }),
+        rankingResetAt: Number(result.value?.rankingResetAt) || 0,
+        playerStatsResetAt: Number(result.value?.playerStatsResetAt) || 0
+      };
+      this.standaloneStatsBaseline = clone(this.globalStatsSnapshot);
+      this.bridge.applyOnlineStatsSnapshot?.(this.globalStatsSnapshot);
+      this.renderAdminPlayerCountEditor();
+      this.ui.adminResult.textContent = `${name} の開封記録だけを復元しました。TOTAL ${opens} / キャラ別内訳 ${breakdownTotal}。`;
+      return true;
+    } catch (error) {
+      this.ui.adminResult.textContent = `PLAYER RESTORE ERROR: ${String(error?.message || error)}`;
+      return false;
+    } finally {
+      this.ui.adminBackupPlayerRestore.disabled = false;
     }
   }
 
@@ -3730,7 +3820,7 @@ export class OnlineCoordinator {
         const key = playerKey(name);
         const record = isPlainObject(next.playerStats.players[key]) ? next.playerStats.players[key] : { name };
         record.name = name;
-        record.openedCharacters = isPlainObject(record.openedCharacters) ? record.openedCharacters : {};
+        record.openedCharacters = normalizeNumberMap(record.openedCharacters);
         const current = Math.max(0, Number(record.openedCharacters[characterId]) || 0);
         if (delta < 0 && current <= 0) return undefined;
         const updated = Math.max(0, current + delta);
