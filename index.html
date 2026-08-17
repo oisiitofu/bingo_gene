@@ -458,7 +458,7 @@
 
     .setup-player-controls {
       display: grid;
-      grid-template-columns: minmax(150px, .9fr) minmax(150px, 1fr) minmax(250px, 1.45fr) minmax(130px, .85fr) minmax(150px, 1fr);
+      grid-template-columns: minmax(120px, .8fr) minmax(135px, .9fr) minmax(235px, 1.4fr) minmax(120px, .8fr) minmax(140px, .9fr) minmax(130px, .85fr);
       gap: 10px;
       align-items: center;
       margin: 14px 0 12px;
@@ -511,6 +511,64 @@
       border-color: #8fffe1;
       background: linear-gradient(180deg, #dffff5, #55e0bb);
       box-shadow: 0 0 18px rgba(85,224,187,.34), inset 0 1px 0 #fff;
+    }
+
+    .test-mode-toggle {
+      min-width: 0;
+      min-height: 44px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      padding: 8px 10px;
+      border: 1px solid rgba(148,163,184,.48);
+      border-radius: 4px;
+      color: #dbe4ee;
+      background: #101620;
+      font-size: 10px;
+      font-weight: 1000;
+      white-space: nowrap;
+      cursor: pointer;
+    }
+
+    .test-mode-toggle input {
+      width: 16px;
+      height: 16px;
+      margin: 0;
+      accent-color: #f7c64a;
+    }
+
+    .test-mode-toggle.active {
+      color: #171104;
+      border-color: #ffe078;
+      background: linear-gradient(180deg, #fff0a3, #e7b72f);
+      box-shadow: 0 0 16px rgba(247,198,74,.28);
+    }
+
+    .test-mode-toggle:has(input:disabled) {
+      opacity: .45;
+      cursor: default;
+    }
+
+    .test-mode-badge {
+      position: fixed;
+      z-index: 8700;
+      right: 12px;
+      bottom: 10px;
+      display: none;
+      padding: 7px 11px;
+      border: 1px solid #ffe078;
+      border-radius: 4px;
+      color: #171104;
+      background: #f7c64a;
+      box-shadow: 0 0 18px rgba(247,198,74,.35);
+      font-size: 10px;
+      font-weight: 1000;
+      pointer-events: none;
+    }
+
+    body.test-mode-active .test-mode-badge {
+      display: block;
     }
 
     .random-event-stage {
@@ -769,17 +827,26 @@
       gap: 10px;
     }
 
+    .member-selection-row {
+      display: flex;
+      align-items: center;
+      flex-wrap: nowrap;
+      gap: 8px;
+      overflow-x: auto;
+      padding-bottom: 2px;
+      scrollbar-width: thin;
+    }
+
     .member-bank {
       display: flex;
-      flex-wrap: wrap;
+      align-items: center;
+      flex: 0 0 auto;
+      flex-wrap: nowrap;
       gap: 8px;
     }
 
-    .custom-player-entry {
-      margin-top: 12px;
-    }
-
     .custom-player-toggle {
+      flex: 0 0 auto;
       width: auto;
       min-width: 112px;
       min-height: 36px;
@@ -7723,6 +7790,7 @@
   <link rel="stylesheet" href="monster-battle.css" />
 </head>
 <body>
+  <div class="test-mode-badge" id="testModeBadge">TEST MODE · NO SAVE</div>
   <audio id="setupThemePlayer" src="audio/setup-theme.mp3" preload="auto" autoplay loop muted></audio>
   <main class="app" id="app">
     <section class="screen active" id="setupScreen">
@@ -7763,20 +7831,19 @@
             <div class="panel-title">PLAYERS</div>
           </div>
           <div class="panel-body">
-            <div class="member-bank" id="fixedMemberList"></div>
-
-            <div class="custom-player-entry">
+            <div class="member-selection-row">
+              <div class="member-bank" id="fixedMemberList"></div>
               <button type="button" class="btn simple-ui-btn custom-player-toggle" id="customPlayersToggleButton" aria-expanded="false" aria-controls="playerInputs">追加...</button>
-              <div class="player-grid custom-player-inputs" id="playerInputs" hidden>
-                <input id="player1" autocomplete="off" placeholder="PLAYER 1" />
-                <input id="player2" autocomplete="off" placeholder="PLAYER 2" />
-                <input id="player3" autocomplete="off" placeholder="PLAYER 3" />
-                <input id="player4" autocomplete="off" placeholder="PLAYER 4" />
-                <input id="player5" autocomplete="off" placeholder="PLAYER 5" />
-                <input id="player6" autocomplete="off" placeholder="PLAYER 6" />
-                <input id="player7" autocomplete="off" placeholder="PLAYER 7" />
-                <input id="player8" autocomplete="off" placeholder="PLAYER 8" />
-              </div>
+            </div>
+            <div class="player-grid custom-player-inputs" id="playerInputs" hidden>
+              <input id="player1" autocomplete="off" placeholder="PLAYER 1" />
+              <input id="player2" autocomplete="off" placeholder="PLAYER 2" />
+              <input id="player3" autocomplete="off" placeholder="PLAYER 3" />
+              <input id="player4" autocomplete="off" placeholder="PLAYER 4" />
+              <input id="player5" autocomplete="off" placeholder="PLAYER 5" />
+              <input id="player6" autocomplete="off" placeholder="PLAYER 6" />
+              <input id="player7" autocomplete="off" placeholder="PLAYER 7" />
+              <input id="player8" autocomplete="off" placeholder="PLAYER 8" />
             </div>
 
             <div class="setup-player-controls">
@@ -7794,6 +7861,10 @@
               </div>
               <button type="button" class="btn" id="randomEventButton" aria-pressed="false">EVENT OFF</button>
               <button type="button" class="btn simple-ui-btn" id="compactModeButton" aria-pressed="false">LITE MODE OFF</button>
+              <label class="test-mode-toggle" id="testModeControl">
+                <input type="checkbox" id="testModeCheckbox" />
+                <span id="testModeLabel">TEST MODE OFF</span>
+              </label>
             </div>
 
             <div class="deck-hub" id="deckHub">
@@ -8961,6 +9032,8 @@
       monsterBattleMode: true,
       doubleMonsterMode: false,
       compactMode: false,
+      testMode: false,
+      testPlayerStats: null,
       monsterBattle: null,
       monsterBattleRunId: 0,
       monsterBattlePresentationSeed: 0,
@@ -9127,6 +9200,7 @@
       updateCopyrightToggle();
       updateGridButtons();
       updateDeckStatus();
+      updateTestModeControl();
       loadCustomOpenSoundManifest();
       if (!usesOnlineAssetLoading()) preloadCustomOpenSounds();
       scheduleSetupThemeAutoplay();
@@ -9155,7 +9229,7 @@
         "adminMonsterBattleModal", "adminMonsterRed1", "adminMonsterRed2", "adminMonsterBlue1", "adminMonsterBlue2", "adminMonsterBattleShuffle", "adminMonsterBattleCancel", "adminMonsterBattleStart",
         "teamSelectModal", "teamSelectList", "teamSelectRedMembers", "teamSelectBlueMembers", "teamSelectShuffleButton", "teamSelectConfirmButton", "teamSelectCancelButton", "teamSelectError",
         "statsSeasonSelect", "statsSeasonList", "statsTournamentList", "statsTerritoryList",
-        "randomEventButton", "monsterBattleModeButton", "singleMonsterModeButton", "doubleMonsterModeButton", "compactModeButton", "territoryModeButton", "playTerritoryModeButton",
+        "randomEventButton", "monsterBattleModeButton", "singleMonsterModeButton", "doubleMonsterModeButton", "compactModeButton", "testModeControl", "testModeCheckbox", "testModeLabel", "testModeBadge", "territoryModeButton", "playTerritoryModeButton",
         "matchReplayModal", "replayMatchMeta", "replaySummary", "replayBoards", "replayTimeline", "replayCloseButton",
         "replayPrevButton", "replayPlayButton", "replayRange", "replayStepLabel",
         "feverAura", "fxLayer", "openedByPopover", "victoryParticles", "setupThemePlayer", "copyrightToggle",
@@ -9197,6 +9271,7 @@
       els.singleMonsterModeButton?.addEventListener("click", () => setDoubleMonsterMode(false));
       els.doubleMonsterModeButton?.addEventListener("click", () => setDoubleMonsterMode(true));
       els.compactModeButton?.addEventListener("click", toggleCompactMode);
+      els.testModeCheckbox?.addEventListener("change", toggleTestMode);
       els.territoryModeButton?.addEventListener("click", openTerritoryWindow);
       els.playTerritoryModeButton?.addEventListener("click", openTerritoryWindow);
       els.setupStatsButton.addEventListener("click", showStatsPage);
@@ -10001,6 +10076,38 @@
       if (els.playTerritoryModeButton) els.playTerritoryModeButton.textContent = state.compactMode ? "領土戦" : "六王領土戦";
     }
 
+    function refreshTestPlayerStats() {
+      state.testPlayerStats = normalizePlayerStats(cloneOnlineValue(state.playerStats || { players: {}, rivalries: {}, recentMatches: [] }));
+    }
+
+    function setTestModeState(enabled) {
+      const next = Boolean(enabled);
+      const changed = state.testMode !== next;
+      state.testMode = next;
+      if (next && (changed || !state.testPlayerStats)) refreshTestPlayerStats();
+      if (!next) state.testPlayerStats = null;
+      updateTestModeControl();
+    }
+
+    function toggleTestMode() {
+      if (onlineCoordinator?.isOnline?.() && !onlineCoordinator.canEditSetup?.()) {
+        updateTestModeControl();
+        return;
+      }
+      setTestModeState(Boolean(els.testModeCheckbox?.checked));
+      scheduleOnlineSetupPublish(40);
+    }
+
+    function updateTestModeControl() {
+      document.body.classList.toggle("test-mode-active", state.testMode);
+      if (!els.testModeCheckbox) return;
+      const locked = Boolean(state.gameStarted || (onlineCoordinator?.isOnline?.() && !onlineCoordinator.canEditSetup?.()));
+      els.testModeCheckbox.checked = state.testMode;
+      els.testModeCheckbox.disabled = locked;
+      els.testModeControl?.classList.toggle("active", state.testMode);
+      if (els.testModeLabel) els.testModeLabel.textContent = state.testMode ? "TEST MODE ON" : "TEST MODE OFF";
+    }
+
     function startGame(options = {}) {
       if (!options.teamsConfirmed) return openTeamSelection();
       const requestedTeams = options.teams || { red: state.red.members, blue: state.blue.members };
@@ -10017,6 +10124,7 @@
           () => startGame({ ...options, teamsConfirmed: true, teams: selectedTeams, onlineBypass: true })
         );
       }
+      if (state.testMode) refreshTestPlayerStats();
       state.red.members = [...selectedTeams.red];
       state.blue.members = [...selectedTeams.blue];
       syncTeamMemberIndexes();
@@ -10029,6 +10137,7 @@
       assignTeamTitles();
       dealCards({ ignoreTeamDeck: options.ignoreTeamDeck === true });
       state.gameStarted = true;
+      updateTestModeControl();
       unlockCurrentMonsterEggs();
       state.monsterHatches = hatchAllPlayerMonsters();
       state.monsterHatchPending = state.monsterHatches.length > 0;
@@ -10257,6 +10366,7 @@
         );
       }
       state.gameStarted = false;
+      updateTestModeControl();
       state.inputLocked = false;
       state.emergencyPaused = false;
       document.body.classList.remove("online-emergency-paused");
@@ -13281,6 +13391,7 @@
 
     function recordMonsterBattleOutcome(parties, winner) {
       if (onlineCoordinator?.isOnline?.() && !onlineCoordinator.isMaster?.()) return false;
+      if (state.testMode) return false;
       const countedPlayers = new Set();
       const equipmentRewards = {};
       [...parties.red, ...parties.blue].forEach((fighter) => {
@@ -13516,7 +13627,9 @@
           if (rewardText) els.monsterBattleLog.textContent = `勝利報酬　${rewardText}`;
         }
         renderVictoryMonsterLineups();
-        if (!onlineCoordinator?.isOnline?.() || (statsRecorded && onlineCoordinator.isMaster?.())) scheduleOnlineStateSync("monster-battle-result", 40);
+        if (!onlineCoordinator?.isOnline?.() || ((statsRecorded || state.testMode) && onlineCoordinator.isMaster?.())) {
+          scheduleOnlineStateSync("monster-battle-result", 40);
+        }
       }
     }
 
@@ -14679,6 +14792,7 @@
 
     function recordOpen(characterId) {
       if (!characterId) return;
+      if (state.testMode) return;
       const key = String(characterId);
       state.ranking[key] = (state.ranking[key] || 0) + 1;
       saveJson(STORAGE.ranking, state.ranking);
@@ -14688,6 +14802,7 @@
 
     function recordClose(characterId) {
       if (!characterId) return;
+      if (state.testMode) return;
       const key = String(characterId);
       const next = Math.max(0, (state.ranking[key] || 0) - 1);
       if (next) {
@@ -14911,11 +15026,14 @@
       const fixedName = canonicalFixedMemberName(normalized);
       if (!fixedName) return createPlayerStat(normalized);
       const key = playerStatsKey(fixedName);
-      if (!state.playerStats.players[key]) {
-        state.playerStats.players[key] = createPlayerStat(fixedName);
+      const stats = state.testMode
+        ? (state.testPlayerStats || (refreshTestPlayerStats(), state.testPlayerStats))
+        : state.playerStats;
+      if (!stats.players[key]) {
+        stats.players[key] = createPlayerStat(fixedName);
       }
-      state.playerStats.players[key].name = fixedName;
-      return state.playerStats.players[key];
+      stats.players[key].name = fixedName;
+      return stats.players[key];
     }
 
     function getTeamForPlayerKey(playerKey) {
@@ -14960,7 +15078,7 @@
         const entry = state.matchTracker.players?.[team]?.[playerKey];
         if (entry) return entry;
       }
-      const stat = state.playerStats.players[playerKey];
+      const stat = (state.testMode ? state.testPlayerStats : state.playerStats)?.players?.[playerKey];
       if (!stat) return null;
       return ensureMatchPlayer(getTeamForPlayerKey(playerKey) || "red", stat.name);
     }
@@ -15130,12 +15248,14 @@
     }
 
     function savePlayerStats() {
+      if (state.testMode) return;
       saveJson(STORAGE.playerStats, state.playerStats);
       syncStandaloneStats();
       if (els.statsModal && els.statsModal.classList.contains("show")) renderStatsPage();
     }
 
     function syncStandaloneStats() {
+      if (state.testMode) return;
       onlineCoordinator?.syncStandaloneStats?.(getOnlineStatsSnapshot());
     }
 
@@ -15210,6 +15330,7 @@
     function recordMatchFinish(winnerTeam, victoryKind = "normal", mvpName = "") {
       if (state.matchStatsFinalized) return;
       state.matchStatsFinalized = true;
+      if (state.testMode) return;
       ["red", "blue"].forEach((team) => {
         const won = team === winnerTeam;
         getUniqueTeamMembers(team).forEach((member) => {
@@ -15236,6 +15357,7 @@
     }
 
     function recordWorldTournamentMatch(winnerTeam, victoryKind = "normal", mvpName = "") {
+      if (state.testMode) return false;
       if (!window.TeamBingoWorldTournament?.hasActiveMatch?.()) return false;
       const players = ["red", "blue"].flatMap((team) => getMatchPlayerEntries(team).map((entry) => ({
         key: playerStatsKey(entry.name),
@@ -15271,6 +15393,7 @@
     }
 
     function awardTerritoryEquipmentForMatch(winnerTeam, mvpName = "") {
+      if (state.testMode) return;
       if (!TERRITORY_EQUIPMENT || !state.matchTracker) return;
       state.matchTracker.equipmentRewards = {};
       ["red", "blue"].forEach((team) => {
@@ -15390,7 +15513,7 @@
       const keys = Array.isArray(playerKeys) ? playerKeys : [playerKeys];
       const countClose = options.countClose !== false;
       keys.filter(Boolean).forEach((playerKey) => {
-        const stat = state.playerStats.players[playerKey];
+        const stat = (state.testMode ? state.testPlayerStats : state.playerStats)?.players?.[playerKey];
         if (!stat) return;
         const key = String(characterId);
         stat.opens = Math.max(0, stat.opens - 1);
@@ -15430,7 +15553,7 @@
     }
 
     function adjustPlayerComebackMove(playerKey, delta) {
-      const stat = state.playerStats.players[playerKey];
+      const stat = (state.testMode ? state.testPlayerStats : state.playerStats)?.players?.[playerKey];
       if (!stat) return;
       stat.comebackMoves = Math.max(0, stat.comebackMoves + delta);
       trackMatchComebackMove(stat.name, getTeamForPlayerKey(playerKey) || stat.lastTeam.toLowerCase(), delta);
@@ -17504,7 +17627,8 @@
         randomEventsEnabled: state.randomEventsEnabled,
         monsterBattleMode: state.monsterBattleMode,
         doubleMonsterMode: state.doubleMonsterMode,
-        compactMode: state.compactMode
+        compactMode: state.compactMode,
+        testMode: state.testMode
       };
     }
 
@@ -17551,6 +17675,7 @@
       state.monsterBattleMode = snapshot.monsterBattleMode !== false;
       state.doubleMonsterMode = snapshot.doubleMonsterMode === true;
       state.compactMode = snapshot.compactMode === true;
+      setTestModeState(snapshot.testMode === true);
       localStorage.setItem(STORAGE.randomEvents, state.randomEventsEnabled ? "on" : "off");
       localStorage.setItem(STORAGE.monsterBattleMode, state.monsterBattleMode ? "on" : "off");
       localStorage.setItem(STORAGE.doubleMonsterMode, state.doubleMonsterMode ? "on" : "off");
@@ -17561,6 +17686,7 @@
       updateMonsterBattleMode();
       updateDoubleMonsterMode();
       updateCompactMode();
+      updateTestModeControl();
       renderSetupPreview();
       updateDeckStatus();
       if (!options.silent) renderAll();
@@ -17586,6 +17712,7 @@
         monsterBattleMode: state.monsterBattleMode,
         doubleMonsterMode: state.doubleMonsterMode,
         compactMode: state.compactMode,
+        testMode: state.testMode,
         monsterBattle: cloneOnlineValue(state.monsterBattle),
         monsterBattleSpeed: getMonsterBattleSpeed(),
         monsterHatches: cloneOnlineValue(state.monsterHatches),
@@ -17647,6 +17774,7 @@
       state.readyShown = Boolean(snapshot.readyShown);
       state.doubleMonsterMode = snapshot.doubleMonsterMode === true;
       state.compactMode = snapshot.compactMode === true;
+      setTestModeState(snapshot.testMode === true);
       updateCompactMode();
       hydrateOnlineTeam("red", snapshot.red);
       hydrateOnlineTeam("blue", snapshot.blue);

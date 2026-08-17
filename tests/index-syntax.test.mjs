@@ -19,7 +19,7 @@ test("online lobby boot bypasses stale browser modules and retries once", () => 
 
   assert.match(html, /online-room\.js\?v=20260817-tournament-setup-2/);
   assert.match(html, /retry=\$\{Date\.now\(\)\}/);
-  assert.match(serviceWorker, /20260817-player-entry-117/);
+  assert.match(serviceWorker, /20260817-test-mode-119/);
 });
 
 test("one-bingo audio, Likecy skill timing, and reach badge rules stay aligned", () => {
@@ -311,14 +311,30 @@ test("setup controls keep utility links by ROOM ID and combine monster count int
   const html = readFileSync(new URL("../index.html", import.meta.url), "utf8");
 
   assert.match(html, /class="setup-quick-links">[\s\S]*?id="setupStatsButton"[\s\S]*?id="setupMonsterButton"[\s\S]*?id="territoryModeButton"/);
-  assert.match(html, /id="fixedMemberList"[\s\S]*?id="customPlayersToggleButton"[\s\S]*?id="playerInputs" hidden/);
+  assert.match(html, /class="member-selection-row">[\s\S]*?id="fixedMemberList"[\s\S]*?id="customPlayersToggleButton"[\s\S]*?<\/div>\s*<div class="player-grid custom-player-inputs" id="playerInputs" hidden/);
+  assert.match(html, /\.member-selection-row \{[\s\S]*?flex-wrap: nowrap;[\s\S]*?overflow-x: auto/);
   assert.match(html, /id="customPlayersToggleButton"[^>]*aria-expanded="false"[^>]*>追加\.\.\.<\/button>/);
   assert.match(html, /function toggleCustomPlayerInputs\(\)[\s\S]*?els\.playerInputs\.hidden = !expanded/);
-  assert.match(html, /class="setup-player-controls">[\s\S]*?id="mode5"[\s\S]*?id="deckModeButton"[\s\S]*?class="monster-battle-setup-control"[\s\S]*?id="randomEventButton"[\s\S]*?id="compactModeButton"/);
+  assert.match(html, /class="setup-player-controls">[\s\S]*?id="mode5"[\s\S]*?id="deckModeButton"[\s\S]*?class="monster-battle-setup-control"[\s\S]*?id="randomEventButton"[\s\S]*?id="compactModeButton"[\s\S]*?id="testModeCheckbox"/);
   assert.match(html, /id="singleMonsterModeButton"[^>]*>x1<\/button>/);
   assert.match(html, /id="doubleMonsterModeButton"[^>]*>x2<\/button>/);
   assert.match(html, /randomEventsEnabled: false/);
   assert.match(html, /localStorage\.getItem\(STORAGE\.randomEvents\) === "on"/);
+});
+
+test("TEST MODE syncs online while keeping every persistent bingo result untouched", () => {
+  const html = readFileSync(new URL("../index.html", import.meta.url), "utf8");
+
+  assert.match(html, /id="testModeCheckbox"/);
+  assert.match(html, /testMode: false/);
+  assert.match(html, /testMode: state\.testMode/);
+  assert.match(html, /setTestModeState\(snapshot\.testMode === true\)/);
+  assert.match(html, /function getPlayerStat\(name\)[\s\S]*?state\.testPlayerStats/);
+  assert.match(html, /function recordOpen\(characterId\)[\s\S]*?if \(state\.testMode\) return/);
+  assert.match(html, /function savePlayerStats\(\) \{\s*if \(state\.testMode\) return/);
+  assert.match(html, /function recordMatchFinish\([\s\S]*?state\.matchStatsFinalized = true;\s*if \(state\.testMode\) return/);
+  assert.match(html, /function awardTerritoryEquipmentForMatch\([\s\S]*?if \(state\.testMode\) return/);
+  assert.match(html, /function recordMonsterBattleOutcome\([\s\S]*?if \(state\.testMode\) return false/);
 });
 
 test("おいしいとうふモードは静的軽量画像だけを使い継続再描画しない", () => {
