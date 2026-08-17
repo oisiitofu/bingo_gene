@@ -805,6 +805,7 @@ export class OnlineCoordinator {
     this.adminMode = false;
     this.adminExpiresAt = 0;
     this.adminExpiryTimer = 0;
+    this.adminCountDraft = new Map();
     this.assetManifest = null;
     this.assetAudio = null;
     this.assetVerification = new Map();
@@ -1145,6 +1146,11 @@ export class OnlineCoordinator {
                   <button type="button" class="online-simple-button primary" id="onlineAdminCountPlus" aria-label="選択中の画像の開封数を1増やす">+1</button>
                 </div>
                 <div class="online-admin-character-grid" id="onlineAdminCountCharacterGrid" aria-label="開封数を補正する画像"></div>
+                <div class="online-admin-count-commit">
+                  <span id="onlineAdminCountPending">NO PENDING CHANGES</span>
+                  <button type="button" class="online-simple-button" id="onlineAdminCountCancel" disabled>CANCEL</button>
+                  <button type="button" class="online-simple-button primary" id="onlineAdminCountConfirm" disabled>CONFIRM</button>
+                </div>
               </div>
             </div>
             <div class="online-admin-operation">
@@ -1330,6 +1336,9 @@ export class OnlineCoordinator {
       adminCountValue: document.getElementById("onlineAdminCountValue"),
       adminCountMinus: document.getElementById("onlineAdminCountMinus"),
       adminCountPlus: document.getElementById("onlineAdminCountPlus"),
+      adminCountPending: document.getElementById("onlineAdminCountPending"),
+      adminCountCancel: document.getElementById("onlineAdminCountCancel"),
+      adminCountConfirm: document.getElementById("onlineAdminCountConfirm"),
       adminDeleteGhosts: document.getElementById("onlineAdminDeleteGhosts"),
       adminGhostSummary: document.getElementById("onlineAdminGhostSummary"),
       adminAssets: document.getElementById("onlineAdminAssets"),
@@ -1452,6 +1461,8 @@ export class OnlineCoordinator {
     });
     this.ui.adminCountMinus.addEventListener("click", () => this.adjustAdminPlayerOpenCount(-1));
     this.ui.adminCountPlus.addEventListener("click", () => this.adjustAdminPlayerOpenCount(1));
+    this.ui.adminCountCancel.addEventListener("click", () => this.discardAdminPlayerOpenCountDraft());
+    this.ui.adminCountConfirm.addEventListener("click", () => this.confirmAdminPlayerOpenCounts());
     this.ui.adminDeleteGhosts.addEventListener("click", async () => {
       const count = this.getGhostRooms().length;
       if (!count) return;
@@ -1618,6 +1629,7 @@ export class OnlineCoordinator {
   hideAdminPage() {
     this.ui?.adminPage?.classList.remove("show");
     this.ui?.adminPage?.setAttribute("aria-hidden", "true");
+    this.adminCountDraft?.clear();
   }
 
   syncLobbyVolume() {
@@ -3777,38 +3789,94 @@ export class OnlineCoordinator {
   }
 
   renderAdminPlayerCountEditor() {
-    if (!this.ui?.adminCountPlayer || !this.ui?.adminCountCharacter || !this.ui?.adminCountValue || !this.ui?.adminCountCharacterGrid) return;
+    if (!this.ui?.adminCountPlayer || !this.ui?.adminCountCharacter || !this.ui?.adminCountValue) return;
     const name = ADMIN_COUNT_PLAYERS.includes(this.ui.adminCountPlayer.value)
       ? this.ui.adminCountPlayer.value
       : ADMIN_COUNT_PLAYERS[0];
     const characterId = Math.max(1, Math.min(ADMIN_CHARACTER_COUNT, Number(this.ui.adminCountCharacter.value) || 1));
     const record = this.globalStatsSnapshot?.playerStats?.players?.[playerKey(name)] || {};
-    const count = Math.max(0, Number(record.openedCharacters?.[characterId]) || 0);
-    const total = Math.max(0, Number(record.opens) || 0);
+    const countDelta = this.getAdminPlayerOpenCountDraft(name, characterId);
+    const count = Math.max(0, (Number(record.openedCharacters?.[characterId]) || 0) + countDelta);
+    const totalDelta = this.getAdminPlayerOpenCountDraftTotal(name);
+    const total = Math.max(0, (Number(record.opens) || 0) + totalDelta);
     this.ui.adminCountPlayer.value = name;
     this.ui.adminCountCharacter.value = String(characterId);
-    this.ui.adminCountValue.textContent = `No.${String(characterId).padStart(2, "0")} / ${count} OPEN / TOTAL ${total}`;
-    this.ui.adminCountCharacterGrid.innerHTML = Array.from({ length: ADMIN_CHARACTER_COUNT }, (_, index) => {
-      const id = index + 1;
-      const cellCount = Math.max(0, Number(record.openedCharacters?.[id]) || 0);
-      const image = this.bridge.getCharacterImage?.(id) || `images/characters/${id}.png`;
-      return `<button type="button" class="online-admin-character${id === characterId ? " selected" : ""}${cellCount > 0 ? " has-count" : ""}" data-admin-count-character="${id}" aria-label="No.${id} ${cellCount}回開封">
-        <img src="${escapeHtml(image)}" alt="" loading="lazy" />
-        <b>${cellCount}</b>
-      </button>`;
-    }).join("");
+    this.ui.adminCountValue.textContent = `No.${String(characterId).padStart(2, "0")} / ${count} OPEN / TOTAL ${total}${countDelta ? ` / PENDING ${countDelta > 0 ? "+" : ""}${countDelta}` : ""}`;
+    if (this.ui.adminCountCharacterGrid) {
+      this.ui.adminCountCharacterGrid.innerHTML = Array.from({ length: ADMIN_CHARACTER_COUNT }, (_, index) => {
+        const id = index + 1;
+        const delta = this.getAdminPlayerOpenCountDraft(name, id);
+        const cellCount = Math.max(0, (Number(record.openedCharacters?.[id]) || 0) + delta);
+        const image = this.bridge.getCharacterImage?.(id) || `images/characters/${id}.png`;
+        return `<button type="button" class="online-admin-character${id === characterId ? " selected" : ""}${cellCount > 0 ? " has-count" : ""}${delta ? " pending" : ""}" data-admin-count-character="${id}" aria-label="No.${id} ${cellCount}回開封${delta ? " 未確定" : ""}">
+          <img src="${escapeHtml(image)}" alt="" loading="lazy" />
+          <b>${cellCount}${delta ? `<i>${delta > 0 ? "+" : ""}${delta}</i>` : ""}</b>
+        </button>`;
+      }).join("");
+    }
     if (this.ui.adminCountMinus) this.ui.adminCountMinus.disabled = count <= 0;
+    const pendingCount = this.adminCountDraft.size;
+    const pendingTotal = [...this.adminCountDraft.values()].reduce((sum, entry) => sum + entry.delta, 0);
+    if (this.ui.adminCountPending) this.ui.adminCountPending.textContent = pendingCount
+      ? `${pendingCount} CHANGES / TOTAL ${pendingTotal > 0 ? "+" : ""}${pendingTotal}`
+      : "NO PENDING CHANGES";
+    if (this.ui.adminCountCancel) this.ui.adminCountCancel.disabled = pendingCount === 0;
+    if (this.ui.adminCountConfirm) {
+      this.ui.adminCountConfirm.disabled = pendingCount === 0;
+      this.ui.adminCountConfirm.textContent = pendingCount ? `CONFIRM (${pendingCount})` : "CONFIRM";
+    }
   }
 
-  async adjustAdminPlayerOpenCount(direction) {
+  adminPlayerOpenCountDraftKey(name, characterId) {
+    return `${playerKey(name)}:${characterId}`;
+  }
+
+  getAdminPlayerOpenCountDraft(name, characterId) {
+    return Number(this.adminCountDraft.get(this.adminPlayerOpenCountDraftKey(name, characterId))?.delta) || 0;
+  }
+
+  getAdminPlayerOpenCountDraftTotal(name) {
+    const key = playerKey(name);
+    return [...this.adminCountDraft.values()].reduce((sum, entry) => entry.playerKey === key ? sum + entry.delta : sum, 0);
+  }
+
+  adjustAdminPlayerOpenCount(direction) {
     if (!this.enabled || !this.isAdminMode() || ![-1, 1].includes(Number(direction))) return false;
-    if (!await this.verifyAdminSession()) return false;
     const name = normalizeName(this.ui?.adminCountPlayer?.value);
     const characterId = Math.max(1, Math.min(ADMIN_CHARACTER_COUNT, Number(this.ui?.adminCountCharacter?.value) || 0));
     if (!ADMIN_COUNT_PLAYERS.includes(name) || !characterId) return false;
     const delta = Number(direction) < 0 ? -1 : 1;
+    const key = this.adminPlayerOpenCountDraftKey(name, characterId);
+    const record = this.globalStatsSnapshot?.playerStats?.players?.[playerKey(name)] || {};
+    const current = Math.max(0, Number(record.openedCharacters?.[characterId]) || 0);
+    const staged = this.getAdminPlayerOpenCountDraft(name, characterId);
+    if (current + staged + delta < 0) {
+      if (this.ui?.adminResult) this.ui.adminResult.textContent = `${name} / No.${characterId} は 0 OPEN より減らせません。`;
+      return false;
+    }
+    const nextDelta = staged + delta;
+    if (nextDelta) this.adminCountDraft.set(key, { playerKey: playerKey(name), name, characterId, delta: nextDelta });
+    else this.adminCountDraft.delete(key);
+    this.renderAdminPlayerCountEditor();
+    if (this.ui?.adminResult) this.ui.adminResult.textContent = `${name} / No.${characterId} を ${delta > 0 ? "+1" : "-1"} 仮変更しました。CONFIRMまで保存されません。`;
+    return true;
+  }
+
+  discardAdminPlayerOpenCountDraft() {
+    if (!this.adminCountDraft.size) return false;
+    this.adminCountDraft.clear();
+    this.renderAdminPlayerCountEditor();
+    if (this.ui?.adminResult) this.ui.adminResult.textContent = "未確定の開封数変更を破棄しました。";
+    return true;
+  }
+
+  async confirmAdminPlayerOpenCounts() {
+    if (!this.enabled || !this.isAdminMode() || !this.adminCountDraft.size) return false;
+    if (!await this.verifyAdminSession()) return false;
+    const changes = [...this.adminCountDraft.values()].map((entry) => ({ ...entry }));
     const actionId = randomId("admin-open-count");
-    [this.ui?.adminCountMinus, this.ui?.adminCountPlus].filter(Boolean).forEach((button) => { button.disabled = true; });
+    [this.ui?.adminCountMinus, this.ui?.adminCountPlus, this.ui?.adminCountCancel, this.ui?.adminCountConfirm]
+      .filter(Boolean).forEach((button) => { button.disabled = true; });
     try {
       const result = await this.backend.transaction(this.path("globalStats"), (stats) => {
         const next = isPlainObject(stats) ? stats : {};
@@ -3817,17 +3885,20 @@ export class OnlineCoordinator {
         next.playerStats.players ||= {};
         next.playerStats.rivalries ||= {};
         next.playerStats.recentMatches ||= [];
-        const key = playerKey(name);
-        const record = isPlainObject(next.playerStats.players[key]) ? next.playerStats.players[key] : { name };
-        record.name = name;
-        record.openedCharacters = normalizeNumberMap(record.openedCharacters);
-        const current = Math.max(0, Number(record.openedCharacters[characterId]) || 0);
-        if (delta < 0 && current <= 0) return undefined;
-        const updated = Math.max(0, current + delta);
-        if (updated) record.openedCharacters[characterId] = updated;
-        else delete record.openedCharacters[characterId];
-        record.opens = Math.max(0, (Number(record.opens) || 0) + delta);
-        next.playerStats.players[key] = record;
+        for (const change of changes) {
+          const record = isPlainObject(next.playerStats.players[change.playerKey])
+            ? next.playerStats.players[change.playerKey]
+            : { name: change.name };
+          record.name = change.name;
+          record.openedCharacters = normalizeNumberMap(record.openedCharacters);
+          const current = Math.max(0, Number(record.openedCharacters[change.characterId]) || 0);
+          const updated = current + change.delta;
+          if (updated < 0) return undefined;
+          if (updated) record.openedCharacters[change.characterId] = updated;
+          else delete record.openedCharacters[change.characterId];
+          record.opens = Math.max(0, (Number(record.opens) || 0) + change.delta);
+          next.playerStats.players[change.playerKey] = record;
+        }
         const updatedAt = this.backend.serverNow();
         next.playerStatsUpdatedAt = updatedAt;
         next.processedActions ||= {};
@@ -3838,7 +3909,7 @@ export class OnlineCoordinator {
         return next;
       });
       if (!result.committed) {
-        this.ui.adminResult.textContent = `${name} / No.${characterId} はすでに 0 OPEN です。`;
+        this.ui.adminResult.textContent = "サーバー側の値が変わったため確定できませんでした。表示を確認して再調整してください。";
         this.renderAdminPlayerCountEditor();
         return false;
       }
@@ -3850,15 +3921,15 @@ export class OnlineCoordinator {
       };
       this.standaloneStatsBaseline = clone(this.globalStatsSnapshot);
       this.bridge.applyOnlineStatsSnapshot?.(this.globalStatsSnapshot);
+      this.adminCountDraft.clear();
       this.renderAdminPlayerCountEditor();
-      const count = Number(this.globalStatsSnapshot.playerStats.players?.[playerKey(name)]?.openedCharacters?.[characterId]) || 0;
-      this.ui.adminResult.textContent = `${name} / No.${characterId} を ${delta > 0 ? "+1" : "-1"} 補正しました。現在 ${count} OPEN。`;
+      const totalDelta = changes.reduce((sum, change) => sum + change.delta, 0);
+      this.ui.adminResult.textContent = `${changes.length}件の開封数変更を確定しました。TOTAL OPEN ${totalDelta > 0 ? "+" : ""}${totalDelta}。`;
       return true;
     } catch (error) {
       this.ui.adminResult.textContent = `COUNT EDIT ERROR: ${String(error?.message || error)}`;
       return false;
     } finally {
-      if (this.ui?.adminCountPlus) this.ui.adminCountPlus.disabled = false;
       this.renderAdminPlayerCountEditor();
     }
   }

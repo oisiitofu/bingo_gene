@@ -17,9 +17,9 @@ test("online lobby boot bypasses stale browser modules and retries once", () => 
   const html = readFileSync(new URL("../index.html", import.meta.url), "utf8");
   const serviceWorker = readFileSync(new URL("../sw.js", import.meta.url), "utf8");
 
-  assert.match(html, /online-room\.js\?v=20260817-count-recovery-125/);
+  assert.match(html, /online-room\.js\?v=20260818-admin-count-draft-126/);
   assert.match(html, /retry=\$\{Date\.now\(\)\}/);
-  assert.match(serviceWorker, /20260817-count-recovery-125/);
+  assert.match(serviceWorker, /20260818-admin-count-draft-126/);
 });
 
 test("one-bingo audio, Likecy skill timing, and reach badge rules stay aligned", () => {
@@ -383,7 +383,9 @@ test("Admin player open counts use an image grid with visible per-character coun
   assert.match(html, /getCharacterImage: imagePath/);
   assert.match(online, /id="onlineAdminCountCharacterGrid"/);
   assert.match(online, /data-admin-count-character="\$\{id\}"/);
-  assert.match(online, /const cellCount = Math\.max\(0, Number\(record\.openedCharacters\?\.\[id\]\) \|\| 0\)/);
+  assert.match(online, /const cellCount = Math\.max\(0, \(Number\(record\.openedCharacters\?\.\[id\]\) \|\| 0\) \+ delta\)/);
+  assert.match(online, /id="onlineAdminCountConfirm" disabled>CONFIRM/);
+  assert.match(online, /async confirmAdminPlayerOpenCounts\(\)/);
   assert.match(css, /\.online-admin-character-grid \{/);
   assert.match(css, /\.online-admin-character\.selected/);
 });

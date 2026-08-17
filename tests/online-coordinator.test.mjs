@@ -480,6 +480,7 @@ function prepareAdminCoordinator(store, uid = "master") {
   coordinator.adminMode = true;
   coordinator.adminExpiresAt = Date.now() + 10 * 60 * 1000;
   coordinator.adminExpiryTimer = 0;
+  coordinator.adminCountDraft = new Map();
   coordinator.ui = {
     adminMode: { textContent: "ADMIN ON" },
     adminResult: { textContent: "" },
@@ -490,7 +491,10 @@ function prepareAdminCoordinator(store, uid = "master") {
     adminCountCharacter: { value: "53" },
     adminCountValue: { textContent: "" },
     adminCountMinus: { disabled: false },
-    adminCountPlus: { disabled: false }
+    adminCountPlus: { disabled: false },
+    adminCountPending: { textContent: "" },
+    adminCountCancel: { disabled: false },
+    adminCountConfirm: { disabled: false, textContent: "CONFIRM" }
   };
   coordinator.hideAdminPage = () => {};
   coordinator.showLobby = () => {};
@@ -1055,13 +1059,23 @@ test("admin can correct one player's per-cell opens without changing the shared 
   const admin = prepareAdminCoordinator(store);
   admin.globalStatsSnapshot = clone(stats);
 
-  assert.equal(await admin.adjustAdminPlayerOpenCount(-1), true);
+  assert.equal(admin.adjustAdminPlayerOpenCount(-1), true);
+  assert.equal(store.value.teamBingoV1.globalStats.playerStats.players["ジャン"].opens, 3);
+  assert.equal(store.value.teamBingoV1.globalStats.playerStats.players["ジャン"].openedCharacters[53], 2);
+  assert.match(admin.ui.adminCountValue.textContent, /1 OPEN \/ TOTAL 2 \/ PENDING -1/);
+  assert.match(admin.ui.adminResult.textContent, /CONFIRM/);
+
+  assert.equal(await admin.confirmAdminPlayerOpenCounts(), true);
   assert.equal(store.value.teamBingoV1.globalStats.playerStats.players["ジャン"].opens, 2);
   assert.deepEqual(store.value.teamBingoV1.globalStats.playerStats.players["ジャン"].openedCharacters, { 53: 1, 69: 1 });
   assert.deepEqual(store.value.teamBingoV1.globalStats.ranking, { 53: 9 });
   assert.match(admin.ui.adminResult.textContent, /-1/);
 
-  assert.equal(await admin.adjustAdminPlayerOpenCount(1), true);
+  assert.equal(admin.adjustAdminPlayerOpenCount(1), true);
+  assert.equal(admin.discardAdminPlayerOpenCountDraft(), true);
+  assert.equal(store.value.teamBingoV1.globalStats.playerStats.players["ジャン"].opens, 2);
+  assert.equal(admin.adjustAdminPlayerOpenCount(1), true);
+  assert.equal(await admin.confirmAdminPlayerOpenCounts(), true);
   assert.equal(store.value.teamBingoV1.globalStats.playerStats.players["ジャン"].opens, 3);
   assert.equal(store.value.teamBingoV1.globalStats.playerStats.players["ジャン"].openedCharacters[53], 2);
 });
@@ -1081,7 +1095,9 @@ test("admin count correction preserves dense Firebase array maps", async () => {
   const admin = prepareAdminCoordinator(store);
   admin.globalStatsSnapshot = clone(store.value.teamBingoV1.globalStats);
 
-  assert.equal(await admin.adjustAdminPlayerOpenCount(-1), true);
+  assert.equal(admin.adjustAdminPlayerOpenCount(-1), true);
+  assert.equal(store.value.teamBingoV1.globalStats.playerStats.players["ジャン"].opens, 9);
+  assert.equal(await admin.confirmAdminPlayerOpenCounts(), true);
   const record = store.value.teamBingoV1.globalStats.playerStats.players["ジャン"];
   assert.equal(record.opens, 8);
   assert.equal(record.openedCharacters[1], 2);
