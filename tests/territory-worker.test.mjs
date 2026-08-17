@@ -1,5 +1,6 @@
 import assert from "node:assert/strict";
 import { generateKeyPairSync } from "node:crypto";
+import { gunzipSync } from "node:zlib";
 import test from "node:test";
 
 const { privateKey } = generateKeyPairSync("rsa", {
@@ -199,4 +200,65 @@ test("シーズン装備報酬はアーカイブ表示と戦績付与で再現�
     );
     Object.keys(reward.items).forEach((itemId) => assert.ok(Equipment.ITEM_BY_ID[itemId]));
   });
+});
+
+test("日次バックアップはFirebase共有ルート全体を圧縮し同日に重複作成しない", async () => {
+  const originalFetch = globalThis.fetch;
+  const originalCrypto = globalThis.crypto;
+  if (!globalThis.crypto) globalThis.crypto = (await import("node:crypto")).webcrypto;
+  const values = new Map();
+  const writes = [];
+  const backupStore = {
+    async get(key) {
+      return values.get(key)?.value || null;
+    },
+    async put(key, value, options = {}) {
+      const stored = typeof value === "string" ? value : Buffer.from(value);
+      values.set(key, { value: stored, options });
+      writes.push({ key, value: stored, options });
+    }
+  };
+  let rootReads = 0;
+  globalThis.fetch = async (input) => {
+    const url = String(input);
+    if (url.endsWith("/teamBingoV1.json")) {
+      rootReads += 1;
+      return Response.json({
+        globalStats: { ranking: { 53: 12 }, playerStats: { players: { jan: { opens: 4 } } } },
+        frontier: { current: { revision: 7 } },
+        worldTournaments: { rooms: { cup: { id: "cup" } } }
+      });
+    }
+    throw new Error(`Unexpected request: ${url}`);
+  };
+
+  try {
+    const { createDailyBackupWithToken, dailyBackupKeys } = await import("../worker/territory-worker.mjs");
+    const now = Date.UTC(2026, 7, 17, 15, 5);
+    const env = {
+      BACKUP_STORE: backupStore,
+      FIREBASE_DATABASE_URL: "https://database.test",
+      FIREBASE_DATABASE_ROOT: "teamBingoV1"
+    };
+    const first = await createDailyBackupWithToken(env, "backup-token", now);
+    const second = await createDailyBackupWithToken(env, "backup-token", now + 60_000);
+    const keys = dailyBackupKeys(now);
+
+    assert.equal(first.created, true);
+    assert.equal(second.created, false);
+    assert.equal(second.reason, "already-created");
+    assert.equal(rootReads, 1);
+    assert.deepEqual(writes.map((write) => write.key), [keys.data, keys.marker]);
+    assert.equal(writes[0].options.expirationTtl, 90 * 24 * 60 * 60);
+    assert.match(writes[0].options.metadata.sha256, /^[a-f0-9]{64}$/);
+    const envelope = JSON.parse(gunzipSync(writes[0].value).toString("utf8"));
+    assert.equal(envelope.format, "team-bingo-rtdb-full-backup");
+    assert.equal(envelope.firebaseRoot, "teamBingoV1");
+    assert.equal(envelope.data.globalStats.ranking[53], 12);
+    assert.equal(envelope.data.frontier.current.revision, 7);
+    assert.equal(envelope.data.worldTournaments.rooms.cup.id, "cup");
+  } finally {
+    globalThis.fetch = originalFetch;
+    if (!originalCrypto) delete globalThis.crypto;
+  }
 });

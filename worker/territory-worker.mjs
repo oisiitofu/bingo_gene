@@ -9,6 +9,9 @@ const FIREBASE_SCOPES = [
   "https://www.googleapis.com/auth/firebase.database",
   "https://www.googleapis.com/auth/userinfo.email"
 ].join(" ");
+const DAILY_BACKUP_FORMAT = "team-bingo-rtdb-full-backup";
+const DAILY_BACKUP_VERSION = 1;
+const DAILY_BACKUP_RETENTION_SECONDS = 90 * 24 * 60 * 60;
 
 let tokenCache = { value: "", expiresAt: 0 };
 
@@ -134,6 +137,91 @@ async function writeDatabase(env, path, value, token, etag = "") {
 
 function rootPath(env, part) {
   return [env.FIREBASE_DATABASE_ROOT || "teamBingoV1", part].filter(Boolean).join("/");
+}
+
+export function dailyBackupDate(now = Date.now()) {
+  return new Date(Number(now) + 9 * 60 * 60 * 1000).toISOString().slice(0, 10);
+}
+
+export function dailyBackupKeys(now = Date.now()) {
+  const date = dailyBackupDate(now);
+  return {
+    date,
+    data: `daily/${date}/teamBingoV1-${date}.json.gz`,
+    marker: `markers/${date}`
+  };
+}
+
+async function gzipBytes(bytes) {
+  const compressed = new Blob([bytes]).stream().pipeThrough(new CompressionStream("gzip"));
+  return new Response(compressed).arrayBuffer();
+}
+
+async function sha256Hex(bytes) {
+  const digest = new Uint8Array(await crypto.subtle.digest("SHA-256", bytes));
+  return Array.from(digest, (byte) => byte.toString(16).padStart(2, "0")).join("");
+}
+
+export async function createDailyBackupWithToken(env, token, now = Date.now()) {
+  if (!env.BACKUP_STORE) return { ok: false, created: false, reason: "backup-store-unbound" };
+  const keys = dailyBackupKeys(now);
+  const existing = await env.BACKUP_STORE.get(keys.marker);
+  if (existing) return { ok: true, created: false, reason: "already-created", key: keys.data, date: keys.date };
+
+  const snapshot = await readDatabase(env, rootPath(env, ""), token);
+  const envelope = {
+    format: DAILY_BACKUP_FORMAT,
+    version: DAILY_BACKUP_VERSION,
+    createdAt: new Date(now).toISOString(),
+    firebaseRoot: env.FIREBASE_DATABASE_ROOT || "teamBingoV1",
+    data: snapshot.value || {}
+  };
+  const raw = new TextEncoder().encode(JSON.stringify(envelope));
+  const [compressed, sha256] = await Promise.all([gzipBytes(raw), sha256Hex(raw)]);
+  const marker = {
+    format: DAILY_BACKUP_FORMAT,
+    version: DAILY_BACKUP_VERSION,
+    date: keys.date,
+    createdAt: envelope.createdAt,
+    key: keys.data,
+    sha256,
+    bytes: raw.byteLength,
+    compressedBytes: compressed.byteLength
+  };
+  await env.BACKUP_STORE.put(keys.data, compressed, {
+    expirationTtl: DAILY_BACKUP_RETENTION_SECONDS,
+    metadata: marker
+  });
+  await env.BACKUP_STORE.put(keys.marker, JSON.stringify(marker), {
+    expirationTtl: DAILY_BACKUP_RETENTION_SECONDS
+  });
+  return { ok: true, created: true, ...marker };
+}
+
+export async function createDailyBackup(env, now = Date.now()) {
+  if (!env.BACKUP_STORE) return { ok: false, created: false, reason: "backup-store-unbound" };
+  if (env.FIREBASE_CLIENT_EMAIL && env.FIREBASE_PRIVATE_KEY) {
+    return createDailyBackupWithToken(env, await accessToken(env), now);
+  }
+  const account = await firebaseIdentity(env, "accounts:signUp", { returnSecureToken: true });
+  const anonymousEnv = { ...env, FIREBASE_USE_AUTH_QUERY: "true" };
+  try {
+    return await createDailyBackupWithToken(anonymousEnv, account.idToken, now);
+  } finally {
+    await firebaseIdentity(env, "accounts:delete", { idToken: account.idToken }).catch(() => {});
+  }
+}
+
+async function currentBackupStatus(env, now = Date.now()) {
+  if (!env.BACKUP_STORE) return { configured: false, date: dailyBackupDate(now), created: false };
+  const keys = dailyBackupKeys(now);
+  const raw = await env.BACKUP_STORE.get(keys.marker);
+  if (!raw) return { configured: true, date: keys.date, created: false };
+  try {
+    return { configured: true, created: true, ...JSON.parse(raw) };
+  } catch {
+    return { configured: true, date: keys.date, created: true, key: keys.data };
+  }
 }
 
 export function buildSeasonEquipmentRewards(archive, ranking = Territory.standings(archive)) {
@@ -299,6 +387,7 @@ function json(value, status = 200) {
 export default {
   async scheduled(_controller, env, context) {
     context.waitUntil(advanceFrontier(env));
+    context.waitUntil(createDailyBackup(env));
   },
 
   async fetch(request, env) {
@@ -310,6 +399,9 @@ export default {
         tickMinutes: Territory.TICK_MINUTES,
         now: Date.now()
       });
+    }
+    if (request.method === "GET" && url.pathname === "/backup-status") {
+      return json(await currentBackupStatus(env));
     }
     if (request.method === "POST" && url.pathname === "/tick") {
       const expected = String(env.FRONTIER_ADMIN_TOKEN || "");

@@ -6,6 +6,12 @@
   "triggers": {
     "crons": ["*/10 * * * *"]
   },
+  "kv_namespaces": [
+    {
+      "binding": "BACKUP_STORE",
+      "id": "1afc18de075c4bb9916d44707622d2d5"
+    }
+  ],
   "vars": {
     "FIREBASE_DATABASE_URL": "https://team-bingo-3b04c-default-rtdb.asia-southeast1.firebasedatabase.app",
     "FIREBASE_DATABASE_ROOT": "teamBingoV1",
