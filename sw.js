@@ -1,12 +1,13 @@
 "use strict";
 
-const CACHE_VERSION = "team-bingo-v1-20260817-skill-memory-122";
+const CACHE_VERSION = "team-bingo-v1-20260817-monster-pose-fit-123";
 const SHELL_CACHE = `${CACHE_VERSION}-shell`;
 const ASSET_CACHE = `${CACHE_VERSION}-assets`;
 const SHELL_FILES = [
   "./",
   "./index.html",
   "./monster-system.js",
+  "./monster-pose-bounds.js",
   "./territory-equipment.js",
   "./territory-system.js",
   "./vendor/three/three.min.js",

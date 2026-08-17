@@ -19,7 +19,7 @@ test("online lobby boot bypasses stale browser modules and retries once", () => 
 
   assert.match(html, /online-room\.js\?v=20260817-tournament-test-120/);
   assert.match(html, /retry=\$\{Date\.now\(\)\}/);
-  assert.match(serviceWorker, /20260817-skill-memory-122/);
+  assert.match(serviceWorker, /20260817-monster-pose-fit-123/);
 });
 
 test("one-bingo audio, Likecy skill timing, and reach badge rules stay aligned", () => {
@@ -1067,6 +1067,32 @@ test("monster encyclopedia switches static poses only through pose buttons", () 
   assert.match(battleCss, /\.monster-zoom-art\.has-pose-animation\.show-pose-2 \.monster-sprite-attack/);
   assert.doesNotMatch(battleCss, /\.monster-zoom-art\.animation-paused/);
   assert.doesNotMatch(battleCss, /\.monster-zoom-art\.has-pose-animation \.monster-sprite-base \{\s*animation:/);
+});
+
+test("every monster pose is alpha-fitted to the same framed baseline", () => {
+  const html = readFileSync(new URL("../index.html", import.meta.url), "utf8");
+  const battleCss = readFileSync(new URL("../monster-battle.css", import.meta.url), "utf8");
+  const poseBoundsSource = readFileSync(new URL("../monster-pose-bounds.js", import.meta.url), "utf8");
+  const monsterSystemSource = readFileSync(new URL("../monster-system.js", import.meta.url), "utf8");
+  const context = {};
+  context.window = context;
+  context.globalThis = context;
+  new Function("window", "globalThis", `${monsterSystemSource}\n${poseBoundsSource}`)(context, context);
+  const nodes = Object.values(context.TeamBingoMonsterSystem.NODES);
+  const bounds = context.TeamBingoMonsterPoseBounds;
+
+  assert.equal(Object.keys(bounds).length, nodes.length);
+  nodes.forEach((node) => {
+    assert.equal(bounds[node.id]?.base?.length, 4, `${node.id} base pose must have fitted bounds`);
+    if (node.sprite.attackSheet || node.sprite.sheet.includes("/pairs/")) {
+      assert.equal(bounds[node.id]?.attack?.length, 4, `${node.id} attack pose must have fitted bounds`);
+    }
+  });
+  assert.match(html, /<script src="monster-pose-bounds\.js"><\/script>/);
+  assert.match(html, /function monsterPoseViewBox\(bounds, defaultWidth, extraPadding = 0\)/);
+  assert.match(html, /const poseBounds = window\.TeamBingoMonsterPoseBounds\?\.\[node\.id\]\?\.\[poseKey\]/);
+  assert.match(battleCss, /\.monster-player-card\.monster-pose-animated \.monster-sprite-attack \{[\s\S]*?inset: 0;/);
+  assert.doesNotMatch(battleCss, /\.monster-player-card\.monster-pose-animated \.monster-sprite-attack \{[\s\S]*?inset: -2%/);
 });
 
 test("territory mode has replaceable looping audio and a tofu gray selection aura", () => {

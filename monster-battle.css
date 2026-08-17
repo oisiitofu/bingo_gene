@@ -142,7 +142,7 @@
 
 .monster-player-card.monster-pose-animated .monster-sprite-attack {
   position: absolute;
-  inset: -2% 0 auto;
+  inset: 0;
   margin: auto;
   opacity: 0;
   pointer-events: none;

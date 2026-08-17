@@ -8422,6 +8422,7 @@
   </section>
 
   <script src="monster-system.js"></script>
+  <script src="monster-pose-bounds.js"></script>
   <script src="territory-equipment.js"></script>
   <script src="territory-system.js"></script>
   <script src="vendor/three/three.min.js"></script>
@@ -10539,16 +10540,32 @@
       const aspect = Math.max(.1, Number(node.sprite.aspect) || 1);
       const viewBoxWidth = Math.round(aspect * 1000);
       const padding = Math.max(0, Math.min(250, Number(viewportPadding) || 0));
+      const poseKey = Number(pose) === 2 ? "attack" : "base";
+      const poseBounds = window.TeamBingoMonsterPoseBounds?.[node.id]?.[poseKey] || null;
+      const viewBox = monsterPoseViewBox(poseBounds, viewBoxWidth, padding);
       const defaultDisplayBoost = node.legendary || node.rank6
         ? 1
         : (Number(node.stage) >= 3 ? 1.52 : (Number(node.stage) > 1 ? 1.16 : 1));
-      const poseKey = Number(pose) === 2 ? "attack" : "base";
-      const displayBoost = MONSTER_POSE_DISPLAY_BOOST_OVERRIDES[node.id]?.[poseKey]
-        ?? MONSTER_DISPLAY_BOOST_OVERRIDES[node.id]
-        ?? defaultDisplayBoost;
+      const displayBoost = poseBounds
+        ? 1
+        : (MONSTER_POSE_DISPLAY_BOOST_OVERRIDES[node.id]?.[poseKey]
+          ?? MONSTER_DISPLAY_BOOST_OVERRIDES[node.id]
+          ?? defaultDisplayBoost);
       const style = `--monster-image:url('${node.sprite.sheet}');--monster-size:${guardedSize};--monster-position:${node.sprite.position};--monster-aspect:${aspect};--monster-zoom:${node.sprite.zoom || 1};--monster-display-boost:${displayBoost}`;
       const facing = node.sprite.facing === "right" ? "right" : "left";
-      return `<svg class="monster-sprite${extraClass ? ` ${extraClass}` : ""}" data-monster-facing="${facing}" style="${style}" viewBox="${-padding} ${-padding} ${viewBoxWidth + (padding * 2)} ${1000 + (padding * 2)}" preserveAspectRatio="xMidYMid meet" aria-hidden="true" focusable="false"><foreignObject x="0" y="0" width="${viewBoxWidth}" height="1000"><div xmlns="http://www.w3.org/1999/xhtml" class="monster-sprite-surface"></div></foreignObject></svg>`;
+      return `<svg class="monster-sprite${extraClass ? ` ${extraClass}` : ""}" data-monster-facing="${facing}" style="${style}" viewBox="${viewBox}" preserveAspectRatio="xMidYMid meet" aria-hidden="true" focusable="false"><foreignObject x="0" y="0" width="${viewBoxWidth}" height="1000"><div xmlns="http://www.w3.org/1999/xhtml" class="monster-sprite-surface"></div></foreignObject></svg>`;
+    }
+
+    function monsterPoseViewBox(bounds, defaultWidth, extraPadding = 0) {
+      if (!Array.isArray(bounds) || bounds.length !== 4) {
+        return `${-extraPadding} ${-extraPadding} ${defaultWidth + (extraPadding * 2)} ${1000 + (extraPadding * 2)}`;
+      }
+      const [x, y, width, height] = bounds.map(Number);
+      if (![x, y, width, height].every(Number.isFinite) || width <= 0 || height <= 0) {
+        return `${-extraPadding} ${-extraPadding} ${defaultWidth + (extraPadding * 2)} ${1000 + (extraPadding * 2)}`;
+      }
+      const fittedPadding = Math.round(Math.max(width, height) * .085) + extraPadding;
+      return `${Math.round(x - fittedPadding)} ${Math.round(y - fittedPadding)} ${Math.round(width + (fittedPadding * 2))} ${Math.round(height + (fittedPadding * 2))}`;
     }
 
     function monsterDexSpriteMarkup(node) {
