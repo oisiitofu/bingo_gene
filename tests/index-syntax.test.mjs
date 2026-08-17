@@ -19,7 +19,7 @@ test("online lobby boot bypasses stale browser modules and retries once", () => 
 
   assert.match(html, /online-room\.js\?v=20260817-tournament-test-120/);
   assert.match(html, /retry=\$\{Date\.now\(\)\}/);
-  assert.match(serviceWorker, /20260817-odd-skill-picker-121/);
+  assert.match(serviceWorker, /20260817-skill-memory-122/);
 });
 
 test("one-bingo audio, Likecy skill timing, and reach badge rules stay aligned", () => {
@@ -51,7 +51,7 @@ test("consecutive skills cancel stale audio and setup snapshots clear persistent
   assert.doesNotMatch(html, /\.cell:not\(\.free\):not\(\.open\)[\s\S]{0,800}url\("skill-assets\/Kento\/aura\.png"\)/);
 });
 
-test("mobile skill presentations use bounded assets and compositor layers", () => {
+test("all skill presentations prefer bounded assets and release previous media", () => {
   const html = readFileSync(new URL("../index.html", import.meta.url), "utf8");
   const profiles = ["Kento", "Lickey", "えだ", "おいしいとうふ", "ジャン", "リーマ"];
 
@@ -61,8 +61,11 @@ test("mobile skill presentations use bounded assets and compositor layers", () =
     assert.ok(statSync(asset).size < 500_000, `${folder} mobile logo exceeds the memory budget`);
   });
   assert.match(html, /mobileLogo: \["logo-mobile\.webp"\]/);
-  assert.match(html, /window\.innerWidth <= 820/);
-  assert.match(html, /const candidates = \[\.\.\.new Set\(\[\.\.\.mobileUrls, \.\.\.urls\]\)\]/);
+  assert.match(html, /const compactUrls = skillAssetUrls\(id, "mobileLogo"\)/);
+  assert.match(html, /const candidates = \[\.\.\.new Set\(\[\.\.\.compactUrls, \.\.\.urls\]\)\]/);
+  assert.match(html, /function showSkillActivation\(team, skill\) \{\s*releaseSkillPresentationMedia\(\);\s*stopSkillKaraoke\(false\)/);
+  assert.match(html, /function releaseSkillPresentationMedia\(\)[\s\S]*?removeAttribute\("src"\)/);
+  assert.match(html, /function stopSkillKaraoke\(restore = true\)[\s\S]*?classList\.remove\("karaoke", "talking"\);\s*if \(!restore/);
   assert.doesNotMatch(html, /\.skill-title-art \{\s*width: 210vw/);
   assert.match(html, /#skillOverlay\.show \{ contain: layout paint style; \}/);
   assert.match(html, /\.board-card\.kento-ally \.board-body::after,[\s\S]*?\.special-cell-art \{\s*animation: none/);
@@ -140,6 +143,8 @@ test("7x7 and three-player teams select the opener after the cell while JAN and 
   assert.match(html, /function onGridClick\(event\)[\s\S]*?state\.pendingSkill && !side\.marked\[index\][\s\S]*?applyPendingSkillToCell\(team, index, cellElement\)[\s\S]*?if \(!shouldSelectPlayerAfterCellClick\(\)\) return;[\s\S]*?showOpenedByPopover/);
   assert.match(html, /id="skillTargetGuide"/);
   assert.match(html, /スキル発動のマスを選択してください/);
+  assert.doesNotMatch(html, /id="skillTargetGuideHint"/);
+  assert.doesNotMatch(html, /光っているマスの絵柄をクリック/);
   assert.match(html, /function updateSkillTargetGuide\(\)/);
 });
 

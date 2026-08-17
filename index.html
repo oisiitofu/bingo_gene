@@ -2824,7 +2824,6 @@
     .skill-target-guide.blue { --guide-color: var(--blue); }
     .skill-target-guide strong { color: var(--guide-color); font-size: 10px; font-weight: 1000; }
     .skill-target-guide b { font-size: clamp(16px, 2vw, 24px); letter-spacing: 0; }
-    .skill-target-guide span { color: #c8d0dc; font-size: 10px; font-weight: 850; }
 
     .cell.special-cell {
       isolation: isolate;
@@ -8172,7 +8171,6 @@
   <aside class="skill-target-guide" id="skillTargetGuide" hidden aria-live="polite">
     <strong id="skillTargetGuideMember">SKILL TARGET</strong>
     <b>スキル発動のマスを選択してください</b>
-    <span id="skillTargetGuideHint">光っているマスの絵柄をクリック</span>
   </aside>
 
   <section class="overlay" id="victoryOverlay" aria-hidden="true">
@@ -9255,7 +9253,7 @@
         "openRankingList", "voiceLogLaneLeft", "voiceLogLaneRight", "redMonsterPanel", "blueMonsterPanel",
         "startBlackoutOverlay", "finishFlashOverlay", "introOverlay", "versusRedName", "versusRedMembers", "versusRedStats", "versusBlueName",
         "versusBlueMembers", "versusBlueStats", "readyOverlay", "firstBingoOverlay", "reachOverlay", "reachText",
-        "skillOverlay", "skillTitleArt", "skillTeamLine", "skillMemberLine", "skillTargetGuide", "skillTargetGuideMember", "skillTargetGuideHint",
+        "skillOverlay", "skillTitleArt", "skillTeamLine", "skillMemberLine", "skillTargetGuide", "skillTargetGuideMember",
         "victoryOverlay", "victoryTeam", "victoryPraise", "victorySpecialBadge", "mvpImage", "mvpName", "mvpTitle", "winnerTitles", "victoryResultPanel",
         "closeVictoryButton", "victoryEquipmentRewardModal", "victoryEquipmentRewardTitle", "victoryEquipmentRewardSummary", "victoryEquipmentRewardList", "victoryEquipmentRewardClose",
         "statsModal", "statsSummary", "statsPlayerList", "statsHighlightList", "statsRivalryList", "statsMatchList", "statsCloseButton",
@@ -9661,7 +9659,7 @@
         return;
       }
       state.pendingSkill = { team, skill };
-      showCommentary("スキル発動のマスを選択してください", `${skill.member}の光っているマスをクリック。`, 10000);
+      showCommentary("スキル発動のマスを選択してください", "", 10000);
     }
 
     function applyInstantSkillEffect(team, skill) {
@@ -10465,11 +10463,6 @@
       els.skillTargetGuide.classList.toggle("blue", pending?.team === "blue");
       if (!pending) return;
       if (els.skillTargetGuideMember) els.skillTargetGuideMember.textContent = `${pending.skill?.member || "SKILL"} / TARGET SELECT`;
-      if (els.skillTargetGuideHint) {
-        els.skillTargetGuideHint.textContent = pending.skill?.profile?.id === "eda"
-          ? "自分のカードにある 84・85・86 の絵柄をクリック"
-          : "光っているマスの絵柄をクリック";
-      }
     }
 
     function spriteSheetSizeWithBleedGuard(size) {
@@ -11338,10 +11331,10 @@
     function getSkillLogoImageCandidates(skill) {
       const id = skill?.profile?.id || "default";
       const urls = skillAssetUrls(id, "logo");
-      const deviceMemory = Number(navigator.deviceMemory);
-      const prefersCompactAsset = window.innerWidth <= 820 || (Number.isFinite(deviceMemory) && deviceMemory <= 4);
-      const mobileUrls = prefersCompactAsset ? skillAssetUrls(id, "mobileLogo") : [];
-      const candidates = [...new Set([...mobileUrls, ...urls])];
+      // The 1600x900 WebP artwork is presentation quality and avoids decoding
+      // several 3344px PNG layers when skills are activated back-to-back.
+      const compactUrls = skillAssetUrls(id, "mobileLogo");
+      const candidates = [...new Set([...compactUrls, ...urls])];
       if (candidates.length) return candidates;
       return [SKILL_LOGO_IMAGES.default];
     }
@@ -12707,6 +12700,8 @@
     }
 
     function showSkillActivation(team, skill) {
+      releaseSkillPresentationMedia();
+      stopSkillKaraoke(false);
       els.skillOverlay.classList.remove("red", "blue");
       els.skillOverlay.classList.add(team);
       els.skillOverlay.dataset.skillId = skill?.profile?.id || "default";
@@ -12729,6 +12724,13 @@
       spawnArenaStripes(team, 12);
       screenShake();
       return showTimedOverlay(els.skillOverlay, 3900);
+    }
+
+    function releaseSkillPresentationMedia() {
+      if (!els.skillTitleArt) return;
+      els.skillTitleArt.onerror = null;
+      els.skillTitleArt.removeAttribute("src");
+      els.skillTitleArt.removeAttribute("srcset");
     }
 
     function getSkillAsset(skill) {
@@ -14202,10 +14204,7 @@
       if (overlay === els.skillOverlay) {
         overlay.classList.remove("red", "blue");
         delete overlay.dataset.skillId;
-        if (els.skillTitleArt) {
-          els.skillTitleArt.onerror = null;
-          els.skillTitleArt.removeAttribute("src");
-        }
+        releaseSkillPresentationMedia();
       }
     }
 
@@ -14323,8 +14322,8 @@
       state.karaokeActive = false;
       state.karaokeIndex = -1;
       state.karaokeAudio = null;
+      if (els.commentary) els.commentary.classList.remove("karaoke", "talking");
       if (!restore || !els.commentary) return;
-      els.commentary.classList.remove("karaoke", "talking");
       if (els.commentaryLabel) els.commentaryLabel.textContent = "LIVE";
       updateCommentaryMascotFace();
       const tofuTeam = getActiveTofuCurseTeam();
