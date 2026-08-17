@@ -2790,12 +2790,41 @@
     }
 
     .cell.skill-targetable:not(.free) {
+      cursor: crosshair;
       box-shadow:
         3px 3px 0 rgba(0,0,0,.74),
         inset 0 0 0 2px rgba(255,255,255,.92),
         0 0 0 3px rgba(249,199,79,.74),
         0 0 20px rgba(249,199,79,.48);
     }
+
+    .skill-target-guide {
+      --guide-color: var(--gold);
+      position: fixed;
+      z-index: 132;
+      left: 50%;
+      top: clamp(66px, 9vh, 104px);
+      display: grid;
+      justify-items: center;
+      gap: 3px;
+      width: min(680px, calc(100vw - 32px));
+      padding: 12px 20px;
+      transform: translateX(-50%);
+      pointer-events: none;
+      border: 1px solid color-mix(in srgb, var(--guide-color) 72%, white);
+      border-left-width: 5px;
+      border-right-width: 5px;
+      background: rgba(4, 8, 14, .94);
+      box-shadow: 0 0 28px color-mix(in srgb, var(--guide-color) 48%, transparent);
+      color: #fff;
+      text-align: center;
+    }
+    .skill-target-guide[hidden] { display: none; }
+    .skill-target-guide.red { --guide-color: var(--red); }
+    .skill-target-guide.blue { --guide-color: var(--blue); }
+    .skill-target-guide strong { color: var(--guide-color); font-size: 10px; font-weight: 1000; }
+    .skill-target-guide b { font-size: clamp(16px, 2vw, 24px); letter-spacing: 0; }
+    .skill-target-guide span { color: #c8d0dc; font-size: 10px; font-weight: 850; }
 
     .cell.special-cell {
       isolation: isolate;
@@ -8140,6 +8169,11 @@
       <div class="skill-member" id="skillMemberLine"></div>
     </div>
   </section>
+  <aside class="skill-target-guide" id="skillTargetGuide" hidden aria-live="polite">
+    <strong id="skillTargetGuideMember">SKILL TARGET</strong>
+    <b>スキル発動のマスを選択してください</b>
+    <span id="skillTargetGuideHint">光っているマスの絵柄をクリック</span>
+  </aside>
 
   <section class="overlay" id="victoryOverlay" aria-hidden="true">
     <img class="overlay-fg" src="images/ui/fg-victory.png" alt="" aria-hidden="true" />
@@ -9221,7 +9255,7 @@
         "openRankingList", "voiceLogLaneLeft", "voiceLogLaneRight", "redMonsterPanel", "blueMonsterPanel",
         "startBlackoutOverlay", "finishFlashOverlay", "introOverlay", "versusRedName", "versusRedMembers", "versusRedStats", "versusBlueName",
         "versusBlueMembers", "versusBlueStats", "readyOverlay", "firstBingoOverlay", "reachOverlay", "reachText",
-        "skillOverlay", "skillTitleArt", "skillTeamLine", "skillMemberLine",
+        "skillOverlay", "skillTitleArt", "skillTeamLine", "skillMemberLine", "skillTargetGuide", "skillTargetGuideMember", "skillTargetGuideHint",
         "victoryOverlay", "victoryTeam", "victoryPraise", "victorySpecialBadge", "mvpImage", "mvpName", "mvpTitle", "winnerTitles", "victoryResultPanel",
         "closeVictoryButton", "victoryEquipmentRewardModal", "victoryEquipmentRewardTitle", "victoryEquipmentRewardSummary", "victoryEquipmentRewardList", "victoryEquipmentRewardClose",
         "statsModal", "statsSummary", "statsPlayerList", "statsHighlightList", "statsRivalryList", "statsMatchList", "statsCloseButton",
@@ -9598,9 +9632,6 @@
           applySkillBehavior(team, skill);
           renderAll();
           scheduleOnlineStateSync("skill-effect", 40);
-          return;
-          showCommentary("SPECIAL CELL READY", `${skill.member}の運命のマスを選べ。`, 8000);
-          renderAll();
         }));
     }
 
@@ -9630,7 +9661,7 @@
         return;
       }
       state.pendingSkill = { team, skill };
-      showCommentary("SPECIAL CELL READY", `${skill.member}の運命のマスを選べ。`, 8000);
+      showCommentary("スキル発動のマスを選択してください", `${skill.member}の光っているマスをクリック。`, 10000);
     }
 
     function applyInstantSkillEffect(team, skill) {
@@ -10423,6 +10454,22 @@
       updateHypeUi();
       updateStatus();
       renderRankingTicker();
+      updateSkillTargetGuide();
+    }
+
+    function updateSkillTargetGuide() {
+      if (!els.skillTargetGuide) return;
+      const pending = state.pendingSkill;
+      els.skillTargetGuide.hidden = !pending;
+      els.skillTargetGuide.classList.toggle("red", pending?.team === "red");
+      els.skillTargetGuide.classList.toggle("blue", pending?.team === "blue");
+      if (!pending) return;
+      if (els.skillTargetGuideMember) els.skillTargetGuideMember.textContent = `${pending.skill?.member || "SKILL"} / TARGET SELECT`;
+      if (els.skillTargetGuideHint) {
+        els.skillTargetGuideHint.textContent = pending.skill?.profile?.id === "eda"
+          ? "自分のカードにある 84・85・86 の絵柄をクリック"
+          : "光っているマスの絵柄をクリック";
+      }
     }
 
     function spriteSheetSizeWithBleedGuard(size) {
@@ -11508,7 +11555,7 @@
       const styleParts = [`--deal-delay:${index * 18}ms`];
       if (pairEntries[0]) styleParts.push(`--pair-color-1:${pairEntries[0].color}`);
       if (pairEntries[1]) styleParts.push(`--pair-color-2:${pairEntries[1].color}`);
-      const playerChoices = cell.free || state.compactMode ? "" : renderCellPlayerChoices(team, index, openedByKeys);
+      const playerChoices = cell.free || shouldSelectPlayerAfterCellClick() ? "" : renderCellPlayerChoices(team, index, openedByKeys);
       return `
         <div class="${classes.join(" ")}" data-testid="bingo-cell-${team}-${index}" data-team="${team}" data-index="${index}" data-disabled="${disabled ? "1" : "0"}" style="${styleParts.join(";")}">
           ${content}
@@ -11545,6 +11592,10 @@
       `;
     }
 
+    function shouldSelectPlayerAfterCellClick() {
+      return state.compactMode || state.gridSize === 7 || state.red.members.length >= 3 || state.blue.members.length >= 3;
+    }
+
     function updateStatus() {
       ["red", "blue"].forEach((team) => {
         const side = state[team];
@@ -11566,7 +11617,6 @@
         toggleCellPlayer(cellElement.dataset.team, Number(cellElement.dataset.index), Number(playerChoice.dataset.cellPlayerIndex), cellElement);
         return;
       }
-      if (!state.compactMode) return;
       const cellElement = event.target.closest(".cell[data-team][data-index]");
       if (!cellElement || cellElement.dataset.disabled === "1") return;
       const team = cellElement.dataset.team;
@@ -11578,6 +11628,7 @@
         applyPendingSkillToCell(team, index, cellElement);
         return;
       }
+      if (!shouldSelectPlayerAfterCellClick()) return;
       showOpenedByPopover(team, index, cellElement.getBoundingClientRect(), { pendingOpen: !side.marked[index] });
     }
 

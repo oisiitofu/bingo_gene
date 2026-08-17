@@ -19,7 +19,7 @@ test("online lobby boot bypasses stale browser modules and retries once", () => 
 
   assert.match(html, /online-room\.js\?v=20260817-tournament-test-120/);
   assert.match(html, /retry=\$\{Date\.now\(\)\}/);
-  assert.match(serviceWorker, /20260817-tournament-test-120/);
+  assert.match(serviceWorker, /20260817-odd-skill-picker-121/);
 });
 
 test("one-bingo audio, Likecy skill timing, and reach badge rules stay aligned", () => {
@@ -130,6 +130,17 @@ test("Lite Mode keeps two operable boards visible and opens cells after choosing
   assert.match(html, /showOpenedByPopover\(team, index, cellElement\.getBoundingClientRect\(\), \{ pendingOpen: !side\.marked\[index\] \}\)/);
   assert.match(html, /compactMode: state\.compactMode/);
   assert.match(html, /state\.compactMode = snapshot\.compactMode === true/);
+});
+
+test("7x7 and three-player teams select the opener after the cell while JAN and EDA accept image targets", () => {
+  const html = readFileSync(new URL("../index.html", import.meta.url), "utf8");
+
+  assert.match(html, /function shouldSelectPlayerAfterCellClick\(\)[\s\S]*?state\.gridSize === 7[\s\S]*?state\.red\.members\.length >= 3[\s\S]*?state\.blue\.members\.length >= 3/);
+  assert.match(html, /const playerChoices = cell\.free \|\| shouldSelectPlayerAfterCellClick\(\) \? "" : renderCellPlayerChoices/);
+  assert.match(html, /function onGridClick\(event\)[\s\S]*?state\.pendingSkill && !side\.marked\[index\][\s\S]*?applyPendingSkillToCell\(team, index, cellElement\)[\s\S]*?if \(!shouldSelectPlayerAfterCellClick\(\)\) return;[\s\S]*?showOpenedByPopover/);
+  assert.match(html, /id="skillTargetGuide"/);
+  assert.match(html, /スキル発動のマスを選択してください/);
+  assert.match(html, /function updateSkillTargetGuide\(\)/);
 });
 
 test("world tournament all stats exposes every player's numbered opened cells", () => {
@@ -293,6 +304,10 @@ test("世界大会は独立部屋、全組み合わせ、通常戦績加算へ�
   assert.match(tournament, /function canShuffleRoom\(/);
   assert.match(tournament, /function aggregateAllTimeStats\(/);
   assert.match(tournament, /data-world-create-player/);
+  assert.match(tournament, /data-world-create-member/);
+  assert.match(tournament, /data-world-create-add/);
+  assert.match(tournament, /奇数参加OK/);
+  assert.match(tournament, /!\/\^player\\s\*\\d\+\$\/i\.test\(player\.name\)/);
   assert.match(tournament, /data-world-match-settings/);
   assert.match(tournament, /data-world-result=/);
   assert.match(tournament, /data-world-result-dialog/);

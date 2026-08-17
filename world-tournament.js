@@ -111,12 +111,12 @@
 
   function generateMatchups(playerValues) {
     const players = normalizePlayers(playerValues);
-    if (players.length < 2 || players.length % 2 !== 0) return [];
-    const half = players.length / 2;
-    const anchor = players[0];
-    const remainder = players.slice(1);
-    return combinations(remainder, half - 1).map((selected, index) => {
-      const red = [anchor, ...selected];
+    if (players.length < 2) return [];
+    const smallerTeamSize = Math.floor(players.length / 2);
+    const redGroups = players.length % 2 === 0
+      ? combinations(players.slice(1), smallerTeamSize - 1).map((selected) => [players[0], ...selected])
+      : combinations(players, smallerTeamSize);
+    return redGroups.map((red, index) => {
       const redKeys = new Set(red.map((player) => player.key));
       const blue = players.filter((player) => !redKeys.has(player.key));
       return {
@@ -183,8 +183,8 @@
 
   function createRoom(name, playerValues, now = new Date(), options = {}) {
     const players = normalizePlayers(playerValues);
-    if (players.length < 2 || players.length % 2 !== 0) {
-      throw new Error("参加人数は2人以上の偶数にしてください。");
+    if (players.length < 2) {
+      throw new Error("参加人数は2人以上にしてください。");
     }
     const createdAt = now.toISOString();
     return {
@@ -506,11 +506,14 @@
               <span><b>TEST MODE</b><small>盤面結果だけ保存し、STATS・装備・モンスター記録には加算しない</small></span>
             </label>
             <section class="world-create-player-section">
-              <div><span>PLAYERS</span><small>2人以上の偶数で登録</small></div>
-              <div class="world-create-player-grid" data-world-create-players>
-                ${Array.from({ length: 8 }, (_, index) => `<input type="text" maxlength="24" placeholder="PLAYER ${index + 1}" data-world-create-player="${index}" />`).join("")}
+              <div><span>PLAYERS</span><small>2人以上 / 奇数参加OK</small></div>
+              <div class="world-create-member-row">
+                <div class="world-create-member-bank" data-world-create-members></div>
+                <button type="button" class="world-simple-button world-create-add-player" data-world-create-add aria-expanded="false">追加...</button>
               </div>
-              <div class="world-create-member-bank" data-world-create-members></div>
+              <div class="world-create-player-grid" data-world-create-players hidden>
+                ${Array.from({ length: 8 }, (_, index) => `<input type="text" maxlength="24" placeholder="追加 PLAYER ${index + 1}" data-world-create-player="${index}" />`).join("")}
+              </div>
             </section>
             <p data-world-create-error></p>
           </div>
@@ -724,16 +727,30 @@
     dialog.dataset.gridSize = "5";
     dialog.querySelector("[data-world-create-test-mode]").checked = false;
     dialog.querySelectorAll("[data-world-create-size]").forEach((button) => button.classList.toggle("active", button.dataset.worldCreateSize === "5"));
-    dialog.querySelectorAll("[data-world-create-player]").forEach((input, index) => { input.value = players[index]?.name || ""; });
     const fixedPlayers = normalizePlayers(host.getFixedPlayers?.() || players);
+    const fixedKeys = new Set(fixedPlayers.map((player) => player.key));
+    const configuredFixedKeys = new Set(players.filter((player) => fixedKeys.has(player.key)).map((player) => player.key));
+    const selectedFixedKeys = configuredFixedKeys.size ? configuredFixedKeys : fixedKeys;
     dialog.querySelector("[data-world-create-members]").innerHTML = fixedPlayers.map((player) => (
-      `<button type="button" data-world-create-member="${escapeHtml(player.name)}">${escapeHtml(player.name)}</button>`
+      `<button type="button" class="${selectedFixedKeys.has(player.key) ? "active" : ""}" data-world-create-member="${escapeHtml(player.name)}" aria-pressed="${selectedFixedKeys.has(player.key)}">${escapeHtml(player.name)}</button>`
     )).join("");
+    const customPlayers = players.filter((player) => (
+      !fixedKeys.has(player.key) && !/^player\s*\d+$/i.test(player.name)
+    ));
+    dialog.querySelectorAll("[data-world-create-player]").forEach((input, index) => { input.value = customPlayers[index]?.name || ""; });
+    const customGrid = dialog.querySelector("[data-world-create-players]");
+    const addButton = dialog.querySelector("[data-world-create-add]");
+    const expanded = customPlayers.length > 0;
+    customGrid.hidden = !expanded;
+    addButton.setAttribute("aria-expanded", String(expanded));
+    addButton.textContent = expanded ? "閉じる" : "追加...";
     updateCreateSummary();
   }
 
   function createPlayerValues() {
-    return Array.from(root.querySelectorAll("[data-world-create-player]")).map((input) => input.value);
+    const fixed = Array.from(root.querySelectorAll("[data-world-create-member].active")).map((button) => button.dataset.worldCreateMember);
+    const custom = Array.from(root.querySelectorAll("[data-world-create-player]")).map((input) => input.value);
+    return [...fixed, ...custom];
   }
 
   function updateCreateSummary() {
@@ -741,9 +758,9 @@
     const dialog = root.querySelector("[data-world-create]");
     if (!dialog || dialog.hidden) return;
     const players = normalizePlayers(createPlayerValues());
-    dialog.querySelector("[data-world-create-error]").textContent = players.length >= 2 && players.length % 2 === 0
+    dialog.querySelector("[data-world-create-error]").textContent = players.length >= 2
       ? `${players.length}人 / ${generateMatchups(players).length}試合 / ${dialog.dataset.gridSize || 5}x${dialog.dataset.gridSize || 5}${dialog.querySelector("[data-world-create-test-mode]")?.checked ? " / TEST MODE" : ""}`
-      : "プレイヤー入力を2人以上の偶数にしてください。";
+      : "プレイヤーを2人以上選択してください。";
   }
 
   function hideCreate() {
@@ -895,12 +912,20 @@
     }
     const createMember = event.target.closest("[data-world-create-member]");
     if (createMember) {
-      const name = createMember.dataset.worldCreateMember;
-      const inputs = Array.from(root.querySelectorAll("[data-world-create-player]"));
-      const same = inputs.find((input) => playerKey(input.value) === playerKey(name));
-      if (same) same.value = "";
-      else (inputs.find((input) => !input.value.trim()) || inputs.at(-1)).value = name;
+      const active = !createMember.classList.contains("active");
+      createMember.classList.toggle("active", active);
+      createMember.setAttribute("aria-pressed", String(active));
       updateCreateSummary();
+      return;
+    }
+    const addPlayer = event.target.closest("[data-world-create-add]");
+    if (addPlayer) {
+      const customGrid = root.querySelector("[data-world-create-players]");
+      const expanded = addPlayer.getAttribute("aria-expanded") !== "true";
+      addPlayer.setAttribute("aria-expanded", String(expanded));
+      addPlayer.textContent = expanded ? "閉じる" : "追加...";
+      customGrid.hidden = !expanded;
+      if (expanded) Array.from(customGrid.querySelectorAll("input")).find((input) => !input.value.trim())?.focus();
       return;
     }
     if (event.target.closest("[data-world-settings-cancel]")) {

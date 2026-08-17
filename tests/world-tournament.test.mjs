@@ -27,6 +27,19 @@ test("six players create ten unique three-versus-three matchups", () => {
   assert.equal(partitions.size, 10);
 });
 
+test("odd player counts create every balanced partition with a one-player team difference", () => {
+  const { api } = createApi();
+  const matchups = api.generateMatchups(["A", "B", "C", "D", "E"]);
+  assert.equal(matchups.length, 10);
+  assert.ok(matchups.every((match) => [match.redKeys.length, match.blueKeys.length].sort().join(":") === "2:3"));
+  const smallerTeams = new Set(matchups.map((match) => {
+    const team = match.redKeys.length < match.blueKeys.length ? match.redKeys : match.blueKeys;
+    return team.slice().sort().join("|");
+  }));
+  assert.equal(smallerTeams.size, 10);
+  assert.doesNotThrow(() => api.createRoom("ODD CUP", ["A", "B", "C", "D", "E"]));
+});
+
 test("tournament shuffle randomizes match order, sides, and player display order without losing combinations", () => {
   const { api } = createApi();
   const original = api.generateMatchups(["A", "B", "C", "D", "E", "F"]);

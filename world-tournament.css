@@ -631,16 +631,20 @@ body.world-tournament-open {
   display: grid;
   grid-template-columns: repeat(4, minmax(0, 1fr));
   gap: 8px;
+  margin-top: 10px;
 }
+.world-create-player-grid[hidden] { display: none; }
 
 .world-create-player-grid input { min-width: 0; }
 
 .world-create-member-bank {
   display: flex;
-  flex-wrap: wrap;
+  flex-wrap: nowrap;
+  min-width: max-content;
   gap: 6px;
-  margin-top: 10px;
 }
+.world-create-member-row { display: flex; align-items: stretch; gap: 6px; overflow-x: auto; padding: 2px; }
+.world-create-add-player { flex: 0 0 auto; min-width: 72px; }
 
 .world-create-member-bank button,
 .world-settings-grid button {
@@ -655,6 +659,7 @@ body.world-tournament-open {
 }
 
 .world-settings-grid button.active,
+.world-create-member-bank button.active,
 .world-create-size .world-simple-button.active {
   border-color: #e5c15c;
   color: #fff4b8;
