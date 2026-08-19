@@ -17,9 +17,9 @@ test("online lobby boot bypasses stale browser modules and retries once", () => 
   const html = readFileSync(new URL("../index.html", import.meta.url), "utf8");
   const serviceWorker = readFileSync(new URL("../sw.js", import.meta.url), "utf8");
 
-  assert.match(html, /online-room\.js\?v=20260819-lite-performance-128/);
+  assert.match(html, /online-room\.js\?v=20260819-lite-skill-buttons-129/);
   assert.match(html, /retry=\$\{Date\.now\(\)\}/);
-  assert.match(serviceWorker, /20260819-lite-performance-128/);
+  assert.match(serviceWorker, /20260819-lite-skill-buttons-129/);
 });
 
 test("one-bingo audio, Likecy skill timing, and reach badge rules stay aligned", () => {
@@ -130,6 +130,8 @@ test("Lite Mode keeps two operable boards visible and opens cells after choosing
   assert.match(html, /body\.compact-ipad-mode \.board-actions \{[\s\S]*?position: absolute[\s\S]*?top: calc\(100% \+ 8px\)/);
   assert.match(html, /body\.compact-ipad-mode \.board-tools \{ display: none; \}/);
   assert.match(html, /body\.compact-ipad-mode \.team-skill \{[\s\S]*?min-width: 158px;[\s\S]*?min-height: 52px;[\s\S]*?background: var\(--skill-button-image\)/);
+  assert.match(html, /body\.compact-ipad-mode \.board-card \{[\s\S]*?contain: layout style;/);
+  assert.doesNotMatch(html, /body\.compact-ipad-mode \.board-card \{[\s\S]{0,180}?contain: layout paint style;/);
   assert.match(html, /body\.compact-ipad-mode \.cell,[\s\S]*?animation: none !important/);
   assert.match(html, /body\.compact-ipad-mode \.skill-title-art,[\s\S]*?width: min\(96vw, 920px\)[\s\S]*?animation: overlayAssetIn \.32s ease-out both !important/);
   assert.match(html, /function spawnOpenBurst\([\s\S]*?if \(state\.compactMode\) return/);
