@@ -17,9 +17,9 @@ test("online lobby boot bypasses stale browser modules and retries once", () => 
   const html = readFileSync(new URL("../index.html", import.meta.url), "utf8");
   const serviceWorker = readFileSync(new URL("../sw.js", import.meta.url), "utf8");
 
-  assert.match(html, /online-room\.js\?v=20260819-lite-skill-buttons-129/);
+  assert.match(html, /online-room\.js\?v=20260819-lite-skill-targets-130/);
   assert.match(html, /retry=\$\{Date\.now\(\)\}/);
-  assert.match(serviceWorker, /20260819-lite-skill-buttons-129/);
+  assert.match(serviceWorker, /20260819-lite-skill-targets-130/);
 });
 
 test("one-bingo audio, Likecy skill timing, and reach badge rules stay aligned", () => {
@@ -133,7 +133,9 @@ test("Lite Mode keeps two operable boards visible and opens cells after choosing
   assert.match(html, /body\.compact-ipad-mode \.board-card \{[\s\S]*?contain: layout style;/);
   assert.doesNotMatch(html, /body\.compact-ipad-mode \.board-card \{[\s\S]{0,180}?contain: layout paint style;/);
   assert.match(html, /body\.compact-ipad-mode \.cell,[\s\S]*?animation: none !important/);
-  assert.match(html, /body\.compact-ipad-mode \.skill-title-art,[\s\S]*?width: min\(96vw, 920px\)[\s\S]*?animation: overlayAssetIn \.32s ease-out both !important/);
+  assert.match(html, /body\.compact-ipad-mode \.skill-title-art,[\s\S]*?width: min\(122vw, 1260px\)[\s\S]*?animation: overlayAssetIn \.32s ease-out both !important/);
+  assert.match(html, /body\.compact-ipad-mode \.fever-banner,[\s\S]*?animation: liteCenteredBannerIn 2\.8s ease-out both/);
+  assert.match(html, /@keyframes liteCenteredBannerIn \{[\s\S]*?translate\(-50%, -50%\)/);
   assert.match(html, /function spawnOpenBurst\([\s\S]*?if \(state\.compactMode\) return/);
   assert.match(html, /function screenShake\(\) \{\s*if \(state\.compactMode\) return/);
   assert.doesNotMatch(html, /body\.compact-ipad-mode #fxLayer,\s*body\.compact-ipad-mode \.copyright/);
@@ -161,6 +163,8 @@ test("7x7 and three-player teams select the opener after the cell while JAN and 
 
   assert.match(html, /function shouldSelectPlayerAfterCellClick\(\)[\s\S]*?state\.gridSize === 7[\s\S]*?state\.red\.members\.length >= 3[\s\S]*?state\.blue\.members\.length >= 3/);
   assert.match(html, /const playerChoices = cell\.free \|\| shouldSelectPlayerAfterCellClick\(\) \? "" : renderCellPlayerChoices/);
+  assert.match(html, /if \(\(skillId === "jan" \|\| skillId === "eda"\) && team !== pending\.team\) return false/);
+  assert.match(html, /const disabled = state\.inputLocked \|\| cell\.free \|\| Boolean\(state\.pendingSkill && !canApplySkillToCell/);
   assert.match(html, /function onGridClick\(event\)[\s\S]*?state\.pendingSkill && !side\.marked\[index\][\s\S]*?applyPendingSkillToCell\(team, index, cellElement\)[\s\S]*?if \(!shouldSelectPlayerAfterCellClick\(\)\) return;[\s\S]*?showOpenedByPopover/);
   assert.match(html, /id="skillTargetGuide"/);
   assert.match(html, /スキル発動のマスを選択してください/);

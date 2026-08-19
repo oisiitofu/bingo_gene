@@ -2798,6 +2798,11 @@
         0 0 20px rgba(249,199,79,.48);
     }
 
+    .cell.skill-untargetable:not(.free) {
+      cursor: not-allowed;
+      opacity: .44;
+    }
+
     .skill-target-guide {
       --guide-color: var(--gold);
       position: fixed;
@@ -7900,8 +7905,8 @@
 
     body.compact-ipad-mode .skill-title-art,
     body.compact-ipad-mode #skillOverlay[data-skill-id="rima"] .skill-title-art {
-      width: min(96vw, 920px);
-      max-height: 88dvh;
+      width: min(122vw, 1260px);
+      max-height: 96dvh;
       translate: 0 0;
       filter: drop-shadow(0 7px 0 rgba(0,0,0,.48));
       animation: overlayAssetIn .32s ease-out both !important;
@@ -7909,7 +7914,14 @@
 
     body.compact-ipad-mode .fever-banner,
     body.compact-ipad-mode .counter-banner {
-      animation: overlayAssetIn .32s ease-out both;
+      animation: liteCenteredBannerIn 2.8s ease-out both;
+    }
+
+    @keyframes liteCenteredBannerIn {
+      0% { opacity: 0; transform: translate(-50%, -50%) scale(.82); }
+      14% { opacity: 1; transform: translate(-50%, -50%) scale(1.03); }
+      82% { opacity: 1; transform: translate(-50%, -50%) scale(1); }
+      100% { opacity: 0; transform: translate(-50%, -50%) scale(1.02); }
     }
 
     /* Keep the full interface on iPad while avoiding oversized Safari layers. */
@@ -11610,12 +11622,14 @@
 
     function canApplySkillToCell(pending, team, index) {
       if (!pending) return false;
+      const skillId = pending.skill?.profile?.id || "";
+      if ((skillId === "jan" || skillId === "eda") && team !== pending.team) return false;
       const side = state[team];
       const cell = side?.card?.[index];
       if (!cell || cell.free) return false;
       if (side.marked?.[index]) return false;
-      if (pending.skill?.profile?.id === "eda") {
-        return team === pending.team && EDA_SKILL_TARGET_IDS.has(Number(cell.id));
+      if (skillId === "eda") {
+        return EDA_SKILL_TARGET_IDS.has(Number(cell.id));
       }
       return true;
     }
@@ -11714,9 +11728,10 @@
       if (isVictoryReach) classes.push("victory-reach-cell");
       if (specialSkill) classes.push("special-cell", `special-${specialSkill}`);
       if (canApplySkillToCell(state.pendingSkill, team, index)) classes.push("skill-targetable");
+      else if (state.pendingSkill) classes.push("skill-untargetable");
       if (pairEntries.length > 1) classes.push("pair-multi");
       if (side.winningCells.has(index)) classes.push("winning");
-      const disabled = state.inputLocked || cell.free;
+      const disabled = state.inputLocked || cell.free || Boolean(state.pendingSkill && !canApplySkillToCell(state.pendingSkill, team, index));
       const defaultCellImage = cell.free ? "" : imagePath(cell.id);
       const tofuSourceImage = useTofuCellSkin ? tofuCellSkinPath(cell.id) : "";
       const tofuThumbnailImage = useTofuCellSkin ? tofuCellThumbnailPath(cell.id) : "";
@@ -17767,7 +17782,7 @@
       if ("serviceWorker" in navigator && /^https?:$/.test(location.protocol)) {
         navigator.serviceWorker.register("./sw.js").then((registration) => registration.update()).catch((error) => console.warn("Service worker registration failed", error));
       }
-      const onlineRoomModuleUrl = "./online/online-room.js?v=20260819-lite-skill-buttons-129";
+      const onlineRoomModuleUrl = "./online/online-room.js?v=20260819-lite-skill-targets-130";
       import(onlineRoomModuleUrl)
         .catch((firstError) => import(`${onlineRoomModuleUrl}&retry=${Date.now()}`)
           .catch((retryError) => {
