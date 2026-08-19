@@ -7552,7 +7552,6 @@
     body.compact-ipad-mode .monster-panel,
     body.compact-ipad-mode .voice-lane,
     body.compact-ipad-mode .fever-aura,
-    body.compact-ipad-mode #fxLayer,
     body.compact-ipad-mode .copyright,
     body.compact-ipad-mode .online-session-bar,
     body.compact-ipad-mode .online-reaction-dock {
@@ -7814,6 +7813,104 @@
     body.compact-ipad-mode .opened-by-choice { flex: 1 1 120px; min-height: 48px; font-size: 15px; }
     body.compact-ipad-mode .opened-by-done,
     body.compact-ipad-mode .opened-by-close { min-height: 44px; font-size: 13px; }
+
+    /* Lite Mode keeps the main cue art, but avoids full-screen compositing work. */
+    body.compact-ipad-mode::after {
+      animation: none;
+      mix-blend-mode: normal;
+      transform: none;
+      opacity: .14;
+    }
+
+    body.compact-ipad-mode #fxLayer {
+      display: block;
+      contain: strict;
+      pointer-events: none;
+    }
+
+    body.compact-ipad-mode .board-card {
+      contain: layout paint style;
+      box-shadow: 0 5px 0 rgba(0,0,0,.62), 0 0 10px color-mix(in srgb, var(--team-accent) 22%, transparent);
+    }
+
+    body.compact-ipad-mode .board-card::before,
+    body.compact-ipad-mode .board-card::after {
+      filter: none;
+    }
+
+    body.compact-ipad-mode .cell {
+      contain: layout paint style;
+      transition: none;
+    }
+
+    body.compact-ipad-mode .cell > img {
+      filter: none;
+    }
+
+    body.compact-ipad-mode .cell,
+    body.compact-ipad-mode .cell::before,
+    body.compact-ipad-mode .cell::after,
+    body.compact-ipad-mode .pair-chip,
+    body.compact-ipad-mode .reach-label,
+    body.compact-ipad-mode .victory-cell-art,
+    body.compact-ipad-mode .special-cell-art,
+    body.compact-ipad-mode .lickey-castle-art,
+    body.compact-ipad-mode .lickey-rubble-art,
+    body.compact-ipad-mode .board-card.kento-ally .board-body::after,
+    body.compact-ipad-mode .board-card.kento-ally .cell::after {
+      animation: none !important;
+    }
+
+    body.compact-ipad-mode .overlay-fg {
+      inset: 0;
+      width: 100vw;
+      height: 100dvh;
+      transform: none;
+      filter: none;
+    }
+
+    body.compact-ipad-mode .overlay.show .overlay-fg,
+    body.compact-ipad-mode #reachOverlay.show,
+    body.compact-ipad-mode .overlay.show .overlay-panel,
+    body.compact-ipad-mode .overlay.show .ready-card,
+    body.compact-ipad-mode .overlay.show .first-bingo-card,
+    body.compact-ipad-mode .overlay.show .reach-card,
+    body.compact-ipad-mode .overlay.show .victory-card {
+      animation: overlayAssetIn .3s ease-out both !important;
+    }
+
+    body.compact-ipad-mode .overlay-panel {
+      backdrop-filter: none;
+    }
+
+    body.compact-ipad-mode .overlay-title-art,
+    body.compact-ipad-mode #firstBingoOverlay .overlay-title-art,
+    body.compact-ipad-mode .fever-banner .flow-title-art,
+    body.compact-ipad-mode .counter-banner .flow-title-art,
+    body.compact-ipad-mode .counter-title-art {
+      width: min(88vw, 820px);
+      max-height: 72dvh;
+      filter: drop-shadow(0 6px 0 rgba(0,0,0,.46));
+    }
+
+    body.compact-ipad-mode .skill-card {
+      width: 100vw;
+      min-height: 100dvh;
+    }
+
+    body.compact-ipad-mode .skill-title-art,
+    body.compact-ipad-mode #skillOverlay[data-skill-id="rima"] .skill-title-art {
+      width: min(96vw, 920px);
+      max-height: 88dvh;
+      translate: 0 0;
+      filter: drop-shadow(0 7px 0 rgba(0,0,0,.48));
+      animation: overlayAssetIn .32s ease-out both !important;
+    }
+
+    body.compact-ipad-mode .fever-banner,
+    body.compact-ipad-mode .counter-banner {
+      animation: overlayAssetIn .32s ease-out both;
+    }
 
     /* Keep the full interface on iPad while avoiding oversized Safari layers. */
     body.ipad-performance-mode:not(.compact-ipad-mode) {
@@ -9802,15 +9899,28 @@
       state.skillEffects.poopCenter[opponent] = true;
       state.skillEffects.poopCenterRemaining[opponent] = 4;
       state.skillEffects.tofuCellSkinTeam = opponent;
+      syncLickeyTofuCastleState();
       addMatchHighlight("skill", `${skill.member} POOP CURSE`, `${getTeamLabel(opponent)} CENTER CHANGED`, team);
       showCommentary("おいしいとうふ包囲網！", `${getTeamLabel(opponent)}のコメントまで豆腐色に染まる。`, 8000);
       renderAll();
     }
 
+    function getLickeyTofuCastleTeam(effects) {
+      const castleTeam = effects?.lickeyCastleTeam || "";
+      return castleTeam && effects?.poopCenter?.[castleTeam] ? castleTeam : "";
+    }
+
+    function syncLickeyTofuCastleState() {
+      if (!state.skillEffects) return "";
+      const team = getLickeyTofuCastleTeam(state.skillEffects);
+      state.skillEffects.lickeyTofuCastleTeam = team;
+      return team;
+    }
+
     function applyLickeyHypeSkill(team, skill) {
       state.skillEffects.lickeyHypeTeam = team;
       state.skillEffects.lickeyCastleTeam = team;
-      state.skillEffects.lickeyTofuCastleTeam = Object.values(state.skillEffects.poopCenter || {}).some(Boolean) ? team : "";
+      syncLickeyTofuCastleState();
       state.skillEffects.lickeyRubbleTeam = "";
       state[team].hype = HYPE_RULES.feverMax;
       addMatchHighlight("skill", `${skill.member} HYPE MAX`, `${getTeamLabel(team)} HYPE MAX`, team);
@@ -12159,6 +12269,7 @@
         if (effects.poopCenterRemaining[openingTeam] <= 0) {
           effects.poopCenter[openingTeam] = false;
           if (effects.tofuCellSkinTeam === openingTeam) effects.tofuCellSkinTeam = "";
+          syncLickeyTofuCastleState();
         }
       }
       const kentoAura = effects.kentoAura;
@@ -12898,6 +13009,7 @@
     }
 
     function spawnReachStrobe(team, duration = 2200) {
+      if (state.compactMode) return;
       const layer = document.createElement("div");
       layer.className = `reach-strobe-layer ${team}`;
       layer.style.setProperty("--team-color", getTeamColor(team));
@@ -14586,6 +14698,7 @@
     }
 
     function spawnOpenBurst(element, team, options = {}) {
+      if (state.compactMode) return;
       if (!element || !els.fxLayer) return;
       const rect = element.getBoundingClientRect();
       const x = rect.left + rect.width / 2;
@@ -14639,6 +14752,7 @@
     }
 
     function spawnRimaAimShot(element, team) {
+      if (state.compactMode) return;
       if (!element || !els.fxLayer) return;
       playAudio("rimaGunshot");
       const rect = element.getBoundingClientRect();
@@ -14862,6 +14976,7 @@
     }
 
     function ipadFxCount(count, minimum = 1) {
+      if (state.compactMode) return Math.max(1, Math.ceil(Number(count || 0) * .12));
       if (!IS_IPAD_DEVICE) return count;
       return Math.max(minimum, Math.ceil(Number(count || 0) * .46));
     }
@@ -14885,6 +15000,7 @@
     }
 
     function screenShake() {
+      if (state.compactMode) return;
       if (document.querySelector(".modal.show") || !els.monsterBattleCloseButton?.hidden) return;
       document.body.classList.remove("screen-shake");
       void document.body.offsetWidth;
@@ -17651,7 +17767,7 @@
       if ("serviceWorker" in navigator && /^https?:$/.test(location.protocol)) {
         navigator.serviceWorker.register("./sw.js").then((registration) => registration.update()).catch((error) => console.warn("Service worker registration failed", error));
       }
-      const onlineRoomModuleUrl = "./online/online-room.js?v=20260818-fixed-ranking-127";
+      const onlineRoomModuleUrl = "./online/online-room.js?v=20260819-lite-performance-128";
       import(onlineRoomModuleUrl)
         .catch((firstError) => import(`${onlineRoomModuleUrl}&retry=${Date.now()}`)
           .catch((retryError) => {
@@ -18004,6 +18120,7 @@
       state.skillEffects = hasActiveMatch
         ? cloneOnlineValue(snapshot.skillEffects || createSkillEffects())
         : createSkillEffects();
+      syncLickeyTofuCastleState();
       state.feverTeam = snapshot.feverTeam || null;
       state.usedSkillIds = new Set(hasActiveMatch ? (snapshot.usedSkillIds || []) : []);
       state.matchTracker = normalizeMatchTracker(snapshot.matchTracker);

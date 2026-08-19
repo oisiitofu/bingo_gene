@@ -17,9 +17,9 @@ test("online lobby boot bypasses stale browser modules and retries once", () => 
   const html = readFileSync(new URL("../index.html", import.meta.url), "utf8");
   const serviceWorker = readFileSync(new URL("../sw.js", import.meta.url), "utf8");
 
-  assert.match(html, /online-room\.js\?v=20260818-fixed-ranking-127/);
+  assert.match(html, /online-room\.js\?v=20260819-lite-performance-128/);
   assert.match(html, /retry=\$\{Date\.now\(\)\}/);
-  assert.match(serviceWorker, /20260818-fixed-ranking-127/);
+  assert.match(serviceWorker, /20260819-lite-performance-128/);
 });
 
 test("one-bingo audio, Likecy skill timing, and reach badge rules stay aligned", () => {
@@ -130,6 +130,11 @@ test("Lite Mode keeps two operable boards visible and opens cells after choosing
   assert.match(html, /body\.compact-ipad-mode \.board-actions \{[\s\S]*?position: absolute[\s\S]*?top: calc\(100% \+ 8px\)/);
   assert.match(html, /body\.compact-ipad-mode \.board-tools \{ display: none; \}/);
   assert.match(html, /body\.compact-ipad-mode \.team-skill \{[\s\S]*?min-width: 158px;[\s\S]*?min-height: 52px;[\s\S]*?background: var\(--skill-button-image\)/);
+  assert.match(html, /body\.compact-ipad-mode \.cell,[\s\S]*?animation: none !important/);
+  assert.match(html, /body\.compact-ipad-mode \.skill-title-art,[\s\S]*?width: min\(96vw, 920px\)[\s\S]*?animation: overlayAssetIn \.32s ease-out both !important/);
+  assert.match(html, /function spawnOpenBurst\([\s\S]*?if \(state\.compactMode\) return/);
+  assert.match(html, /function screenShake\(\) \{\s*if \(state\.compactMode\) return/);
+  assert.doesNotMatch(html, /body\.compact-ipad-mode #fxLayer,\s*body\.compact-ipad-mode \.copyright/);
   assert.match(html, /showOpenedByPopover\(team, index, cellElement\.getBoundingClientRect\(\), \{ pendingOpen: !side\.marked\[index\] \}\)/);
   assert.match(html, /compactMode: state\.compactMode/);
   assert.match(html, /state\.compactMode = snapshot\.compactMode === true/);
@@ -858,8 +863,16 @@ test("monster evolution has eight childhood entries, rank six fusions, passives,
   assert.match(html, /effects\.push\("intro", "monster-hatch", "ready"\)/, "Online hatch presentation must be part of the shared start sequence");
   assert.match(html, /function preloadMonsterNodes\(/, "Visible monster pose assets must be warmed before animation");
   assert.ok(existsSync(new URL("../skill-assets/Lickey/castle-tofu-curse.png", import.meta.url)), "Missing tofu-cursed Likecy castle artwork");
-  assert.match(html, /lickeyTofuCastleTeam = Object\.values\(state\.skillEffects\.poopCenter/, "The tofu and Likecy combo must follow skill activation order");
+  assert.match(html, /function getLickeyTofuCastleTeam\(effects\)[\s\S]*?effects\?\.poopCenter\?\.\[castleTeam\]/, "The tofu and Likecy combo must only follow the cursed castle team");
+  assert.match(html, /function applyTofuPoopSkill\([\s\S]*?syncLickeyTofuCastleState\(\)/, "Tofu activation must upgrade an existing Likecy castle");
+  assert.match(html, /function applyLickeyHypeSkill\([\s\S]*?syncLickeyTofuCastleState\(\)/, "Likecy activation must detect an existing tofu curse");
   assert.match(html, /isLickeyTofuCastleCell \? "tofuCastle" : "castle"/, "The tofu and Likecy skill combo must use its dedicated castle");
+  const helperSource = html.match(/function getLickeyTofuCastleTeam\(effects\) \{[\s\S]*?^    \}/m)?.[0];
+  assert.ok(helperSource, "Missing Likecy/tofu castle resolver");
+  const resolveCastleTeam = Function(`${helperSource}; return getLickeyTofuCastleTeam;`)();
+  assert.equal(resolveCastleTeam({ lickeyCastleTeam: "red", poopCenter: { red: true, blue: false } }), "red");
+  assert.equal(resolveCastleTeam({ lickeyCastleTeam: "red", poopCenter: { red: false, blue: true } }), "");
+  assert.equal(resolveCastleTeam({ lickeyCastleTeam: "blue", poopCenter: { red: false, blue: true } }), "blue");
   assert.match(html, /kind: "monster-speech"/);
   assert.ok(existsSync(new URL("../images/monster-battle/arena.png", import.meta.url)));
   assert.ok(existsSync(new URL("../monster-battle.css", import.meta.url)));
