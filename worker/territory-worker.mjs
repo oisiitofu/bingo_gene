@@ -1,9 +1,11 @@
 import "../monster-system.js";
 import "../territory-equipment.js";
 import "../territory-system.js";
+import "../city-system.js";
 
 const Territory = globalThis.TeamBingoTerritorySystem;
 const Equipment = globalThis.TeamBingoTerritoryEquipment;
+const City = globalThis.TeamBingoCitySystem;
 const TOKEN_URL = "https://oauth2.googleapis.com/token";
 const FIREBASE_SCOPES = [
   "https://www.googleapis.com/auth/firebase.database",
@@ -374,6 +376,49 @@ export async function advanceFrontier(env, now = Date.now()) {
   }
 }
 
+export async function advanceCitiesWithToken(env, token, now = Date.now()) {
+  const currentPath = rootPath(env, "cities/current");
+  for (let attempt = 0; attempt < 6; attempt += 1) {
+    const current = await readDatabase(env, currentPath, token, true);
+    const advanced = City.advanceState(current.value, now, { maxTicks: 144 });
+    const requiresWrite = !current.value || Number(current.value?.version) !== City.VERSION || advanced.processed > 0;
+    if (!requiresWrite) {
+      return {
+        ok: true,
+        changed: false,
+        processed: 0,
+        revision: advanced.state.revision,
+        nextTickAt: advanced.state.nextTickAt
+      };
+    }
+    const written = await writeDatabase(env, currentPath, advanced.state, token, current.etag);
+    if (written.committed) {
+      return {
+        ok: true,
+        changed: true,
+        processed: advanced.processed,
+        caughtUp: advanced.caughtUp,
+        revision: advanced.state.revision,
+        nextTickAt: advanced.state.nextTickAt
+      };
+    }
+  }
+  throw new Error("City state update conflicted repeatedly");
+}
+
+export async function advanceCities(env, now = Date.now()) {
+  if (env.FIREBASE_CLIENT_EMAIL && env.FIREBASE_PRIVATE_KEY) {
+    return advanceCitiesWithToken(env, await accessToken(env), now);
+  }
+  const account = await firebaseIdentity(env, "accounts:signUp", { returnSecureToken: true });
+  const anonymousEnv = { ...env, FIREBASE_USE_AUTH_QUERY: "true" };
+  try {
+    return await advanceCitiesWithToken(anonymousEnv, account.idToken, now);
+  } finally {
+    await firebaseIdentity(env, "accounts:delete", { idToken: account.idToken }).catch(() => {});
+  }
+}
+
 function json(value, status = 200) {
   return new Response(JSON.stringify(value), {
     status,
@@ -387,6 +432,7 @@ function json(value, status = 200) {
 export default {
   async scheduled(_controller, env, context) {
     context.waitUntil(advanceFrontier(env));
+    context.waitUntil(advanceCities(env));
     context.waitUntil(createDailyBackup(env));
   },
 
@@ -397,6 +443,8 @@ export default {
         ok: true,
         mode: "六王領土戦",
         tickMinutes: Territory.TICK_MINUTES,
+        cityMode: "六王都市開発",
+        cityTickMinutes: City.TICK_MINUTES,
         now: Date.now()
       });
     }
@@ -408,7 +456,8 @@ export default {
       const actual = request.headers.get("authorization")?.replace(/^Bearer\s+/i, "") || "";
       if (!expected || actual !== expected) return json({ ok: false, error: "unauthorized" }, 401);
       try {
-        return json(await advanceFrontier(env));
+        const [frontier, city] = await Promise.all([advanceFrontier(env), advanceCities(env)]);
+        return json({ ...frontier, city });
       } catch (error) {
         return json({ ok: false, error: String(error?.message || error) }, 500);
       }

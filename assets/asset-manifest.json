@@ -1,18 +1,18 @@
 {
   "version": 1,
-  "generatedAt": "2026-08-02T13:07:00.686Z",
+  "generatedAt": "2026-08-30T02:52:07.403Z",
   "totals": {
-    "all": 847,
-    "images": 684,
+    "all": 877,
+    "images": 714,
     "audio": 163,
-    "bytes": 622366363
+    "bytes": 663294447
   },
   "assets": [
     {
       "path": "audio/bingo-bgm.mp3",
       "type": "audio",
       "category": "audio",
-      "bytes": 5093586
+      "bytes": 4087057
     },
     {
       "path": "audio/bingo-se.mp3",
@@ -1507,6 +1507,42 @@
       "type": "image",
       "category": "images/characters",
       "bytes": 3417
+    },
+    {
+      "path": "images/city/textures/facade-civic.png",
+      "type": "image",
+      "category": "images/city/textures",
+      "bytes": 2422581
+    },
+    {
+      "path": "images/city/textures/facade-commercial.png",
+      "type": "image",
+      "category": "images/city/textures",
+      "bytes": 2013501
+    },
+    {
+      "path": "images/city/textures/facade-industrial.png",
+      "type": "image",
+      "category": "images/city/textures",
+      "bytes": 2201660
+    },
+    {
+      "path": "images/city/textures/facade-residential.png",
+      "type": "image",
+      "category": "images/city/textures",
+      "bytes": 2151423
+    },
+    {
+      "path": "images/city/textures/ground-grass-soil.png",
+      "type": "image",
+      "category": "images/city/textures",
+      "bytes": 3737407
+    },
+    {
+      "path": "images/city/textures/road-asphalt.png",
+      "type": "image",
+      "category": "images/city/textures",
+      "bytes": 3735163
     },
     {
       "path": "images/monster-battle/arena.png",
@@ -3888,7 +3924,7 @@
       "path": "images/monsters/singles/amber-ptera-attack.png",
       "type": "image",
       "category": "images/monsters/singles",
-      "bytes": 845321
+      "bytes": 1185575
     },
     {
       "path": "images/monsters/singles/amber-ptera.png",
@@ -3921,6 +3957,150 @@
       "bytes": 846419
     },
     {
+      "path": "images/monsters/singles/audited-bloom-mature-attack.png",
+      "type": "image",
+      "category": "images/monsters/singles",
+      "bytes": 1006148
+    },
+    {
+      "path": "images/monsters/singles/audited-bloom-mature.png",
+      "type": "image",
+      "category": "images/monsters/singles",
+      "bytes": 261844
+    },
+    {
+      "path": "images/monsters/singles/audited-bloom-perfect-a-attack.png",
+      "type": "image",
+      "category": "images/monsters/singles",
+      "bytes": 1288531
+    },
+    {
+      "path": "images/monsters/singles/audited-bloom-perfect-a.png",
+      "type": "image",
+      "category": "images/monsters/singles",
+      "bytes": 395055
+    },
+    {
+      "path": "images/monsters/singles/audited-bloom-ultimate-2-attack.png",
+      "type": "image",
+      "category": "images/monsters/singles",
+      "bytes": 1799694
+    },
+    {
+      "path": "images/monsters/singles/audited-bloom-ultimate-2.png",
+      "type": "image",
+      "category": "images/monsters/singles",
+      "bytes": 1919237
+    },
+    {
+      "path": "images/monsters/singles/audited-cosmic-perfect-b-attack.png",
+      "type": "image",
+      "category": "images/monsters/singles",
+      "bytes": 796487
+    },
+    {
+      "path": "images/monsters/singles/audited-cosmic-perfect-b.png",
+      "type": "image",
+      "category": "images/monsters/singles",
+      "bytes": 151510
+    },
+    {
+      "path": "images/monsters/singles/audited-glacier-perfect-b-attack.png",
+      "type": "image",
+      "category": "images/monsters/singles",
+      "bytes": 341229
+    },
+    {
+      "path": "images/monsters/singles/audited-glacier-perfect-b.png",
+      "type": "image",
+      "category": "images/monsters/singles",
+      "bytes": 1770549
+    },
+    {
+      "path": "images/monsters/singles/audited-gourmet-perfect-b-attack.png",
+      "type": "image",
+      "category": "images/monsters/singles",
+      "bytes": 1133274
+    },
+    {
+      "path": "images/monsters/singles/audited-gourmet-perfect-b.png",
+      "type": "image",
+      "category": "images/monsters/singles",
+      "bytes": 256155
+    },
+    {
+      "path": "images/monsters/singles/audited-growth-bloom-attack.png",
+      "type": "image",
+      "category": "images/monsters/singles",
+      "bytes": 1097521
+    },
+    {
+      "path": "images/monsters/singles/audited-growth-bloom.png",
+      "type": "image",
+      "category": "images/monsters/singles",
+      "bytes": 373709
+    },
+    {
+      "path": "images/monsters/singles/audited-growth-slime-attack.png",
+      "type": "image",
+      "category": "images/monsters/singles",
+      "bytes": 919024
+    },
+    {
+      "path": "images/monsters/singles/audited-growth-slime.png",
+      "type": "image",
+      "category": "images/monsters/singles",
+      "bytes": 353988
+    },
+    {
+      "path": "images/monsters/singles/audited-inferno-ultimate-3-attack.png",
+      "type": "image",
+      "category": "images/monsters/singles",
+      "bytes": 1435229
+    },
+    {
+      "path": "images/monsters/singles/audited-inferno-ultimate-3.png",
+      "type": "image",
+      "category": "images/monsters/singles",
+      "bytes": 1758650
+    },
+    {
+      "path": "images/monsters/singles/audited-rail-perfect-a-attack.png",
+      "type": "image",
+      "category": "images/monsters/singles",
+      "bytes": 851920
+    },
+    {
+      "path": "images/monsters/singles/audited-rail-perfect-a.png",
+      "type": "image",
+      "category": "images/monsters/singles",
+      "bytes": 212821
+    },
+    {
+      "path": "images/monsters/singles/audited-rail-perfect-b-attack.png",
+      "type": "image",
+      "category": "images/monsters/singles",
+      "bytes": 1456913
+    },
+    {
+      "path": "images/monsters/singles/audited-rail-perfect-b.png",
+      "type": "image",
+      "category": "images/monsters/singles",
+      "bytes": 297460
+    },
+    {
+      "path": "images/monsters/singles/audited-samurai-perfect-b-attack.png",
+      "type": "image",
+      "category": "images/monsters/singles",
+      "bytes": 1032525
+    },
+    {
+      "path": "images/monsters/singles/audited-samurai-perfect-b.png",
+      "type": "image",
+      "category": "images/monsters/singles",
+      "bytes": 234708
+    },
+    {
       "path": "images/monsters/singles/battleship-whale-admira-attack.png",
       "type": "image",
       "category": "images/monsters/singles",
@@ -3948,7 +4128,7 @@
       "path": "images/monsters/singles/bone-raptor-attack.png",
       "type": "image",
       "category": "images/monsters/singles",
-      "bytes": 953021
+      "bytes": 1137627
     },
     {
       "path": "images/monsters/singles/bone-raptor-v2-attack.png",
@@ -3972,7 +4152,7 @@
       "path": "images/monsters/singles/candywork-dragon-attack.png",
       "type": "image",
       "category": "images/monsters/singles",
-      "bytes": 1269846
+      "bytes": 1910330
     },
     {
       "path": "images/monsters/singles/candywork-dragon.png",
@@ -4002,7 +4182,7 @@
       "path": "images/monsters/singles/chibi-dragon-attack.png",
       "type": "image",
       "category": "images/monsters/singles",
-      "bytes": 1256803
+      "bytes": 1766716
     },
     {
       "path": "images/monsters/singles/chibi-dragon-v2.png",
@@ -4032,7 +4212,7 @@
       "path": "images/monsters/singles/electric-owl-attack.png",
       "type": "image",
       "category": "images/monsters/singles",
-      "bytes": 1221183
+      "bytes": 1709650
     },
     {
       "path": "images/monsters/singles/electric-owl.png",
@@ -4116,7 +4296,7 @@
       "path": "images/monsters/singles/jade-gorilla-monk-attack.png",
       "type": "image",
       "category": "images/monsters/singles",
-      "bytes": 1291006
+      "bytes": 1400294
     },
     {
       "path": "images/monsters/singles/jade-gorilla-monk.png",
@@ -4164,7 +4344,7 @@
       "path": "images/monsters/singles/permafrost-garm-attack.png",
       "type": "image",
       "category": "images/monsters/singles",
-      "bytes": 1061022
+      "bytes": 1383806
     },
     {
       "path": "images/monsters/singles/permafrost-garm.png",
@@ -4176,7 +4356,7 @@
       "path": "images/monsters/singles/pudding-hydra-attack.png",
       "type": "image",
       "category": "images/monsters/singles",
-      "bytes": 930681
+      "bytes": 1434641
     },
     {
       "path": "images/monsters/singles/pudding-hydra.png",
@@ -4200,7 +4380,7 @@
       "path": "images/monsters/singles/rainbow-garden-phoenix-attack.png",
       "type": "image",
       "category": "images/monsters/singles",
-      "bytes": 1304868
+      "bytes": 1802542
     },
     {
       "path": "images/monsters/singles/rainbow-garden-phoenix.png",
@@ -4236,7 +4416,7 @@
       "path": "images/monsters/singles/spring-kirin-attack.png",
       "type": "image",
       "category": "images/monsters/singles",
-      "bytes": 920641
+      "bytes": 1375461
     },
     {
       "path": "images/monsters/singles/spring-kirin.png",
@@ -4332,7 +4512,7 @@
       "path": "images/monsters/singles/world-flower-dragon-attack.png",
       "type": "image",
       "category": "images/monsters/singles",
-      "bytes": 1485116
+      "bytes": 1961563
     },
     {
       "path": "images/monsters/singles/world-flower-dragon.png",

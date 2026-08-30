@@ -33,6 +33,7 @@ const REACTION_TTL_MS = 12000;
 const ADMIN_COUNT_PLAYERS = Object.freeze(["おいしいとうふ", "えだ", "ジャン", "リーマ", "Kento", "Lickey"]);
 const ADMIN_CHARACTER_COUNT = 87;
 const FIXED_RANKING_PLAYER_KEYS = new Set(ADMIN_COUNT_PLAYERS.map((name) => playerKey(name)));
+const CITY_SYSTEM = globalThis.TeamBingoCitySystem || null;
 
 export const ONLINE_REACTIONS = Object.freeze([
   { id: "clap", label: "拍手", mark: "👏" },
@@ -789,6 +790,7 @@ export class OnlineCoordinator {
     this.statsUnsubscribe = null;
     this.territoryUnsubscribe = null;
     this.territoryArchiveUnsubscribe = null;
+    this.cityUnsubscribe = null;
     this.reactionUnsubscribe = null;
     this.seenReactionIds = new Set();
     this.lastReactionSentAt = 0;
@@ -804,6 +806,8 @@ export class OnlineCoordinator {
     this.territoryState = null;
     this.previousTerritoryState = null;
     this.territoryArchive = {};
+    this.cityState = null;
+    this.cityInitPromise = null;
     this.globalProcessedActions = new Set();
     this.lastMasterLobbySyncKey = "";
     this.masterHandoverTimer = 0;
@@ -1054,6 +1058,7 @@ export class OnlineCoordinator {
       this.subscribeGlobalStats();
       this.subscribeTerritory();
       this.subscribeTerritoryArchive();
+      this.subscribeCity();
       this.startGhostCleanupTimer();
       const restored = await this.restoreSession();
       if (!restored) this.showLobby();
@@ -1089,6 +1094,7 @@ export class OnlineCoordinator {
               <button type="button" class="online-simple-button primary" id="onlineCreateRoom">部屋を作る</button>
               <button type="button" class="online-simple-button" id="onlineLocalMode">LOCAL MODE</button>
               <button type="button" class="online-simple-button" id="onlineTerritoryMode">六王領土戦</button>
+              <button type="button" class="online-simple-button" id="onlineCityMode">BINGO CITY</button>
               <button type="button" class="online-simple-button" id="onlineWorldTournament">世界大会</button>
             </div>
             <div class="online-lobby-audio">
@@ -1337,6 +1343,7 @@ export class OnlineCoordinator {
       createRoom: document.getElementById("onlineCreateRoom"),
       localMode: document.getElementById("onlineLocalMode"),
       territoryMode: document.getElementById("onlineTerritoryMode"),
+      cityMode: document.getElementById("onlineCityMode"),
       worldTournament: document.getElementById("onlineWorldTournament"),
       adminMode: document.getElementById("onlineAdminMode"),
       errorBanner: document.getElementById("onlineErrorBanner"),
@@ -1431,6 +1438,7 @@ export class OnlineCoordinator {
     });
     this.ui.localMode.addEventListener("click", () => this.enterLocalMode());
     this.ui.territoryMode.addEventListener("click", () => this.openTerritoryWindow());
+    this.ui.cityMode.addEventListener("click", () => this.openCityWindow());
     this.ui.worldTournament.addEventListener("click", async () => {
       await this.enterLocalMode();
       this.bridge.openWorldTournament?.();
@@ -3177,6 +3185,8 @@ export class OnlineCoordinator {
 
   isOnline() { return Boolean(this.enabled && this.backend && this.roomId); }
   getTerritoryState() { return clone(this.territoryState); }
+
+  getCityState() { return clone(this.cityState); }
   getPreviousTerritoryState() { return clone(this.previousTerritoryState); }
   getTerritoryArchive() { return clone(this.territoryArchive); }
 
@@ -3186,6 +3196,18 @@ export class OnlineCoordinator {
       return;
     }
     this.bridge.openTerritoryMode?.(this.territoryState);
+  }
+
+  openCityWindow() {
+    if (typeof this.bridge.openCityWindow === "function") {
+      this.hideLobby();
+      this.bridge.openCityWindow();
+      window.setTimeout(() => {
+        if (!this.roomId && !this.localMode && !this.roomDraft) this.showLobby();
+      }, 200);
+      return true;
+    }
+    return false;
   }
   isApplyingRemote() { return this.applyingRemote; }
   isBusy() { return Boolean(this.busy); }
@@ -3517,6 +3539,63 @@ export class OnlineCoordinator {
       this.bridge.applyTerritoryPreviousSnapshot?.(this.previousTerritoryState);
       this.bridge.applyTerritoryArchive?.(this.territoryArchive);
     });
+  }
+
+  subscribeCity() {
+    if (this.cityUnsubscribe || !CITY_SYSTEM) return;
+    this.cityUnsubscribe = this.backend.subscribe(this.path("cities/current"), (snapshot) => {
+      this.cityState = snapshot ? clone(snapshot) : null;
+      if (snapshot) {
+        this.bridge.applyCitySnapshot?.(snapshot);
+        return;
+      }
+      this.ensureCityState().catch((error) => console.warn("City initialization failed", error));
+    });
+  }
+
+  async ensureCityState() {
+    if (!CITY_SYSTEM || !this.backend) return null;
+    if (this.cityInitPromise) return this.cityInitPromise;
+    this.cityInitPromise = this.backend.transaction(this.path("cities/current"), (current) => (
+      current?.version === CITY_SYSTEM.VERSION ? current : CITY_SYSTEM.createInitialState(this.backend.serverNow())
+    )).then((result) => {
+      this.cityState = clone(result.value || null);
+      if (this.cityState) this.bridge.applyCitySnapshot?.(this.cityState);
+      return this.cityState;
+    }).finally(() => { this.cityInitPromise = null; });
+    return this.cityInitPromise;
+  }
+
+  async applyCityCommand(command = {}) {
+    if (!CITY_SYSTEM || !this.backend) return { ok: false, error: "都市サーバーへ接続できません。" };
+    let outcome = null;
+    const now = this.backend.serverNow();
+    const result = await this.backend.transaction(this.path("cities/current"), (current) => {
+      outcome = CITY_SYSTEM.applyCommand(current, command, now);
+      if (outcome.duplicate) return undefined;
+      return outcome.applied ? outcome.state : undefined;
+    });
+    if (outcome?.duplicate) return { ok: true, duplicate: true };
+    if (!result.committed) return { ok: false, error: outcome?.error || "ほかの都市操作と競合しました。もう一度操作してください。" };
+    this.cityState = clone(result.value);
+    this.bridge.applyCitySnapshot?.(this.cityState);
+    return { ok: true, state: clone(this.cityState) };
+  }
+
+  async awardCityMatchRewards(payload = {}) {
+    if (!CITY_SYSTEM || !this.backend || !payload?.id) return { ok: false };
+    let outcome = null;
+    const now = this.backend.serverNow();
+    const result = await this.backend.transaction(this.path("cities/current"), (current) => {
+      outcome = CITY_SYSTEM.applyMatchReward(current, payload, now);
+      if (outcome.duplicate) return undefined;
+      return outcome.applied ? outcome.state : undefined;
+    });
+    if (outcome?.duplicate) return { ok: true, duplicate: true };
+    if (!result.committed) return { ok: false, error: outcome?.error || "都市報酬を保存できませんでした。" };
+    this.cityState = clone(result.value);
+    this.bridge.applyCitySnapshot?.(this.cityState);
+    return { ok: true, rewards: clone(outcome?.rewards || {}) };
   }
 
   subscribeWorldTournamentRooms(callback) {

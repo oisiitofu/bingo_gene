@@ -17,9 +17,9 @@ test("online lobby boot bypasses stale browser modules and retries once", () => 
   const html = readFileSync(new URL("../index.html", import.meta.url), "utf8");
   const serviceWorker = readFileSync(new URL("../sw.js", import.meta.url), "utf8");
 
-  assert.match(html, /online-room\.js\?v=20260819-lite-skill-targets-130/);
+  assert.match(html, /online-room\.js\?v=20260830-bingo-city-131/);
   assert.match(html, /retry=\$\{Date\.now\(\)\}/);
-  assert.match(serviceWorker, /20260819-lite-skill-targets-130/);
+  assert.match(serviceWorker, /20260830-bingo-city-131/);
 });
 
 test("one-bingo audio, Likecy skill timing, and reach badge rules stay aligned", () => {
@@ -300,6 +300,29 @@ test("六王領土戦のクライアント、Worker、Firebaseルールが公開
   assert.match(html, /showMonsterDetail: showMonsterNodeZoom/);
   assert.match(html, /熟練度 \/ 絆 Lv\./);
   assert.match(worker, /crons|advanceFrontier|If-Match|if-match/i);
+});
+
+test("BINGO CITY is connected to the shared client, worker tick, rules, and offline shell", () => {
+  const html = readFileSync(new URL("../index.html", import.meta.url), "utf8");
+  const online = readFileSync(new URL("../online/online-room.js", import.meta.url), "utf8");
+  const serviceWorker = readFileSync(new URL("../sw.js", import.meta.url), "utf8");
+  const worker = readFileSync(new URL("../worker/territory-worker.mjs", import.meta.url), "utf8");
+  const rules = JSON.parse(readFileSync(new URL("../firebase-database.rules.json", import.meta.url), "utf8"));
+
+  assert.match(html, /id="cityModeButton"/);
+  assert.match(html, /id="playCityModeButton"/);
+  assert.match(html, /src="city-system\.js\?v=20260830-bingo-city-131"/);
+  assert.match(html, /src="city-map-3d\.js\?v=20260830-bingo-city-131"/);
+  assert.match(html, /src="city-mode\.js\?v=20260830-bingo-city-131"/);
+  assert.match(html, /searchParams\.set\("city", "1"\)/);
+  assert.match(online, /subscribeCity\(\)/);
+  assert.match(online, /applyCityCommand\(command = \{\}\)/);
+  assert.match(online, /awardCityMatchRewards\(payload = \{\}\)/);
+  assert.match(worker, /advanceCitiesWithToken/);
+  assert.match(worker, /context\.waitUntil\(advanceCities\(env\)\)/);
+  assert.ok(rules.rules.teamBingoV1.cities.current, "Firebase city rules are missing");
+  assert.match(serviceWorker, /\.\/city-system\.js\?v=20260830-bingo-city-131/);
+  assert.doesNotMatch(serviceWorker, /SHELL_FILES = \[[\s\S]*?images\/city\/textures/);
 });
 
 test("勝利画面の装備報酬は獲得アイテムと効果を開ける", () => {

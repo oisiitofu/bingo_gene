@@ -1,6 +1,6 @@
 "use strict";
 
-const CACHE_VERSION = "team-bingo-v1-20260819-lite-skill-targets-130";
+const CACHE_VERSION = "team-bingo-v1-20260830-bingo-city-131";
 const SHELL_CACHE = `${CACHE_VERSION}-shell`;
 const ASSET_CACHE = `${CACHE_VERSION}-assets`;
 const SHELL_FILES = [
@@ -14,6 +14,10 @@ const SHELL_FILES = [
   "./territory-map-3d.js",
   "./territory-mode.js",
   "./territory-mode.css",
+  "./city-system.js?v=20260830-bingo-city-131",
+  "./city-map-3d.js?v=20260830-bingo-city-131",
+  "./city-mode.js?v=20260830-bingo-city-131",
+  "./city-mode.css?v=20260830-bingo-city-131",
   "./world-tournament.js",
   "./world-tournament.css",
   "./monster-page.css",
@@ -85,7 +89,7 @@ self.addEventListener("fetch", (event) => {
     event.respondWith(networkFirst(request));
     return;
   }
-  if (url.pathname === "/" || url.pathname.endsWith("firebase-config.js") || url.pathname.endsWith("index.html") || url.pathname.endsWith("monster-system.js") || url.pathname.endsWith("territory-equipment.js") || url.pathname.endsWith("territory-system.js") || url.pathname.endsWith("territory-mode.js") || url.pathname.endsWith("territory-mode.css") || url.pathname.endsWith("world-tournament.js") || url.pathname.endsWith("world-tournament.css") || url.pathname.endsWith("monster-page.css") || url.pathname.endsWith("monster-battle.css") || url.pathname.endsWith("online-room.js") || url.pathname.endsWith("online-room.css")) {
+  if (url.pathname === "/" || url.pathname.endsWith("firebase-config.js") || url.pathname.endsWith("index.html") || url.pathname.endsWith("monster-system.js") || url.pathname.endsWith("territory-equipment.js") || url.pathname.endsWith("territory-system.js") || url.pathname.endsWith("territory-mode.js") || url.pathname.endsWith("territory-mode.css") || url.pathname.endsWith("city-system.js") || url.pathname.endsWith("city-map-3d.js") || url.pathname.endsWith("city-mode.js") || url.pathname.endsWith("city-mode.css") || url.pathname.endsWith("world-tournament.js") || url.pathname.endsWith("world-tournament.css") || url.pathname.endsWith("monster-page.css") || url.pathname.endsWith("monster-battle.css") || url.pathname.endsWith("online-room.js") || url.pathname.endsWith("online-room.css")) {
     event.respondWith(networkFirst(request));
     return;
   }

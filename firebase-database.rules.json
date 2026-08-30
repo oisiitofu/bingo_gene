@@ -66,6 +66,17 @@
           ".write": "auth != null && root.child('teamBingoV1').child('adminSessions').child(auth.uid).child('expiresAt').isNumber() && root.child('teamBingoV1').child('adminSessions').child(auth.uid).child('expiresAt').val() > now"
         }
       },
+      "cities": {
+        "current": {
+          ".write": "auth != null",
+          ".validate": "newData.exists() && newData.child('version').val() === 1 && newData.hasChildren(['version', 'revision', 'players', 'lastTickAt', 'nextTickAt', 'updatedAt']) && newData.child('revision').isNumber() && newData.child('lastTickAt').isNumber() && newData.child('nextTickAt').isNumber() && newData.child('updatedAt').isNumber()",
+          "players": {
+            "$playerId": {
+              ".validate": "($playerId === 'tofu' || $playerId === 'eda' || $playerId === 'jan' || $playerId === 'rima' || $playerId === 'kento' || $playerId === 'lickey') && newData.hasChildren(['id', 'name', 'ownerName', 'level', 'resources', 'metrics', 'economy', 'tiles', 'unlocks', 'updatedAt']) && newData.child('id').val() === $playerId && newData.child('level').isNumber() && newData.child('updatedAt').isNumber()"
+            }
+          }
+        }
+      },
       "legacyImports": {
         "$deviceId": {
           ".write": "auth != null && (!data.exists() || data.child('uid').val() === auth.uid)",

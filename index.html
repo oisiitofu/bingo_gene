@@ -6,6 +6,7 @@
   <title>TEAM BINGO CHAMPIONSHIP</title>
   <link rel="stylesheet" href="online/online-room.css" />
   <link rel="stylesheet" href="territory-mode.css" />
+  <link rel="stylesheet" href="city-mode.css?v=20260830-bingo-city-131" />
   <link rel="stylesheet" href="monster-page.css" />
   <link rel="stylesheet" href="world-tournament.css" />
   <script src="online/firebase-config.js"></script>
@@ -13,15 +14,20 @@
     if (new URLSearchParams(location.search).get("territory") === "1") {
       document.documentElement.classList.add("territory-standalone");
     }
+    if (new URLSearchParams(location.search).get("city") === "1") {
+      document.documentElement.classList.add("city-standalone");
+    }
     if (window.TEAM_BINGO_ONLINE_CONFIG?.enabled || new URLSearchParams(location.search).get("onlineMock") === "1") {
       document.documentElement.classList.add("online-booting");
     }
   </script>
   <style>
-    html.territory-standalone body {
+    html.territory-standalone body,
+    html.city-standalone body {
       background: #070a11;
     }
-    html.territory-standalone body > .app {
+    html.territory-standalone body > .app,
+    html.city-standalone body > .app {
       visibility: hidden !important;
       pointer-events: none !important;
     }
@@ -8030,6 +8036,7 @@
             <button type="button" class="btn" id="setupStatsButton">STATS</button>
             <button type="button" class="btn" id="setupMonsterButton">MONSTER</button>
             <button type="button" class="btn territory-entry-btn" id="territoryModeButton">六王領土戦</button>
+            <button type="button" class="btn" id="cityModeButton">BINGO CITY</button>
           </div>
         </div>
         <div class="setup-top-right">
@@ -8165,6 +8172,7 @@
             <button type="button" class="btn frame" id="playStatsButton">STATS</button>
             <button type="button" class="btn frame" id="playMonsterButton">MONSTER</button>
             <button type="button" class="btn frame territory-entry-btn" id="playTerritoryModeButton">六王領土戦</button>
+            <button type="button" class="btn frame" id="playCityModeButton">BINGO CITY</button>
           </div>
         </div>
         <div class="top-right">
@@ -8612,9 +8620,12 @@
   <script src="monster-pose-bounds.js"></script>
   <script src="territory-equipment.js"></script>
   <script src="territory-system.js"></script>
+  <script src="city-system.js?v=20260830-bingo-city-131"></script>
   <script src="vendor/three/three.min.js"></script>
   <script src="territory-map-3d.js"></script>
   <script src="territory-mode.js"></script>
+  <script src="city-map-3d.js?v=20260830-bingo-city-131"></script>
+  <script src="city-mode.js?v=20260830-bingo-city-131"></script>
   <script src="world-tournament.js"></script>
   <script>
     "use strict";
@@ -9454,7 +9465,7 @@
         "adminMonsterBattleModal", "adminMonsterRed1", "adminMonsterRed2", "adminMonsterBlue1", "adminMonsterBlue2", "adminMonsterBattleShuffle", "adminMonsterBattleCancel", "adminMonsterBattleStart",
         "teamSelectModal", "teamSelectList", "teamSelectRedMembers", "teamSelectBlueMembers", "teamSelectShuffleButton", "teamSelectConfirmButton", "teamSelectCancelButton", "teamSelectError",
         "statsSeasonSelect", "statsSeasonList", "statsTournamentList", "statsTerritoryList",
-        "randomEventButton", "monsterBattleModeButton", "singleMonsterModeButton", "doubleMonsterModeButton", "compactModeButton", "testModeControl", "testModeCheckbox", "testModeLabel", "testModeBadge", "territoryModeButton", "playTerritoryModeButton",
+        "randomEventButton", "monsterBattleModeButton", "singleMonsterModeButton", "doubleMonsterModeButton", "compactModeButton", "testModeControl", "testModeCheckbox", "testModeLabel", "testModeBadge", "territoryModeButton", "playTerritoryModeButton", "cityModeButton", "playCityModeButton",
         "matchReplayModal", "replayMatchMeta", "replaySummary", "replayBoards", "replayTimeline", "replayCloseButton",
         "replayPrevButton", "replayPlayButton", "replayRange", "replayStepLabel",
         "feverAura", "fxLayer", "openedByPopover", "victoryParticles", "setupThemePlayer", "copyrightToggle",
@@ -9499,6 +9510,8 @@
       els.testModeCheckbox?.addEventListener("change", toggleTestMode);
       els.territoryModeButton?.addEventListener("click", openTerritoryWindow);
       els.playTerritoryModeButton?.addEventListener("click", openTerritoryWindow);
+      els.cityModeButton?.addEventListener("click", openCityWindow);
+      els.playCityModeButton?.addEventListener("click", openCityWindow);
       els.setupStatsButton.addEventListener("click", showStatsPage);
       els.playStatsButton.addEventListener("click", showStatsPage);
       els.setupMonsterButton?.addEventListener("click", showMonsterDexPage);
@@ -15672,6 +15685,31 @@
       recordRecentMatch(winnerTeam, victoryKind, mvpName);
       recordWorldTournamentMatch(winnerTeam, victoryKind, mvpName);
       savePlayerStats();
+      const cityReward = createCityMatchReward(winnerTeam, victoryKind, mvpName);
+      if (cityReward && (!onlineCoordinator?.isOnline?.() || onlineCoordinator?.isMaster?.())) {
+        onlineCoordinator?.awardCityMatchRewards?.(cityReward).catch((error) => console.warn("City match reward failed", error));
+      }
+    }
+
+    function createCityMatchReward(winnerTeam, victoryKind = "normal", mvpName = "") {
+      if (!state.matchTracker?.id || state.testMode) return null;
+      const mvpKey = playerStatsKey(mvpName);
+      const players = ["red", "blue"].flatMap((team) => getMatchPlayerEntries(team)
+        .filter((entry) => isFixedMemberName(entry.name))
+        .map((entry) => ({
+          name: entry.name,
+          opens: Math.max(0, Number(entry.opens) || 0),
+          bingoLines: Math.max(0, Number(state[team].bingoCount) || 0),
+          won: team === winnerTeam,
+          mvp: playerStatsKey(entry.name) === mvpKey,
+          victoryKind
+        })));
+      return {
+        id: `bingo-city:${state.matchTracker.id}`,
+        matchId: state.matchTracker.id,
+        createdAt: Date.now(),
+        players
+      };
     }
 
     function recordWorldTournamentMatch(winnerTeam, victoryKind = "normal", mvpName = "") {
@@ -17767,6 +17805,7 @@
     let onlineLastVictory = null;
     let onlineEventCapture = null;
     let territoryStandaloneOpened = false;
+    let cityStandaloneOpened = false;
 
     function beginOnlineEventCapture() {
       onlineEventCapture = { timeline: [] };
@@ -17782,7 +17821,7 @@
       if ("serviceWorker" in navigator && /^https?:$/.test(location.protocol)) {
         navigator.serviceWorker.register("./sw.js").then((registration) => registration.update()).catch((error) => console.warn("Service worker registration failed", error));
       }
-      const onlineRoomModuleUrl = "./online/online-room.js?v=20260819-lite-skill-targets-130";
+      const onlineRoomModuleUrl = "./online/online-room.js?v=20260830-bingo-city-131";
       import(onlineRoomModuleUrl)
         .catch((firstError) => import(`${onlineRoomModuleUrl}&retry=${Date.now()}`)
           .catch((retryError) => {
@@ -17828,8 +17867,11 @@
         applyTerritorySnapshot,
         applyTerritoryPreviousSnapshot,
         applyTerritoryArchive,
+        applyCitySnapshot,
         openTerritoryMode,
         openTerritoryWindow,
+        openCityMode,
+        openCityWindow,
         createTerritoryInitialState: () => window.TeamBingoTerritorySystem?.createInitialState(state.playerStats, Date.now()) || null,
         createOnlineEvent,
         playOnlineEvent,
@@ -17871,6 +17913,12 @@
         },
         onOnlineReady: (coordinator) => {
           onlineCoordinator = coordinator;
+          if (isCityStandalonePage()) {
+            coordinator.hideLobby?.();
+            const citySnapshot = coordinator.getCityState?.();
+            if (citySnapshot) openCityStandalone(citySnapshot);
+            return;
+          }
           if (!isTerritoryStandalonePage()) return;
           coordinator.hideLobby?.();
           const snapshot = coordinator.getTerritoryState?.();
@@ -18265,6 +18313,12 @@
       window.TeamBingoTerritoryMode?.applyArchive(archive);
     }
 
+    function applyCitySnapshot(snapshot) {
+      if (!snapshot) return;
+      window.TeamBingoCityMode?.applySnapshot(snapshot);
+      if (isCityStandalonePage()) openCityStandalone(snapshot);
+    }
+
     function configureWorldTournament() {
       window.TeamBingoWorldTournament?.configure({
         getPlayers: getTeamSelectionPlayers,
@@ -18387,6 +18441,44 @@
           blue: battle.replay.blue.name || "BLUE"
         },
         forcedWinner: battle.replay.winner === "blue" ? "blue" : "red"
+      });
+    }
+
+    function isCityStandalonePage() {
+      return new URLSearchParams(location.search).get("city") === "1";
+    }
+
+    function cityWindowUrl() {
+      const url = new URL(location.href);
+      const onlineMock = url.searchParams.get("onlineMock");
+      url.search = "";
+      url.searchParams.set("city", "1");
+      if (onlineMock === "1") url.searchParams.set("onlineMock", "1");
+      url.hash = "";
+      return url.href;
+    }
+
+    function openCityWindow() {
+      unlockAudio();
+      const cityWindow = window.open(cityWindowUrl(), "_blank");
+      cityWindow?.focus();
+    }
+
+    function openCityStandalone(snapshot) {
+      if (!snapshot || cityStandaloneOpened) return;
+      cityStandaloneOpened = true;
+      onlineCoordinator?.hideLobby?.();
+      openCityMode(snapshot);
+    }
+
+    function openCityMode(snapshot = null) {
+      const liveState = snapshot || onlineCoordinator?.getCityState?.() || window.TeamBingoCitySystem?.createInitialState(Date.now());
+      window.TeamBingoCityMode?.open({
+        state: liveState,
+        onCommand: (command) => onlineCoordinator?.applyCityCommand?.(command) || Promise.resolve({ ok: false, error: "オンライン接続を確認してください。" }),
+        onClose: () => {
+          if (isCityStandalonePage() && window.opener) window.close();
+        }
       });
     }
 

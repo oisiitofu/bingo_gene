@@ -74,7 +74,11 @@
 html.territory-standalone .online-lobby,
 html.territory-standalone .online-admin-page,
 html.territory-standalone .online-session-bar,
-html.territory-standalone .online-reaction-dock {
+html.territory-standalone .online-reaction-dock,
+html.city-standalone .online-lobby,
+html.city-standalone .online-admin-page,
+html.city-standalone .online-session-bar,
+html.city-standalone .online-reaction-dock {
   display: none !important;
 }
 
