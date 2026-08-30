@@ -89,7 +89,6 @@ body.city-mode-open { overflow: hidden; }
 .city-resource.money { border-color: #f0c954; }
 .city-resource.materials { border-color: #a3c2cc; }
 .city-resource.research { border-color: #9d72ff; }
-.city-resource.hype { border-color: #f15b64; }
 .city-resource.blueprint { border-color: #4dd6bf; }
 .city-tick { justify-self: end; min-width: 132px; padding: 6px 10px; text-align: right; border-right: 2px solid #4db9e6; background: rgba(77, 185, 230, .08); }
 .city-tick strong { display: block; margin-top: 1px; font-size: 17px; }

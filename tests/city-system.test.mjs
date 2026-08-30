@@ -17,6 +17,7 @@ test("creates six persistent player cities with starter infrastructure", () => {
     assert.ok(city.metrics.population > 0);
     assert.ok(city.metrics.capacity >= 360);
     assert.ok(city.metrics.powerSupply >= city.metrics.powerDemand);
+    assert.equal(Object.hasOwn(city.resources, "hype"), false);
   });
 });
 
@@ -65,6 +66,7 @@ test("match rewards only apply once and ignore non-fixed players", () => {
   assert.equal(first.applied, true);
   assert.deepEqual(Object.keys(first.rewards), ["tofu"]);
   assert.equal(first.rewards.tofu.money, 3000);
+  assert.equal(Object.hasOwn(first.rewards.tofu, "hype"), false);
   assert.ok(first.state.players.tofu.autoDevelopment.placed > 0);
   assert.equal(first.state.players.tofu.resources.blueprints, 1);
 

@@ -239,7 +239,7 @@
     const city = {
       id: player.id, name: player.cityName, ownerName: player.name, color: player.color, accent: player.accent,
       terrainPreset: player.terrainPreset, mapSchema: MAP_SCHEMA, level: 1,
-      resources: { money: 12000, materials: 160, research: 0, hype: 20, blueprints: 0 },
+      resources: { money: 12000, materials: 160, research: 0, blueprints: 0 },
       metrics: emptyMetrics(), economy: { taxRate: 10, lastIncome: 0, lastExpense: 0, balance: 0 },
       autoDevelopment: { enabled: true, threshold: AUTO_BUILD_THRESHOLD, placed: 0, cursor: 0 },
       tiles: initialTiles(), unlocks: allUnlocks(), inbox: {}, history: {}, createdAt: now, updatedAt: now
@@ -273,6 +273,8 @@
       }
       city.mapSchema = MAP_SCHEMA;
       city.terrainPreset = player.terrainPreset;
+      city.resources = { money: 0, materials: 0, research: 0, blueprints: 0, ...(city.resources || {}) };
+      delete city.resources.hype;
       city.unlocks = { ...allUnlocks(), ...(city.unlocks || {}) };
       city.autoDevelopment = { enabled: true, threshold: AUTO_BUILD_THRESHOLD, placed: 0, cursor: 0, ...(city.autoDevelopment || {}) };
       city.metrics = calculateMetrics(city);
@@ -472,7 +474,6 @@
     const expense = Math.max(0, Math.round(metrics.upkeep));
     city.resources.money = Math.max(0, Math.round((Number(city.resources.money) || 0) + income - expense));
     city.resources.materials = Math.max(0, Math.round((Number(city.resources.materials) || 0) + metrics.materialsOutput));
-    city.resources.hype = Math.max(0, Math.min(100, (Number(city.resources.hype) || 0) - .2));
     city.economy = { ...city.economy, lastIncome: income, lastExpense: expense, balance: income - expense };
     city.metrics = calculateMetrics({ ...city, metrics });
     city.level = cityLevel(city.metrics.population);
@@ -505,8 +506,7 @@
     const bingoLines = Math.max(0, Number(entry.bingoLines) || 0);
     const won = Boolean(entry.won);
     const mvp = Boolean(entry.mvp);
-    const victoryKind = String(entry.victoryKind || "normal");
-    return { money: opens * 100 + bingoLines * 500 + (won ? 1500 : 300), materials: opens * 4 + bingoLines * 15 + (won ? 30 : 8), research: bingoLines * 2 + (mvp ? 3 : 0), hype: bingoLines * 3 + (won ? 10 : 0) + (victoryKind === "comeback" ? 20 : 0), blueprints: mvp ? 1 : 0 };
+    return { money: opens * 100 + bingoLines * 500 + (won ? 1500 : 300), materials: opens * 4 + bingoLines * 15 + (won ? 30 : 8), research: bingoLines * 2 + (mvp ? 3 : 0), blueprints: mvp ? 1 : 0 };
   }
 
   function applyMatchReward(value, payload = {}, now = Date.now()) {
@@ -521,7 +521,6 @@
       if (!city) return;
       const reward = rewardForPlayer(entry);
       Object.entries(reward).forEach(([field, amount]) => { city.resources[field] = Math.max(0, (Number(city.resources[field]) || 0) + Number(amount || 0)); });
-      city.resources.hype = Math.min(100, city.resources.hype);
       city.inbox ||= {};
       city.inbox[rewardId] = { id: rewardId, matchId: payload.matchId || rewardId, reward, createdAt: Number(now), title: entry.won ? "BINGO VICTORY REWARD" : "BINGO MATCH REWARD" };
       city.inbox = trimMap(city.inbox, 30);

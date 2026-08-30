@@ -129,7 +129,6 @@
       ["資金", `¥ ${formatNumber(city.resources.money)}`, "money"],
       ["資材", formatNumber(city.resources.materials), "materials"],
       ["研究", formatNumber(city.resources.research), "research"],
-      ["HYPE", `${formatNumber(city.resources.hype)}%`, "hype"],
       ["設計図", formatNumber(city.resources.blueprints), "blueprint"]
     ].map(([label, value, kind]) => `<div class="city-resource ${kind}"><span>${label}</span><strong>${value}</strong></div>`).join("");
   }
