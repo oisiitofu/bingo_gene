@@ -2,6 +2,8 @@
   "use strict";
 
   const TILE = .86;
+  const HEIGHT_SCALE = 2.5;
+  const WATER_HEIGHT = Object.freeze({ river: -.14, lake: -.2, sea: -.26 });
 
   function create(container, options = {}) {
     const THREE = global.THREE;
@@ -39,6 +41,10 @@
     const selectionResources = [];
     const terrainTargets = [];
     const animated = [];
+    let terrainCache = [];
+    let mountainDepth = [];
+    let cornerHeightMemo = [];
+    let cornerNormalMemo = [];
     const raycaster = new THREE.Raycaster();
     const pointer = new THREE.Vector2();
     const clock = new THREE.Clock();
@@ -90,7 +96,7 @@
       return {
         grass: new THREE.MeshStandardMaterial({ color: 0xb9c78e, map: textures.grass, bumpMap: textures.grass, bumpScale: .02, roughness: .98 }),
         soil: new THREE.MeshStandardMaterial({ color: 0xc1a177, map: textures.soil, bumpMap: textures.soil, bumpScale: .035, roughness: 1 }),
-        mountain: new THREE.MeshStandardMaterial({ color: 0x737b78, map: textures.rock, bumpMap: textures.rock, bumpScale: .08, roughness: .94 }),
+        mountain: new THREE.MeshStandardMaterial({ color: 0xaeb4aa, map: textures.rock, bumpMap: textures.rock, bumpScale: .075, roughness: .92 }),
         river: new THREE.MeshPhysicalMaterial({ color: 0x48a9c1, map: textures.water, transparent: true, opacity: .84, roughness: .14, metalness: .08, clearcoat: 1 }),
         lake: new THREE.MeshPhysicalMaterial({ color: 0x2d8ca7, map: textures.water, transparent: true, opacity: .88, roughness: .11, metalness: .1, clearcoat: 1 }),
         sea: new THREE.MeshPhysicalMaterial({ color: 0x176a8a, map: textures.water, transparent: true, opacity: .92, roughness: .08, metalness: .14, clearcoat: 1 }),
@@ -121,7 +127,6 @@
 
     function createGeometry() {
       return {
-        terrain: new THREE.BoxGeometry(TILE * .96, 1, TILE * .96),
         road: new THREE.BoxGeometry(TILE, .055, TILE),
         lane: new THREE.BoxGeometry(.04, .012, .24),
         cube: new THREE.BoxGeometry(1, 1, 1),
@@ -132,7 +137,7 @@
         cone: new THREE.ConeGeometry(.5, 1, 18),
         torus: new THREE.TorusGeometry(.5, .08, 12, 32),
         treeCrown: new THREE.IcosahedronGeometry(.5, 3),
-        mountain: new THREE.ConeGeometry(.52, 1, 7, 3),
+        mountain: new THREE.DodecahedronGeometry(.5, 1),
         selection: new THREE.RingGeometry(.37, .46, 4, 1),
         beacon: new THREE.CylinderGeometry(.12, .42, 4.2, 24, 1, true)
       };
@@ -144,12 +149,12 @@
       sun.position.set(-34, 52, 24);
       sun.castShadow = true;
       sun.shadow.mapSize.set(2048, 2048);
-      sun.shadow.camera.left = -32;
-      sun.shadow.camera.right = 32;
-      sun.shadow.camera.top = 32;
-      sun.shadow.camera.bottom = -32;
+      sun.shadow.camera.left = -78;
+      sun.shadow.camera.right = 78;
+      sun.shadow.camera.top = 78;
+      sun.shadow.camera.bottom = -78;
       sun.shadow.camera.near = 3;
-      sun.shadow.camera.far = 120;
+      sun.shadow.camera.far = 180;
       sun.shadow.bias = -.00025;
       scene.add(sun);
       const fill = new THREE.DirectionalLight(0x78bdff, 1.35);
@@ -202,6 +207,10 @@
     function render(nextCity) {
       city = nextCity ? JSON.parse(JSON.stringify(nextCity)) : null;
       clearDynamic();
+      terrainCache = [];
+      mountainDepth = [];
+      cornerHeightMemo = [];
+      cornerNormalMemo = [];
       if (!city) return;
       createTerrain();
       const playerColor = new THREE.Color(city.color || "#f5c84c");
@@ -214,40 +223,192 @@
       updateSelection();
     }
 
+    function terrainCenterHeight(terrain, x = -1, z = -1) {
+      if (terrain?.water) return WATER_HEIGHT[terrain.type] ?? -.18;
+      if (terrain?.type === "mountain" && x >= 0 && z >= 0) {
+        const depth = Math.min(9, Number(mountainDepth[z * MAP_SIZE + x]) || 0);
+        const ridgeA = Math.sin((x + 13) * .31) * Math.cos((z - 7) * .27);
+        const ridgeB = Math.sin((x + z) * .17) * .55;
+        const foothill = Math.pow(depth / 9, .72);
+        return .08 + foothill * 3.9 + (ridgeA + ridgeB) * (.08 + foothill * .34);
+      }
+      const rolling = x >= 0 && z >= 0
+        ? (Math.sin((x + 5) * .071) + Math.cos((z - 9) * .063) + Math.sin((x + z) * .037)) * .035
+        : 0;
+      return .015 + Math.max(0, Number(terrain?.height) || 0) * HEIGHT_SCALE + rolling;
+    }
+
+    function terrainAtPoint(x, z) {
+      const px = Math.max(0, Math.min(MAP_SIZE - 1, x));
+      const pz = Math.max(0, Math.min(MAP_SIZE - 1, z));
+      return terrainCache[pz * MAP_SIZE + px] || City.terrainAt(city.id, px, pz);
+    }
+
+    function cornerSurfaceHeight(gridX, gridZ) {
+      const cacheKey = gridZ * (MAP_SIZE + 1) + gridX;
+      if (cornerHeightMemo[cacheKey] !== undefined) return cornerHeightMemo[cacheKey];
+      const land = [];
+      const water = [];
+      for (let dz = -3; dz <= 2; dz += 1) {
+        for (let dx = -3; dx <= 2; dx += 1) {
+          const x = gridX + dx;
+          const z = gridZ + dz;
+          if (x < 0 || z < 0 || x >= MAP_SIZE || z >= MAP_SIZE) continue;
+          const terrain = terrainCache[z * MAP_SIZE + x] || City.terrainAt(city.id, x, z);
+          const distance = Math.hypot(x + .5 - gridX, z + .5 - gridZ);
+          const weight = 1 / (1 + distance * distance * .72);
+          (terrain.water ? water : land).push([terrainCenterHeight(terrain, x, z), weight]);
+        }
+      }
+      const height = land.length
+        ? land.reduce((sum, [value, weight]) => sum + value * weight, 0) / land.reduce((sum, [, weight]) => sum + weight, 0)
+        : water.length ? Math.max(...water.map(([value]) => value)) : 0;
+      cornerHeightMemo[cacheKey] = height;
+      return height;
+    }
+
+    function cornerSurfaceNormal(gridX, gridZ, flat = false) {
+      if (flat) return [0, 1, 0];
+      const cacheKey = gridZ * (MAP_SIZE + 1) + gridX;
+      if (cornerNormalMemo[cacheKey]) return cornerNormalMemo[cacheKey];
+      const left = cornerSurfaceHeight(Math.max(0, gridX - 1), gridZ);
+      const right = cornerSurfaceHeight(Math.min(MAP_SIZE, gridX + 1), gridZ);
+      const back = cornerSurfaceHeight(gridX, Math.max(0, gridZ - 1));
+      const front = cornerSurfaceHeight(gridX, Math.min(MAP_SIZE, gridZ + 1));
+      const normal = new THREE.Vector3(left - right, TILE * 2, back - front).normalize().toArray();
+      cornerNormalMemo[cacheKey] = normal;
+      return normal;
+    }
+
+    function tileSurfaceHeight(id) {
+      const point = City.parseTileId(id);
+      const terrain = terrainAtPoint(point.x, point.z);
+      if (terrain.water) return terrainCenterHeight(terrain, point.x, point.z);
+      return (
+        cornerSurfaceHeight(point.x, point.z)
+        + cornerSurfaceHeight(point.x + 1, point.z)
+        + cornerSurfaceHeight(point.x + 1, point.z + 1)
+        + cornerSurfaceHeight(point.x, point.z + 1)
+      ) / 4;
+    }
+
+    function pushTerrainVertex(positions, normals, uvs, x, y, z, u, v, normal) {
+      positions.push(x, y, z);
+      normals.push(normal[0], normal[1], normal[2]);
+      uvs.push(u, v);
+    }
+
+    function createTerrainSurface(type, entries) {
+      if (!entries.length) return;
+      const positions = [];
+      const normals = [];
+      const uvs = [];
+      const faceTileIds = [];
+      entries.forEach((entry) => {
+        const id = City.tileId(entry.x, entry.z);
+        const position = worldPosition(id);
+        const x0 = position.x - TILE / 2;
+        const x1 = position.x + TILE / 2;
+        const z0 = position.z - TILE / 2;
+        const z1 = position.z + TILE / 2;
+        const flatWater = entry.terrain.water ? terrainCenterHeight(entry.terrain, entry.x, entry.z) : null;
+        const y00 = flatWater ?? cornerSurfaceHeight(entry.x, entry.z);
+        const y10 = flatWater ?? cornerSurfaceHeight(entry.x + 1, entry.z);
+        const y11 = flatWater ?? cornerSurfaceHeight(entry.x + 1, entry.z + 1);
+        const y01 = flatWater ?? cornerSurfaceHeight(entry.x, entry.z + 1);
+        const u0 = entry.x * .34;
+        const u1 = (entry.x + 1) * .34;
+        const v0 = entry.z * .34;
+        const v1 = (entry.z + 1) * .34;
+        const flat = Boolean(entry.terrain.water);
+        const n00 = cornerSurfaceNormal(entry.x, entry.z, flat);
+        const n10 = cornerSurfaceNormal(entry.x + 1, entry.z, flat);
+        const n11 = cornerSurfaceNormal(entry.x + 1, entry.z + 1, flat);
+        const n01 = cornerSurfaceNormal(entry.x, entry.z + 1, flat);
+        pushTerrainVertex(positions, normals, uvs, x0, y00, z0, u0, v0, n00);
+        pushTerrainVertex(positions, normals, uvs, x1, y11, z1, u1, v1, n11);
+        pushTerrainVertex(positions, normals, uvs, x1, y10, z0, u1, v0, n10);
+        pushTerrainVertex(positions, normals, uvs, x0, y00, z0, u0, v0, n00);
+        pushTerrainVertex(positions, normals, uvs, x0, y01, z1, u0, v1, n01);
+        pushTerrainVertex(positions, normals, uvs, x1, y11, z1, u1, v1, n11);
+        faceTileIds.push(id, id);
+        if ((type === "grass" || type === "soil") && !city.tiles?.[id]) createNaturalDetail(position.x, position.z, id, type, tileSurfaceHeight(id));
+      });
+      const geometry = new THREE.BufferGeometry();
+      geometry.setAttribute("position", new THREE.Float32BufferAttribute(positions, 3));
+      geometry.setAttribute("normal", new THREE.Float32BufferAttribute(normals, 3));
+      geometry.setAttribute("uv", new THREE.Float32BufferAttribute(uvs, 2));
+      geometry.computeBoundingSphere();
+      dynamicResources.push(geometry);
+      const surface = new THREE.Mesh(geometry, materials[type]);
+      surface.receiveShadow = !["river", "lake", "sea"].includes(type);
+      surface.castShadow = type === "mountain";
+      surface.userData.faceTileIds = faceTileIds;
+      surface.userData.terrainType = type;
+      terrainRoot.add(surface);
+      terrainTargets.push(surface);
+    }
+
+    function createTerrainGrid() {
+      const positions = [];
+      const addSegment = (x0, z0, x1, z1) => {
+        const wx0 = (x0 - MAP_SIZE / 2) * TILE;
+        const wz0 = (z0 - MAP_SIZE / 2) * TILE;
+        const wx1 = (x1 - MAP_SIZE / 2) * TILE;
+        const wz1 = (z1 - MAP_SIZE / 2) * TILE;
+        positions.push(wx0, cornerSurfaceHeight(x0, z0) + .012, wz0, wx1, cornerSurfaceHeight(x1, z1) + .012, wz1);
+      };
+      for (let z = 0; z <= MAP_SIZE; z += 1) for (let x = 0; x < MAP_SIZE; x += 1) addSegment(x, z, x + 1, z);
+      for (let x = 0; x <= MAP_SIZE; x += 1) for (let z = 0; z < MAP_SIZE; z += 1) addSegment(x, z, x, z + 1);
+      const geometry = new THREE.BufferGeometry();
+      geometry.setAttribute("position", new THREE.Float32BufferAttribute(positions, 3));
+      const material = new THREE.LineBasicMaterial({ color: 0x24372e, transparent: true, opacity: .065, depthWrite: false });
+      dynamicResources.push(geometry, material);
+      const grid = new THREE.LineSegments(geometry, material);
+      grid.renderOrder = 3;
+      terrainRoot.add(grid);
+    }
+
     function createTerrain() {
       const buckets = { grass: [], soil: [], mountain: [], river: [], lake: [], sea: [] };
-      const dummy = new THREE.Object3D();
       for (let z = 0; z < MAP_SIZE; z += 1) {
         for (let x = 0; x < MAP_SIZE; x += 1) {
           const terrain = City.terrainAt(city.id, x, z);
+          terrainCache[z * MAP_SIZE + x] = terrain;
           buckets[terrain.type].push({ x, z, terrain });
         }
       }
-      Object.entries(buckets).forEach(([type, entries]) => {
-        if (!entries.length) return;
-        const instances = new THREE.InstancedMesh(shared.terrain, materials[type], entries.length);
-        const ids = [];
-        entries.forEach((entry, index) => {
-          const id = City.tileId(entry.x, entry.z);
-          const position = worldPosition(id);
-          const water = entry.terrain.water;
-          const height = type === "mountain" ? .22 : water ? .04 : .08 + Math.max(0, entry.terrain.height) * .08;
-          dummy.position.set(position.x, water ? -.14 : height / 2 - .05, position.z);
-          dummy.scale.set(1, height, 1);
-          dummy.rotation.set(0, 0, 0);
-          dummy.updateMatrix();
-          instances.setMatrixAt(index, dummy.matrix);
-          ids.push(id);
-          if (type === "mountain" && ((entry.x * 7 + entry.z * 13) % 31 === 0)) createMountainDetail(position.x, position.z, entry.terrain.height, id);
-          else if ((type === "grass" || type === "soil") && !city.tiles?.[id]) createNaturalDetail(position.x, position.z, id, type);
-        });
-        instances.instanceMatrix.needsUpdate = true;
-        instances.receiveShadow = !["river", "lake", "sea"].includes(type);
-        instances.userData.tileIds = ids;
-        instances.userData.terrainType = type;
-        terrainRoot.add(instances);
-        terrainTargets.push(instances);
+      calculateMountainDepth();
+      Object.entries(buckets).forEach(([type, entries]) => createTerrainSurface(type, entries));
+      createTerrainGrid();
+    }
+
+    function calculateMountainDepth() {
+      const size = MAP_SIZE * MAP_SIZE;
+      const distances = new Int16Array(size);
+      distances.fill(-1);
+      const queue = new Int32Array(size);
+      let head = 0;
+      let tail = 0;
+      terrainCache.forEach((terrain, index) => {
+        if (terrain?.type === "mountain") return;
+        distances[index] = 0;
+        queue[tail++] = index;
       });
+      while (head < tail) {
+        const index = queue[head++];
+        const x = index % MAP_SIZE;
+        const z = Math.floor(index / MAP_SIZE);
+        const nextDistance = distances[index] + 1;
+        [[x - 1, z], [x + 1, z], [x, z - 1], [x, z + 1]].forEach(([nx, nz]) => {
+          if (nx < 0 || nz < 0 || nx >= MAP_SIZE || nz >= MAP_SIZE) return;
+          const nextIndex = nz * MAP_SIZE + nx;
+          if (distances[nextIndex] !== -1) return;
+          distances[nextIndex] = nextDistance;
+          queue[tail++] = nextIndex;
+        });
+      }
+      mountainDepth = distances;
     }
 
     function hashText(value) {
@@ -259,23 +420,24 @@
       return hash >>> 0;
     }
 
-    function createMountainDetail(x, z, height, seed) {
+    function createMountainDetail(x, z, surfaceY, seed) {
       const hash = hashText(`${city.id}-${seed}`);
-      const scale = .5 + (hash % 100) / 180 + Math.max(0, height) * .18;
-      const peak = mesh(shared.mountain, materials.mountain, [x, .18 + scale * .48, z], [scale, scale, scale], natureRoot);
+      const scale = .32 + (hash % 100) / 260;
+      const peak = mesh(shared.mountain, materials.mountain, [x, surfaceY + scale * .22, z], [scale * 1.2, scale * .62, scale], natureRoot);
       peak.rotation.y = (hash % 628) / 100;
+      peak.rotation.z = ((hash >>> 3) % 15 - 7) * .012;
       peak.castShadow = false;
     }
 
-    function createNaturalDetail(x, z, seed, type) {
+    function createNaturalDetail(x, z, seed, type, surfaceY) {
       const hash = hashText(`${city.id}-${seed}`);
-      if (hash % 211 === 0) addTree(natureRoot, x - .16, z + .12, .58 + (hash % 17) / 80, hash % 2);
+      if (hash % 211 === 0) addTree(natureRoot, x - .16, z + .12, .58 + (hash % 17) / 80, hash % 2, surfaceY);
       else if (hash % 149 === 0) {
-        const rock = mesh(shared.sphere, type === "soil" ? materials.mountain : materials.concrete, [x + .16, .06, z - .18], [.11, .07, .09], natureRoot);
+        const rock = mesh(shared.mountain, type === "soil" ? materials.mountain : materials.concrete, [x + .16, surfaceY + .045, z - .18], [.12, .08, .1], natureRoot);
         rock.rotation.y = hash * .001;
         rock.castShadow = false;
       } else if (hash % 97 === 0) {
-        const grass = mesh(shared.cone, materials.grassDetail, [x - .16, .06, z + .16], [.055, .11, .055], natureRoot);
+        const grass = mesh(shared.cone, materials.grassDetail, [x - .16, surfaceY + .055, z + .16], [.055, .11, .055], natureRoot);
         grass.rotation.z = .12;
         grass.castShadow = false;
       }
@@ -284,7 +446,8 @@
     function createRoad(tile, definition) {
       const position = worldPosition(tile.id);
       const terrain = City.terrainAt(city.id, City.parseTileId(tile.id).x, City.parseTileId(tile.id).z);
-      const y = definition.bridge ? .2 : .055;
+      const surfaceY = tileSurfaceHeight(tile.id);
+      const y = definition.bridge ? Math.max(.2, surfaceY + .16) : surfaceY + .04;
       const road = mesh(shared.road, materials.road, [position.x, y, position.z], [1, definition.bridge ? 1.7 : 1, 1], terrainRoot);
       road.userData.tileId = tile.id;
       const links = City.neighbors(tile.id).filter((id) => City.isRoadTile(city.tiles?.[id]));
@@ -299,9 +462,11 @@
         [-.27, .27].forEach((offset) => mesh(shared.cube, materials.sidewalk, [position.x + offset, y + .045, position.z], [.09, .07, TILE], terrainRoot));
         [-.25, .25].forEach((offset) => mesh(shared.lane, materials.lane, [position.x, y + .04, position.z + offset], [1, 1, 1], terrainRoot));
       }
-      if (definition.id === "avenue") addTree(terrainRoot, position.x + .31, position.z + .31, .38, point.x % 2);
+      if (definition.id === "avenue") addTree(terrainRoot, position.x + .31, position.z + .31, .38, point.x % 2, surfaceY);
       if (terrain.water && definition.bridge) {
-        [-.3, .3].forEach((offset) => mesh(shared.cylinder12, materials.concrete, [position.x + offset, -.02, position.z], [.05, .42, .05], terrainRoot));
+        const waterY = terrainCenterHeight(terrain, point.x, point.z);
+        const pillarHeight = Math.max(.2, y - waterY + .08);
+        [-.3, .3].forEach((offset) => mesh(shared.cylinder12, materials.concrete, [position.x + offset, waterY + pillarHeight / 2, position.z], [.05, pillarHeight, .05], terrainRoot));
       }
     }
 
@@ -309,7 +474,7 @@
       if (!definition) return;
       const position = worldPosition(tile.id);
       const group = new THREE.Group();
-      group.position.set(position.x, .07, position.z);
+      group.position.set(position.x, tileSurfaceHeight(tile.id) + .035, position.z);
       group.userData.tileId = tile.id;
       buildingRoot.add(group);
       const level = Math.max(1, Math.min(3, Number(tile.level) || 1));
@@ -389,11 +554,11 @@
       } else if (variant % 3 === 1) mesh(shared.cube, materials.civic, [0, .16, 0], [.34, .04, .12], group);
     }
 
-    function addTree(group, x, z, scale, variant) {
-      mesh(shared.cylinder12, materials.treeTrunk, [x, .19 * scale, z], [.045 * scale, .38 * scale, .045 * scale], group);
+    function addTree(group, x, z, scale, variant, baseY = 0) {
+      mesh(shared.cylinder12, materials.treeTrunk, [x, baseY + .19 * scale, z], [.045 * scale, .38 * scale, .045 * scale], group);
       const leaf = variant ? materials.treeLeafLight : materials.treeLeaf;
       [[0, .47, 0, .24], [-.12, .4, .03, .19], [.12, .42, -.02, .2]].forEach(([dx, y, dz, size], index) => {
-        const crown = mesh(shared.treeCrown, leaf, [x + dx * scale, y * scale, z + dz * scale], [size * scale, size * 1.18 * scale, size * scale], group);
+        const crown = mesh(shared.treeCrown, leaf, [x + dx * scale, baseY + y * scale, z + dz * scale], [size * scale, size * 1.18 * scale, size * scale], group);
         crown.rotation.y = x * 3 + index;
         crown.castShadow = scale > .5;
       });
@@ -463,7 +628,7 @@
       roads.slice(0, 28).forEach((tile, index) => {
         const position = worldPosition(tile.id);
         const car = createVehicle(index);
-        car.position.set(position.x + ((index % 3) - 1) * .12, .1, position.z + (index % 2 ? .1 : -.1));
+        car.position.set(position.x + ((index % 3) - 1) * .12, tileSurfaceHeight(tile.id) + .085, position.z + (index % 2 ? .1 : -.1));
         trafficRoot.add(car);
         animated.push({ object: car, type: "car", origin: car.position.clone(), axis: index % 2, phase: index * .7 });
       });
@@ -496,13 +661,12 @@
       while (selectionResources.length) selectionResources.pop()?.dispose?.();
       if (!selectedId) return;
       const position = worldPosition(selectedId);
-      const terrain = City.terrainAt(city?.id, City.parseTileId(selectedId).x, City.parseTileId(selectedId).z);
       const color = buildMode ? 0x55e2ff : 0xffd45d;
       const selectionMaterial = new THREE.MeshBasicMaterial({ color, transparent: true, opacity: .9, blending: THREE.AdditiveBlending, side: THREE.DoubleSide, depthWrite: false });
       const beaconMaterial = new THREE.MeshBasicMaterial({ color, transparent: true, opacity: .13, depthWrite: false, blending: THREE.AdditiveBlending, side: THREE.DoubleSide });
       selectionResources.push(selectionMaterial, beaconMaterial);
       const ring = new THREE.Mesh(shared.selection, selectionMaterial);
-      ring.position.set(position.x, Math.max(.16, terrain.height * .05 + .16), position.z);
+      ring.position.set(position.x, tileSurfaceHeight(selectedId) + .08, position.z);
       ring.rotation.x = -Math.PI / 2;
       ring.rotation.z = Math.PI / 4;
       selectionRoot.add(ring);
@@ -568,7 +732,7 @@
       pointer.y = -((event.clientY - rect.top) / rect.height) * 2 + 1;
       raycaster.setFromCamera(pointer, camera);
       const hit = raycaster.intersectObjects(terrainTargets, false)[0];
-      const id = hit?.object?.userData?.tileIds?.[hit.instanceId];
+      const id = hit?.object?.userData?.faceTileIds?.[hit.faceIndex];
       if (!id) return;
       selectedId = id;
       updateSelection();

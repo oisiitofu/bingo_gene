@@ -17,9 +17,9 @@ test("online lobby boot bypasses stale browser modules and retries once", () => 
   const html = readFileSync(new URL("../index.html", import.meta.url), "utf8");
   const serviceWorker = readFileSync(new URL("../sw.js", import.meta.url), "utf8");
 
-  assert.match(html, /online-room\.js\?v=20260831-bingo-city-simple-133/);
+  assert.match(html, /online-room\.js\?v=20260831-bingo-city-terrain-134/);
   assert.match(html, /retry=\$\{Date\.now\(\)\}/);
-  assert.match(serviceWorker, /20260831-bingo-city-simple-133/);
+  assert.match(serviceWorker, /20260831-bingo-city-terrain-134/);
 });
 
 test("one-bingo audio, Likecy skill timing, and reach badge rules stay aligned", () => {
@@ -309,6 +309,7 @@ test("BINGO CITY is connected to the shared client, worker tick, rules, and offl
   const worker = readFileSync(new URL("../worker/territory-worker.mjs", import.meta.url), "utf8");
   const cityMode = readFileSync(new URL("../city-mode.js", import.meta.url), "utf8");
   const citySystem = readFileSync(new URL("../city-system.js", import.meta.url), "utf8");
+  const cityMap = readFileSync(new URL("../city-map-3d.js", import.meta.url), "utf8");
   const rules = JSON.parse(readFileSync(new URL("../firebase-database.rules.json", import.meta.url), "utf8"));
 
   assert.match(html, /id="cityModeButton"/);
@@ -321,9 +322,13 @@ test("BINGO CITY is connected to the shared client, worker tick, rules, and offl
   assert.doesNotMatch(cityMode, /city\.resources\.hype|city-resource hype/);
   assert.doesNotMatch(citySystem, /resources: \{[^}]*hype|return \{[^}]*hype/);
   assert.match(citySystem, /delete city\.resources\.hype/);
-  assert.match(html, /src="city-system\.js\?v=20260831-bingo-city-simple-133"/);
-  assert.match(html, /src="city-map-3d\.js\?v=20260831-bingo-city-simple-133"/);
-  assert.match(html, /src="city-mode\.js\?v=20260831-bingo-city-simple-133"/);
+  assert.match(cityMap, /function createTerrainSurface/);
+  assert.match(cityMap, /function createTerrainGrid/);
+  assert.match(cityMap, /cornerSurfaceNormal/);
+  assert.doesNotMatch(cityMap, /InstancedMesh\(shared\.terrain|BoxGeometry\(TILE \* \.96/);
+  assert.match(html, /src="city-system\.js\?v=20260831-bingo-city-terrain-134"/);
+  assert.match(html, /src="city-map-3d\.js\?v=20260831-bingo-city-terrain-134"/);
+  assert.match(html, /src="city-mode\.js\?v=20260831-bingo-city-terrain-134"/);
   assert.match(html, /searchParams\.set\("city", "1"\)/);
   assert.match(online, /subscribeCity\(\)/);
   assert.match(online, /applyCityCommand\(command = \{\}\)/);
@@ -331,7 +336,7 @@ test("BINGO CITY is connected to the shared client, worker tick, rules, and offl
   assert.match(worker, /advanceCitiesWithToken/);
   assert.match(worker, /context\.waitUntil\(advanceCities\(env\)\)/);
   assert.ok(rules.rules.teamBingoV1.cities.current, "Firebase city rules are missing");
-  assert.match(serviceWorker, /\.\/city-system\.js\?v=20260831-bingo-city-simple-133/);
+  assert.match(serviceWorker, /\.\/city-system\.js\?v=20260831-bingo-city-terrain-134/);
   assert.doesNotMatch(serviceWorker, /SHELL_FILES = \[[\s\S]*?images\/city\/textures/);
 });
 
