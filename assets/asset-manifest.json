@@ -1,11 +1,11 @@
 {
   "version": 1,
-  "generatedAt": "2026-08-30T02:52:07.403Z",
+  "generatedAt": "2026-08-30T14:27:03.977Z",
   "totals": {
-    "all": 877,
-    "images": 714,
+    "all": 882,
+    "images": 719,
     "audio": 163,
-    "bytes": 663294447
+    "bytes": 653199702
   },
   "assets": [
     {
@@ -1512,37 +1512,67 @@
       "path": "images/city/textures/facade-civic.png",
       "type": "image",
       "category": "images/city/textures",
-      "bytes": 2422581
+      "bytes": 397174
     },
     {
       "path": "images/city/textures/facade-commercial.png",
       "type": "image",
       "category": "images/city/textures",
-      "bytes": 2013501
+      "bytes": 396115
     },
     {
       "path": "images/city/textures/facade-industrial.png",
       "type": "image",
       "category": "images/city/textures",
-      "bytes": 2201660
+      "bytes": 424254
     },
     {
       "path": "images/city/textures/facade-residential.png",
       "type": "image",
       "category": "images/city/textures",
-      "bytes": 2151423
+      "bytes": 409494
+    },
+    {
+      "path": "images/city/textures/foliage-canopy.png",
+      "type": "image",
+      "category": "images/city/textures",
+      "bytes": 717131
     },
     {
       "path": "images/city/textures/ground-grass-soil.png",
       "type": "image",
       "category": "images/city/textures",
-      "bytes": 3737407
+      "bytes": 720399
     },
     {
       "path": "images/city/textures/road-asphalt.png",
       "type": "image",
       "category": "images/city/textures",
-      "bytes": 3735163
+      "bytes": 641774
+    },
+    {
+      "path": "images/city/textures/terrain-mountain-rock.png",
+      "type": "image",
+      "category": "images/city/textures",
+      "bytes": 707278
+    },
+    {
+      "path": "images/city/textures/terrain-soil.png",
+      "type": "image",
+      "category": "images/city/textures",
+      "bytes": 700541
+    },
+    {
+      "path": "images/city/textures/terrain-water.png",
+      "type": "image",
+      "category": "images/city/textures",
+      "bytes": 591226
+    },
+    {
+      "path": "images/city/textures/vehicle-metallic.png",
+      "type": "image",
+      "category": "images/city/textures",
+      "bytes": 461604
     },
     {
       "path": "images/monster-battle/arena.png",

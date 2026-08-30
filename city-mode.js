@@ -8,6 +8,7 @@
   let activePlayerId = "tofu";
   let selectedTileId = "";
   let buildMode = "";
+  let buildCategory = "transport";
   let options = {};
   let busy = false;
   let noticeTimer = 0;
@@ -31,7 +32,8 @@
           </div>
           <div class="city-city-tabs" data-city-tabs></div>
           <div class="city-head-actions">
-            <button type="button" class="city-simple-button" data-city-reset-view>全景</button>
+            <button type="button" class="city-simple-button" data-city-focus-center>中心街</button>
+            <button type="button" class="city-simple-button" data-city-reset-view>全域</button>
             <button type="button" class="city-simple-button" data-city-close>CLOSE</button>
           </div>
         </header>
@@ -47,6 +49,7 @@
         <div class="city-layout">
           <aside class="city-tool-panel">
             <div class="city-panel-heading"><span>DEVELOP</span><strong>建設メニュー</strong></div>
+            <div class="city-build-categories" data-city-build-categories></div>
             <div class="city-build-list" data-city-build-list></div>
             <div class="city-tool-help">建設する施設を選び、3Dマップ上の区画を押してください。</div>
           </aside>
@@ -90,9 +93,16 @@
       renderSelection();
       return;
     }
+    const categoryButton = event.target.closest("[data-city-category]");
+    if (categoryButton) {
+      buildCategory = categoryButton.dataset.cityCategory;
+      renderBuildMenu();
+      return;
+    }
     if (event.target.closest("[data-city-upgrade]")) submitCommand("upgrade");
     if (event.target.closest("[data-city-demolish]")) submitCommand("demolish");
-    if (event.target.closest("[data-city-reset-view]")) map3d?.focusTile("7,7");
+    if (event.target.closest("[data-city-focus-center]")) map3d?.focusTile(City.tileId(City.CITY_CENTER, City.CITY_CENTER));
+    if (event.target.closest("[data-city-reset-view]")) map3d?.focusTile(City.tileId(City.CITY_CENTER, City.CITY_CENTER), true);
     if (event.target.closest("[data-city-close]")) close();
   }
 
@@ -127,12 +137,20 @@
   function renderBuildMenu() {
     const city = activeCity();
     const host = root.querySelector("[data-city-build-list]");
+    const categories = [
+      ["transport", "道路"], ["residential", "住宅"], ["commercial", "商業"],
+      ["industrial", "工業"], ["public", "公共"], ["infrastructure", "都市基盤"], ["landmark", "ランドマーク"]
+    ];
+    root.querySelector("[data-city-build-categories]").innerHTML = categories.map(([id, label]) => {
+      const count = Object.values(City.BUILDINGS).filter((building) => building.id !== "civic" && building.category === id).length;
+      return `<button type="button" class="city-category-button ${buildCategory === id ? "active" : ""}" data-city-category="${id}"><span>${label}</span><b>${count}</b></button>`;
+    }).join("");
     host.innerHTML = Object.values(City.BUILDINGS)
-      .filter((building) => building.id !== "civic" && city?.unlocks?.[building.id])
+      .filter((building) => building.id !== "civic" && building.category === buildCategory && city?.unlocks?.[building.id])
       .map((building) => {
         const affordable = city.resources.money >= building.cost && city.resources.materials >= building.materials;
         return `<button type="button" class="city-build-button ${buildMode === building.id ? "active" : ""}" data-city-build="${building.id}" ${busy || !affordable ? "disabled" : ""}>
-          <span class="city-build-icon ${building.id}" aria-hidden="true"></span>
+          <span class="city-build-icon ${building.model || building.id}" aria-hidden="true"></span>
           <span class="city-build-copy"><strong>${escapeHtml(building.name)}</strong><small>¥${formatNumber(building.cost)} / 資材 ${building.materials}</small></span>
         </button>`;
       }).join("");
@@ -174,8 +192,10 @@
       return;
     }
     const tile = city?.tiles?.[selectedTileId];
+    const point = City.parseTileId(selectedTileId);
+    const terrain = City.terrainAt(city?.id, point.x, point.z);
     if (!tile) {
-      host.innerHTML = `<div class="city-panel-heading"><span>EMPTY PLOT</span><strong>区画 ${escapeHtml(selectedTileId)}</strong></div><p>建設可能な空き区画です。</p>`;
+      host.innerHTML = `<div class="city-panel-heading"><span>${terrain.buildable ? "EMPTY PLOT" : "NATURAL AREA"}</span><strong>${escapeHtml(City.TERRAIN[terrain.type]?.name || terrain.type)} ${escapeHtml(selectedTileId)}</strong></div><p>${terrain.buildable ? "道路を接続すると建設できる空き区画です。" : "自然地形です。川と湖には橋を建設できます。"}</p>`;
       return;
     }
     const building = City.BUILDINGS[tile.buildingId];
@@ -273,17 +293,18 @@
 
   function applySnapshot(snapshot) {
     if (!snapshot) return;
-    state = City.clone(snapshot);
+    state = City.normalizeState(snapshot, Date.now());
     if (root && !root.hidden) render();
   }
 
   function open(nextOptions = {}) {
     ensureRoot();
     options = nextOptions;
-    state = City.clone(nextOptions.state || City.createInitialState(Date.now()));
+    state = City.normalizeState(nextOptions.state || City.createInitialState(Date.now()), Date.now());
     activePlayerId = nextOptions.playerId && state.players?.[nextOptions.playerId] ? nextOptions.playerId : activePlayerId;
     selectedTileId = "";
     buildMode = "";
+    buildCategory = "transport";
     root.hidden = false;
     root.classList.add("show");
     document.body.classList.add("city-mode-open");

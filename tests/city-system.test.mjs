@@ -7,9 +7,13 @@ const City = globalThis.TeamBingoCitySystem;
 test("creates six persistent player cities with starter infrastructure", () => {
   const state = City.createInitialState(1_000_000);
   assert.equal(state.version, 1);
+  assert.equal(City.GRID_SIZE, 160);
+  assert.ok(City.GRID_SIZE * City.GRID_SIZE >= 16 * 16 * 100);
+  assert.ok(Object.keys(City.BUILDINGS).length >= 90);
   assert.equal(Object.keys(state.players).length, 6);
   Object.values(state.players).forEach((city) => {
-    assert.ok(city.tiles["6,6"]);
+    assert.ok(city.tiles[City.tileId(City.CITY_CENTER - 1, City.CITY_CENTER - 1)]);
+    assert.equal(city.mapSchema, City.MAP_SCHEMA);
     assert.ok(city.metrics.population > 0);
     assert.ok(city.metrics.capacity >= 360);
     assert.ok(city.metrics.powerSupply >= city.metrics.powerDemand);
@@ -18,21 +22,30 @@ test("creates six persistent player cities with starter infrastructure", () => {
 
 test("build commands require road access and are idempotent", () => {
   const initial = City.createInitialState(1_000_000);
+  const farPlot = (() => {
+    for (let z = 20; z < 45; z += 1) {
+      for (let x = 20; x < 45; x += 1) {
+        if (City.terrainAt("tofu", x, z).buildable) return City.tileId(x, z);
+      }
+    }
+    return "30,30";
+  })();
   const rejected = City.applyCommand(initial, {
-    id: "far-build", type: "build", playerId: "tofu", tileId: "0,0", buildingId: "residential"
+    id: "far-build", type: "build", playerId: "tofu", tileId: farPlot, buildingId: "residential"
   }, 1_000_100);
   assert.equal(rejected.applied, false);
   assert.match(rejected.error, /道路/);
 
+  const validPlot = City.tileId(City.CITY_CENTER - 1, City.CITY_CENTER - 2);
   const result = City.applyCommand(initial, {
-    id: "valid-build", type: "build", playerId: "tofu", tileId: "6,9", buildingId: "residential"
+    id: "valid-build", type: "build", playerId: "tofu", tileId: validPlot, buildingId: "residential"
   }, 1_000_100);
   assert.equal(result.applied, true);
-  assert.equal(result.state.players.tofu.tiles["6,9"].buildingId, "residential");
+  assert.equal(result.state.players.tofu.tiles[validPlot].buildingId, "residential");
   assert.ok(result.state.players.tofu.resources.money < initial.players.tofu.resources.money);
 
   const duplicate = City.applyCommand(result.state, {
-    id: "valid-build", type: "build", playerId: "tofu", tileId: "6,10", buildingId: "residential"
+    id: "valid-build", type: "build", playerId: "tofu", tileId: City.tileId(City.CITY_CENTER - 1, City.CITY_CENTER - 3), buildingId: "residential"
   }, 1_000_200);
   assert.equal(duplicate.applied, false);
   assert.equal(duplicate.duplicate, true);
@@ -51,7 +64,8 @@ test("match rewards only apply once and ignore non-fixed players", () => {
   const first = City.applyMatchReward(initial, payload, 1_000_100);
   assert.equal(first.applied, true);
   assert.deepEqual(Object.keys(first.rewards), ["tofu"]);
-  assert.ok(first.state.players.tofu.resources.money > initial.players.tofu.resources.money);
+  assert.equal(first.rewards.tofu.money, 3000);
+  assert.ok(first.state.players.tofu.autoDevelopment.placed > 0);
   assert.equal(first.state.players.tofu.resources.blueprints, 1);
 
   const second = City.applyMatchReward(first.state, payload, 1_000_200);
@@ -75,4 +89,50 @@ test("standings include all six cities", () => {
   const standings = City.standings(state);
   assert.equal(standings.length, 6);
   assert.ok(standings.every((entry) => entry.cityName && Number.isFinite(entry.cityScore)));
+});
+
+test("all six cities generate distinct broad terrain with land, water, and mountains", () => {
+  const signatures = new Set();
+  City.PLAYERS.forEach((player) => {
+    const counts = { grass: 0, soil: 0, mountain: 0, river: 0, lake: 0, sea: 0 };
+    for (let z = 0; z < City.GRID_SIZE; z += 4) {
+      for (let x = 0; x < City.GRID_SIZE; x += 4) counts[City.terrainAt(player.id, x, z).type] += 1;
+    }
+    assert.ok(counts.grass + counts.soil > 300, `${player.id} has too little buildable land`);
+    assert.ok(counts.mountain + counts.river + counts.lake + counts.sea > 0, `${player.id} has no natural terrain`);
+    signatures.add(JSON.stringify(counts));
+  });
+  assert.equal(signatures.size, City.PLAYERS.length);
+});
+
+test("legacy 16x16 cities migrate into the center without losing buildings or resources", () => {
+  const current = City.createInitialState(1_000_000);
+  const shift = City.CITY_CENTER - 8;
+  current.mapSchema = 1;
+  Object.values(current.players).forEach((city) => {
+    city.mapSchema = 1;
+    city.resources.money = 54321;
+    city.tiles = Object.fromEntries(Object.values(city.tiles).map((tile) => {
+      const point = City.parseTileId(tile.id);
+      const id = City.tileId(point.x - shift, point.z - shift);
+      return [id, { ...tile, id }];
+    }));
+  });
+  const normalized = City.normalizeState(current, 1_000_100);
+  assert.equal(normalized.mapSchema, City.MAP_SCHEMA);
+  assert.equal(normalized.players.tofu.resources.money, 54321);
+  assert.ok(normalized.players.tofu.tiles[City.tileId(City.CITY_CENTER - 1, City.CITY_CENTER - 1)]);
+});
+
+test("automatic development spends only surplus money above ten thousand", () => {
+  const state = City.createInitialState(1_000_000);
+  const city = state.players.tofu;
+  city.resources.money = 18000;
+  city.resources.materials = 2000;
+  const before = Object.keys(city.tiles).length;
+  const placed = City.autoDevelopCity(city, 1_000_100, 12);
+  assert.ok(placed > 0);
+  assert.equal(Object.keys(city.tiles).length, before + placed);
+  assert.ok(city.resources.money >= City.AUTO_BUILD_THRESHOLD);
+  assert.ok(city.resources.money < 18000);
 });

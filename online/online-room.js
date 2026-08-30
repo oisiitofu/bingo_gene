@@ -808,6 +808,7 @@ export class OnlineCoordinator {
     this.territoryArchive = {};
     this.cityState = null;
     this.cityInitPromise = null;
+    this.cityAutoDevelopmentPromise = null;
     this.globalProcessedActions = new Set();
     this.lastMasterLobbySyncKey = "";
     this.masterHandoverTimer = 0;
@@ -3547,10 +3548,41 @@ export class OnlineCoordinator {
       this.cityState = snapshot ? clone(snapshot) : null;
       if (snapshot) {
         this.bridge.applyCitySnapshot?.(snapshot);
+        const needsMigration = Number(snapshot.mapSchema) < Number(CITY_SYSTEM.MAP_SCHEMA);
+        const needsAutoDevelopment = Object.values(snapshot.players || {}).some((city) => (
+          city?.autoDevelopment?.enabled !== false
+          && Number(city?.resources?.money || 0) > Number(CITY_SYSTEM.AUTO_BUILD_THRESHOLD)
+        ));
+        if (needsMigration || needsAutoDevelopment) {
+          this.settleCityAutoDevelopment().catch((error) => console.warn("City auto development failed", error));
+        }
         return;
       }
       this.ensureCityState().catch((error) => console.warn("City initialization failed", error));
     });
+  }
+
+  async settleCityAutoDevelopment() {
+    if (!CITY_SYSTEM || !this.backend) return null;
+    if (this.cityAutoDevelopmentPromise) return this.cityAutoDevelopmentPromise;
+    const now = this.backend.serverNow();
+    this.cityAutoDevelopmentPromise = this.backend.transaction(this.path("cities/current"), (current) => {
+      const previousSchema = Number(current?.mapSchema) || 0;
+      const state = CITY_SYSTEM.normalizeState(current, now);
+      let placed = 0;
+      Object.values(state.players || {}).forEach((city) => { placed += CITY_SYSTEM.autoDevelopCity(city, now, 12); });
+      if (!placed && previousSchema >= Number(CITY_SYSTEM.MAP_SCHEMA)) return undefined;
+      state.revision = (Number(state.revision) || 0) + 1;
+      state.updatedAt = Number(now);
+      return state;
+    }).then((result) => {
+      if (result.committed && result.value) {
+        this.cityState = clone(result.value);
+        this.bridge.applyCitySnapshot?.(this.cityState);
+      }
+      return this.cityState;
+    }).finally(() => { this.cityAutoDevelopmentPromise = null; });
+    return this.cityAutoDevelopmentPromise;
   }
 
   async ensureCityState() {

@@ -94,13 +94,30 @@ body.city-mode-open { overflow: hidden; }
 .city-tick { justify-self: end; min-width: 132px; padding: 6px 10px; text-align: right; border-right: 2px solid #4db9e6; background: rgba(77, 185, 230, .08); }
 .city-tick strong { display: block; margin-top: 1px; font-size: 17px; }
 
-.city-layout { min-height: 0; display: grid; grid-template-columns: 230px minmax(0, 1fr) 280px; }
+.city-layout { min-height: 0; display: grid; grid-template-columns: 250px minmax(0, 1fr) 280px; }
 .city-tool-panel, .city-info-panel { min-height: 0; overflow: auto; background: rgba(5, 14, 21, .96); scrollbar-width: thin; }
 .city-tool-panel { padding: 14px 12px; border-right: 1px solid rgba(176, 208, 225, .2); }
 .city-info-panel { padding: 12px; border-left: 1px solid rgba(176, 208, 225, .2); }
 .city-panel-heading { padding-bottom: 8px; border-bottom: 1px solid rgba(170, 202, 219, .2); }
 .city-panel-heading strong { display: block; margin-top: 2px; font-size: 15px; }
-.city-build-list { display: grid; gap: 6px; margin-top: 10px; }
+.city-build-categories { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 4px; margin-top: 9px; }
+.city-category-button {
+  min-width: 0;
+  min-height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 5px;
+  padding: 0 8px;
+  border: 1px solid #314753;
+  color: #aabcc5;
+  background: #091720;
+  font: 800 9px/1 inherit;
+  cursor: pointer;
+}
+.city-category-button b { color: #6f8997; font-size: 8px; }
+.city-category-button.active { border-color: #54c8ee; color: #fff; background: #103449; box-shadow: inset 2px 0 #54c8ee; }
+.city-build-list { display: grid; gap: 6px; margin-top: 8px; }
 .city-build-button {
   min-height: 54px;
   display: grid;
@@ -130,6 +147,8 @@ body.city-mode-open { overflow: hidden; }
 .city-build-icon.power::before { inset: 5px 10px; transform: skew(-12deg); background: #55cce8; box-shadow: 0 0 10px #55cce8; }
 .city-build-icon.water::before { width: 16px; height: 22px; left: 7px; top: 5px; border-radius: 60% 60% 65% 65%; background: #3aaad3; }
 .city-build-icon.arena::before { inset: 7px 3px; border: 5px solid #d3be79; border-radius: 50%; }
+.city-build-icon.civic::before { inset: 8px 4px 4px; border: 2px solid #d6c89b; background: repeating-linear-gradient(90deg, #e9e1c7 0 3px, #66747b 3px 5px); }
+.city-build-icon.civic::after { left: 5px; right: 5px; top: 4px; height: 6px; clip-path: polygon(50% 0, 100% 100%, 0 100%); background: #d9b452; }
 .city-tool-help { margin-top: 12px; color: #78909d; font-size: 10px; line-height: 1.55; }
 
 .city-map-panel { position: relative; min-width: 0; min-height: 0; overflow: hidden; background: #9ebfd3; }

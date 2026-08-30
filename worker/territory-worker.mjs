@@ -381,7 +381,7 @@ export async function advanceCitiesWithToken(env, token, now = Date.now()) {
   for (let attempt = 0; attempt < 6; attempt += 1) {
     const current = await readDatabase(env, currentPath, token, true);
     const advanced = City.advanceState(current.value, now, { maxTicks: 144 });
-    const requiresWrite = !current.value || Number(current.value?.version) !== City.VERSION || advanced.processed > 0;
+    const requiresWrite = !current.value || Number(current.value?.version) !== City.VERSION || advanced.migrated || advanced.processed > 0;
     if (!requiresWrite) {
       return {
         ok: true,
