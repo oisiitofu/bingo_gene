@@ -239,7 +239,7 @@
     const city = {
       id: player.id, name: player.cityName, ownerName: player.name, color: player.color, accent: player.accent,
       terrainPreset: player.terrainPreset, mapSchema: MAP_SCHEMA, level: 1,
-      resources: { money: 12000, materials: 160, research: 0, blueprints: 0 },
+      resources: { money: AUTO_BUILD_THRESHOLD, materials: 160, research: 0, blueprints: 0 },
       metrics: emptyMetrics(), economy: { taxRate: 10, lastIncome: 0, lastExpense: 0, balance: 0 },
       autoDevelopment: { enabled: true, threshold: AUTO_BUILD_THRESHOLD, placed: 0, cursor: 0 },
       tiles: initialTiles(), unlocks: allUnlocks(), inbox: {}, history: {}, createdAt: now, updatedAt: now

@@ -12,6 +12,7 @@ test("creates six persistent player cities with starter infrastructure", () => {
   assert.ok(Object.keys(City.BUILDINGS).length >= 90);
   assert.equal(Object.keys(state.players).length, 6);
   Object.values(state.players).forEach((city) => {
+    assert.equal(city.resources.money, City.AUTO_BUILD_THRESHOLD);
     assert.ok(city.tiles[City.tileId(City.CITY_CENTER - 1, City.CITY_CENTER - 1)]);
     assert.equal(city.mapSchema, City.MAP_SCHEMA);
     assert.ok(city.metrics.population > 0);
