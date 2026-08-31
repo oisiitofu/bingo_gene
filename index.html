@@ -6,7 +6,7 @@
   <title>TEAM BINGO CHAMPIONSHIP</title>
   <link rel="stylesheet" href="online/online-room.css" />
   <link rel="stylesheet" href="territory-mode.css" />
-  <link rel="stylesheet" href="city-mode.css?v=20260831-bingo-city-terrain-134" />
+  <link rel="stylesheet" href="city-mode.css?v=20260831-bingo-city-blend-135" />
   <link rel="stylesheet" href="monster-page.css" />
   <link rel="stylesheet" href="world-tournament.css" />
   <script src="online/firebase-config.js"></script>
@@ -448,6 +448,12 @@
       min-width: 0;
       min-height: 40px;
       padding: 9px 10px;
+    }
+
+    #cityModeButton,
+    #playCityModeButton {
+      padding-inline: 5px;
+      font-size: 10px;
     }
 
     .setup-top-bar .volume-control {
@@ -8623,12 +8629,12 @@
   <script src="monster-pose-bounds.js"></script>
   <script src="territory-equipment.js"></script>
   <script src="territory-system.js"></script>
-  <script src="city-system.js?v=20260831-bingo-city-terrain-134"></script>
+  <script src="city-system.js?v=20260831-bingo-city-blend-135"></script>
   <script src="vendor/three/three.min.js"></script>
   <script src="territory-map-3d.js"></script>
   <script src="territory-mode.js"></script>
-  <script src="city-map-3d.js?v=20260831-bingo-city-terrain-134"></script>
-  <script src="city-mode.js?v=20260831-bingo-city-terrain-134"></script>
+  <script src="city-map-3d.js?v=20260831-bingo-city-blend-135"></script>
+  <script src="city-mode.js?v=20260831-bingo-city-blend-135"></script>
   <script src="world-tournament.js"></script>
   <script>
     "use strict";
@@ -17824,7 +17830,7 @@
       if ("serviceWorker" in navigator && /^https?:$/.test(location.protocol)) {
         navigator.serviceWorker.register("./sw.js").then((registration) => registration.update()).catch((error) => console.warn("Service worker registration failed", error));
       }
-      const onlineRoomModuleUrl = "./online/online-room.js?v=20260831-bingo-city-terrain-134";
+      const onlineRoomModuleUrl = "./online/online-room.js?v=20260831-bingo-city-blend-135";
       import(onlineRoomModuleUrl)
         .catch((firstError) => import(`${onlineRoomModuleUrl}&retry=${Date.now()}`)
           .catch((retryError) => {

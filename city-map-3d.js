@@ -45,6 +45,7 @@
     let mountainDepth = [];
     let cornerHeightMemo = [];
     let cornerNormalMemo = [];
+    let cornerTerrainMixMemo = [];
     const raycaster = new THREE.Raycaster();
     const pointer = new THREE.Vector2();
     const clock = new THREE.Clock();
@@ -94,6 +95,7 @@
 
     function createMaterials() {
       return {
+        terrain: createTerrainMaterial(),
         grass: new THREE.MeshStandardMaterial({ color: 0xb9c78e, map: textures.grass, bumpMap: textures.grass, bumpScale: .02, roughness: .98 }),
         soil: new THREE.MeshStandardMaterial({ color: 0xc1a177, map: textures.soil, bumpMap: textures.soil, bumpScale: .035, roughness: 1 }),
         mountain: new THREE.MeshStandardMaterial({ color: 0xaeb4aa, map: textures.rock, bumpMap: textures.rock, bumpScale: .075, roughness: .92 }),
@@ -123,6 +125,54 @@
         headlight: new THREE.MeshStandardMaterial({ color: 0xeafaff, emissive: 0xaeeaff, emissiveIntensity: 1.7 }),
         glow: new THREE.MeshStandardMaterial({ color: 0x9feaff, emissive: 0x27b9ff, emissiveIntensity: 2.2, roughness: .2 })
       };
+    }
+
+    function createTerrainMaterial() {
+      const material = new THREE.MeshStandardMaterial({
+        color: 0xffffff,
+        map: textures.grass,
+        roughness: .88,
+        metalness: .025,
+        polygonOffset: true,
+        polygonOffsetFactor: 1,
+        polygonOffsetUnits: 1
+      });
+      material.onBeforeCompile = (shader) => {
+        shader.uniforms.terrainSoil = { value: textures.soil };
+        shader.uniforms.terrainRock = { value: textures.rock };
+        shader.uniforms.terrainWater = { value: textures.water };
+        shader.uniforms.terrainTime = { value: 0 };
+        shader.vertexShader = shader.vertexShader
+          .replace("#include <common>", "#include <common>\nattribute vec4 terrainMix;\nvarying vec4 vTerrainMix;")
+          .replace("#include <uv_vertex>", "#include <uv_vertex>\nvTerrainMix = terrainMix;");
+        shader.fragmentShader = shader.fragmentShader
+          .replace("#include <common>", "#include <common>\nuniform sampler2D terrainSoil;\nuniform sampler2D terrainRock;\nuniform sampler2D terrainWater;\nuniform float terrainTime;\nvarying vec4 vTerrainMix;")
+          .replace("#include <map_fragment>", `
+#ifdef USE_MAP
+  vec4 terrainWeights = max(vTerrainMix, vec4(0.0));
+  terrainWeights /= max(0.0001, dot(terrainWeights, vec4(1.0)));
+  vec2 terrainUv = vMapUv;
+  vec4 grassTexel = texture2D(map, terrainUv);
+  vec4 soilTexel = texture2D(terrainSoil, terrainUv * 1.08 + vec2(0.17, 0.09));
+  vec4 rockTexel = texture2D(terrainRock, terrainUv * 0.92 + vec2(0.31, 0.24));
+  vec2 waterUv = terrainUv * 1.16 + vec2(terrainTime * 0.004, terrainTime * 0.002);
+  vec4 waterTexel = texture2D(terrainWater, waterUv);
+  grassTexel.rgb *= vec3(0.94, 1.02, 0.86);
+  soilTexel.rgb *= vec3(1.02, 0.92, 0.78);
+  rockTexel.rgb *= vec3(0.92, 0.96, 0.94);
+  waterTexel.rgb *= vec3(0.35, 0.88, 1.12);
+  diffuseColor *= grassTexel * terrainWeights.x
+    + soilTexel * terrainWeights.y
+    + rockTexel * terrainWeights.z
+    + waterTexel * terrainWeights.w;
+#endif
+          `)
+          .replace("#include <roughnessmap_fragment>", "#include <roughnessmap_fragment>\nroughnessFactor = mix(roughnessFactor, 0.24, smoothstep(0.35, 0.9, vTerrainMix.w));")
+          .replace("#include <metalnessmap_fragment>", "#include <metalnessmap_fragment>\nmetalnessFactor = mix(metalnessFactor, 0.08, smoothstep(0.45, 0.95, vTerrainMix.w));");
+        material.userData.shader = shader;
+      };
+      material.customProgramCacheKey = () => "bingo-city-terrain-splat-v1";
+      return material;
     }
 
     function createGeometry() {
@@ -211,6 +261,7 @@
       mountainDepth = [];
       cornerHeightMemo = [];
       cornerNormalMemo = [];
+      cornerTerrainMixMemo = [];
       if (!city) return;
       createTerrain();
       const playerColor = new THREE.Color(city.color || "#f5c84c");
@@ -247,24 +298,45 @@
     function cornerSurfaceHeight(gridX, gridZ) {
       const cacheKey = gridZ * (MAP_SIZE + 1) + gridX;
       if (cornerHeightMemo[cacheKey] !== undefined) return cornerHeightMemo[cacheKey];
-      const land = [];
-      const water = [];
-      for (let dz = -3; dz <= 2; dz += 1) {
-        for (let dx = -3; dx <= 2; dx += 1) {
+      const samples = [];
+      for (let dz = -4; dz <= 3; dz += 1) {
+        for (let dx = -4; dx <= 3; dx += 1) {
           const x = gridX + dx;
           const z = gridZ + dz;
           if (x < 0 || z < 0 || x >= MAP_SIZE || z >= MAP_SIZE) continue;
           const terrain = terrainCache[z * MAP_SIZE + x] || City.terrainAt(city.id, x, z);
           const distance = Math.hypot(x + .5 - gridX, z + .5 - gridZ);
-          const weight = 1 / (1 + distance * distance * .72);
-          (terrain.water ? water : land).push([terrainCenterHeight(terrain, x, z), weight]);
+          const weight = Math.exp(-(distance * distance) / 7.5);
+          samples.push([terrainCenterHeight(terrain, x, z), weight]);
         }
       }
-      const height = land.length
-        ? land.reduce((sum, [value, weight]) => sum + value * weight, 0) / land.reduce((sum, [, weight]) => sum + weight, 0)
-        : water.length ? Math.max(...water.map(([value]) => value)) : 0;
+      const height = samples.length
+        ? samples.reduce((sum, [value, weight]) => sum + value * weight, 0) / samples.reduce((sum, [, weight]) => sum + weight, 0)
+        : 0;
       cornerHeightMemo[cacheKey] = height;
       return height;
+    }
+
+    function terrainMixAtCorner(gridX, gridZ) {
+      const cacheKey = gridZ * (MAP_SIZE + 1) + gridX;
+      if (cornerTerrainMixMemo[cacheKey]) return cornerTerrainMixMemo[cacheKey];
+      const weights = [0, 0, 0, 0];
+      for (let dz = -4; dz <= 3; dz += 1) {
+        for (let dx = -4; dx <= 3; dx += 1) {
+          const x = gridX + dx;
+          const z = gridZ + dz;
+          if (x < 0 || z < 0 || x >= MAP_SIZE || z >= MAP_SIZE) continue;
+          const terrain = terrainAtPoint(x, z);
+          const distance = Math.hypot(x + .5 - gridX, z + .5 - gridZ);
+          const weight = Math.exp(-(distance * distance) / 6.2);
+          const channel = terrain.water ? 3 : terrain.type === "mountain" ? 2 : terrain.type === "soil" ? 1 : 0;
+          weights[channel] += weight;
+        }
+      }
+      const total = weights.reduce((sum, weight) => sum + weight, 0) || 1;
+      const normalized = weights.map((weight) => weight / total);
+      cornerTerrainMixMemo[cacheKey] = normalized;
+      return normalized;
     }
 
     function cornerSurfaceNormal(gridX, gridZ, flat = false) {
@@ -282,8 +354,6 @@
 
     function tileSurfaceHeight(id) {
       const point = City.parseTileId(id);
-      const terrain = terrainAtPoint(point.x, point.z);
-      if (terrain.water) return terrainCenterHeight(terrain, point.x, point.z);
       return (
         cornerSurfaceHeight(point.x, point.z)
         + cornerSurfaceHeight(point.x + 1, point.z)
@@ -292,17 +362,19 @@
       ) / 4;
     }
 
-    function pushTerrainVertex(positions, normals, uvs, x, y, z, u, v, normal) {
+    function pushTerrainVertex(positions, normals, uvs, terrainMixes, x, y, z, u, v, normal, terrainMix) {
       positions.push(x, y, z);
       normals.push(normal[0], normal[1], normal[2]);
       uvs.push(u, v);
+      terrainMixes.push(terrainMix[0], terrainMix[1], terrainMix[2], terrainMix[3]);
     }
 
-    function createTerrainSurface(type, entries) {
+    function createTerrainSurface(entries) {
       if (!entries.length) return;
       const positions = [];
       const normals = [];
       const uvs = [];
+      const terrainMixes = [];
       const faceTileIds = [];
       entries.forEach((entry) => {
         const id = City.tileId(entry.x, entry.z);
@@ -311,40 +383,43 @@
         const x1 = position.x + TILE / 2;
         const z0 = position.z - TILE / 2;
         const z1 = position.z + TILE / 2;
-        const flatWater = entry.terrain.water ? terrainCenterHeight(entry.terrain, entry.x, entry.z) : null;
-        const y00 = flatWater ?? cornerSurfaceHeight(entry.x, entry.z);
-        const y10 = flatWater ?? cornerSurfaceHeight(entry.x + 1, entry.z);
-        const y11 = flatWater ?? cornerSurfaceHeight(entry.x + 1, entry.z + 1);
-        const y01 = flatWater ?? cornerSurfaceHeight(entry.x, entry.z + 1);
-        const u0 = entry.x * .34;
-        const u1 = (entry.x + 1) * .34;
-        const v0 = entry.z * .34;
-        const v1 = (entry.z + 1) * .34;
-        const flat = Boolean(entry.terrain.water);
-        const n00 = cornerSurfaceNormal(entry.x, entry.z, flat);
-        const n10 = cornerSurfaceNormal(entry.x + 1, entry.z, flat);
-        const n11 = cornerSurfaceNormal(entry.x + 1, entry.z + 1, flat);
-        const n01 = cornerSurfaceNormal(entry.x, entry.z + 1, flat);
-        pushTerrainVertex(positions, normals, uvs, x0, y00, z0, u0, v0, n00);
-        pushTerrainVertex(positions, normals, uvs, x1, y11, z1, u1, v1, n11);
-        pushTerrainVertex(positions, normals, uvs, x1, y10, z0, u1, v0, n10);
-        pushTerrainVertex(positions, normals, uvs, x0, y00, z0, u0, v0, n00);
-        pushTerrainVertex(positions, normals, uvs, x0, y01, z1, u0, v1, n01);
-        pushTerrainVertex(positions, normals, uvs, x1, y11, z1, u1, v1, n11);
+        const y00 = cornerSurfaceHeight(entry.x, entry.z);
+        const y10 = cornerSurfaceHeight(entry.x + 1, entry.z);
+        const y11 = cornerSurfaceHeight(entry.x + 1, entry.z + 1);
+        const y01 = cornerSurfaceHeight(entry.x, entry.z + 1);
+        const u0 = entry.x * .23;
+        const u1 = (entry.x + 1) * .23;
+        const v0 = entry.z * .23;
+        const v1 = (entry.z + 1) * .23;
+        const n00 = cornerSurfaceNormal(entry.x, entry.z);
+        const n10 = cornerSurfaceNormal(entry.x + 1, entry.z);
+        const n11 = cornerSurfaceNormal(entry.x + 1, entry.z + 1);
+        const n01 = cornerSurfaceNormal(entry.x, entry.z + 1);
+        const m00 = terrainMixAtCorner(entry.x, entry.z);
+        const m10 = terrainMixAtCorner(entry.x + 1, entry.z);
+        const m11 = terrainMixAtCorner(entry.x + 1, entry.z + 1);
+        const m01 = terrainMixAtCorner(entry.x, entry.z + 1);
+        pushTerrainVertex(positions, normals, uvs, terrainMixes, x0, y00, z0, u0, v0, n00, m00);
+        pushTerrainVertex(positions, normals, uvs, terrainMixes, x1, y11, z1, u1, v1, n11, m11);
+        pushTerrainVertex(positions, normals, uvs, terrainMixes, x1, y10, z0, u1, v0, n10, m10);
+        pushTerrainVertex(positions, normals, uvs, terrainMixes, x0, y00, z0, u0, v0, n00, m00);
+        pushTerrainVertex(positions, normals, uvs, terrainMixes, x0, y01, z1, u0, v1, n01, m01);
+        pushTerrainVertex(positions, normals, uvs, terrainMixes, x1, y11, z1, u1, v1, n11, m11);
         faceTileIds.push(id, id);
-        if ((type === "grass" || type === "soil") && !city.tiles?.[id]) createNaturalDetail(position.x, position.z, id, type, tileSurfaceHeight(id));
+        if ((entry.terrain.type === "grass" || entry.terrain.type === "soil") && !city.tiles?.[id]) createNaturalDetail(position.x, position.z, id, entry.terrain.type, tileSurfaceHeight(id));
       });
       const geometry = new THREE.BufferGeometry();
       geometry.setAttribute("position", new THREE.Float32BufferAttribute(positions, 3));
       geometry.setAttribute("normal", new THREE.Float32BufferAttribute(normals, 3));
       geometry.setAttribute("uv", new THREE.Float32BufferAttribute(uvs, 2));
+      geometry.setAttribute("terrainMix", new THREE.Float32BufferAttribute(terrainMixes, 4));
       geometry.computeBoundingSphere();
       dynamicResources.push(geometry);
-      const surface = new THREE.Mesh(geometry, materials[type]);
-      surface.receiveShadow = !["river", "lake", "sea"].includes(type);
-      surface.castShadow = type === "mountain";
+      const surface = new THREE.Mesh(geometry, materials.terrain);
+      surface.receiveShadow = true;
+      surface.castShadow = true;
       surface.userData.faceTileIds = faceTileIds;
-      surface.userData.terrainType = type;
+      surface.userData.terrainType = "blended";
       terrainRoot.add(surface);
       terrainTargets.push(surface);
     }
@@ -370,16 +445,16 @@
     }
 
     function createTerrain() {
-      const buckets = { grass: [], soil: [], mountain: [], river: [], lake: [], sea: [] };
+      const entries = [];
       for (let z = 0; z < MAP_SIZE; z += 1) {
         for (let x = 0; x < MAP_SIZE; x += 1) {
           const terrain = City.terrainAt(city.id, x, z);
           terrainCache[z * MAP_SIZE + x] = terrain;
-          buckets[terrain.type].push({ x, z, terrain });
+          entries.push({ x, z, terrain });
         }
       }
       calculateMountainDepth();
-      Object.entries(buckets).forEach(([type, entries]) => createTerrainSurface(type, entries));
+      createTerrainSurface(entries);
       createTerrainGrid();
     }
 
@@ -758,6 +833,7 @@
       const elapsed = clock.getElapsedTime();
       textures.water.offset.x = elapsed * .004;
       textures.water.offset.y = elapsed * .002;
+      if (materials.terrain.userData.shader) materials.terrain.userData.shader.uniforms.terrainTime.value = elapsed;
       animated.forEach((item) => {
         if (item.type === "spin") item.object.rotation.z = elapsed * item.speed;
         else if (item.type === "water") item.object.scale.y = .95 + Math.sin(elapsed * 2.4) * .1;

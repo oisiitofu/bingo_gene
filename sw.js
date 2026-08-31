@@ -1,6 +1,6 @@
 "use strict";
 
-const CACHE_VERSION = "team-bingo-v1-20260831-bingo-city-terrain-134";
+const CACHE_VERSION = "team-bingo-v1-20260831-bingo-city-blend-135";
 const SHELL_CACHE = `${CACHE_VERSION}-shell`;
 const ASSET_CACHE = `${CACHE_VERSION}-assets`;
 const SHELL_FILES = [
@@ -14,10 +14,10 @@ const SHELL_FILES = [
   "./territory-map-3d.js",
   "./territory-mode.js",
   "./territory-mode.css",
-  "./city-system.js?v=20260831-bingo-city-terrain-134",
-  "./city-map-3d.js?v=20260831-bingo-city-terrain-134",
-  "./city-mode.js?v=20260831-bingo-city-terrain-134",
-  "./city-mode.css?v=20260831-bingo-city-terrain-134",
+  "./city-system.js?v=20260831-bingo-city-blend-135",
+  "./city-map-3d.js?v=20260831-bingo-city-blend-135",
+  "./city-mode.js?v=20260831-bingo-city-blend-135",
+  "./city-mode.css?v=20260831-bingo-city-blend-135",
   "./world-tournament.js",
   "./world-tournament.css",
   "./monster-page.css",
