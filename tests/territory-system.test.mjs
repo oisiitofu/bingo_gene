@@ -352,7 +352,7 @@ test("every ruler receives an invasion action on every automatic turn", () => {
   }
 });
 
-test("territory losers are unavailable for 24 hours and winners recover only 50 HP", () => {
+test("territory loser recovery follows monster rarity and winners recover only 50 HP", () => {
   const stats = createStats();
   let state = Territory.createInitialState(stats, MONDAY_JST);
   let battle = null;
@@ -367,11 +367,18 @@ test("territory losers are unavailable for 24 hours and winners recover only 50 
   assert.ok(winners.length > 0 && winners.every((entry) => entry.after > 50 && entry.after < 100));
   assert.ok(injured.length > 0);
   injured.forEach((entry) => {
-    assert.equal(state.players[entry.playerId].injuredMonsters[entry.nodeId], battle.at + Territory.INJURY_MS);
+    assert.equal(state.players[entry.playerId].injuredMonsters[entry.nodeId], battle.at + Territory.injuryDurationMs(entry.nodeId));
     assert.ok(!territoryLineupForPlayer(state, entry.playerId).some((member) => member.nodeId === entry.nodeId));
   });
   const recovered = Territory.normalizeState(state, stats, battle.at + Territory.INJURY_MS + 1);
   injured.forEach((entry) => assert.equal(recovered.players[entry.playerId].injuredMonsters[entry.nodeId], undefined));
+});
+
+test("low-rarity territory monsters recover before high-rarity monsters", () => {
+  assert.equal(Territory.injuryDurationMs("child-ember"), 60 * 60 * 1000);
+  assert.equal(Territory.injuryDurationMs("growth-flare"), 2 * 60 * 60 * 1000);
+  assert.equal(Territory.injuryDurationMs("inferno-rank6"), Territory.INJURY_MS);
+  assert.ok(Territory.injuryDurationMs("child-ember") < Territory.injuryDurationMs("inferno-ultimate-0"));
 });
 
 test("saved territory uses the current terrain distribution after normalization", () => {

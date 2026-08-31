@@ -3672,6 +3672,13 @@ export class OnlineCoordinator {
 
   async applyCityCommand(command = {}) {
     if (!CITY_SYSTEM || !this.backend) return { ok: false, error: "都市サーバーへ接続できません。" };
+    if (this.roomId) {
+      if (this.role === "spectator") return { ok: false, error: "観戦者は都市を編集できません。" };
+      const ownPlayerId = CITY_SYSTEM.PLAYERS?.find((player) => playerKey(player.name) === playerKey(this.memberName))?.id || "";
+      if (!ownPlayerId || command.playerId !== ownPlayerId) {
+        return { ok: false, error: "自分の都市だけ編集できます。" };
+      }
+    }
     let outcome = null;
     const now = this.backend.serverNow();
     const result = await this.backend.transaction(this.path("cities/current"), (current) => {

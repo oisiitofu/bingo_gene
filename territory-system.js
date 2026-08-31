@@ -14,6 +14,7 @@
   const TERRITORY_SCORE_WEIGHT = 12;
   const ACTIVITY_CATCHUP_MARGIN = 4;
   const INJURY_MS = 24 * 60 * 60 * 1000;
+  const INJURY_HOURS_BY_STAGE = Object.freeze([.5, 1, 2, 4, 8, 14, 24]);
   const EVENT_REROLL_TICKS = 6;
   const JST_OFFSET = 9 * 60 * 60 * 1000;
 
@@ -390,6 +391,14 @@
     return active;
   }
 
+  function injuryDurationMs(nodeId) {
+    const node = monsterSystem()?.NODES?.[nodeId];
+    if (!node) return INJURY_MS;
+    if (node.legendary || node.rank6) return INJURY_MS;
+    const stage = Math.max(0, Math.min(INJURY_HOURS_BY_STAGE.length - 1, Number(node.stage) || 0));
+    return Math.round(INJURY_HOURS_BY_STAGE[stage] * 60 * 60 * 1000);
+  }
+
   function normalizeMemberHealth(member) {
     const next = clone(member);
     next.hp = Math.max(0, Math.min(100, Number.isFinite(Number(next.hp)) ? Number(next.hp) : 100));
@@ -627,6 +636,13 @@
         });
       });
     });
+    return state;
+  }
+
+  function refreshRecoveredGarrisons(state, playerStats, now = Date.now()) {
+    PLAYERS.forEach((player) => activeInjuredMonsterIds(state.players[player.id], now));
+    ensureTileGarrisons(state, playerStats, now);
+    fillUnlockedGarrisonSlots(state, playerStats, now);
     return state;
   }
 
@@ -979,14 +995,15 @@
         if (!member?.nodeId || member.nodeId === "egg") return;
         const before = Number.isFinite(Number(member.hp)) ? Number(member.hp) : 100;
         member.hp = 0;
-        playerState.injuredMonsters[member.nodeId] = Number(at) + INJURY_MS;
+        const injuredUntil = Number(at) + injuryDurationMs(member.nodeId);
+        playerState.injuredMonsters[member.nodeId] = injuredUntil;
         changes.push({
           playerId: loser.playerId,
           nodeId: member.nodeId,
           result: "injured",
           before,
           after: 0,
-          injuredUntil: Number(at) + INJURY_MS
+          injuredUntil
         });
       });
     });
@@ -1240,7 +1257,7 @@
     Object.keys(byTarget).sort().forEach((targetId) => {
       resolveTarget(state, targetId, byTarget[targetId], playerStats, at, random);
     });
-    ensureTileGarrisons(state, playerStats, at);
+    refreshRecoveredGarrisons(state, playerStats, at);
     refreshAllEquipment(state, playerStats, at, true);
     awardTerritoryPoints(state);
     state.season.lastTickAt = at;
@@ -1318,11 +1335,11 @@
   }
 
   global.TeamBingoTerritorySystem = Object.freeze({
-    VERSION, MAP_RADIUS, TICK_MINUTES, TICK_MS, SEASON_DAYS, PARTY_SIZE, DEFAULT_HYPE, EVENT_REROLL_TICKS, INJURY_MS,
+    VERSION, MAP_RADIUS, TICK_MINUTES, TICK_MS, SEASON_DAYS, PARTY_SIZE, DEFAULT_HYPE, EVENT_REROLL_TICKS, INJURY_MS, INJURY_HOURS_BY_STAGE,
     TERRITORY_POINT_BASE, TERRITORY_SCORE_WEIGHT, ACTIVITY_CATCHUP_MARGIN,
     PLAYERS, PLAYER_BY_ID, TERRAINS, TERRAIN_BY_ID, TILE_EVENTS, TILE_EVENT_BY_ID,
     tileId, parseTileId, neighbors, axialDistance, seasonWindow, createMap, createInitialState, normalizeState,
-    refreshAllSquads, refreshAllEquipment, ensureTileGarrisons, advanceState, standings, territoryCounts, tileSummary,
+    refreshAllSquads, refreshAllEquipment, ensureTileGarrisons, refreshRecoveredGarrisons, injuryDurationMs, advanceState, standings, territoryCounts, tileSummary,
     combatPower, playerKey, hashText
   });
 })(typeof window !== "undefined" ? window : globalThis);

@@ -13,6 +13,14 @@
   let busy = false;
   let noticeTimer = 0;
 
+  function ownershipLocked() {
+    return Boolean(options.editablePlayerId);
+  }
+
+  function canEditActiveCity() {
+    return !ownershipLocked() || options.editablePlayerId === activePlayerId;
+  }
+
   function escapeHtml(value) {
     return String(value ?? "").replace(/[&<>'"]/g, (char) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", "'": "&#39;", '"': "&quot;" })[char]);
   }
@@ -82,11 +90,16 @@
       activePlayerId = cityButton.dataset.cityPlayer;
       selectedTileId = "";
       buildMode = "";
+      map3d?.setBuildMode("");
       render();
       return;
     }
     const buildButton = event.target.closest("[data-city-build]");
     if (buildButton && !busy) {
+      if (!canEditActiveCity()) {
+        showNotice("この都市は閲覧専用です。", "error");
+        return;
+      }
       buildMode = buildMode === buildButton.dataset.cityBuild ? "" : buildButton.dataset.cityBuild;
       map3d?.setBuildMode(buildMode);
       renderBuildMenu();
@@ -114,7 +127,7 @@
     const host = root.querySelector("[data-city-tabs]");
     host.innerHTML = City.PLAYERS.map((player) => `
       <button type="button" class="city-player-tab ${player.id === activePlayerId ? "active" : ""}" data-city-player="${player.id}" style="--city-player:${player.color};--city-accent:${player.accent}">
-        <span></span><b>${escapeHtml(player.name)}</b>
+        <span></span><b>${escapeHtml(player.name)}</b>${ownershipLocked() ? `<small>${options.editablePlayerId === player.id ? "EDIT" : "VIEW"}</small>` : ""}
       </button>
     `).join("");
   }
@@ -125,6 +138,7 @@
     root.querySelector("[data-city-owner]").textContent = city.ownerName;
     root.querySelector("[data-city-name]").textContent = city.name;
     root.querySelector("[data-city-level]").textContent = `CITY LEVEL ${city.level}`;
+    root.classList.toggle("is-readonly-city", !canEditActiveCity());
     root.querySelector("[data-city-resources]").innerHTML = [
       ["資金", `¥ ${formatNumber(city.resources.money)}`, "money"]
     ].map(([label, value, kind]) => `<div class="city-resource ${kind}"><span>${label}</span><strong>${value}</strong></div>`).join("");
@@ -145,7 +159,7 @@
       .filter((building) => building.id !== "civic" && building.category === buildCategory && city?.unlocks?.[building.id])
       .map((building) => {
         const affordable = city.resources.money >= building.cost;
-        return `<button type="button" class="city-build-button ${buildMode === building.id ? "active" : ""}" data-city-build="${building.id}" ${busy || !affordable ? "disabled" : ""}>
+        return `<button type="button" class="city-build-button ${buildMode === building.id ? "active" : ""}" data-city-build="${building.id}" ${busy || !affordable || !canEditActiveCity() ? "disabled" : ""}>
           <span class="city-build-icon ${building.model || building.id}" aria-hidden="true"></span>
           <span class="city-build-copy"><strong>${escapeHtml(building.name)}</strong><small>¥${formatNumber(building.cost)}</small></span>
         </button>`;
@@ -177,6 +191,11 @@
   function renderSelection() {
     const host = root.querySelector("[data-city-selection]");
     const city = activeCity();
+    if (!canEditActiveCity()) {
+      const selected = selectedTileId ? ` / ${escapeHtml(selectedTileId)}` : "";
+      host.innerHTML = `<div class="city-panel-heading"><span>VIEW ONLY${selected}</span><strong>${escapeHtml(city?.name || "他都市視察")}</strong></div><p>この都市は確認のみ可能です。建設・強化・撤去は所有プレイヤーの都市で行えます。</p>`;
+      return;
+    }
     if (buildMode) {
       const building = City.BUILDINGS[buildMode];
       host.innerHTML = `<div class="city-panel-heading"><span>BUILD MODE</span><strong>${escapeHtml(building.name)}</strong></div>
@@ -231,7 +250,7 @@
       map3d = global.TeamBingoCityMap3D.create(root.querySelector("[data-city-map]"), {
         onSelect: (tileId) => {
           selectedTileId = tileId;
-          if (buildMode) submitCommand("build", buildMode);
+          if (buildMode && canEditActiveCity()) submitCommand("build", buildMode);
           else renderSelection();
         }
       });
@@ -264,6 +283,10 @@
 
   async function submitCommand(type, buildingId = "") {
     if (busy || !selectedTileId || !options.onCommand) return;
+    if (!canEditActiveCity()) {
+      showNotice("この都市は閲覧専用です。", "error");
+      return;
+    }
     busy = true;
     renderBuildMenu();
     renderSelection();
@@ -297,7 +320,8 @@
     ensureRoot();
     options = nextOptions;
     state = City.normalizeState(nextOptions.state || City.createInitialState(Date.now()), Date.now());
-    activePlayerId = nextOptions.playerId && state.players?.[nextOptions.playerId] ? nextOptions.playerId : activePlayerId;
+    const preferredPlayerId = nextOptions.playerId || nextOptions.editablePlayerId;
+    activePlayerId = preferredPlayerId && state.players?.[preferredPlayerId] ? preferredPlayerId : activePlayerId;
     selectedTileId = "";
     buildMode = "";
     buildCategory = "transport";

@@ -17,7 +17,7 @@ body.monster-tower-open { overflow: hidden !important; }
   pointer-events: none;
   background: linear-gradient(90deg, rgba(3, 7, 12, .05), rgba(3, 7, 12, .12) 44%, rgba(3, 7, 12, .72) 100%);
 }
-.tower-shell { position: relative; height: 100%; display: grid; grid-template-rows: auto auto minmax(0, 1fr) auto; }
+.tower-shell { position: relative; height: 100%; display: grid; grid-template-rows: auto auto minmax(0, 1fr); }
 .tower-header {
   display: grid;
   grid-template-columns: minmax(220px, 1fr) auto minmax(220px, 1fr);
@@ -55,64 +55,83 @@ body.monster-tower-open { overflow: hidden !important; }
 }
 .tower-player-tab {
   min-width: 0;
-  height: 38px;
-  padding: 4px 8px;
+  height: 48px;
+  padding: 6px 8px;
   overflow: hidden;
   border: 1px solid color-mix(in srgb, var(--tower-player-color) 55%, #2b3339);
   border-radius: 2px;
   color: #dce4e7;
   background: rgba(10, 16, 21, .92);
   font: 800 12px/1.1 "Yu Gothic", sans-serif;
-  text-overflow: ellipsis;
-  white-space: nowrap;
   cursor: pointer;
 }
+.tower-player-tab b, .tower-player-tab span { display: block; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.tower-player-tab span { margin-top: 4px; color: #91a8b2; font: 800 9px/1 Arial, sans-serif; }
+.tower-player-tab.is-active span { color: color-mix(in srgb, var(--tower-player-color) 75%, #fff); }
 .tower-player-tab.is-active { color: #fff; border-color: var(--tower-player-color); box-shadow: inset 0 -3px 0 var(--tower-player-color), 0 0 13px color-mix(in srgb, var(--tower-player-color) 55%, transparent); }
 .tower-battlefield { position: relative; min-height: 0; overflow: hidden; }
 .tower-battlefield::after { content: ""; position: absolute; inset: auto 0 0; height: 28%; background: linear-gradient(transparent, rgba(0,0,0,.48)); pointer-events: none; }
 .tower-enemy-zone { position: absolute; left: 3.5%; top: 8%; width: 48%; height: 82%; display: grid; place-items: center; }
 .tower-enemy-art { width: min(39vw, 600px); height: min(68vh, 690px); object-fit: contain; filter: drop-shadow(0 22px 22px rgba(0,0,0,.72)); transform-origin: 50% 80%; }
-.tower-enemy-art.is-regular { background-repeat: no-repeat; }
+.tower-enemy-art.is-regular { background-repeat: no-repeat; transform: scaleX(var(--tower-facing, 1)); }
 .tower-enemy-zone.is-attacking .tower-enemy-art { animation: tower-enemy-attack .72s ease both; }
 .tower-enemy-zone.is-hit .tower-enemy-art { animation: tower-enemy-hit .55s ease both; }
 .tower-enemy-label { position: absolute; left: 3%; bottom: 2%; max-width: 90%; padding: 8px 16px; border-left: 4px solid #f2cd58; background: rgba(2,7,12,.9); }
 .tower-enemy-name { overflow: hidden; font-size: clamp(18px, 2vw, 32px); text-overflow: ellipsis; white-space: nowrap; }
 .tower-enemy-meta { margin-top: 3px; font: 800 11px/1.2 Arial, sans-serif; color: #9fbbc6; }
-.tower-party { position: absolute; top: 4%; right: 2.5%; bottom: 4%; width: min(40vw, 560px); display: grid; grid-template-rows: repeat(5, minmax(0, 1fr)); gap: 5px; }
+.tower-party { position: absolute; top: 2%; right: 1.5%; bottom: 2%; width: min(42vw, 650px); }
 .tower-party-member {
   position: relative;
-  display: grid;
-  grid-template-columns: minmax(84px, 34%) 1fr;
-  align-items: center;
-  min-height: 0;
-  overflow: hidden;
-  border: 1px solid rgba(163, 189, 197, .4);
-  border-right: 4px solid var(--tower-player-color);
-  background: linear-gradient(90deg, rgba(4,10,15,.12), rgba(4,10,15,.9) 48%);
+  position: absolute;
+  right: 1%;
+  top: calc(var(--tower-slot) * 18.5%);
+  width: 72%;
+  height: 22%;
+  min-height: 92px;
+  overflow: visible;
+  border: 0;
+  color: inherit;
+  text-align: left;
+  background: transparent;
+  cursor: pointer;
+  isolation: isolate;
 }
+.tower-party-member:nth-child(even) { right: 10%; }
+.tower-party-member::before { content: ""; position: absolute; right: 0; bottom: 8%; width: 72%; height: 22%; border-radius: 50%; background: radial-gradient(ellipse, color-mix(in srgb, var(--tower-player-color) 46%, transparent), transparent 70%); filter: blur(4px); opacity: .75; transform: perspective(180px) rotateX(62deg); }
 .tower-party-member.is-ko { filter: grayscale(1); opacity: .55; }
-.tower-mini-monster { align-self: stretch; min-height: 72px; background-repeat: no-repeat; filter: drop-shadow(0 8px 8px rgba(0,0,0,.65)); transform-origin: 60% 65%; }
+.tower-mini-monster { position: absolute; right: 46%; top: -12%; width: 54%; height: 126%; display: block; background-repeat: no-repeat; filter: drop-shadow(0 10px 9px rgba(0,0,0,.68)); transform: scaleX(var(--tower-facing, 1)); transform-origin: 55% 72%; animation: tower-party-idle 2.8s ease-in-out infinite alternate; }
 .tower-party-member.is-attacking .tower-mini-monster { animation: tower-party-attack .65s ease both; }
-.tower-member-info { min-width: 0; padding: 7px 11px 7px 4px; }
+.tower-party-member.is-hit .tower-mini-monster { animation: tower-party-hit .52s ease both; }
+.tower-member-info { position: absolute; z-index: 2; right: 0; bottom: 2%; width: 58%; min-width: 0; padding: 7px 10px 8px 12px; border-left: 3px solid var(--tower-player-color); background: linear-gradient(90deg, rgba(4,10,15,.93), rgba(4,10,15,.72)); box-shadow: 0 8px 18px rgba(0,0,0,.25); }
 .tower-member-name { overflow: hidden; font-size: clamp(12px, 1.15vw, 18px); text-overflow: ellipsis; white-space: nowrap; }
 .tower-member-meta { margin-top: 3px; font: 700 10px/1.1 Arial, sans-serif; color: #a9bbc2; }
 .tower-hp { height: 7px; margin-top: 7px; overflow: hidden; background: #15191c; }
 .tower-hp > i { display: block; width: var(--tower-hp); height: 100%; background: linear-gradient(90deg, #42d49b, #baf06e); transition: width .35s ease; }
-.tower-center-readout { position: absolute; left: 46%; top: 41%; z-index: 3; width: 15%; min-width: 135px; text-align: center; transform: translateX(-50%); }
+.tower-center-readout { position: absolute; left: 48%; top: 42%; z-index: 3; width: 16%; min-width: 135px; text-align: center; transform: translateX(-50%); }
 .tower-next-tick { font-size: clamp(34px, 4vw, 64px); line-height: 1; color: #fff; text-shadow: 0 3px 0 #000; }
 .tower-next-label { margin-top: 5px; font: 900 10px/1 Arial, sans-serif; color: #f0cc5c; }
 .tower-event-flash { min-height: 28px; margin-top: 12px; padding: 6px 9px; color: #fff; background: rgba(2,7,12,.82); font-size: 12px; }
-.tower-footer { position: relative; z-index: 4; display: grid; grid-template-columns: minmax(0, 1fr) minmax(320px, .65fr); min-height: 98px; max-height: 130px; background: rgba(2,7,12,.94); border-top: 1px solid rgba(229,197,101,.52); }
-.tower-log { padding: 10px 18px; overflow: auto; }
-.tower-log-line { display: flex; gap: 10px; margin-bottom: 4px; font: 700 11px/1.35 "Yu Gothic", sans-serif; color: #becbd0; }
-.tower-log-line strong { flex: 0 0 auto; color: #f2cd58; }
-.tower-standings { display: grid; grid-template-columns: repeat(3, 1fr); gap: 3px; align-content: center; padding: 8px 15px; border-left: 1px solid #26353e; }
-.tower-rank { min-width: 0; padding: 5px 7px; border-left: 3px solid var(--tower-player-color); background: #0c1419; }
-.tower-rank b { display: block; overflow: hidden; font-size: 10px; text-overflow: ellipsis; white-space: nowrap; }
-.tower-rank span { font: 800 9px/1 Arial, sans-serif; color: #92a7af; }
-@keyframes tower-party-attack { 0%,100% { transform: translateX(0); } 43% { transform: translateX(-34px) scale(1.08); filter: drop-shadow(0 0 17px #fff); } }
-@keyframes tower-enemy-attack { 0%,100% { transform: translateX(0); } 45% { transform: translateX(42px) scale(1.04); filter: drop-shadow(0 0 22px #ff774f); } }
-@keyframes tower-enemy-hit { 0%,100% { transform: translateX(0); } 25% { transform: translateX(-18px); filter: brightness(2.1); } 55% { transform: translateX(12px); } }
+.tower-history-panel { position: fixed; inset: 0; z-index: 12; display: grid; place-items: center; padding: 30px; background: rgba(0, 3, 7, .82); backdrop-filter: blur(7px); }
+.tower-history-panel[hidden] { display: none; }
+.tower-history-card { width: min(900px, 94vw); max-height: min(760px, 88vh); display: grid; grid-template-rows: auto minmax(0, 1fr); border: 1px solid rgba(229,197,101,.72); background: #071018; box-shadow: 0 30px 80px #000; }
+.tower-history-card > header { display: flex; align-items: center; justify-content: space-between; padding: 16px 18px; border-bottom: 1px solid #26353e; }
+.tower-history-card small { color: #7f9da9; font: 900 9px/1 Arial, sans-serif; }
+.tower-history-card h3 { margin: 3px 0 0; color: #f2d06a; font-size: 22px; }
+.tower-history-list { padding: 12px 18px 18px; overflow: auto; }
+.tower-log-line { display: grid; grid-template-columns: 90px 120px minmax(0,1fr); gap: 12px; padding: 9px 4px; border-bottom: 1px solid rgba(145,171,184,.13); font: 700 12px/1.4 "Yu Gothic", sans-serif; color: #c6d2d7; }
+.tower-log-line time { color: #6f8994; font: 800 10px/1.4 Arial, sans-serif; }
+.tower-log-line strong { color: #f2cd58; }
+.tower-battle-impact { position: absolute; z-index: 8; width: 120px; height: 120px; pointer-events: none; transform: translate(-50%,-50%); animation: tower-impact .7s ease-out both; }
+.tower-battle-impact::before, .tower-battle-impact::after { content: ""; position: absolute; inset: 48% -20%; height: 7px; background: #fff; box-shadow: 0 0 18px #fff, 0 0 34px #f4d25f; transform: rotate(38deg); }
+.tower-battle-impact::after { transform: rotate(-38deg); }
+.tower-battle-impact.is-party-hit { left: 27%; top: 46%; }
+.tower-battle-impact.is-enemy-hit { left: 78%; top: 51%; }
+@keyframes tower-party-idle { from { transform: scaleX(var(--tower-facing, 1)) translateY(0); } to { transform: scaleX(var(--tower-facing, 1)) translateY(-5px); } }
+@keyframes tower-party-attack { 0%,100% { transform: scaleX(var(--tower-facing, 1)) translateX(0); } 43% { transform: scaleX(var(--tower-facing, 1)) translateX(-95px) scale(1.1); filter: drop-shadow(0 0 19px #fff); } }
+@keyframes tower-party-hit { 0%,100% { transform: scaleX(var(--tower-facing, 1)) translateX(0); } 25% { transform: scaleX(var(--tower-facing, 1)) translateX(15px); filter: brightness(2.1); } 60% { transform: scaleX(var(--tower-facing, 1)) translateX(-8px); } }
+@keyframes tower-enemy-attack { 0%,100% { transform: scaleX(var(--tower-facing, 1)) translateX(0); } 45% { transform: scaleX(var(--tower-facing, 1)) translateX(72px) scale(1.04); filter: drop-shadow(0 0 22px #ff774f); } }
+@keyframes tower-enemy-hit { 0%,100% { transform: scaleX(var(--tower-facing, 1)) translateX(0); } 25% { transform: scaleX(var(--tower-facing, 1)) translateX(-18px); filter: brightness(2.1); } 55% { transform: scaleX(var(--tower-facing, 1)) translateX(12px); } }
+@keyframes tower-impact { 0% { opacity: 0; scale: .25; rotate: -15deg; } 30% { opacity: 1; scale: 1.2; } 100% { opacity: 0; scale: 1.65; rotate: 8deg; } }
 @media (max-width: 900px) {
   .tower-header { grid-template-columns: 1fr auto; min-height: 58px; padding: 7px 9px; }
   .tower-title { display: none; }
@@ -120,13 +139,13 @@ body.monster-tower-open { overflow: hidden !important; }
   .tower-player-tabs { padding: 4px 7px; overflow-x: auto; grid-template-columns: repeat(6, minmax(95px, 1fr)); }
   .tower-enemy-zone { left: 0; width: 54%; }
   .tower-enemy-art { width: 51vw; height: 58vh; }
-  .tower-party { right: 1%; width: 47vw; }
-  .tower-party-member { grid-template-columns: minmax(64px, 39%) 1fr; }
+  .tower-party { right: 0; width: 49vw; }
+  .tower-party-member { width: 92%; }
+  .tower-mini-monster { right: 48%; width: 50%; }
+  .tower-member-info { width: 62%; }
   .tower-center-readout { left: 40%; top: 3%; }
   .tower-next-tick { font-size: 28px; }
-  .tower-footer { grid-template-columns: 1fr; max-height: 94px; min-height: 74px; }
-  .tower-standings { display: none; }
-  .tower-log { padding: 6px 9px; }
+  .tower-log-line { grid-template-columns: 72px 90px minmax(0,1fr); gap: 7px; font-size: 10px; }
 }
 @media (prefers-reduced-motion: reduce) {
   .tower-enemy-art, .tower-mini-monster { animation: none !important; }

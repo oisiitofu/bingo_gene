@@ -1,6 +1,6 @@
 "use strict";
 
-const CACHE_VERSION = "team-bingo-v1-20260831-monster-tower-138";
+const CACHE_VERSION = "team-bingo-v1-20260901-tower-city-territory-139";
 const SHELL_CACHE = `${CACHE_VERSION}-shell`;
 const ASSET_CACHE = `${CACHE_VERSION}-assets`;
 const SHELL_FILES = [
@@ -14,13 +14,13 @@ const SHELL_FILES = [
   "./territory-map-3d.js",
   "./territory-mode.js",
   "./territory-mode.css",
-  "./city-system.js?v=20260831-bingo-city-buildings-137",
-  "./city-map-3d.js?v=20260831-bingo-city-buildings-137",
-  "./city-mode.js?v=20260831-bingo-city-buildings-137",
-  "./city-mode.css?v=20260831-bingo-city-buildings-137",
-  "./tower-system.js?v=20260831-monster-tower-138",
-  "./tower-mode.js?v=20260831-monster-tower-138",
-  "./tower-mode.css?v=20260831-monster-tower-138",
+  "./city-system.js?v=20260901-tower-city-territory-139",
+  "./city-map-3d.js?v=20260901-tower-city-territory-139",
+  "./city-mode.js?v=20260901-tower-city-territory-139",
+  "./city-mode.css?v=20260901-tower-city-territory-139",
+  "./tower-system.js?v=20260901-tower-city-territory-139",
+  "./tower-mode.js?v=20260901-tower-city-territory-139",
+  "./tower-mode.css?v=20260901-tower-city-territory-139",
   "./world-tournament.js",
   "./world-tournament.css",
   "./monster-page.css",
