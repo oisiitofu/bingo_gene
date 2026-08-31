@@ -126,10 +126,7 @@
     root.querySelector("[data-city-name]").textContent = city.name;
     root.querySelector("[data-city-level]").textContent = `CITY LEVEL ${city.level}`;
     root.querySelector("[data-city-resources]").innerHTML = [
-      ["資金", `¥ ${formatNumber(city.resources.money)}`, "money"],
-      ["資材", formatNumber(city.resources.materials), "materials"],
-      ["研究", formatNumber(city.resources.research), "research"],
-      ["設計図", formatNumber(city.resources.blueprints), "blueprint"]
+      ["資金", `¥ ${formatNumber(city.resources.money)}`, "money"]
     ].map(([label, value, kind]) => `<div class="city-resource ${kind}"><span>${label}</span><strong>${value}</strong></div>`).join("");
   }
 
@@ -147,10 +144,10 @@
     host.innerHTML = Object.values(City.BUILDINGS)
       .filter((building) => building.id !== "civic" && building.category === buildCategory && city?.unlocks?.[building.id])
       .map((building) => {
-        const affordable = city.resources.money >= building.cost && city.resources.materials >= building.materials;
+        const affordable = city.resources.money >= building.cost;
         return `<button type="button" class="city-build-button ${buildMode === building.id ? "active" : ""}" data-city-build="${building.id}" ${busy || !affordable ? "disabled" : ""}>
           <span class="city-build-icon ${building.model || building.id}" aria-hidden="true"></span>
-          <span class="city-build-copy"><strong>${escapeHtml(building.name)}</strong><small>¥${formatNumber(building.cost)} / 資材 ${building.materials}</small></span>
+          <span class="city-build-copy"><strong>${escapeHtml(building.name)}</strong><small>¥${formatNumber(building.cost)}</small></span>
         </button>`;
       }).join("");
   }

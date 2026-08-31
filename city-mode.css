@@ -83,13 +83,10 @@ body.city-mode-open { overflow: hidden; }
 .city-current-title strong { min-width: 0; overflow: hidden; font-size: 20px; text-overflow: ellipsis; white-space: nowrap; }
 .city-current-title b { color: var(--city-gold); font-size: 10px; white-space: nowrap; }
 .city-resource-list { display: flex; gap: 4px; }
-.city-resource { min-width: 84px; padding: 5px 9px; border-left: 2px solid #607886; background: rgba(255, 255, 255, .035); }
+.city-resource { min-width: 150px; padding: 5px 12px; border-left: 2px solid #607886; background: rgba(255, 255, 255, .035); }
 .city-resource span { display: block; color: #8fa9b8; font-size: 9px; font-weight: 800; }
 .city-resource strong { display: block; margin-top: 1px; color: #fff; font-size: 13px; white-space: nowrap; }
 .city-resource.money { border-color: #f0c954; }
-.city-resource.materials { border-color: #a3c2cc; }
-.city-resource.research { border-color: #9d72ff; }
-.city-resource.blueprint { border-color: #4dd6bf; }
 .city-tick { justify-self: end; min-width: 132px; padding: 6px 10px; text-align: right; border-right: 2px solid #4db9e6; background: rgba(77, 185, 230, .08); }
 .city-tick strong { display: block; margin-top: 1px; font-size: 17px; }
 
@@ -189,6 +186,6 @@ body.city-mode-open { overflow: hidden; }
 @media (max-width: 1250px) {
   .city-layout { grid-template-columns: 205px minmax(0, 1fr) 250px; }
   .city-status-bar { grid-template-columns: minmax(220px, 1fr) auto 126px; }
-  .city-resource { min-width: 72px; }
+  .city-resource { min-width: 126px; }
   .city-player-tab b { font-size: 9px; }
 }

@@ -13,6 +13,7 @@ test("creates six persistent player cities with starter infrastructure", () => {
   assert.equal(Object.keys(state.players).length, 6);
   Object.values(state.players).forEach((city) => {
     assert.equal(city.resources.money, City.AUTO_BUILD_THRESHOLD);
+    assert.deepEqual(Object.keys(city.resources), ["money"]);
     assert.ok(city.tiles[City.tileId(City.CITY_CENTER - 1, City.CITY_CENTER - 1)]);
     assert.equal(city.mapSchema, City.MAP_SCHEMA);
     assert.ok(city.metrics.population > 0);
@@ -69,7 +70,7 @@ test("match rewards only apply once and ignore non-fixed players", () => {
   assert.equal(first.rewards.tofu.money, 3000);
   assert.equal(Object.hasOwn(first.rewards.tofu, "hype"), false);
   assert.ok(first.state.players.tofu.autoDevelopment.placed > 0);
-  assert.equal(first.state.players.tofu.resources.blueprints, 1);
+  assert.deepEqual(Object.keys(first.state.players.tofu.resources), ["money"]);
 
   const second = City.applyMatchReward(first.state, payload, 1_000_200);
   assert.equal(second.applied, false);
@@ -108,7 +109,7 @@ test("all six cities generate distinct broad terrain with land, water, and mount
   assert.equal(signatures.size, City.PLAYERS.length);
 });
 
-test("legacy 16x16 cities migrate into the center without losing buildings or resources", () => {
+test("legacy 16x16 cities migrate into the center without losing buildings or money", () => {
   const current = City.createInitialState(1_000_000);
   const shift = City.CITY_CENTER - 8;
   current.mapSchema = 1;
@@ -127,11 +128,30 @@ test("legacy 16x16 cities migrate into the center without losing buildings or re
   assert.ok(normalized.players.tofu.tiles[City.tileId(City.CITY_CENTER - 1, City.CITY_CENTER - 1)]);
 });
 
+test("current maps keep their tile coordinates while obsolete resources are removed", () => {
+  const current = City.createInitialState(1_000_000);
+  const marker = City.tileId(City.CITY_CENTER + 4, City.CITY_CENTER);
+  current.mapSchema = 2;
+  current.players.tofu.mapSchema = 2;
+  current.players.tofu.tiles[marker] = { id: marker, kind: "road", buildingId: "road", level: 1 };
+  current.players.tofu.resources = { money: 24680, materials: 999, research: 12, blueprints: 3 };
+  const normalized = City.normalizeState(current, 1_000_100);
+  assert.ok(normalized.players.tofu.tiles[marker]);
+  assert.deepEqual(normalized.players.tofu.resources, { money: 24680 });
+});
+
+test("every building genre exposes at least ten distinct visual variants", () => {
+  ["residential", "commercial", "industrial", "park", "power", "water", "civic", "arena"].forEach((model) => {
+    const variants = Object.values(City.BUILDINGS).filter((building) => building.model === model);
+    assert.ok(variants.length >= 10, `${model} only has ${variants.length} variants`);
+    assert.equal(new Set(variants.map((building) => building.variant)).size, variants.length);
+  });
+});
+
 test("automatic development spends only surplus money above ten thousand", () => {
   const state = City.createInitialState(1_000_000);
   const city = state.players.tofu;
   city.resources.money = 18000;
-  city.resources.materials = 2000;
   const before = Object.keys(city.tiles).length;
   const placed = City.autoDevelopCity(city, 1_000_100, 12);
   assert.ok(placed > 0);

@@ -572,61 +572,157 @@
       return material;
     }
 
+    function addBlock(group, material, x, z, width, depth, height, baseY = .11) {
+      return mesh(shared.cube, material, [x, baseY + height / 2, z], [width, height, depth], group);
+    }
+
+    function addCappedBlock(group, material, x, z, width, depth, height, capMaterial = materials.roof, baseY = .11) {
+      addBlock(group, material, x, z, width, depth, height, baseY);
+      return mesh(shared.cube, capMaterial, [x, baseY + height + .025, z], [width + .025, .05, depth + .025], group);
+    }
+
+    function addFacadeBand(group, material, x, y, z, width, depth = .025) {
+      return mesh(shared.cube, material, [x, y, z], [width, .045, depth], group);
+    }
+
     function buildResidential(group, level, color, seed, variant) {
       addBase(group, color);
-      const height = .82 + level * .28 + (variant % 5) * .08;
-      const width = .54 + (variant % 3) * .06;
-      mesh(shared.cube, materials.residential, [0, .1 + height / 2, 0], [width, height, .56], group);
-      if (variant % 4 === 1) mesh(shared.cube, materials.residential, [.23, .22 + height * .38, -.08], [.27, height * .7, .42], group);
-      mesh(shared.cube, materials.roof, [0, .13 + height, 0], [width + .04, .06, .6], group);
       const accent = accentMaterial(color);
-      [-.2, .2].forEach((x) => mesh(shared.cube, accent, [x, height * .53, .3], [.2, .025, .08], group));
-      if (variant >= 10) mesh(shared.cylinder12, materials.glass, [0, height + .28, 0], [.12, .28, .12], group);
+      const heightScale = 1 + (level - 1) * .16;
+      const styles = [
+        [[0, 0, .58, .55, .9]],
+        [[-.2, 0, .28, .56, 1.18], [.2, 0, .28, .56, .86]],
+        [[-.25, -.14, .2, .48, .7], [.25, -.14, .2, .48, .7], [0, .23, .7, .18, .62]],
+        [[-.2, .05, .3, .58, .72], [.2, -.02, .3, .5, 1.04]],
+        [[0, .21, .62, .19, .45], [0, 0, .53, .2, .67], [0, -.21, .43, .2, .9]],
+        [[0, .08, .65, .38, .35], [0, -.08, .34, .34, 1.28]],
+        [[-.22, -.18, .26, .28, .58], [.22, -.18, .26, .28, .58], [-.22, .18, .26, .28, .58], [.22, .18, .26, .28, .58]],
+        [[-.19, 0, .32, .58, .78], [.2, .08, .25, .42, 1.08]],
+        [[-.24, -.15, .22, .26, .5], [0, .16, .22, .26, .62], [.24, -.15, .22, .26, .55]],
+        [[0, 0, .45, .45, 1.48]]
+      ];
+      styles[variant % 10].forEach(([x, z, width, depth, height]) => {
+        const scaledHeight = height * heightScale;
+        addCappedBlock(group, materials.residential, x, z, width, depth, scaledHeight);
+        addFacadeBand(group, accent, x, .25 + scaledHeight * .46, z + depth / 2 + .012, Math.max(.1, width * .68));
+      });
+      if (variant % 10 === 2) {
+        mesh(shared.cylinder, materials.lake, [0, .13, -.04], [.13, .025, .13], group);
+        [-.08, .08].forEach((x) => addTree(group, x, -.02, .22, x > 0));
+      }
+      if (variant % 10 === 8) [-.25, .25].forEach((x) => addTree(group, x, .2, .24, x > 0));
+      if (variant % 10 === 9) mesh(shared.cylinder12, materials.glass, [0, 1.72 * heightScale, 0], [.055, .32, .055], group);
     }
 
     function buildCommercial(group, level, color, seed, variant) {
       addBase(group, color);
-      const lower = .9 + level * .31 + (variant % 4) * .1;
-      mesh(shared.cube, materials.commercial, [0, .1 + lower / 2, 0], [.62, lower, .56], group);
-      if (level >= 2 || variant > 5) mesh(shared.cube, materials.commercial, [-.05, lower + .26, -.03], [.45, .5 + variant * .015, .42], group);
-      if (level >= 3 || variant > 11) mesh(shared.cube, materials.commercial, [.02, lower + .7, -.02], [.27, .36, .3], group);
       const crown = accentMaterial(color, .2);
-      mesh(shared.cube, crown, [0, lower + (level >= 2 ? .53 : .07), 0], [.65 - level * .08, .06, .6 - level * .07], group);
-      if (variant % 3 === 2) {
-        const spire = mesh(shared.cone, crown, [0, lower + 1.05, 0], [.08, .5, .08], group);
+      crown.emissive = new THREE.Color(color);
+      crown.emissiveIntensity = .32;
+      const scale = 1 + (level - 1) * .14;
+      const styles = [
+        [[0, 0, .58, .52, 1.22]],
+        [[0, 0, .68, .62, .42], [0, -.08, .46, .4, .36]],
+        [[-.2, 0, .28, .48, 1.02], [.2, 0, .28, .48, 1.28]],
+        [[0, .18, .68, .2, .35], [-.22, -.1, .2, .38, .52], [.22, -.1, .2, .38, .52]],
+        [[0, 0, .62, .55, .54], [0, -.05, .38, .36, .55]],
+        [[0, .08, .62, .4, .42], [0, -.12, .42, .34, 1.03]],
+        [[-.18, 0, .3, .58, .45], [.18, 0, .3, .58, .45]],
+        [[-.22, -.12, .24, .3, .68], [.22, -.12, .24, .3, .68], [0, .2, .32, .2, .86]],
+        [[0, .07, .54, .5, .5], [0, -.07, .31, .31, 1.36]],
+        [[0, 0, .68, .6, .82], [0, 0, .42, .42, .48]]
+      ];
+      styles[variant % 10].forEach(([x, z, width, depth, height]) => addCappedBlock(group, materials.commercial, x, z, width, depth, height * scale, crown));
+      if ([1, 3, 6].includes(variant % 10)) [-.22, 0, .22].forEach((x) => addFacadeBand(group, crown, x, .28, .325, .14));
+      if ([2, 8, 9].includes(variant % 10)) {
+        const spire = mesh(shared.cone, crown, [0, 1.62 * scale, 0], [.055, .42, .055], group);
         spire.rotation.y = variant;
+      }
+      if (variant % 10 === 4) {
+        const screen = addBlock(group, crown, 0, .3, .3, .025, .18, .36);
+        screen.rotation.x = -.08;
       }
     }
 
     function buildIndustrial(group, level, color, seed, variant) {
       addBase(group, 0x727a80);
-      mesh(shared.cube, materials.industrial, [-.08, .31, .03], [.55, .54 + variant * .015, .62], group);
-      mesh(shared.cube, materials.roof, [-.08, .6 + variant * .015, .03], [.59, .055, .66], group);
-      const count = 2 + level + variant % 3;
-      for (let index = 0; index < count; index += 1) {
-        const x = -.26 + index * (.52 / Math.max(1, count - 1));
-        mesh(shared.cylinder12, materials.darkMetal, [x, .82 + level * .05, -.14], [.065, .48 + level * .1, .065], group);
-        mesh(shared.cylinder12, materials.copper, [x, 1.08 + level * .1, -.14], [.085, .05, .085], group);
+      const style = variant % 10;
+      const scale = 1 + (level - 1) * .12;
+      const hall = (x, z, width, depth, height) => addCappedBlock(group, materials.industrial, x, z, width, depth, height * scale);
+      if (style === 0) {
+        hall(-.08, .04, .56, .58, .5);
+        [-.24, 0, .24].forEach((x) => mesh(shared.cylinder12, materials.darkMetal, [x, .78 * scale, -.14], [.06, .55 * scale, .06], group));
+      } else if (style === 1) {
+        hall(0, 0, .68, .58, .34);
+        [-.24, 0, .24].forEach((x) => addFacadeBand(group, materials.darkMetal, x, .24, .302, .16, .018));
+      } else if (style === 2) {
+        [-.2, .2].forEach((x) => mesh(shared.cylinder, materials.industrial, [x, .38 * scale, 0], [.18, .6 * scale, .18], group));
+        hall(0, -.23, .62, .18, .28);
+      } else if (style === 3) {
+        hall(-.14, 0, .4, .58, .58);
+        hall(.25, .04, .22, .34, .82);
+      } else if (style === 4) {
+        hall(0, -.17, .66, .24, .31);
+        const ring = mesh(shared.torus, materials.copper, [0, .42, .12], [.29, .29, .29], group);
+        ring.rotation.x = Math.PI / 2;
+      } else if (style === 5) {
+        [-.22, 0, .22].forEach((x) => hall(x, 0, .18, .58, .46));
+        [-.22, 0, .22].forEach((x) => addFacadeBand(group, materials.glow, x, .44, .3, .12));
+      } else if (style === 6) {
+        hall(0, -.2, .62, .2, .32);
+        [-.2, .2].forEach((x) => mesh(shared.sphere, materials.glass, [x, .38, .12], [.18, .27, .18], group));
+      } else if (style === 7) {
+        hall(-.15, 0, .38, .56, .42);
+        mesh(shared.cylinder12, materials.darkMetal, [.25, .52, 0], [.13, .76, .13], group);
+        mesh(shared.torus, materials.glow, [.25, .82, 0], [.15, .15, .15], group).rotation.x = Math.PI / 2;
+      } else if (style === 8) {
+        hall(-.1, .1, .48, .4, .3);
+        const boom = addBlock(group, materials.copper, .14, -.18, .48, .055, .055, .72);
+        boom.rotation.z = -.38;
+        mesh(shared.cylinder12, materials.darkMetal, [-.22, .48, -.18], [.055, .7, .055], group);
+      } else {
+        hall(-.15, .08, .35, .52, .42);
+        [.08, .28].forEach((x) => mesh(shared.cylinder, materials.darkMetal, [x, .33, -.05], [.12, .42, .12], group));
+        mesh(shared.torus, materials.copper, [.17, .56, -.05], [.25, .25, .25], group).rotation.x = Math.PI / 2;
       }
-      const tank = mesh(shared.cylinder, materials.darkMetal, [.25, .28, .18], [.16, .4, .16], group);
-      tank.rotation.z = Math.PI / 2;
-      if (variant >= 8) mesh(shared.torus, materials.copper, [.12, .48, .25], [.23, .23, .23], group).rotation.x = Math.PI / 2;
     }
 
     function buildPark(group, level, color, seed, variant) {
       addBase(group, color);
       mesh(shared.cube, materials.grass, [0, .09, 0], [.7, .08, .7], group);
-      const count = 3 + level + variant % 4;
-      for (let index = 0; index < count; index += 1) {
-        const angle = index / count * Math.PI * 2 + hashText(seed) * .0001;
+      const style = variant % 10;
+      const treeCount = [4, 2, 3, 2, 7, 3, 3, 4, 2, 4][style] + level - 1;
+      for (let index = 0; index < treeCount; index += 1) {
+        const angle = index / treeCount * Math.PI * 2 + hashText(seed) * .0001;
         const radius = .22 + (index % 2) * .12;
         addTree(group, Math.cos(angle) * radius, Math.sin(angle) * radius, .56 + (index % 3) * .08, index % 2);
       }
-      if (variant % 3 === 0) {
+      if (style === 0) {
         mesh(shared.cylinder, materials.concrete, [0, .14, 0], [.16, .08, .16], group);
         const water = mesh(shared.cylinder, materials.lake, [0, .19, 0], [.13, .025, .13], group);
         animated.push({ object: water, type: "water" });
-      } else if (variant % 3 === 1) mesh(shared.cube, materials.civic, [0, .16, 0], [.34, .04, .12], group);
+      } else if (style === 1) {
+        [[0, 0, .5, .12], [0, 0, .12, .5]].forEach(([x, z, w, d]) => addBlock(group, materials.concrete, x, z, w, d, .035, .13));
+      } else if (style === 2) {
+        [-.2, 0, .2].forEach((x, index) => mesh(shared.sphere, index % 2 ? materials.gold : materials.white, [x, .18, 0], [.08, .08, .08], group));
+      } else if (style === 3) {
+        addBlock(group, materials.soil, 0, 0, .48, .3, .025, .13);
+        [-.2, .2].forEach((x) => mesh(shared.cube, materials.white, [x, .17, 0], [.018, .08, .32], group));
+      } else if (style === 5) {
+        const water = mesh(shared.cylinder, materials.lake, [0, .15, 0], [.28, .035, .28], group);
+        water.scale.z = .65;
+        animated.push({ object: water, type: "water" });
+      } else if (style === 6) {
+        mesh(shared.torus, materials.civic, [0, .24, 0], [.25, .25, .25], group).rotation.x = Math.PI / 2;
+      } else if (style === 7) {
+        const dome = mesh(shared.sphere, materials.glass, [0, .3, 0], [.29, .42, .29], group);
+        dome.scale.y = .72;
+      } else if (style === 8) {
+        [-.24, -.12, 0, .12, .24].forEach((z, index) => addBlock(group, materials.civic, 0, z, .5 - Math.abs(index - 2) * .08, .055, .04 + index * .025, .12));
+      } else if (style === 9) {
+        mesh(shared.cone, materials.mountain, [0, .27, 0], [.3, .42, .3], group);
+        mesh(shared.cylinder12, materials.civic, [0, .62, 0], [.035, .42, .035], group);
+      }
     }
 
     function addTree(group, x, z, scale, variant, baseY = 0) {
@@ -641,72 +737,242 @@
 
     function buildPower(group, level, color, seed, variant) {
       addBase(group, 0x626d74);
-      mesh(shared.cube, materials.industrial, [0, .3, 0], [.62, .44, .6], group);
-      const turbines = 3 + level + variant % 3;
-      for (let index = 0; index < turbines; index += 1) {
-        const x = -.25 + index * (.5 / Math.max(1, turbines - 1));
-        const turbine = mesh(shared.cylinder, materials.darkMetal, [x, .65, .04], [.08, .32, .08], group);
-        turbine.rotation.x = Math.PI / 2;
-        const ring = mesh(shared.torus, materials.glow, [x, .65, .21], [.11, .11, .11], group);
-        animated.push({ object: ring, type: "spin", speed: 1.4 + index * .2 });
+      const style = variant % 10;
+      const scale = 1 + (level - 1) * .12;
+      if (style === 0) {
+        addCappedBlock(group, materials.industrial, 0, 0, .62, .56, .42 * scale);
+        [-.22, 0, .22].forEach((x) => mesh(shared.cylinder12, materials.darkMetal, [x, .77, -.13], [.06, .58 * scale, .06], group));
+      } else if (style === 1) {
+        [-.23, 0, .23].forEach((x) => [-.18, .18].forEach((z) => {
+          const panel = addBlock(group, materials.glass, x, z, .19, .15, .02, .17);
+          panel.rotation.x = -.24;
+        }));
+        mesh(shared.cylinder12, materials.glow, [0, .43, 0], [.07, .46, .07], group);
+      } else if (style === 2) {
+        [-.23, 0, .23].forEach((x, index) => {
+          mesh(shared.cylinder12, materials.white, [x, .47, 0], [.035, .72, .035], group);
+          const rotor = mesh(shared.torus, materials.glow, [x, .75, .03], [.16, .16, .16], group);
+          animated.push({ object: rotor, type: "spin", speed: 1.2 + index * .14 });
+        });
+      } else if (style === 3) {
+        addBlock(group, materials.concrete, 0, 0, .68, .54, .22, .11);
+        [-.2, 0, .2].forEach((x) => {
+          const wheel = mesh(shared.torus, materials.glow, [x, .4, .27], [.13, .13, .13], group);
+          animated.push({ object: wheel, type: "spin", speed: 1.1 });
+        });
+      } else if (style === 4) {
+        mesh(shared.cylinder, materials.industrial, [0, .34, 0], [.29, .48, .29], group);
+        [-.18, .18].forEach((x) => mesh(shared.cylinder12, materials.copper, [x, .69, 0], [.055, .62, .055], group));
+      } else if (style === 5) {
+        [-.24, 0, .24].forEach((x) => [-.16, .16].forEach((z) => addCappedBlock(group, materials.darkMetal, x, z, .18, .24, .34, materials.glow)));
+      } else if (style === 6) {
+        mesh(shared.sphere, materials.glass, [0, .4, 0], [.32, .5, .32], group);
+        mesh(shared.cylinder12, materials.copper, [0, .78, 0], [.055, .46, .055], group);
+      } else if (style === 7) {
+        [-.22, .22].forEach((x) => {
+          const rotor = mesh(shared.torus, materials.glow, [x, .34, 0], [.23, .23, .23], group);
+          rotor.rotation.y = Math.PI / 2;
+          animated.push({ object: rotor, type: "spin", speed: 1.5 });
+        });
+      } else if (style === 8) {
+        mesh(shared.sphere, materials.glass, [0, .45, 0], [.34, .52, .34], group);
+        const halo = mesh(shared.torus, materials.glow, [0, .54, 0], [.4, .4, .4], group);
+        halo.rotation.x = Math.PI / 2;
+        animated.push({ object: halo, type: "pulse" });
+      } else {
+        mesh(shared.cylinder12, materials.darkMetal, [0, .58, 0], [.16, .92, .16], group);
+        [.25, .52, .8].forEach((y) => {
+          const ring = mesh(shared.torus, materials.glow, [0, y, 0], [.25 + y * .06, .25 + y * .06, .25 + y * .06], group);
+          ring.rotation.x = Math.PI / 2;
+          animated.push({ object: ring, type: "spin", speed: 1 + y });
+        });
       }
-      if (variant >= 4) mesh(shared.sphere, materials.glass, [0, .92, -.12], [.22, .14, .22], group);
     }
 
     function buildWater(group, level, color, seed, variant) {
       addBase(group, 0x718690);
-      const height = .56 + level * .1 + variant * .015;
-      [-.22, .22].forEach((x) => [-.22, .22].forEach((z) => mesh(shared.cylinder12, materials.darkMetal, [x, height / 2, z], [.034, height, .034], group)));
-      mesh(shared.cylinder, materials.lake, [0, height + .16, 0], [.34, .28, .34], group);
-      mesh(shared.sphere, materials.glass, [0, height + .3, 0], [.3, .13, .3], group);
-      const ring = mesh(shared.torus, materials.gold, [0, height + .15, 0], [.36, .36, .36], group);
-      ring.rotation.x = Math.PI / 2;
-      if (variant >= 4) mesh(shared.cylinder12, materials.copper, [0, height + .62, 0], [.03, .55, .03], group);
+      const style = variant % 10;
+      const scale = 1 + (level - 1) * .1;
+      const basin = (x, z, radius) => {
+        mesh(shared.cylinder, materials.concrete, [x, .15, z], [radius, .08, radius], group);
+        const water = mesh(shared.cylinder, materials.lake, [x, .2, z], [radius * .86, .025, radius * .86], group);
+        animated.push({ object: water, type: "water" });
+      };
+      if (style === 0) [-.19, .19].forEach((x) => [-.18, .18].forEach((z) => basin(x, z, .15)));
+      else if (style === 1) {
+        [-.2, .2].forEach((x) => [-.2, .2].forEach((z) => mesh(shared.cylinder12, materials.darkMetal, [x, .39, z], [.035, .58, .035], group)));
+        mesh(shared.cylinder, materials.lake, [0, .73 * scale, 0], [.31, .24, .31], group);
+      } else if (style === 2) [-.22, 0, .22].forEach((x) => mesh(shared.cylinder, materials.glass, [x, .38, 0], [.15, .52, .15], group));
+      else if (style === 3) {
+        addCappedBlock(group, materials.industrial, 0, 0, .62, .5, .32);
+        [-.22, 0, .22].forEach((x) => mesh(shared.torus, materials.glow, [x, .35, .26], [.11, .11, .11], group));
+      } else if (style === 4) {
+        [-.22, .22].forEach((x) => mesh(shared.cylinder, materials.darkMetal, [x, .4, 0], [.17, .58, .17], group));
+        mesh(shared.torus, materials.copper, [0, .54, 0], [.28, .28, .28], group).rotation.x = Math.PI / 2;
+      } else if (style === 5) {
+        addCappedBlock(group, materials.commercial, 0, .08, .58, .43, .48);
+        mesh(shared.sphere, materials.glass, [0, .71, -.1], [.24, .3, .24], group);
+      } else if (style === 6) basin(0, 0, .34);
+      else if (style === 7) {
+        [-.23, 0, .23].forEach((x) => mesh(shared.cylinder, materials.glass, [x, .44, 0], [.12, .7, .12], group));
+        mesh(shared.cylinder12, materials.glow, [0, .88, 0], [.035, .45, .035], group);
+      } else if (style === 8) {
+        addBlock(group, materials.lake, 0, 0, .68, .3, .035, .14);
+        [-.28, 0, .28].forEach((x) => mesh(shared.cylinder12, materials.civic, [x, .36, 0], [.045, .45, .045], group));
+      } else {
+        basin(0, 0, .31);
+        const dome = mesh(shared.sphere, materials.glass, [0, .38, 0], [.33, .44, .33], group);
+        dome.scale.y = .75;
+      }
     }
 
     function buildCivic(group, level, color, seed, variant) {
       addBase(group, color);
-      const width = .64 + (variant % 3) * .04;
-      mesh(shared.cube, materials.civic, [0, .42, 0], [width, .76 + variant * .02, .55], group);
-      mesh(shared.cube, materials.civic, [0, .89 + variant * .02, -.04], [.42, .2, .4], group);
-      const dome = mesh(shared.sphere, materials.gold, [0, 1.06 + variant * .02, -.04], [.2, .12, .2], group);
-      dome.castShadow = true;
-      for (let index = -2; index <= 2; index += 1) mesh(shared.cylinder12, materials.civic, [index * .11, .36, .31], [.028, .54, .028], group);
       const banner = accentMaterial(color, .05);
       banner.emissive = new THREE.Color(color);
       banner.emissiveIntensity = .28;
-      mesh(shared.cube, banner, [0, .74, .29], [.34, .08, .02], group);
-      if (variant >= 6) mesh(shared.cylinder12, materials.glass, [0, 1.4, 0], [.08, .62, .08], group);
+      const style = variant % 10;
+      const scale = 1 + (level - 1) * .1;
+      const hall = (x, z, w, d, h) => addCappedBlock(group, materials.civic, x, z, w, d, h * scale, banner);
+      if (style === 0) {
+        hall(0, 0, .66, .54, .72);
+        mesh(shared.sphere, materials.gold, [0, .92 * scale, 0], [.19, .12, .19], group);
+      } else if (style === 1) {
+        hall(0, 0, .65, .52, .45);
+        mesh(shared.cube, banner, [0, .52, .28], [.5, .16, .025], group);
+        mesh(shared.cylinder12, materials.darkMetal, [.22, .74, 0], [.045, .55, .045], group);
+      } else if (style === 2) {
+        hall(-.14, 0, .38, .58, .6);
+        hall(.25, .04, .2, .42, .9);
+        mesh(shared.cylinder12, materials.glow, [.25, 1.05, .04], [.06, .25, .06], group);
+      } else if (style === 3) {
+        hall(0, .16, .68, .24, .42);
+        [-.22, .22].forEach((x) => hall(x, -.12, .25, .38, .62));
+      } else if (style === 4) {
+        hall(0, -.05, .62, .52, .5);
+        [-.24, 0, .24].forEach((x) => mesh(shared.cube, materials.civic, [x, .55, .26], [.08, .42, .08], group));
+      } else if (style === 5) {
+        hall(0, 0, .64, .54, .55);
+        mesh(shared.cube, banner, [0, .57, .29], [.54, .13, .03], group);
+        mesh(shared.cylinder12, materials.darkMetal, [0, .98, 0], [.04, .62, .04], group);
+      } else if (style === 6) {
+        hall(0, .12, .66, .32, .38);
+        mesh(shared.sphere, materials.glass, [0, .52, -.12], [.3, .42, .3], group);
+      } else if (style === 7) {
+        hall(0, .12, .65, .35, .42);
+        const arch = mesh(shared.torus, materials.gold, [0, .55, -.18], [.28, .28, .28], group);
+        arch.rotation.y = Math.PI / 2;
+      } else if (style === 8) {
+        hall(0, 0, .68, .34, .3);
+        mesh(shared.cylinder12, materials.glass, [0, .72, 0], [.1, .88, .1], group);
+        mesh(shared.cone, materials.gold, [0, 1.22, 0], [.12, .25, .12], group);
+      } else {
+        hall(0, .08, .62, .35, .32);
+        const tower = mesh(shared.cylinder, materials.glass, [0, .66, -.1], [.2, .72, .2], group);
+        tower.scale.z = .65;
+        [-.28, .28].forEach((x) => addBlock(group, materials.concrete, x, -.2, .08, .45, .08, .11));
+      }
     }
 
     function buildArena(group, level, color, seed, variant) {
       addBase(group, color);
-      const bowl = mesh(shared.cylinder, materials.civic, [0, .28, 0], [.39, .46 + variant * .015, .39], group);
+      const style = variant % 10;
+      const bowl = mesh(shared.cylinder, style === 2 ? materials.darkMetal : materials.civic, [0, .28, 0], [.39, .42 + (style % 3) * .05, .39], group);
       bowl.scale.z = .72;
-      const roof = mesh(shared.torus, materials.darkMetal, [0, .53 + variant * .015, 0], [.47, .47, .47], group);
+      const roof = mesh(shared.torus, materials.darkMetal, [0, .52 + (style % 3) * .05, 0], [.47, .47, .47], group);
       roof.rotation.x = Math.PI / 2;
       roof.scale.z = .72;
-      const field = mesh(shared.cylinder, materials.grass, [0, .55 + variant * .015, 0], [.3, .03, .3], group);
+      const field = mesh(shared.cylinder, style === 2 ? materials.glow : materials.grass, [0, .54 + (style % 3) * .05, 0], [.3, .03, .3], group);
       field.scale.z = .68;
       const accent = accentMaterial(color, .1);
       accent.emissive = new THREE.Color(color);
       accent.emissiveIntensity = .8;
-      const halo = mesh(shared.torus, accent, [0, .64 + level * .04 + variant * .015, 0], [.51, .51, .51], group);
+      const halo = mesh(shared.torus, accent, [0, .64 + level * .04, 0], [.51, .51, .51], group);
       halo.rotation.x = Math.PI / 2;
       halo.scale.z = .72;
       animated.push({ object: halo, type: "pulse" });
-      if (variant >= 5) mesh(shared.cube, materials.glass, [0, .92, 0], [.24, .4, .24], group);
+      if (style === 1) [-.3, .3].forEach((x) => mesh(shared.cylinder12, materials.gold, [x, .58, 0], [.04, .68, .04], group));
+      else if (style === 2) mesh(shared.sphere, materials.glass, [0, .62, 0], [.45, .3, .36], group);
+      else if (style === 3) [-.28, .28].forEach((x) => mesh(shared.cube, materials.glass, [x, .72, 0], [.08, .5, .38], group));
+      else if (style === 4) {
+        [-.24, .24].forEach((x) => mesh(shared.cone, materials.gold, [x, .86, 0], [.1, .55, .1], group));
+        mesh(shared.torus, materials.copper, [0, .83, 0], [.32, .32, .32], group).rotation.x = Math.PI / 2;
+      } else if (style === 5) mesh(shared.cube, materials.glass, [0, .95, 0], [.24, .52, .24], group);
+      else if (style === 6) {
+        mesh(shared.sphere, materials.gold, [0, .72, 0], [.21, .13, .21], group);
+        [-.3, 0, .3].forEach((x) => mesh(shared.cylinder12, materials.civic, [x, .56, .28], [.035, .52, .035], group));
+      } else if (style === 7) addBlock(group, materials.civic, 0, -.03, .62, .2, .52, .22);
+      else if (style === 8) {
+        mesh(shared.cylinder12, materials.glass, [0, .98, 0], [.14, .72, .14], group);
+        const skyRing = mesh(shared.torus, materials.glow, [0, 1.12, 0], [.33, .33, .33], group);
+        skyRing.rotation.x = Math.PI / 2;
+        animated.push({ object: skyRing, type: "spin", speed: .75 });
+      } else if (style === 9) {
+        mesh(shared.sphere, materials.glass, [0, .68, 0], [.48, .36, .39], group);
+        mesh(shared.cylinder12, materials.gold, [0, 1.18, 0], [.06, .56, .06], group);
+      }
     }
 
     function createTraffic() {
       const roads = Object.values(city.tiles || {}).filter(City.isRoadTile);
-      roads.slice(0, 28).forEach((tile, index) => {
-        const position = worldPosition(tile.id);
+      const roadIds = new Set(roads.map((tile) => tile.id));
+      const routable = roads.filter((tile) => City.neighbors(tile.id).some((id) => roadIds.has(id)));
+      const carCount = Math.min(18, Math.max(0, Math.floor(routable.length / 4)));
+      for (let index = 0; index < carCount; index += 1) {
+        const tile = routable[Math.floor(index * routable.length / carCount)];
+        const candidates = City.neighbors(tile.id).filter((id) => roadIds.has(id));
+        const nextId = candidates[index % candidates.length];
         const car = createVehicle(index);
-        car.position.set(position.x + ((index % 3) - 1) * .12, tileSurfaceHeight(tile.id) + .085, position.z + (index % 2 ? .1 : -.1));
         trafficRoot.add(car);
-        animated.push({ object: car, type: "car", origin: car.position.clone(), axis: index % 2, phase: index * .7 });
-      });
+        const route = {
+          object: car,
+          type: "car",
+          roadIds,
+          currentId: tile.id,
+          nextId,
+          previousId: "",
+          progress: (index % 4) * .18,
+          speed: .13 + (index % 5) * .012,
+          lane: index % 2 ? .105 : -.105,
+          seed: hashText(`${city.id}-traffic-${index}`),
+          steps: 0
+        };
+        updateTrafficCar(route, 0);
+        animated.push(route);
+      }
+    }
+
+    function chooseNextRoad(route) {
+      const candidates = City.neighbors(route.currentId).filter((id) => route.roadIds.has(id));
+      const forward = candidates.filter((id) => id !== route.previousId);
+      const choices = forward.length ? forward : candidates;
+      if (!choices.length) return route.previousId || route.currentId;
+      const index = Math.abs(route.seed + route.steps * 17) % choices.length;
+      return choices[index];
+    }
+
+    function updateTrafficCar(route, delta) {
+      route.progress += delta * route.speed;
+      while (route.progress >= 1) {
+        route.progress -= 1;
+        route.previousId = route.currentId;
+        route.currentId = route.nextId;
+        route.steps += 1;
+        route.nextId = chooseNextRoad(route);
+      }
+      const start = worldPosition(route.currentId);
+      const end = worldPosition(route.nextId);
+      const dx = end.x - start.x;
+      const dz = end.z - start.z;
+      const length = Math.max(.001, Math.hypot(dx, dz));
+      const laneX = -dz / length * route.lane;
+      const laneZ = dx / length * route.lane;
+      route.object.position.set(
+        start.x + dx * route.progress + laneX,
+        tileSurfaceHeight(route.currentId) + (tileSurfaceHeight(route.nextId) - tileSurfaceHeight(route.currentId)) * route.progress + .085,
+        start.z + dz * route.progress + laneZ
+      );
+      route.object.rotation.y = Math.atan2(-dz, dx);
     }
 
     function createVehicle(index) {
@@ -830,7 +1096,8 @@
 
     function animate() {
       if (destroyed) return;
-      const elapsed = clock.getElapsedTime();
+      const delta = Math.min(.05, clock.getDelta());
+      const elapsed = clock.elapsedTime;
       textures.water.offset.x = elapsed * .004;
       textures.water.offset.y = elapsed * .002;
       if (materials.terrain.userData.shader) materials.terrain.userData.shader.uniforms.terrainTime.value = elapsed;
@@ -838,11 +1105,8 @@
         if (item.type === "spin") item.object.rotation.z = elapsed * item.speed;
         else if (item.type === "water") item.object.scale.y = .95 + Math.sin(elapsed * 2.4) * .1;
         else if (item.type === "pulse") item.object.scale.x = item.object.scale.y = 1 + Math.sin(elapsed * 2.2) * .035;
-        else if (item.type === "car") {
-          const travel = Math.sin(elapsed * .32 + item.phase) * .28;
-          item.object.position[item.axis ? "x" : "z"] = item.origin[item.axis ? "x" : "z"] + travel;
-          item.object.rotation.y = item.axis ? Math.PI / 2 : 0;
-        } else if (item.type === "selection") {
+        else if (item.type === "car") updateTrafficCar(item, delta);
+        else if (item.type === "selection") {
           item.object.rotation.z = Math.PI / 4 + elapsed * .65;
           item.material.opacity = .68 + Math.sin(elapsed * 3) * .2;
           item.beaconMaterial.opacity = .1 + Math.sin(elapsed * 2.2) * .045;

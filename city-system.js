@@ -2,7 +2,7 @@
   "use strict";
 
   const VERSION = 1;
-  const MAP_SCHEMA = 2;
+  const MAP_SCHEMA = 3;
   const GRID_SIZE = 160;
   const CITY_CENTER = Math.floor(GRID_SIZE / 2);
   const TICK_MINUTES = 10;
@@ -31,14 +31,14 @@
   });
 
   const BASE_MODELS = Object.freeze({
-    residential: { category: "residential", baseCost: 520, baseMaterials: 9, upkeep: 3, stats: { populationCapacity: 180, powerDemand: 4, waterDemand: 4, happiness: 1, tax: 28 } },
-    commercial: { category: "commercial", baseCost: 760, baseMaterials: 12, upkeep: 5, stats: { jobs: 82, powerDemand: 7, waterDemand: 3, happiness: 1, tourism: 3, tax: 62 } },
-    industrial: { category: "industrial", baseCost: 900, baseMaterials: 16, upkeep: 6, stats: { jobs: 112, powerDemand: 9, waterDemand: 6, materialsOutput: 2, pollution: 6, tax: 72 } },
-    park: { category: "public", baseCost: 430, baseMaterials: 7, upkeep: 4, stats: { happiness: 7, environment: 10, tourism: 2 } },
-    power: { category: "infrastructure", baseCost: 1480, baseMaterials: 26, upkeep: 10, stats: { powerSupply: 105, pollution: 4, jobs: 16 } },
-    water: { category: "infrastructure", baseCost: 1300, baseMaterials: 23, upkeep: 9, stats: { waterSupply: 105, environment: 2, jobs: 13 } },
-    civic: { category: "landmark", baseCost: 1400, baseMaterials: 20, upkeep: 8, stats: { jobs: 38, happiness: 5, safety: 8, tourism: 7 } },
-    arena: { category: "landmark", baseCost: 2400, baseMaterials: 38, upkeep: 14, stats: { jobs: 58, happiness: 7, tourism: 16, tax: 30 } }
+    residential: { category: "residential", baseCost: 520, upkeep: 3, stats: { populationCapacity: 180, powerDemand: 4, waterDemand: 4, happiness: 1, tax: 28 } },
+    commercial: { category: "commercial", baseCost: 760, upkeep: 5, stats: { jobs: 82, powerDemand: 7, waterDemand: 3, happiness: 1, tourism: 3, tax: 62 } },
+    industrial: { category: "industrial", baseCost: 900, upkeep: 6, stats: { jobs: 112, powerDemand: 9, waterDemand: 6, pollution: 6, tax: 72 } },
+    park: { category: "public", baseCost: 430, upkeep: 4, stats: { happiness: 7, environment: 10, tourism: 2 } },
+    power: { category: "infrastructure", baseCost: 1480, upkeep: 10, stats: { powerSupply: 105, pollution: 4, jobs: 16 } },
+    water: { category: "infrastructure", baseCost: 1300, upkeep: 9, stats: { waterSupply: 105, environment: 2, jobs: 13 } },
+    civic: { category: "landmark", baseCost: 1400, upkeep: 8, stats: { jobs: 38, happiness: 5, safety: 8, tourism: 7 } },
+    arena: { category: "landmark", baseCost: 2400, upkeep: 14, stats: { jobs: 58, happiness: 7, tourism: 16, tax: 30 } }
   });
 
   const CATALOG = Object.freeze({
@@ -46,10 +46,10 @@
     commercial: ["商業タワー", "駅前モール", "オフィスセンター", "市場通り", "シネマコンプレックス", "ホテルスクエア", "フードホール", "デジタル商店街", "金融センター", "百貨店", "観光マーケット", "メディアタワー", "国際会議場", "ラグジュアリーモール", "天空展望ホテル"],
     industrial: ["先端工業区", "物流センター", "食品工場", "精密機械工場", "リサイクルプラント", "データセンター", "バイオ研究工場", "ロボット工場", "造船ドック", "資材精製所", "自動車工場", "航空開発区", "宇宙技術工場", "巨大物流港", "未来生産都市"],
     park: ["中央公園", "街角広場", "花の庭園", "スポーツパーク", "森林公園", "親水公園", "動物ふれあい園", "植物園", "文化公園", "丘の展望台", "自然保護区", "湖畔公園", "都市農園", "巨大遊園地", "王立大庭園"],
-    power: ["都市発電所", "太陽光発電区", "風力発電区", "水力発電所", "地熱発電所", "蓄電センター", "バイオマス発電所", "潮力発電所"],
-    water: ["浄水センター", "給水塔", "雨水再生施設", "地下水管理所", "淡水化プラント", "水質研究所", "広域貯水池", "超純水センター"],
+    power: ["都市発電所", "太陽光発電区", "風力発電区", "水力発電所", "地熱発電所", "蓄電センター", "バイオマス発電所", "潮力発電所", "核融合エネルギー塔", "量子電力ハブ"],
+    water: ["浄水センター", "給水塔", "雨水再生施設", "地下水管理所", "淡水化プラント", "水質研究所", "広域貯水池", "超純水センター", "運河制御局", "水環境ドーム"],
     civic: ["市庁舎", "消防本部", "総合病院", "市立大学", "中央図書館", "警察本部", "科学博物館", "美術館", "中央駅", "国際空港"],
-    arena: ["ビンゴアリーナ", "市民スタジアム", "eスポーツドーム", "ライブアリーナ", "モンスター競技場", "世界大会記念館", "六王ホール", "勝利の大劇場"]
+    arena: ["ビンゴアリーナ", "市民スタジアム", "eスポーツドーム", "ライブアリーナ", "モンスター競技場", "世界大会記念館", "六王ホール", "勝利の大劇場", "天空闘技場", "チャンピオンシップドーム"]
   });
 
   function makeDefinition(model, name, index) {
@@ -63,7 +63,6 @@
       variant: index,
       category: base.category,
       cost: Math.round(base.baseCost * multiplier / 10) * 10,
-      materials: Math.max(1, Math.round(base.baseMaterials * (1 + index * .12))),
       upkeep: Math.max(1, Math.round(base.upkeep * (1 + index * .09))),
       description: `${name}。${index >= 10 ? "都市を象徴する大規模" : index >= 5 ? "発展した街区向けの" : "地域に根ざした"}${base.category === "residential" ? "居住施設です。" : base.category === "commercial" ? "商業・雇用施設です。" : base.category === "industrial" ? "生産・物流施設です。" : base.category === "public" ? "公共空間です。" : base.category === "infrastructure" ? "都市基盤施設です。" : "都市の中核施設です。"}`
     };
@@ -76,11 +75,11 @@
 
   const BUILDINGS = (() => {
     const entries = {
-      road: { id: "road", name: "都市道路", model: "road", category: "transport", cost: 120, materials: 2, upkeep: 1, road: true, description: "街を接続する標準道路。" },
-      avenue: { id: "avenue", name: "並木大通り", model: "road", category: "transport", cost: 260, materials: 4, upkeep: 2, road: true, happiness: 1, description: "街路樹と歩道を備えた大通り。" },
-      boulevard: { id: "boulevard", name: "都市環状道路", model: "road", category: "transport", cost: 420, materials: 6, upkeep: 2, road: true, description: "交通量の多い地区を結ぶ幹線道路。" },
-      bridge: { id: "bridge", name: "河川ブリッジ", model: "road", category: "transport", cost: 680, materials: 12, upkeep: 3, road: true, bridge: true, description: "川や湖を越えて街を接続する橋。" },
-      civic: { id: "civic", name: "市庁舎", model: "civic", variant: 0, category: "landmark", cost: 0, materials: 0, upkeep: 8, jobs: 40, happiness: 5, safety: 8, tourism: 8, unique: true, description: "都市運営の中心。" }
+      road: { id: "road", name: "都市道路", model: "road", category: "transport", cost: 120, upkeep: 1, road: true, description: "街を接続する標準道路。" },
+      avenue: { id: "avenue", name: "並木大通り", model: "road", category: "transport", cost: 260, upkeep: 2, road: true, happiness: 1, description: "街路樹と歩道を備えた大通り。" },
+      boulevard: { id: "boulevard", name: "都市環状道路", model: "road", category: "transport", cost: 420, upkeep: 2, road: true, description: "交通量の多い地区を結ぶ幹線道路。" },
+      bridge: { id: "bridge", name: "河川ブリッジ", model: "road", category: "transport", cost: 680, upkeep: 3, road: true, bridge: true, description: "川や湖を越えて街を接続する橋。" },
+      civic: { id: "civic", name: "市庁舎", model: "civic", variant: 0, category: "landmark", cost: 0, upkeep: 8, jobs: 40, happiness: 5, safety: 8, tourism: 8, unique: true, description: "都市運営の中心。" }
     };
     Object.entries(CATALOG).forEach(([model, names]) => names.forEach((name, index) => {
       const definition = makeDefinition(model, name, index);
@@ -239,7 +238,7 @@
     const city = {
       id: player.id, name: player.cityName, ownerName: player.name, color: player.color, accent: player.accent,
       terrainPreset: player.terrainPreset, mapSchema: MAP_SCHEMA, level: 1,
-      resources: { money: AUTO_BUILD_THRESHOLD, materials: 160, research: 0, blueprints: 0 },
+      resources: { money: AUTO_BUILD_THRESHOLD },
       metrics: emptyMetrics(), economy: { taxRate: 10, lastIncome: 0, lastExpense: 0, balance: 0 },
       autoDevelopment: { enabled: true, threshold: AUTO_BUILD_THRESHOLD, placed: 0, cursor: 0 },
       tiles: initialTiles(), unlocks: allUnlocks(), inbox: {}, history: {}, createdAt: now, updatedAt: now
@@ -263,7 +262,7 @@
         return;
       }
       const city = state.players[player.id];
-      if (Number(city.mapSchema) < MAP_SCHEMA) {
+      if (Number(city.mapSchema) < 2) {
         const shift = CITY_CENTER - 8;
         city.tiles = Object.fromEntries(Object.values(city.tiles || {}).map((tile) => {
           const point = parseTileId(tile.id);
@@ -273,8 +272,7 @@
       }
       city.mapSchema = MAP_SCHEMA;
       city.terrainPreset = player.terrainPreset;
-      city.resources = { money: 0, materials: 0, research: 0, blueprints: 0, ...(city.resources || {}) };
-      delete city.resources.hype;
+      city.resources = { money: Math.max(0, Number(city.resources?.money) || 0) };
       city.unlocks = { ...allUnlocks(), ...(city.unlocks || {}) };
       city.autoDevelopment = { enabled: true, threshold: AUTO_BUILD_THRESHOLD, placed: 0, cursor: 0, ...(city.autoDevelopment || {}) };
       city.metrics = calculateMetrics(city);
@@ -291,7 +289,7 @@
 
   function calculateMetrics(city) {
     const previous = city?.metrics || emptyMetrics();
-    const totals = { populationCapacity: 0, jobs: 0, happiness: 0, safety: 0, education: 0, health: 0, tourism: 0, environment: 0, pollution: 0, powerDemand: 0, powerSupply: 0, waterDemand: 0, waterSupply: 0, tax: 0, materialsOutput: 0, upkeep: 0 };
+    const totals = { populationCapacity: 0, jobs: 0, happiness: 0, safety: 0, education: 0, health: 0, tourism: 0, environment: 0, pollution: 0, powerDemand: 0, powerSupply: 0, waterDemand: 0, waterSupply: 0, tax: 0, upkeep: 0 };
     Object.values(city?.tiles || {}).forEach((tile) => {
       const definition = BUILDINGS[tile?.buildingId];
       if (!definition) return;
@@ -306,7 +304,7 @@
     const happiness = Math.max(0, Math.min(100, 62 + totals.happiness + Math.round(totals.environment * .35) - Math.round(totals.pollution * .75) - infrastructurePenalty));
     const environment = Math.max(0, Math.min(100, 68 + totals.environment - totals.pollution));
     const cityScore = Math.round(population * .55 + happiness * 14 + totals.jobs * 1.8 + totals.tourism * 20 + environment * 8 + Math.min(powerCoverage, waterCoverage) * 6 + Object.keys(city?.tiles || {}).length * 3);
-    return { ...previous, population, capacity: totals.populationCapacity, happiness, jobs: totals.jobs, safety: Math.min(100, 52 + totals.safety), education: Math.min(100, 45 + totals.education), health: Math.min(100, 52 + totals.health), tourism: totals.tourism, environment, pollution: totals.pollution, powerDemand: totals.powerDemand, powerSupply: totals.powerSupply, waterDemand: totals.waterDemand, waterSupply: totals.waterSupply, employmentRate, powerCoverage, waterCoverage, cityScore, taxPotential: totals.tax, materialsOutput: totals.materialsOutput, upkeep: totals.upkeep };
+    return { ...previous, population, capacity: totals.populationCapacity, happiness, jobs: totals.jobs, safety: Math.min(100, 52 + totals.safety), education: Math.min(100, 45 + totals.education), health: Math.min(100, 52 + totals.health), tourism: totals.tourism, environment, pollution: totals.pollution, powerDemand: totals.powerDemand, powerSupply: totals.powerSupply, waterDemand: totals.waterDemand, waterSupply: totals.waterSupply, employmentRate, powerCoverage, waterCoverage, cityScore, taxPotential: totals.tax, upkeep: totals.upkeep };
   }
 
   function isRoadDefinition(definition) {
@@ -340,7 +338,6 @@
     if (isRoadDefinition(definition) ? !connectedRoad(city, id) : !adjacentToRoad(city, id)) return { ok: false, reason: isRoadDefinition(definition) ? "既存の道路へ接続してください。" : "道路に接する場所を選んでください。" };
     const reserve = Math.max(0, Number(options.reserveMoney) || 0);
     if ((Number(city.resources?.money) || 0) - definition.cost < reserve) return { ok: false, reason: "資金が足りません。" };
-    if ((Number(city.resources?.materials) || 0) < definition.materials) return { ok: false, reason: "資材が足りません。" };
     return { ok: true, definition, terrain };
   }
 
@@ -357,7 +354,6 @@
 
   function placeBuilding(city, id, definition) {
     city.resources.money -= definition.cost;
-    city.resources.materials -= definition.materials;
     city.tiles[id] = { id, kind: isRoadDefinition(definition) ? "road" : "building", buildingId: definition.id, level: 1 };
   }
 
@@ -381,10 +377,8 @@
       if ((Number(tile.level) || 1) >= 3) return { state, applied: false, error: "この建物は最大レベルです。" };
       const nextLevel = (Number(tile.level) || 1) + 1;
       const money = Math.round(definition.cost * (.75 + nextLevel * .25));
-      const materials = Math.round(definition.materials * (.75 + nextLevel * .2));
-      if (city.resources.money < money || city.resources.materials < materials) return { state, applied: false, error: "強化に必要な資源が足りません。" };
+      if (city.resources.money < money) return { state, applied: false, error: "強化に必要な資金が足りません。" };
       city.resources.money -= money;
-      city.resources.materials -= materials;
       tile.level = nextLevel;
       addHistory(city, "upgrade", `${definition.name} LEVEL ${nextLevel}`, "建物の性能と外観が向上しました。", now, { tileId: id, buildingId: definition.id });
     } else if (command.type === "demolish") {
@@ -392,7 +386,6 @@
       const definition = BUILDINGS[tile?.buildingId];
       if (!tile || !definition || definition.id === "civic") return { state, applied: false, error: "撤去できない場所です。" };
       city.resources.money += Math.round(definition.cost * .2);
-      city.resources.materials += Math.round(definition.materials * .25);
       delete city.tiles[id];
       addHistory(city, "demolish", `${definition.name} 撤去`, "跡地を更地へ戻しました。", now, { tileId: id });
     } else return { state, applied: false, error: "未対応の都市操作です。" };
@@ -473,7 +466,6 @@
     const income = Math.max(0, Math.round(metrics.population * .018 * (city.economy.taxRate / 10) + metrics.taxPotential));
     const expense = Math.max(0, Math.round(metrics.upkeep));
     city.resources.money = Math.max(0, Math.round((Number(city.resources.money) || 0) + income - expense));
-    city.resources.materials = Math.max(0, Math.round((Number(city.resources.materials) || 0) + metrics.materialsOutput));
     city.economy = { ...city.economy, lastIncome: income, lastExpense: expense, balance: income - expense };
     city.metrics = calculateMetrics({ ...city, metrics });
     city.level = cityLevel(city.metrics.population);
@@ -505,8 +497,7 @@
     const opens = Math.max(0, Number(entry.opens) || 0);
     const bingoLines = Math.max(0, Number(entry.bingoLines) || 0);
     const won = Boolean(entry.won);
-    const mvp = Boolean(entry.mvp);
-    return { money: opens * 100 + bingoLines * 500 + (won ? 1500 : 300), materials: opens * 4 + bingoLines * 15 + (won ? 30 : 8), research: bingoLines * 2 + (mvp ? 3 : 0), blueprints: mvp ? 1 : 0 };
+    return { money: opens * 100 + bingoLines * 500 + (won ? 1500 : 300) };
   }
 
   function applyMatchReward(value, payload = {}, now = Date.now()) {
@@ -524,7 +515,7 @@
       city.inbox ||= {};
       city.inbox[rewardId] = { id: rewardId, matchId: payload.matchId || rewardId, reward, createdAt: Number(now), title: entry.won ? "BINGO VICTORY REWARD" : "BINGO MATCH REWARD" };
       city.inbox = trimMap(city.inbox, 30);
-      addHistory(city, "bingo", entry.won ? "ビンゴ勝利報酬" : "ビンゴ参加報酬", `資金 +${reward.money} / 資材 +${reward.materials}`, now, { rewardId });
+      addHistory(city, "bingo", entry.won ? "ビンゴ勝利報酬" : "ビンゴ参加報酬", `資金 +${reward.money}`, now, { rewardId });
       autoDevelopCity(city, now, 5);
       city.updatedAt = Number(now);
       rewards[player.id] = reward;
