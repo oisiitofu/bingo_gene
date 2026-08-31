@@ -1,11 +1,12 @@
 (function bootstrapMonsterTowerSystem(global) {
   "use strict";
 
-  const VERSION = 1;
+  const VERSION = 2;
   const MAX_FLOOR = 100;
   const PHASES_PER_FLOOR = 10;
   const PARTY_SIZE = 5;
-  const PHASE_MS = 60 * 1000;
+  const TURN_MS = 10 * 1000;
+  const PHASE_MS = TURN_MS;
   const RECOVERY_MS = 60 * 60 * 1000;
   const CHECKPOINT_INTERVAL = 10;
   const MAX_LOG = 160;
@@ -125,6 +126,36 @@
     return regularEnemy(floor, phase);
   }
 
+  function enemyBattleFor(floor, phase) {
+    const enemy = enemyFor(floor, phase);
+    const maxHp = Math.max(1, Math.round(enemy.power * (enemy.boss ? 6.2 : 3.6)));
+    return {
+      id: enemy.id,
+      floor: Math.max(1, Number(floor) || 1),
+      phase: Math.max(1, Number(phase) || 1),
+      name: enemy.name,
+      maxHp,
+      hp: maxHp,
+      turn: 0,
+      lastTurn: null
+    };
+  }
+
+  function ensureEnemyBattle(player) {
+    const expected = enemyFor(player.floor, player.phase);
+    const current = player.battle;
+    if (!current || current.id !== expected.id || Number(current.floor) !== Number(player.floor) || Number(current.phase) !== Number(player.phase)) {
+      player.battle = enemyBattleFor(player.floor, player.phase);
+      return player.battle;
+    }
+    const fallback = enemyBattleFor(player.floor, player.phase);
+    current.name = expected.name;
+    current.maxHp = Math.max(1, Number(current.maxHp) || fallback.maxHp);
+    current.hp = Math.max(0, Math.min(current.maxHp, Number.isFinite(Number(current.hp)) ? Number(current.hp) : current.maxHp));
+    current.turn = Math.max(0, Math.floor(Number(current.turn) || 0));
+    return current;
+  }
+
   function combatStats(nodeId, masteryXp = 0, equipment = {}) {
     const system = monsterSystem();
     const equipmentApi = equipmentSystem();
@@ -203,6 +234,7 @@
       phase: 1,
       checkpointFloor: 1,
       bestFloor: 1,
+      bestPhase: 1,
       clears: 0,
       losses: 0,
       partySerial: 0,
@@ -210,6 +242,7 @@
       resting: {},
       waitingUntil: 0,
       status: "climbing",
+      battle: enemyBattleFor(1, 1),
       lastEvent: null,
       updatedAt: now
     };
@@ -232,8 +265,9 @@
   }
 
   function normalizeState(value, playerStats = { players: {} }, now = Date.now()) {
-    if (!value || Number(value.version) !== VERSION) return createInitialState(playerStats, now);
+    if (!value || ![1, VERSION].includes(Number(value.version))) return createInitialState(playerStats, now);
     const state = clone(value);
+    state.version = VERSION;
     state.players ||= {};
     PLAYERS.forEach((player) => {
       let current = state.players[player.id];
@@ -248,6 +282,8 @@
       current.phase = Math.max(1, Math.min(PHASES_PER_FLOOR, Math.floor(Number(current.phase) || 1)));
       current.checkpointFloor = Math.max(1, Math.min(MAX_FLOOR, Math.floor(Number(current.checkpointFloor) || 1)));
       current.bestFloor = Math.max(current.floor, Number(current.bestFloor) || 1);
+      current.bestPhase = Math.max(1, Math.min(PHASES_PER_FLOOR, Math.floor(Number(current.bestPhase) || (current.floor === current.bestFloor ? current.phase : 1))));
+      if (current.floor === current.bestFloor) current.bestPhase = Math.max(current.bestPhase, current.phase);
       current.resting = cleanResting(current.resting, now);
       current.party = Array.isArray(current.party) ? current.party.slice(0, PARTY_SIZE) : [];
       const record = playerRecord(playerStats, player);
@@ -259,6 +295,7 @@
         normalized.hp = Math.max(0, Math.min(normalized.maxHp, Number(member?.hp) || 0));
         return normalized;
       });
+      ensureEnemyBattle(current);
       current.updatedAt = Number(current.updatedAt) || Number(now);
     });
     state.rewardQueue ||= {};
@@ -302,43 +339,48 @@
     }, 0));
   }
 
-  function damageParty(player, enemy, cleared, random) {
-    const strength = Math.max(.25, partyPower(player) / Math.max(1, enemy.power));
-    const base = cleared ? .045 + .055 / strength : .18 + .14 / strength;
-    player.party.forEach((member, index) => {
-      const spread = .82 + random() * .36 + index * .012;
-      const damage = Math.round(member.maxHp * Math.min(.62, base * spread));
-      member.hp = Math.max(0, member.hp - damage);
-    });
-  }
-
   function isDefeated(player) {
-    const living = player.party.filter((member) => member.hp > 0);
-    const hpRatio = player.party.reduce((sum, member) => sum + member.hp, 0) / Math.max(1, player.party.reduce((sum, member) => sum + member.maxHp, 0));
-    return living.length < 2 || hpRatio < .12;
+    return !(player.party || []).some((member) => Number(member.hp) > 0);
   }
 
-  function loseRun(state, player, record, now) {
+  function loseRun(state, player, record, now, enemy) {
+    const defeatedFloor = player.floor;
+    const defeatedPhase = player.phase;
     player.losses = (Number(player.losses) || 0) + 1;
     player.party.forEach((member) => { if (member.nodeId !== "egg") player.resting[member.nodeId] = Number(now) + RECOVERY_MS; });
     const defeated = player.party.map((member) => member.nodeId);
     player.floor = player.checkpointFloor;
     player.phase = 1;
+    player.battle = null;
     selectParty(player, record, now);
+    ensureEnemyBattle(player);
     const nonEgg = player.party.filter((member) => member.nodeId !== "egg");
     if (!nonEgg.length) {
       const until = Math.min(...Object.values(player.resting).map(Number));
       player.waitingUntil = Number.isFinite(until) ? until : Number(now) + PHASE_MS;
       player.status = "resting";
     } else player.status = "climbing";
-    addLog(state, player, "defeat", `${player.checkpointFloor}Fから別部隊が再出撃`, now, { defeated });
+    addLog(state, player, "defeat", `${defeatedFloor}F PHASE ${defeatedPhase} 敗北 / ${player.checkpointFloor}Fから別部隊が再出撃`, now, {
+      defeated,
+      floor: defeatedFloor,
+      phase: defeatedPhase,
+      enemyId: enemy?.id || "",
+      result: "defeat"
+    });
   }
 
   function clearPhase(state, player, enemy, now) {
     const experience = 3 + Math.floor(player.floor / 8) + (enemy.boss ? 10 : 0);
     queueMastery(state, player, experience, now);
     if (player.phase < PHASES_PER_FLOOR) {
+      player.party.forEach((member) => { member.hp = Math.min(member.maxHp, member.hp + Math.round(member.maxHp * .12)); });
       player.phase += 1;
+      if (player.floor > player.bestFloor || (player.floor === player.bestFloor && player.phase > player.bestPhase)) {
+        player.bestFloor = player.floor;
+        player.bestPhase = player.phase;
+      }
+      player.battle = null;
+      ensureEnemyBattle(player);
       addLog(state, player, "phase", `${player.floor}F PHASE ${player.phase - 1} 突破`, now, { floor: player.floor, phase: player.phase - 1 });
       return;
     }
@@ -349,12 +391,18 @@
       player.status = "complete";
       player.phase = PHASES_PER_FLOOR;
       player.bestFloor = MAX_FLOOR;
+      player.bestPhase = PHASES_PER_FLOOR;
       addLog(state, player, "complete", "100F 完全踏破！", now, { floor: MAX_FLOOR });
       return;
     }
     player.floor += 1;
     player.phase = 1;
-    player.bestFloor = Math.max(Number(player.bestFloor) || 1, player.floor);
+    player.battle = null;
+    ensureEnemyBattle(player);
+    if (player.floor > (Number(player.bestFloor) || 1)) {
+      player.bestFloor = player.floor;
+      player.bestPhase = 1;
+    }
     if (clearedFloor % CHECKPOINT_INTERVAL === 0) player.checkpointFloor = player.floor;
     addLog(state, player, "floor", `${clearedFloor}F 制圧`, now, { floor: clearedFloor, checkpoint: clearedFloor % CHECKPOINT_INTERVAL === 0 });
   }
@@ -367,19 +415,60 @@
       player.status = "climbing";
     }
     const enemy = enemyFor(player.floor, player.phase);
-    const power = partyPower(player);
-    const ratio = power / Math.max(1, enemy.power);
-    const random = seededRandom(`${player.id}:${now}:${player.floor}:${player.phase}:${player.partySerial}`);
-    const clearChance = Math.max(.04, Math.min(.985, .42 + (ratio - .72) * 1.25));
-    const cleared = ratio >= 1.08 || random() < clearChance;
-    damageParty(player, enemy, cleared, random);
+    const battle = ensureEnemyBattle(player);
+    const random = seededRandom(`${player.id}:${player.floor}:${player.phase}:${player.partySerial}:${battle.turn + 1}`);
+    const living = player.party.filter((member) => member.hp > 0);
+    let partyDamage = 0;
+    const attackers = [];
+    living
+      .slice()
+      .sort((a, b) => (Number(combatStats(b.nodeId, b.masteryXp, b.equipment).speed) || 0) - (Number(combatStats(a.nodeId, a.masteryXp, a.equipment).speed) || 0))
+      .forEach((member) => {
+        if (battle.hp <= 0) return;
+        const stats = combatStats(member.nodeId, member.masteryXp, member.equipment);
+        const offense = Math.max(Number(stats.attack) || 1, Number(stats.magic) || 1);
+        const enemyDefense = Math.max(20, enemy.power * (enemy.boss ? .25 : .18));
+        const variance = .88 + random() * .24;
+        const damage = Math.max(1, Math.round(offense * variance * (100 / (100 + enemyDefense))));
+        battle.hp = Math.max(0, battle.hp - damage);
+        partyDamage += damage;
+        attackers.push({ slot: member.slot, nodeId: member.nodeId, damage });
+      });
+    battle.turn += 1;
+    let enemyDamage = 0;
+    const targets = [];
+    if (battle.hp > 0 && living.length) {
+      const targetCount = Math.min(living.length, enemy.boss ? 2 : 1);
+      const pool = living.slice();
+      for (let index = 0; index < targetCount; index += 1) {
+        const targetIndex = Math.floor(random() * pool.length);
+        const target = pool.splice(targetIndex, 1)[0];
+        const stats = combatStats(target.nodeId, target.masteryXp, target.equipment);
+        const defense = Math.max(1, Math.max(Number(stats.defense) || 1, Number(stats.magicDefense) || 1));
+        const rawAttack = enemy.power * (enemy.boss ? .46 : .34) / Math.sqrt(targetCount);
+        const damage = Math.max(1, Math.round(rawAttack * (.88 + random() * .24) * (100 / (100 + defense))));
+        target.hp = Math.max(0, target.hp - damage);
+        enemyDamage += damage;
+        targets.push({ slot: target.slot, nodeId: target.nodeId, damage, hp: target.hp });
+      }
+    }
+    battle.lastTurn = { turn: battle.turn, attackers, targets, partyDamage, enemyDamage, enemyHp: battle.hp, createdAt: Number(now) };
+    player.lastCombatTurn = clone(battle.lastTurn);
     if (isDefeated(player)) {
       queueMastery(state, player, Math.max(1, Math.floor(player.floor / 12)), now);
-      loseRun(state, player, record, now);
+      loseRun(state, player, record, now, enemy);
       return;
     }
-    if (cleared) clearPhase(state, player, enemy, now);
-    else addLog(state, player, "hold", `${player.floor}F PHASE ${player.phase} 攻防継続`, now, { floor: player.floor, phase: player.phase });
+    if (battle.hp <= 0) clearPhase(state, player, enemy, now);
+    else player.lastEvent = {
+      id: `${now}-${player.id}-turn-${battle.turn}`,
+      playerId: player.id,
+      type: "turn",
+      message: `TURN ${battle.turn} / ${enemy.name}へ${partyDamage}ダメージ・反撃${enemyDamage}`,
+      createdAt: Number(now),
+      floor: player.floor,
+      phase: player.phase
+    };
     player.updatedAt = Number(now);
   }
 
@@ -403,13 +492,13 @@
   function standings(state) {
     return PLAYERS.map((player) => {
       const current = state?.players?.[player.id] || {};
-      return { ...player, floor: Number(current.floor) || 1, phase: Number(current.phase) || 1, bestFloor: Number(current.bestFloor) || 1, status: current.status || "climbing", clears: Number(current.clears) || 0, losses: Number(current.losses) || 0 };
+      return { ...player, floor: Number(current.floor) || 1, phase: Number(current.phase) || 1, bestFloor: Number(current.bestFloor) || 1, bestPhase: Number(current.bestPhase) || 1, status: current.status || "climbing", clears: Number(current.clears) || 0, losses: Number(current.losses) || 0 };
     }).sort((a, b) => b.bestFloor - a.bestFloor || b.floor - a.floor || b.phase - a.phase || a.name.localeCompare(b.name, "ja-JP"));
   }
 
   global.TeamBingoMonsterTowerSystem = Object.freeze({
-    VERSION, MAX_FLOOR, PHASES_PER_FLOOR, PARTY_SIZE, PHASE_MS, RECOVERY_MS, CHECKPOINT_INTERVAL,
-    PLAYERS, BOSS_DOMAINS, BOSS_FORMS, clone, hashText, playerKey, bossForFloor, enemyFor, enemyPower,
+    VERSION, MAX_FLOOR, PHASES_PER_FLOOR, PARTY_SIZE, TURN_MS, PHASE_MS, RECOVERY_MS, CHECKPOINT_INTERVAL,
+    PLAYERS, BOSS_DOMAINS, BOSS_FORMS, clone, hashText, playerKey, bossForFloor, enemyFor, enemyPower, enemyBattleFor, ensureEnemyBattle,
     combatStats, combatPower, rosterFor, partyPower, createInitialState, normalizeState, advanceState, standings
   });
 })(typeof window !== "undefined" ? window : globalThis);

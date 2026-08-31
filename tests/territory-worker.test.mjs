@@ -278,7 +278,7 @@ test("MONSTER TOWER Worker advances shared battles and merges mastery once", asy
       monsterMastery: { ...mastery }
     }]))
   };
-  const tower = Tower.createInitialState({ players: playerStats.players }, now - Tower.PHASE_MS);
+  const tower = Tower.createInitialState({ players: playerStats.players }, now - Tower.PHASE_MS * 5);
   let sharedStats = { playerStats };
   let sharedTower = tower;
   let towerWrites = 0;
@@ -315,7 +315,7 @@ test("MONSTER TOWER Worker advances shared battles and merges mastery once", asy
       FIREBASE_DATABASE_ROOT: "teamBingoV1"
     }, "tower-token", now);
 
-    assert.equal(first.processed, 1);
+    assert.equal(first.processed, 5);
     assert.ok(first.rewards > 0);
     assert.equal(second.rewards, 0);
     assert.equal(towerWrites, 1);

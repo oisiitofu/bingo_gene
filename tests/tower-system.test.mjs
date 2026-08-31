@@ -39,14 +39,18 @@ test("every floor has its own boss asset and rising power", () => {
   assert.ok(Tower.enemyPower(100, 10) > Tower.enemyPower(30, 10) * 2);
 });
 
-test("one realtime minute advances at most one phase", () => {
+test("one realtime turn resolves HP damage before changing phase", () => {
   const now = 10_000;
   const stats = richStats();
   const initial = Tower.createInitialState(stats, now);
   const before = initial.players.tofu.phase;
   const result = Tower.advanceState(initial, stats, now + Tower.PHASE_MS, { maxTicks: 10 });
   assert.equal(result.processed, 1);
-  assert.ok(result.state.players.tofu.phase === before || result.state.players.tofu.phase === before + 1);
+  const player = result.state.players.tofu;
+  assert.equal(player.phase, before);
+  assert.equal(player.battle.turn, 1);
+  assert.ok(player.battle.hp > 0 && player.battle.hp < player.battle.maxHp);
+  assert.ok(player.lastCombatTurn.partyDamage > 0);
 });
 
 test("a defeated party rests for one hour and another party takes over", () => {
@@ -59,12 +63,18 @@ test("a defeated party rests for one hour and another party takes over", () => {
   player.phase = 10;
   player.checkpointFloor = 91;
   player.party.forEach((member) => { member.hp = 1; });
-  const result = Tower.advanceState(state, stats, now + Tower.PHASE_MS);
-  const next = result.state.players.tofu;
+  let nextState = state;
+  for (let turn = 0; turn < 12 && !nextState.players.tofu.losses; turn += 1) {
+    nextState = Tower.advanceState(nextState, stats, nextState.nextTickAt, { maxTicks: 1 }).state;
+  }
+  const next = nextState.players.tofu;
   assert.equal(next.floor, 91);
   assert.equal(next.phase, 1);
   assert.equal(next.losses, 1);
-  defeated.forEach((nodeId) => assert.equal(next.resting[nodeId], now + Tower.PHASE_MS + Tower.RECOVERY_MS));
+  const defeatLog = Object.values(nextState.log).find((entry) => entry.playerId === "tofu" && entry.type === "defeat");
+  assert.ok(defeatLog);
+  assert.match(defeatLog.message, /敗北/);
+  defeated.forEach((nodeId) => assert.equal(next.resting[nodeId], defeatLog.createdAt + Tower.RECOVERY_MS));
   assert.ok(next.party.some((member) => !defeated.includes(member.nodeId)));
 });
 
@@ -72,13 +82,27 @@ test("mastery rewards are queued only for monsters that fought", () => {
   const now = 90_000;
   const stats = richStats();
   const state = Tower.createInitialState(stats, now);
-  const result = Tower.advanceState(state, stats, now + Tower.PHASE_MS);
-  const rewards = Object.values(result.state.rewardQueue);
+  let nextState = state;
+  for (let turn = 0; turn < 20 && !Object.keys(nextState.rewardQueue).length; turn += 1) {
+    nextState = Tower.advanceState(nextState, stats, nextState.nextTickAt, { maxTicks: 1 }).state;
+  }
+  const rewards = Object.values(nextState.rewardQueue);
   assert.ok(rewards.length > 0);
   for (const reward of rewards) {
     assert.ok(Object.keys(reward.mastery).length <= 5);
     assert.ok(Object.values(reward.mastery).every((value) => value > 0));
   }
+});
+
+test("legacy timer-only tower state migrates into persistent enemy HP battles", () => {
+  const now = 150_000;
+  const legacy = Tower.createInitialState(richStats(), now);
+  legacy.version = 1;
+  delete legacy.players.eda.battle;
+  const migrated = Tower.normalizeState(legacy, richStats(), now + 1);
+  assert.equal(migrated.version, Tower.VERSION);
+  assert.equal(migrated.players.eda.battle.hp, migrated.players.eda.battle.maxHp);
+  assert.equal(migrated.players.eda.bestPhase, 1);
 });
 
 test("late player stats replace an egg-only placeholder party", () => {

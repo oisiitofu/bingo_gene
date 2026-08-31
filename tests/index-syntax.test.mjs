@@ -19,7 +19,7 @@ test("online lobby boot bypasses stale browser modules and retries once", () => 
 
   assert.match(html, /online-room\.js\?v=20260901-tower-city-territory-139/);
   assert.match(html, /retry=\$\{Date\.now\(\)\}/);
-  assert.match(serviceWorker, /20260901-tower-city-territory-139/);
+  assert.match(serviceWorker, /20260901-tower-hp-battle-140/);
 });
 
 test("one-bingo audio, Likecy skill timing, and reach badge rules stay aligned", () => {
@@ -359,10 +359,11 @@ test("MONSTER TOWER is connected to realtime client, worker, rules, and 100 isol
   const firebaseRules = readFileSync(new URL("../firebase-database.rules.json", import.meta.url), "utf8");
   const serviceWorker = readFileSync(new URL("../sw.js", import.meta.url), "utf8");
   const towerMode = readFileSync(new URL("../tower-mode.js", import.meta.url), "utf8");
+  const towerSystem = readFileSync(new URL("../tower-system.js", import.meta.url), "utf8");
   assert.match(html, /id="towerModeButton"/);
   assert.match(html, /id="playTowerModeButton"/);
-  assert.match(html, /src="tower-system\.js\?v=20260901-tower-city-territory-139"/);
-  assert.match(html, /src="tower-mode\.js\?v=20260901-tower-city-territory-139"/);
+  assert.match(html, /src="tower-system\.js\?v=20260901-tower-hp-battle-140"/);
+  assert.match(html, /src="tower-mode\.js\?v=20260901-tower-hp-battle-140"/);
   assert.match(onlineRoom, /subscribeTower\(\)/);
   assert.match(onlineRoom, /tower\/current/);
   assert.match(worker, /advanceTower\(env\)/);
@@ -370,8 +371,14 @@ test("MONSTER TOWER is connected to realtime client, worker, rules, and 100 isol
   assert.match(serviceWorker, /tower-battle-hall\.png/);
   assert.match(towerMode, /data-tower-history-panel/);
   assert.match(towerMode, /data-tower-monster/);
-  assert.match(towerMode, /showMonsterDetail/);
+  assert.match(towerMode, /renderMemberDetail/);
   assert.doesNotMatch(towerMode, /data-tower-standings/);
+  assert.match(towerMode, /data-tower-detail-panel/);
+  assert.match(towerMode, /tower-enemy-hp/);
+  assert.match(towerMode, /最高記録 \$\{Number\(current\.bestFloor\)/);
+  assert.match(towerSystem, /enemyBattleFor/);
+  assert.match(towerSystem, /battle\.hp = Math\.max\(0, battle\.hp - damage\)/);
+  assert.doesNotMatch(towerSystem, /clearChance/);
   const bosses = readdirSync(new URL("../images/tower/bosses/", import.meta.url)).filter((name) => /^boss-\d{3}\.svg$/.test(name));
   assert.equal(bosses.length, 100);
 });
