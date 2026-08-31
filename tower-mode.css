@@ -1,0 +1,133 @@
+.monster-tower-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 32000;
+  display: none;
+  overflow: hidden;
+  color: #f8f6ec;
+  font-family: "Arial Black", "Yu Gothic", sans-serif;
+  background: #06090d url("images/tower/tower-battle-hall.png") center / cover no-repeat;
+}
+body.monster-tower-open { overflow: hidden !important; }
+.monster-tower-overlay.is-open { display: block; }
+.monster-tower-overlay::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background: linear-gradient(90deg, rgba(3, 7, 12, .05), rgba(3, 7, 12, .12) 44%, rgba(3, 7, 12, .72) 100%);
+}
+.tower-shell { position: relative; height: 100%; display: grid; grid-template-rows: auto auto minmax(0, 1fr) auto; }
+.tower-header {
+  display: grid;
+  grid-template-columns: minmax(220px, 1fr) auto minmax(220px, 1fr);
+  align-items: center;
+  gap: 14px;
+  min-height: 72px;
+  padding: 10px 18px;
+  background: rgba(3, 8, 13, .9);
+  border-bottom: 1px solid rgba(229, 197, 101, .7);
+}
+.tower-title { margin: 0; font-size: clamp(22px, 2.1vw, 36px); letter-spacing: 0; color: #f5d36d; }
+.tower-title small { display: block; font: 700 10px/1 Arial, sans-serif; color: #8ca3b2; }
+.tower-progress { min-width: 290px; text-align: center; }
+.tower-floor { font-size: clamp(26px, 2.7vw, 44px); line-height: 1; color: #fff; }
+.tower-phase { margin-top: 4px; font: 800 12px/1.2 Arial, sans-serif; color: #62e2ec; }
+.tower-header-actions { display: flex; justify-content: flex-end; gap: 8px; }
+.tower-simple-button {
+  min-width: 92px;
+  min-height: 36px;
+  padding: 7px 13px;
+  border: 1px solid #667681;
+  border-radius: 3px;
+  color: #f4f5f5;
+  background: rgba(9, 16, 22, .92);
+  font: 800 12px/1 Arial, sans-serif;
+  cursor: pointer;
+}
+.tower-simple-button:hover, .tower-simple-button.is-active { border-color: #f0cc5c; color: #f0cc5c; background: #172027; }
+.tower-player-tabs {
+  display: grid;
+  grid-template-columns: repeat(6, minmax(0, 1fr));
+  gap: 4px;
+  padding: 6px 18px;
+  background: rgba(3, 8, 13, .78);
+}
+.tower-player-tab {
+  min-width: 0;
+  height: 38px;
+  padding: 4px 8px;
+  overflow: hidden;
+  border: 1px solid color-mix(in srgb, var(--tower-player-color) 55%, #2b3339);
+  border-radius: 2px;
+  color: #dce4e7;
+  background: rgba(10, 16, 21, .92);
+  font: 800 12px/1.1 "Yu Gothic", sans-serif;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  cursor: pointer;
+}
+.tower-player-tab.is-active { color: #fff; border-color: var(--tower-player-color); box-shadow: inset 0 -3px 0 var(--tower-player-color), 0 0 13px color-mix(in srgb, var(--tower-player-color) 55%, transparent); }
+.tower-battlefield { position: relative; min-height: 0; overflow: hidden; }
+.tower-battlefield::after { content: ""; position: absolute; inset: auto 0 0; height: 28%; background: linear-gradient(transparent, rgba(0,0,0,.48)); pointer-events: none; }
+.tower-enemy-zone { position: absolute; left: 3.5%; top: 8%; width: 48%; height: 82%; display: grid; place-items: center; }
+.tower-enemy-art { width: min(39vw, 600px); height: min(68vh, 690px); object-fit: contain; filter: drop-shadow(0 22px 22px rgba(0,0,0,.72)); transform-origin: 50% 80%; }
+.tower-enemy-art.is-regular { background-repeat: no-repeat; }
+.tower-enemy-zone.is-attacking .tower-enemy-art { animation: tower-enemy-attack .72s ease both; }
+.tower-enemy-zone.is-hit .tower-enemy-art { animation: tower-enemy-hit .55s ease both; }
+.tower-enemy-label { position: absolute; left: 3%; bottom: 2%; max-width: 90%; padding: 8px 16px; border-left: 4px solid #f2cd58; background: rgba(2,7,12,.9); }
+.tower-enemy-name { overflow: hidden; font-size: clamp(18px, 2vw, 32px); text-overflow: ellipsis; white-space: nowrap; }
+.tower-enemy-meta { margin-top: 3px; font: 800 11px/1.2 Arial, sans-serif; color: #9fbbc6; }
+.tower-party { position: absolute; top: 4%; right: 2.5%; bottom: 4%; width: min(40vw, 560px); display: grid; grid-template-rows: repeat(5, minmax(0, 1fr)); gap: 5px; }
+.tower-party-member {
+  position: relative;
+  display: grid;
+  grid-template-columns: minmax(84px, 34%) 1fr;
+  align-items: center;
+  min-height: 0;
+  overflow: hidden;
+  border: 1px solid rgba(163, 189, 197, .4);
+  border-right: 4px solid var(--tower-player-color);
+  background: linear-gradient(90deg, rgba(4,10,15,.12), rgba(4,10,15,.9) 48%);
+}
+.tower-party-member.is-ko { filter: grayscale(1); opacity: .55; }
+.tower-mini-monster { align-self: stretch; min-height: 72px; background-repeat: no-repeat; filter: drop-shadow(0 8px 8px rgba(0,0,0,.65)); transform-origin: 60% 65%; }
+.tower-party-member.is-attacking .tower-mini-monster { animation: tower-party-attack .65s ease both; }
+.tower-member-info { min-width: 0; padding: 7px 11px 7px 4px; }
+.tower-member-name { overflow: hidden; font-size: clamp(12px, 1.15vw, 18px); text-overflow: ellipsis; white-space: nowrap; }
+.tower-member-meta { margin-top: 3px; font: 700 10px/1.1 Arial, sans-serif; color: #a9bbc2; }
+.tower-hp { height: 7px; margin-top: 7px; overflow: hidden; background: #15191c; }
+.tower-hp > i { display: block; width: var(--tower-hp); height: 100%; background: linear-gradient(90deg, #42d49b, #baf06e); transition: width .35s ease; }
+.tower-center-readout { position: absolute; left: 46%; top: 41%; z-index: 3; width: 15%; min-width: 135px; text-align: center; transform: translateX(-50%); }
+.tower-next-tick { font-size: clamp(34px, 4vw, 64px); line-height: 1; color: #fff; text-shadow: 0 3px 0 #000; }
+.tower-next-label { margin-top: 5px; font: 900 10px/1 Arial, sans-serif; color: #f0cc5c; }
+.tower-event-flash { min-height: 28px; margin-top: 12px; padding: 6px 9px; color: #fff; background: rgba(2,7,12,.82); font-size: 12px; }
+.tower-footer { position: relative; z-index: 4; display: grid; grid-template-columns: minmax(0, 1fr) minmax(320px, .65fr); min-height: 98px; max-height: 130px; background: rgba(2,7,12,.94); border-top: 1px solid rgba(229,197,101,.52); }
+.tower-log { padding: 10px 18px; overflow: auto; }
+.tower-log-line { display: flex; gap: 10px; margin-bottom: 4px; font: 700 11px/1.35 "Yu Gothic", sans-serif; color: #becbd0; }
+.tower-log-line strong { flex: 0 0 auto; color: #f2cd58; }
+.tower-standings { display: grid; grid-template-columns: repeat(3, 1fr); gap: 3px; align-content: center; padding: 8px 15px; border-left: 1px solid #26353e; }
+.tower-rank { min-width: 0; padding: 5px 7px; border-left: 3px solid var(--tower-player-color); background: #0c1419; }
+.tower-rank b { display: block; overflow: hidden; font-size: 10px; text-overflow: ellipsis; white-space: nowrap; }
+.tower-rank span { font: 800 9px/1 Arial, sans-serif; color: #92a7af; }
+@keyframes tower-party-attack { 0%,100% { transform: translateX(0); } 43% { transform: translateX(-34px) scale(1.08); filter: drop-shadow(0 0 17px #fff); } }
+@keyframes tower-enemy-attack { 0%,100% { transform: translateX(0); } 45% { transform: translateX(42px) scale(1.04); filter: drop-shadow(0 0 22px #ff774f); } }
+@keyframes tower-enemy-hit { 0%,100% { transform: translateX(0); } 25% { transform: translateX(-18px); filter: brightness(2.1); } 55% { transform: translateX(12px); } }
+@media (max-width: 900px) {
+  .tower-header { grid-template-columns: 1fr auto; min-height: 58px; padding: 7px 9px; }
+  .tower-title { display: none; }
+  .tower-progress { min-width: 0; text-align: left; }
+  .tower-player-tabs { padding: 4px 7px; overflow-x: auto; grid-template-columns: repeat(6, minmax(95px, 1fr)); }
+  .tower-enemy-zone { left: 0; width: 54%; }
+  .tower-enemy-art { width: 51vw; height: 58vh; }
+  .tower-party { right: 1%; width: 47vw; }
+  .tower-party-member { grid-template-columns: minmax(64px, 39%) 1fr; }
+  .tower-center-readout { left: 40%; top: 3%; }
+  .tower-next-tick { font-size: 28px; }
+  .tower-footer { grid-template-columns: 1fr; max-height: 94px; min-height: 74px; }
+  .tower-standings { display: none; }
+  .tower-log { padding: 6px 9px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .tower-enemy-art, .tower-mini-monster { animation: none !important; }
+}

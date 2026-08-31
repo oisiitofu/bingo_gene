@@ -262,3 +262,66 @@ test("日次バックアップはFirebase共有ルート全体を圧縮し同日
     if (!originalCrypto) delete globalThis.crypto;
   }
 });
+
+test("MONSTER TOWER Worker advances shared battles and merges mastery once", async () => {
+  const originalFetch = globalThis.fetch;
+  const { advanceTowerWithToken } = await import("../worker/territory-worker.mjs");
+  const Tower = globalThis.TeamBingoMonsterTowerSystem;
+  const Monsters = globalThis.TeamBingoMonsterSystem;
+  const now = Date.UTC(2026, 7, 31, 12, 0);
+  const dex = Object.fromEntries(Object.keys(Monsters.NODES).filter((id) => id !== "egg").map((id) => [id, 1]));
+  const mastery = Object.fromEntries(Object.keys(dex).map((id) => [id, 250000]));
+  const playerStats = {
+    players: Object.fromEntries(Tower.PLAYERS.map((player) => [Tower.playerKey(player.name), {
+      name: player.name,
+      monsterDex: dex,
+      monsterMastery: { ...mastery }
+    }]))
+  };
+  const tower = Tower.createInitialState({ players: playerStats.players }, now - Tower.PHASE_MS);
+  let sharedStats = { playerStats };
+  let sharedTower = tower;
+  let towerWrites = 0;
+  let statsWrites = 0;
+
+  globalThis.fetch = async (input, init = {}) => {
+    const url = String(input);
+    if (url.endsWith("/teamBingoV1/tower/current.json") && (!init.method || init.method === "GET")) {
+      return new Response(JSON.stringify(sharedTower), { headers: { "content-type": "application/json", etag: '"tower-1"' } });
+    }
+    if (url.endsWith("/teamBingoV1/tower/current.json") && init.method === "PUT") {
+      sharedTower = JSON.parse(init.body);
+      towerWrites += 1;
+      return Response.json(sharedTower);
+    }
+    if (url.endsWith("/teamBingoV1/globalStats.json") && (!init.method || init.method === "GET")) {
+      return new Response(JSON.stringify(sharedStats), { headers: { "content-type": "application/json", etag: '"stats-1"' } });
+    }
+    if (url.endsWith("/teamBingoV1/globalStats.json") && init.method === "PUT") {
+      sharedStats = JSON.parse(init.body);
+      statsWrites += 1;
+      return Response.json(sharedStats);
+    }
+    throw new Error(`Unexpected request: ${init.method || "GET"} ${url}`);
+  };
+
+  try {
+    const first = await advanceTowerWithToken({
+      FIREBASE_DATABASE_URL: "https://database.test",
+      FIREBASE_DATABASE_ROOT: "teamBingoV1"
+    }, "tower-token", now);
+    const second = await advanceTowerWithToken({
+      FIREBASE_DATABASE_URL: "https://database.test",
+      FIREBASE_DATABASE_ROOT: "teamBingoV1"
+    }, "tower-token", now);
+
+    assert.equal(first.processed, 1);
+    assert.ok(first.rewards > 0);
+    assert.equal(second.rewards, 0);
+    assert.equal(towerWrites, 1);
+    assert.equal(statsWrites, 1);
+    assert.ok(Object.keys(sharedStats.towerRewardsProcessed || {}).length > 0);
+  } finally {
+    globalThis.fetch = originalFetch;
+  }
+});

@@ -1,11 +1,11 @@
 {
   "version": 1,
-  "generatedAt": "2026-08-30T14:27:03.977Z",
+  "generatedAt": "2026-08-31T12:19:01.561Z",
   "totals": {
-    "all": 882,
-    "images": 719,
+    "all": 983,
+    "images": 820,
     "audio": 163,
-    "bytes": 653199702
+    "bytes": 656453159
   },
   "assets": [
     {
@@ -4675,6 +4675,612 @@
       "type": "image",
       "category": "images/territory/textures",
       "bytes": 3421086
+    },
+    {
+      "path": "images/tower/bosses/boss-001.svg",
+      "type": "image",
+      "category": "images/tower/bosses",
+      "bytes": 2019
+    },
+    {
+      "path": "images/tower/bosses/boss-002.svg",
+      "type": "image",
+      "category": "images/tower/bosses",
+      "bytes": 2019
+    },
+    {
+      "path": "images/tower/bosses/boss-003.svg",
+      "type": "image",
+      "category": "images/tower/bosses",
+      "bytes": 2097
+    },
+    {
+      "path": "images/tower/bosses/boss-004.svg",
+      "type": "image",
+      "category": "images/tower/bosses",
+      "bytes": 2127
+    },
+    {
+      "path": "images/tower/bosses/boss-005.svg",
+      "type": "image",
+      "category": "images/tower/bosses",
+      "bytes": 2121
+    },
+    {
+      "path": "images/tower/bosses/boss-006.svg",
+      "type": "image",
+      "category": "images/tower/bosses",
+      "bytes": 2176
+    },
+    {
+      "path": "images/tower/bosses/boss-007.svg",
+      "type": "image",
+      "category": "images/tower/bosses",
+      "bytes": 1683
+    },
+    {
+      "path": "images/tower/bosses/boss-008.svg",
+      "type": "image",
+      "category": "images/tower/bosses",
+      "bytes": 2003
+    },
+    {
+      "path": "images/tower/bosses/boss-009.svg",
+      "type": "image",
+      "category": "images/tower/bosses",
+      "bytes": 2185
+    },
+    {
+      "path": "images/tower/bosses/boss-010.svg",
+      "type": "image",
+      "category": "images/tower/bosses",
+      "bytes": 2120
+    },
+    {
+      "path": "images/tower/bosses/boss-011.svg",
+      "type": "image",
+      "category": "images/tower/bosses",
+      "bytes": 2157
+    },
+    {
+      "path": "images/tower/bosses/boss-012.svg",
+      "type": "image",
+      "category": "images/tower/bosses",
+      "bytes": 2153
+    },
+    {
+      "path": "images/tower/bosses/boss-013.svg",
+      "type": "image",
+      "category": "images/tower/bosses",
+      "bytes": 2227
+    },
+    {
+      "path": "images/tower/bosses/boss-014.svg",
+      "type": "image",
+      "category": "images/tower/bosses",
+      "bytes": 2097
+    },
+    {
+      "path": "images/tower/bosses/boss-015.svg",
+      "type": "image",
+      "category": "images/tower/bosses",
+      "bytes": 2096
+    },
+    {
+      "path": "images/tower/bosses/boss-016.svg",
+      "type": "image",
+      "category": "images/tower/bosses",
+      "bytes": 2142
+    },
+    {
+      "path": "images/tower/bosses/boss-017.svg",
+      "type": "image",
+      "category": "images/tower/bosses",
+      "bytes": 1814
+    },
+    {
+      "path": "images/tower/bosses/boss-018.svg",
+      "type": "image",
+      "category": "images/tower/bosses",
+      "bytes": 2137
+    },
+    {
+      "path": "images/tower/bosses/boss-019.svg",
+      "type": "image",
+      "category": "images/tower/bosses",
+      "bytes": 2388
+    },
+    {
+      "path": "images/tower/bosses/boss-020.svg",
+      "type": "image",
+      "category": "images/tower/bosses",
+      "bytes": 2251
+    },
+    {
+      "path": "images/tower/bosses/boss-021.svg",
+      "type": "image",
+      "category": "images/tower/bosses",
+      "bytes": 2125
+    },
+    {
+      "path": "images/tower/bosses/boss-022.svg",
+      "type": "image",
+      "category": "images/tower/bosses",
+      "bytes": 2120
+    },
+    {
+      "path": "images/tower/bosses/boss-023.svg",
+      "type": "image",
+      "category": "images/tower/bosses",
+      "bytes": 2197
+    },
+    {
+      "path": "images/tower/bosses/boss-024.svg",
+      "type": "image",
+      "category": "images/tower/bosses",
+      "bytes": 2230
+    },
+    {
+      "path": "images/tower/bosses/boss-025.svg",
+      "type": "image",
+      "category": "images/tower/bosses",
+      "bytes": 2222
+    },
+    {
+      "path": "images/tower/bosses/boss-026.svg",
+      "type": "image",
+      "category": "images/tower/bosses",
+      "bytes": 2279
+    },
+    {
+      "path": "images/tower/bosses/boss-027.svg",
+      "type": "image",
+      "category": "images/tower/bosses",
+      "bytes": 1944
+    },
+    {
+      "path": "images/tower/bosses/boss-028.svg",
+      "type": "image",
+      "category": "images/tower/bosses",
+      "bytes": 2107
+    },
+    {
+      "path": "images/tower/bosses/boss-029.svg",
+      "type": "image",
+      "category": "images/tower/bosses",
+      "bytes": 2268
+    },
+    {
+      "path": "images/tower/bosses/boss-030.svg",
+      "type": "image",
+      "category": "images/tower/bosses",
+      "bytes": 2221
+    },
+    {
+      "path": "images/tower/bosses/boss-031.svg",
+      "type": "image",
+      "category": "images/tower/bosses",
+      "bytes": 2258
+    },
+    {
+      "path": "images/tower/bosses/boss-032.svg",
+      "type": "image",
+      "category": "images/tower/bosses",
+      "bytes": 2255
+    },
+    {
+      "path": "images/tower/bosses/boss-033.svg",
+      "type": "image",
+      "category": "images/tower/bosses",
+      "bytes": 2329
+    },
+    {
+      "path": "images/tower/bosses/boss-034.svg",
+      "type": "image",
+      "category": "images/tower/bosses",
+      "bytes": 2357
+    },
+    {
+      "path": "images/tower/bosses/boss-035.svg",
+      "type": "image",
+      "category": "images/tower/bosses",
+      "bytes": 2194
+    },
+    {
+      "path": "images/tower/bosses/boss-036.svg",
+      "type": "image",
+      "category": "images/tower/bosses",
+      "bytes": 2242
+    },
+    {
+      "path": "images/tower/bosses/boss-037.svg",
+      "type": "image",
+      "category": "images/tower/bosses",
+      "bytes": 1914
+    },
+    {
+      "path": "images/tower/bosses/boss-038.svg",
+      "type": "image",
+      "category": "images/tower/bosses",
+      "bytes": 2236
+    },
+    {
+      "path": "images/tower/bosses/boss-039.svg",
+      "type": "image",
+      "category": "images/tower/bosses",
+      "bytes": 2467
+    },
+    {
+      "path": "images/tower/bosses/boss-040.svg",
+      "type": "image",
+      "category": "images/tower/bosses",
+      "bytes": 2348
+    },
+    {
+      "path": "images/tower/bosses/boss-041.svg",
+      "type": "image",
+      "category": "images/tower/bosses",
+      "bytes": 2384
+    },
+    {
+      "path": "images/tower/bosses/boss-042.svg",
+      "type": "image",
+      "category": "images/tower/bosses",
+      "bytes": 2219
+    },
+    {
+      "path": "images/tower/bosses/boss-043.svg",
+      "type": "image",
+      "category": "images/tower/bosses",
+      "bytes": 2300
+    },
+    {
+      "path": "images/tower/bosses/boss-044.svg",
+      "type": "image",
+      "category": "images/tower/bosses",
+      "bytes": 2326
+    },
+    {
+      "path": "images/tower/bosses/boss-045.svg",
+      "type": "image",
+      "category": "images/tower/bosses",
+      "bytes": 2328
+    },
+    {
+      "path": "images/tower/bosses/boss-046.svg",
+      "type": "image",
+      "category": "images/tower/bosses",
+      "bytes": 2377
+    },
+    {
+      "path": "images/tower/bosses/boss-047.svg",
+      "type": "image",
+      "category": "images/tower/bosses",
+      "bytes": 2046
+    },
+    {
+      "path": "images/tower/bosses/boss-048.svg",
+      "type": "image",
+      "category": "images/tower/bosses",
+      "bytes": 2367
+    },
+    {
+      "path": "images/tower/bosses/boss-049.svg",
+      "type": "image",
+      "category": "images/tower/bosses",
+      "bytes": 2341
+    },
+    {
+      "path": "images/tower/bosses/boss-050.svg",
+      "type": "image",
+      "category": "images/tower/bosses",
+      "bytes": 2321
+    },
+    {
+      "path": "images/tower/bosses/boss-051.svg",
+      "type": "image",
+      "category": "images/tower/bosses",
+      "bytes": 2353
+    },
+    {
+      "path": "images/tower/bosses/boss-052.svg",
+      "type": "image",
+      "category": "images/tower/bosses",
+      "bytes": 2351
+    },
+    {
+      "path": "images/tower/bosses/boss-053.svg",
+      "type": "image",
+      "category": "images/tower/bosses",
+      "bytes": 2433
+    },
+    {
+      "path": "images/tower/bosses/boss-054.svg",
+      "type": "image",
+      "category": "images/tower/bosses",
+      "bytes": 2458
+    },
+    {
+      "path": "images/tower/bosses/boss-055.svg",
+      "type": "image",
+      "category": "images/tower/bosses",
+      "bytes": 2455
+    },
+    {
+      "path": "images/tower/bosses/boss-056.svg",
+      "type": "image",
+      "category": "images/tower/bosses",
+      "bytes": 2347
+    },
+    {
+      "path": "images/tower/bosses/boss-057.svg",
+      "type": "image",
+      "category": "images/tower/bosses",
+      "bytes": 2014
+    },
+    {
+      "path": "images/tower/bosses/boss-058.svg",
+      "type": "image",
+      "category": "images/tower/bosses",
+      "bytes": 2333
+    },
+    {
+      "path": "images/tower/bosses/boss-059.svg",
+      "type": "image",
+      "category": "images/tower/bosses",
+      "bytes": 2544
+    },
+    {
+      "path": "images/tower/bosses/boss-060.svg",
+      "type": "image",
+      "category": "images/tower/bosses",
+      "bytes": 2455
+    },
+    {
+      "path": "images/tower/bosses/boss-061.svg",
+      "type": "image",
+      "category": "images/tower/bosses",
+      "bytes": 2486
+    },
+    {
+      "path": "images/tower/bosses/boss-062.svg",
+      "type": "image",
+      "category": "images/tower/bosses",
+      "bytes": 2485
+    },
+    {
+      "path": "images/tower/bosses/boss-063.svg",
+      "type": "image",
+      "category": "images/tower/bosses",
+      "bytes": 2404
+    },
+    {
+      "path": "images/tower/bosses/boss-064.svg",
+      "type": "image",
+      "category": "images/tower/bosses",
+      "bytes": 2431
+    },
+    {
+      "path": "images/tower/bosses/boss-065.svg",
+      "type": "image",
+      "category": "images/tower/bosses",
+      "bytes": 2422
+    },
+    {
+      "path": "images/tower/bosses/boss-066.svg",
+      "type": "image",
+      "category": "images/tower/bosses",
+      "bytes": 2480
+    },
+    {
+      "path": "images/tower/bosses/boss-067.svg",
+      "type": "image",
+      "category": "images/tower/bosses",
+      "bytes": 2146
+    },
+    {
+      "path": "images/tower/bosses/boss-068.svg",
+      "type": "image",
+      "category": "images/tower/bosses",
+      "bytes": 2466
+    },
+    {
+      "path": "images/tower/bosses/boss-069.svg",
+      "type": "image",
+      "category": "images/tower/bosses",
+      "bytes": 2746
+    },
+    {
+      "path": "images/tower/bosses/boss-070.svg",
+      "type": "image",
+      "category": "images/tower/bosses",
+      "bytes": 2424
+    },
+    {
+      "path": "images/tower/bosses/boss-071.svg",
+      "type": "image",
+      "category": "images/tower/bosses",
+      "bytes": 2450
+    },
+    {
+      "path": "images/tower/bosses/boss-072.svg",
+      "type": "image",
+      "category": "images/tower/bosses",
+      "bytes": 2454
+    },
+    {
+      "path": "images/tower/bosses/boss-073.svg",
+      "type": "image",
+      "category": "images/tower/bosses",
+      "bytes": 2531
+    },
+    {
+      "path": "images/tower/bosses/boss-074.svg",
+      "type": "image",
+      "category": "images/tower/bosses",
+      "bytes": 2564
+    },
+    {
+      "path": "images/tower/bosses/boss-075.svg",
+      "type": "image",
+      "category": "images/tower/bosses",
+      "bytes": 2552
+    },
+    {
+      "path": "images/tower/bosses/boss-076.svg",
+      "type": "image",
+      "category": "images/tower/bosses",
+      "bytes": 2609
+    },
+    {
+      "path": "images/tower/bosses/boss-077.svg",
+      "type": "image",
+      "category": "images/tower/bosses",
+      "bytes": 2120
+    },
+    {
+      "path": "images/tower/bosses/boss-078.svg",
+      "type": "image",
+      "category": "images/tower/bosses",
+      "bytes": 2438
+    },
+    {
+      "path": "images/tower/bosses/boss-079.svg",
+      "type": "image",
+      "category": "images/tower/bosses",
+      "bytes": 2617
+    },
+    {
+      "path": "images/tower/bosses/boss-080.svg",
+      "type": "image",
+      "category": "images/tower/bosses",
+      "bytes": 2552
+    },
+    {
+      "path": "images/tower/bosses/boss-081.svg",
+      "type": "image",
+      "category": "images/tower/bosses",
+      "bytes": 2585
+    },
+    {
+      "path": "images/tower/bosses/boss-082.svg",
+      "type": "image",
+      "category": "images/tower/bosses",
+      "bytes": 2582
+    },
+    {
+      "path": "images/tower/bosses/boss-083.svg",
+      "type": "image",
+      "category": "images/tower/bosses",
+      "bytes": 2656
+    },
+    {
+      "path": "images/tower/bosses/boss-084.svg",
+      "type": "image",
+      "category": "images/tower/bosses",
+      "bytes": 2531
+    },
+    {
+      "path": "images/tower/bosses/boss-085.svg",
+      "type": "image",
+      "category": "images/tower/bosses",
+      "bytes": 2533
+    },
+    {
+      "path": "images/tower/bosses/boss-086.svg",
+      "type": "image",
+      "category": "images/tower/bosses",
+      "bytes": 2581
+    },
+    {
+      "path": "images/tower/bosses/boss-087.svg",
+      "type": "image",
+      "category": "images/tower/bosses",
+      "bytes": 2244
+    },
+    {
+      "path": "images/tower/bosses/boss-088.svg",
+      "type": "image",
+      "category": "images/tower/bosses",
+      "bytes": 2570
+    },
+    {
+      "path": "images/tower/bosses/boss-089.svg",
+      "type": "image",
+      "category": "images/tower/bosses",
+      "bytes": 2824
+    },
+    {
+      "path": "images/tower/bosses/boss-090.svg",
+      "type": "image",
+      "category": "images/tower/bosses",
+      "bytes": 2673
+    },
+    {
+      "path": "images/tower/bosses/boss-091.svg",
+      "type": "image",
+      "category": "images/tower/bosses",
+      "bytes": 2560
+    },
+    {
+      "path": "images/tower/bosses/boss-092.svg",
+      "type": "image",
+      "category": "images/tower/bosses",
+      "bytes": 2555
+    },
+    {
+      "path": "images/tower/bosses/boss-093.svg",
+      "type": "image",
+      "category": "images/tower/bosses",
+      "bytes": 2631
+    },
+    {
+      "path": "images/tower/bosses/boss-094.svg",
+      "type": "image",
+      "category": "images/tower/bosses",
+      "bytes": 2660
+    },
+    {
+      "path": "images/tower/bosses/boss-095.svg",
+      "type": "image",
+      "category": "images/tower/bosses",
+      "bytes": 2652
+    },
+    {
+      "path": "images/tower/bosses/boss-096.svg",
+      "type": "image",
+      "category": "images/tower/bosses",
+      "bytes": 2711
+    },
+    {
+      "path": "images/tower/bosses/boss-097.svg",
+      "type": "image",
+      "category": "images/tower/bosses",
+      "bytes": 2379
+    },
+    {
+      "path": "images/tower/bosses/boss-098.svg",
+      "type": "image",
+      "category": "images/tower/bosses",
+      "bytes": 2539
+    },
+    {
+      "path": "images/tower/bosses/boss-099.svg",
+      "type": "image",
+      "category": "images/tower/bosses",
+      "bytes": 2695
+    },
+    {
+      "path": "images/tower/bosses/boss-100.svg",
+      "type": "image",
+      "category": "images/tower/bosses",
+      "bytes": 2589
+    },
+    {
+      "path": "images/tower/tower-battle-hall.png",
+      "type": "image",
+      "category": "images/tower",
+      "bytes": 3019253
     },
     {
       "path": "images/ui/bg-arena-stage.png",

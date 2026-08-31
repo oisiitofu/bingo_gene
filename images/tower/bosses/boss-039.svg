@@ -1,0 +1,16 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" role="img" aria-label="Tower boss 39">
+  <defs>
+    <linearGradient id="armor" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#ffd35a"/><stop offset=".38" stop-color="#ff6a2a"/><stop offset="1" stop-color="#7d1010"/></linearGradient>
+    <radialGradient id="wing"><stop stop-color="#ff6a2a" stop-opacity=".95"/><stop offset="1" stop-color="#7d1010" stop-opacity=".35"/></radialGradient>
+    <filter id="aura" x="-60%" y="-60%" width="220%" height="220%"><feGaussianBlur stdDeviation="12" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
+    <filter id="shadow"><feDropShadow dx="0" dy="16" stdDeviation="12" flood-opacity=".75"/></filter>
+  </defs>
+  <ellipse cx="256" cy="449" rx="173" ry="28" fill="#000" opacity=".48"/>
+  <g opacity=".55" filter="url(#aura)"><polygon points="256.0,38.0 331.0,74.9 410.1,101.9 437.1,181.0 474.0,256.0 437.1,331.0 410.1,410.1 331.0,437.1 256.0,474.0 181.0,437.1 101.9,410.1 74.9,331.0 38.0,256.0 74.9,181.0 101.9,101.9 181.0,74.9" fill="none" stroke="#ff6a2a" stroke-width="5"/></g>
+  <g filter="url(#shadow)"><polygon points="256.0,53.0 307.3,115.0 386.5,100.5 385.9,181.0 455.9,220.7 403.7,282.0 431.8,357.5 352.4,370.9 325.4,446.8 256.0,406.0 186.6,446.8 159.6,370.9 80.2,357.5 108.3,282.0 56.1,220.7 126.1,181.0 125.5,100.5 204.7,115.0" fill="url(#wing)" opacity=".82"/><ellipse cx="256" cy="286" rx="112" ry="126" fill="url(#armor)" stroke="#ffd35a" stroke-width="8"/>
+    <path d="M182 267 Q256 179 330 267 L308 350 Q256 390 204 350Z" fill="#7d1010" opacity=".72"/>
+    <circle cx="218" cy="272" r="13" fill="#fffb9e"/><circle cx="294" cy="272" r="13" fill="#fffb9e"/>
+    <path d="M222 326 Q256 348 290 326" fill="none" stroke="#ffd35a" stroke-width="9" stroke-linecap="round"/><path d="M256 58 L292 135 L378 148 L316 207 L331 291 L256 251 L181 291 L196 207 L134 148 L220 135Z" fill="none" stroke="#ffd35a" stroke-width="9"/></g>
+  <g fill="#ffd35a" opacity=".86"><circle cx="85.32020177726909" cy="222.1709225865105" r="3"/><circle cx="326.6582545575922" cy="77.4743406037258" r="4"/><circle cx="434.13814634324683" cy="367.2061186149035" r="5"/><circle cx="138.76681720038516" cy="384.5783062988158" r="6"/><circle cx="139.75598982220805" cy="103.18857994971253" r="3"/><circle cx="443.3137358233255" cy="161.0602065943399" r="4"/></g>
+  <path d="M36 470 H476" stroke="#ff6a2a" stroke-width="4" opacity=".7"/>
+</svg>

@@ -77,6 +77,17 @@
           }
         }
       },
+      "tower": {
+        "current": {
+          ".write": "auth != null",
+          ".validate": "newData.exists() && newData.child('version').val() === 1 && newData.hasChildren(['version', 'revision', 'players', 'lastTickAt', 'nextTickAt', 'updatedAt']) && newData.child('revision').isNumber() && newData.child('lastTickAt').isNumber() && newData.child('nextTickAt').isNumber() && newData.child('updatedAt').isNumber()",
+          "players": {
+            "$playerId": {
+              ".validate": "($playerId === 'tofu' || $playerId === 'eda' || $playerId === 'jan' || $playerId === 'rima' || $playerId === 'kento' || $playerId === 'lickey') && newData.hasChildren(['id', 'name', 'floor', 'phase', 'checkpointFloor', 'bestFloor', 'party', 'status', 'updatedAt']) && newData.child('id').val() === $playerId && newData.child('floor').isNumber() && newData.child('floor').val() >= 1 && newData.child('floor').val() <= 100 && newData.child('phase').isNumber() && newData.child('phase').val() >= 1 && newData.child('phase').val() <= 10 && newData.child('checkpointFloor').isNumber() && newData.child('party').hasChildren(['0', '1', '2', '3', '4'])"
+            }
+          }
+        }
+      },
       "legacyImports": {
         "$deviceId": {
           ".write": "auth != null && (!data.exists() || data.child('uid').val() === auth.uid)",

@@ -1,0 +1,16 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" role="img" aria-label="Tower boss 100">
+  <defs>
+    <linearGradient id="armor" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#b45cff"/><stop offset=".38" stop-color="#ff496d"/><stop offset="1" stop-color="#190a24"/></linearGradient>
+    <radialGradient id="wing"><stop stop-color="#ff496d" stop-opacity=".95"/><stop offset="1" stop-color="#190a24" stop-opacity=".35"/></radialGradient>
+    <filter id="aura" x="-60%" y="-60%" width="220%" height="220%"><feGaussianBlur stdDeviation="12" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
+    <filter id="shadow"><feDropShadow dx="0" dy="16" stdDeviation="12" flood-opacity=".75"/></filter>
+  </defs>
+  <ellipse cx="256" cy="449" rx="173" ry="28" fill="#000" opacity=".48"/>
+  <g opacity=".55" filter="url(#aura)"><polygon points="256.0,38.0 354.0,86.3 444.8,147.0 452.0,256.0 444.8,365.0 354.0,425.7 256.0,474.0 158.0,425.7 67.2,365.0 60.0,256.0 67.2,147.0 158.0,86.3" fill="none" stroke="#ff496d" stroke-width="5"/></g>
+  <g filter="url(#shadow)"><path d="M128 180 L170 55 L224 132 L256 28 L288 132 L342 55 L384 180Z" fill="url(#armor)" stroke="#b45cff" stroke-width="9"/><ellipse cx="256" cy="286" rx="112" ry="126" fill="url(#armor)" stroke="#b45cff" stroke-width="8"/>
+    <path d="M182 267 Q256 174 330 267 L308 350 Q256 390 204 350Z" fill="#190a24" opacity=".72"/>
+    <circle cx="218" cy="272" r="13" fill="#9effff"/><circle cx="294" cy="272" r="13" fill="#9effff"/>
+    <path d="M222 326 Q256 348 290 326" fill="none" stroke="#b45cff" stroke-width="9" stroke-linecap="round"/><path d="M128 384 Q256 466 384 384" fill="none" stroke="#ff496d" stroke-width="42"/></g>
+  <g fill="#b45cff" opacity=".86"><circle cx="127.90246702844703" cy="138.24167950160847" r="3"/><circle cx="409.2857902013191" cy="140.38223958942473" r="4"/><circle cx="350.17254476603756" cy="443.70064414457573" r="5"/><circle cx="88.96108311301364" cy="304.7237133767785" r="6"/><circle cx="236.3329240871177" cy="65.00993186807614" r="3"/><circle cx="465.35179637685997" cy="272.4871269110707" r="4"/><circle cx="211.30250987428497" cy="424.1610370343309" r="5"/><circle cx="82.3694129096933" cy="174.0462372634702" r="6"/><circle cx="378.39344575022875" cy="85.35462374448636" r="3"/><circle cx="376.8011659328878" cy="381.23209775953967" r="4"/><circle cx="96.0532358221891" cy="362.2122056500464" r="5"/><circle cx="173.25928731254044" cy="62.98711321787016" r="6"/></g>
+  <path d="M36 470 H476" stroke="#ff496d" stroke-width="4" opacity=".7"/>
+</svg>

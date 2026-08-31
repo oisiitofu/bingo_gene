@@ -1,0 +1,16 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" role="img" aria-label="Tower boss 88">
+  <defs>
+    <linearGradient id="armor" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#fffef2"/><stop offset=".38" stop-color="#fff4c4"/><stop offset="1" stop-color="#b58a2b"/></linearGradient>
+    <radialGradient id="wing"><stop stop-color="#fff4c4" stop-opacity=".95"/><stop offset="1" stop-color="#b58a2b" stop-opacity=".35"/></radialGradient>
+    <filter id="aura" x="-60%" y="-60%" width="220%" height="220%"><feGaussianBlur stdDeviation="12" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
+    <filter id="shadow"><feDropShadow dx="0" dy="16" stdDeviation="12" flood-opacity=".75"/></filter>
+  </defs>
+  <ellipse cx="256" cy="449" rx="173" ry="28" fill="#000" opacity=".48"/>
+  <g opacity=".55" filter="url(#aura)"><polygon points="256.0,38.0 331.0,74.9 410.1,101.9 437.1,181.0 474.0,256.0 437.1,331.0 410.1,410.1 331.0,437.1 256.0,474.0 181.0,437.1 101.9,410.1 74.9,331.0 38.0,256.0 74.9,181.0 101.9,101.9 181.0,74.9" fill="none" stroke="#fff4c4" stroke-width="5"/></g>
+  <g filter="url(#shadow)"><path d="M176 243 Q70 120 48 272 L182 330 M336 243 Q442 120 464 272 L330 330" fill="url(#wing)"/><ellipse cx="256" cy="286" rx="112" ry="126" fill="url(#armor)" stroke="#fffef2" stroke-width="8"/>
+    <path d="M182 267 Q256 186 330 267 L308 350 Q256 390 204 350Z" fill="#b58a2b" opacity=".72"/>
+    <circle cx="218" cy="272" r="13" fill="#9effff"/><circle cx="294" cy="272" r="13" fill="#9effff"/>
+    <path d="M222 326 Q256 348 290 326" fill="none" stroke="#fffef2" stroke-width="9" stroke-linecap="round"/><circle cx="151" cy="203" r="61" fill="url(#armor)"/><circle cx="361" cy="203" r="61" fill="url(#armor)"/></g>
+  <g fill="#fffef2" opacity=".86"><circle cx="284.1763773177963" cy="427.7034995602745" r="3"/><circle cx="64.0330481181058" cy="252.43778367101064" r="4"/><circle cx="297.67074052228736" cy="50.17592613028913" r="5"/><circle cx="417.52550871222684" cy="320.6955178915535" r="6"/><circle cx="153.66025449131695" cy="418.4517666546535" r="3"/><circle cx="101.39952917226367" cy="113.8778890536654" r="4"/><circle cx="394.91524736994546" cy="151.22140462791617" r="5"/><circle cx="342.10061235752005" cy="427.6120175036121" r="6"/><circle cx="54.40130720536129" cy="314.8044816616292" r="3"/><circle cx="238.17671245395042" cy="82.91525075544399" r="4"/><circle cx="447.40735668741485" cy="271.0739446044075" r="5"/></g>
+  <path d="M36 470 H476" stroke="#fff4c4" stroke-width="4" opacity=".7"/>
+</svg>

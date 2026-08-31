@@ -7,6 +7,7 @@
   <link rel="stylesheet" href="online/online-room.css" />
   <link rel="stylesheet" href="territory-mode.css" />
   <link rel="stylesheet" href="city-mode.css?v=20260831-bingo-city-buildings-137" />
+  <link rel="stylesheet" href="tower-mode.css?v=20260831-monster-tower-138" />
   <link rel="stylesheet" href="monster-page.css" />
   <link rel="stylesheet" href="world-tournament.css" />
   <script src="online/firebase-config.js"></script>
@@ -436,9 +437,9 @@
     .setup-top-right { justify-content: flex-end; }
 
     .setup-quick-links {
-      width: min(420px, 100%);
+      width: min(520px, 100%);
       display: grid;
-      grid-template-columns: repeat(4, minmax(0, 1fr));
+      grid-template-columns: repeat(5, minmax(0, 1fr));
       gap: 8px;
     }
 
@@ -451,7 +452,9 @@
     }
 
     #cityModeButton,
-    #playCityModeButton {
+    #playCityModeButton,
+    #towerModeButton,
+    #playTowerModeButton {
       padding-inline: 5px;
       font-size: 10px;
     }
@@ -8046,6 +8049,7 @@
             <button type="button" class="btn" id="setupMonsterButton">MONSTER</button>
             <button type="button" class="btn mode-entry-btn" id="territoryModeButton">六王領土戦</button>
             <button type="button" class="btn mode-entry-btn" id="cityModeButton">BINGO CITY</button>
+            <button type="button" class="btn mode-entry-btn" id="towerModeButton">MONSTER TOWER</button>
           </div>
         </div>
         <div class="setup-top-right">
@@ -8182,6 +8186,7 @@
             <button type="button" class="btn frame" id="playMonsterButton">MONSTER</button>
             <button type="button" class="btn frame mode-entry-btn" id="playTerritoryModeButton">六王領土戦</button>
             <button type="button" class="btn frame mode-entry-btn" id="playCityModeButton">BINGO CITY</button>
+            <button type="button" class="btn frame mode-entry-btn" id="playTowerModeButton">MONSTER TOWER</button>
           </div>
         </div>
         <div class="top-right">
@@ -8630,11 +8635,13 @@
   <script src="territory-equipment.js"></script>
   <script src="territory-system.js"></script>
   <script src="city-system.js?v=20260831-bingo-city-buildings-137"></script>
+  <script src="tower-system.js?v=20260831-monster-tower-138"></script>
   <script src="vendor/three/three.min.js"></script>
   <script src="territory-map-3d.js"></script>
   <script src="territory-mode.js"></script>
   <script src="city-map-3d.js?v=20260831-bingo-city-buildings-137"></script>
   <script src="city-mode.js?v=20260831-bingo-city-buildings-137"></script>
+  <script src="tower-mode.js?v=20260831-monster-tower-138"></script>
   <script src="world-tournament.js"></script>
   <script>
     "use strict";
@@ -9474,7 +9481,7 @@
         "adminMonsterBattleModal", "adminMonsterRed1", "adminMonsterRed2", "adminMonsterBlue1", "adminMonsterBlue2", "adminMonsterBattleShuffle", "adminMonsterBattleCancel", "adminMonsterBattleStart",
         "teamSelectModal", "teamSelectList", "teamSelectRedMembers", "teamSelectBlueMembers", "teamSelectShuffleButton", "teamSelectConfirmButton", "teamSelectCancelButton", "teamSelectError",
         "statsSeasonSelect", "statsSeasonList", "statsTournamentList", "statsTerritoryList",
-        "randomEventButton", "monsterBattleModeButton", "singleMonsterModeButton", "doubleMonsterModeButton", "compactModeButton", "testModeControl", "testModeCheckbox", "testModeLabel", "testModeBadge", "territoryModeButton", "playTerritoryModeButton", "cityModeButton", "playCityModeButton",
+        "randomEventButton", "monsterBattleModeButton", "singleMonsterModeButton", "doubleMonsterModeButton", "compactModeButton", "testModeControl", "testModeCheckbox", "testModeLabel", "testModeBadge", "territoryModeButton", "playTerritoryModeButton", "cityModeButton", "playCityModeButton", "towerModeButton", "playTowerModeButton",
         "matchReplayModal", "replayMatchMeta", "replaySummary", "replayBoards", "replayTimeline", "replayCloseButton",
         "replayPrevButton", "replayPlayButton", "replayRange", "replayStepLabel",
         "feverAura", "fxLayer", "openedByPopover", "victoryParticles", "setupThemePlayer", "copyrightToggle",
@@ -9521,6 +9528,8 @@
       els.playTerritoryModeButton?.addEventListener("click", openTerritoryWindow);
       els.cityModeButton?.addEventListener("click", openCityWindow);
       els.playCityModeButton?.addEventListener("click", openCityWindow);
+      els.towerModeButton?.addEventListener("click", openTowerMode);
+      els.playTowerModeButton?.addEventListener("click", openTowerMode);
       els.setupStatsButton.addEventListener("click", showStatsPage);
       els.playStatsButton.addEventListener("click", showStatsPage);
       els.setupMonsterButton?.addEventListener("click", showMonsterDexPage);
@@ -17830,7 +17839,7 @@
       if ("serviceWorker" in navigator && /^https?:$/.test(location.protocol)) {
         navigator.serviceWorker.register("./sw.js").then((registration) => registration.update()).catch((error) => console.warn("Service worker registration failed", error));
       }
-      const onlineRoomModuleUrl = "./online/online-room.js?v=20260831-bingo-city-buildings-137";
+      const onlineRoomModuleUrl = "./online/online-room.js?v=20260831-monster-tower-138";
       import(onlineRoomModuleUrl)
         .catch((firstError) => import(`${onlineRoomModuleUrl}&retry=${Date.now()}`)
           .catch((retryError) => {
@@ -17877,10 +17886,12 @@
         applyTerritoryPreviousSnapshot,
         applyTerritoryArchive,
         applyCitySnapshot,
+        applyTowerSnapshot,
         openTerritoryMode,
         openTerritoryWindow,
         openCityMode,
         openCityWindow,
+        openTowerMode,
         createTerritoryInitialState: () => window.TeamBingoTerritorySystem?.createInitialState(state.playerStats, Date.now()) || null,
         createOnlineEvent,
         playOnlineEvent,
@@ -18328,6 +18339,11 @@
       if (isCityStandalonePage()) openCityStandalone(snapshot);
     }
 
+    function applyTowerSnapshot(snapshot) {
+      if (!snapshot) return;
+      window.TeamBingoTowerMode?.applySnapshot(snapshot);
+    }
+
     function configureWorldTournament() {
       window.TeamBingoWorldTournament?.configure({
         getPlayers: getTeamSelectionPlayers,
@@ -18487,6 +18503,18 @@
         onCommand: (command) => onlineCoordinator?.applyCityCommand?.(command) || Promise.resolve({ ok: false, error: "オンライン接続を確認してください。" }),
         onClose: () => {
           if (isCityStandalonePage() && window.opener) window.close();
+        }
+      });
+    }
+
+    function openTowerMode(snapshot = null) {
+      unlockAudio();
+      const liveState = snapshot || onlineCoordinator?.getTowerState?.() || window.TeamBingoMonsterTowerSystem?.createInitialState(state.playerStats, Date.now());
+      window.TeamBingoTowerMode?.open({
+        state: liveState,
+        repository: onlineCoordinator,
+        onClose: () => {
+          if (!onlineCoordinator?.isOnline?.() && !document.querySelector(".screen.active")) onlineCoordinator?.showLobby?.();
         }
       });
     }

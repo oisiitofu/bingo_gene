@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" role="img" aria-label="Tower boss 27">
+  <defs>
+    <linearGradient id="armor" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#b8f5ff"/><stop offset=".38" stop-color="#41c7e8"/><stop offset="1" stop-color="#123d79"/></linearGradient>
+    <radialGradient id="wing"><stop stop-color="#41c7e8" stop-opacity=".95"/><stop offset="1" stop-color="#123d79" stop-opacity=".35"/></radialGradient>
+    <filter id="aura" x="-60%" y="-60%" width="220%" height="220%"><feGaussianBlur stdDeviation="12" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
+    <filter id="shadow"><feDropShadow dx="0" dy="16" stdDeviation="12" flood-opacity=".75"/></filter>
+  </defs>
+  <ellipse cx="256" cy="449" rx="173" ry="28" fill="#000" opacity=".48"/>
+  <g opacity=".55" filter="url(#aura)"><polygon points="256.0,38.0 316.6,69.6 384.1,79.6 414.6,140.8 463.3,188.6 452.0,256.0 463.3,323.4 414.6,371.2 384.1,432.4 316.6,442.4 256.0,474.0 195.4,442.4 127.9,432.4 97.4,371.2 48.7,323.4 60.0,256.0 48.7,188.6 97.4,140.8 127.9,79.6 195.4,69.6" fill="none" stroke="#41c7e8" stroke-width="5"/></g>
+  <g filter="url(#shadow)"><path d="M256 438 C90 430 104 298 214 296 C332 294 366 192 254 142 C175 106 194 48 279 51 C409 57 442 230 338 315 C280 363 330 408 404 386" fill="none" stroke="url(#armor)" stroke-width="74" stroke-linecap="round"/><circle cx="272" cy="91" r="17" fill="#fffb9e"/><path d="M300 74 L363 43 L326 112Z" fill="#41c7e8"/></g>
+  <g fill="#b8f5ff" opacity=".86"><circle cx="369.46555003736955" cy="387.91500655618063" r="3"/><circle cx="90.2584611735208" cy="352.9213201903002" r="4"/><circle cx="184.39701785200018" cy="58.5841623690915" r="5"/><circle cx="427.58676951222935" cy="227.12127896950636" r="6"/><circle cx="253.22330745747135" cy="447.9799207691374" r="3"/></g>
+  <path d="M36 470 H476" stroke="#41c7e8" stroke-width="4" opacity=".7"/>
+</svg>

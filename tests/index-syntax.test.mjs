@@ -17,9 +17,9 @@ test("online lobby boot bypasses stale browser modules and retries once", () => 
   const html = readFileSync(new URL("../index.html", import.meta.url), "utf8");
   const serviceWorker = readFileSync(new URL("../sw.js", import.meta.url), "utf8");
 
-  assert.match(html, /online-room\.js\?v=20260831-bingo-city-buildings-137/);
+  assert.match(html, /online-room\.js\?v=20260831-monster-tower-138/);
   assert.match(html, /retry=\$\{Date\.now\(\)\}/);
-  assert.match(serviceWorker, /20260831-bingo-city-buildings-137/);
+  assert.match(serviceWorker, /20260831-monster-tower-138/);
 });
 
 test("one-bingo audio, Likecy skill timing, and reach badge rules stay aligned", () => {
@@ -346,6 +346,25 @@ test("BINGO CITY is connected to the shared client, worker tick, rules, and offl
   assert.ok(rules.rules.teamBingoV1.cities.current, "Firebase city rules are missing");
   assert.match(serviceWorker, /\.\/city-system\.js\?v=20260831-bingo-city-buildings-137/);
   assert.doesNotMatch(serviceWorker, /SHELL_FILES = \[[\s\S]*?images\/city\/textures/);
+});
+
+test("MONSTER TOWER is connected to realtime client, worker, rules, and 100 isolated bosses", () => {
+  const html = readFileSync(new URL("../index.html", import.meta.url), "utf8");
+  const onlineRoom = readFileSync(new URL("../online/online-room.js", import.meta.url), "utf8");
+  const worker = readFileSync(new URL("../worker/territory-worker.mjs", import.meta.url), "utf8");
+  const firebaseRules = readFileSync(new URL("../firebase-database.rules.json", import.meta.url), "utf8");
+  const serviceWorker = readFileSync(new URL("../sw.js", import.meta.url), "utf8");
+  assert.match(html, /id="towerModeButton"/);
+  assert.match(html, /id="playTowerModeButton"/);
+  assert.match(html, /src="tower-system\.js\?v=20260831-monster-tower-138"/);
+  assert.match(html, /src="tower-mode\.js\?v=20260831-monster-tower-138"/);
+  assert.match(onlineRoom, /subscribeTower\(\)/);
+  assert.match(onlineRoom, /tower\/current/);
+  assert.match(worker, /advanceTower\(env\)/);
+  assert.match(firebaseRules, /"tower"\s*:\s*\{/);
+  assert.match(serviceWorker, /tower-battle-hall\.png/);
+  const bosses = readdirSync(new URL("../images/tower/bosses/", import.meta.url)).filter((name) => /^boss-\d{3}\.svg$/.test(name));
+  assert.equal(bosses.length, 100);
 });
 
 test("勝利画面の装備報酬は獲得アイテムと効果を開ける", () => {

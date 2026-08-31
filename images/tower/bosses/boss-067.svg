@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" role="img" aria-label="Tower boss 67">
+  <defs>
+    <linearGradient id="armor" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#ff9cf1"/><stop offset=".38" stop-color="#bd66ff"/><stop offset="1" stop-color="#26143d"/></linearGradient>
+    <radialGradient id="wing"><stop stop-color="#bd66ff" stop-opacity=".95"/><stop offset="1" stop-color="#26143d" stop-opacity=".35"/></radialGradient>
+    <filter id="aura" x="-60%" y="-60%" width="220%" height="220%"><feGaussianBlur stdDeviation="12" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
+    <filter id="shadow"><feDropShadow dx="0" dy="16" stdDeviation="12" flood-opacity=".75"/></filter>
+  </defs>
+  <ellipse cx="256" cy="449" rx="173" ry="28" fill="#000" opacity=".48"/>
+  <g opacity=".55" filter="url(#aura)"><polygon points="256.0,38.0 331.0,74.9 410.1,101.9 437.1,181.0 474.0,256.0 437.1,331.0 410.1,410.1 331.0,437.1 256.0,474.0 181.0,437.1 101.9,410.1 74.9,331.0 38.0,256.0 74.9,181.0 101.9,101.9 181.0,74.9" fill="none" stroke="#bd66ff" stroke-width="5"/></g>
+  <g filter="url(#shadow)"><path d="M256 438 C90 430 104 298 214 296 C332 294 366 192 254 142 C175 106 194 48 279 51 C409 57 442 230 338 315 C280 363 330 408 404 386" fill="none" stroke="url(#armor)" stroke-width="74" stroke-linecap="round"/><circle cx="272" cy="91" r="17" fill="#fffb9e"/><path d="M300 74 L363 43 L326 112Z" fill="#bd66ff"/></g>
+  <g fill="#ff9cf1" opacity=".86"><circle cx="293.17580656888595" cy="86.01776738155021" r="3"/><circle cx="433.10301548444517" cy="330.15201889575474" r="4"/><circle cx="141.31555649557498" cy="431.9189541183108" r="5"/><circle cx="129.7497309802049" cy="136.263332381307" r="6"/><circle cx="411.0657122875969" cy="142.7806338441156" r="3"/><circle cx="347.24141201093295" cy="445.14281570879496" r="4"/><circle cx="88.22338160909015" cy="302.1194787623518" r="5"/><circle cx="239.30621031566048" cy="64.72711277869243" r="6"/><circle cx="465.0700046040792" cy="275.7416608939141" r="3"/></g>
+  <path d="M36 470 H476" stroke="#bd66ff" stroke-width="4" opacity=".7"/>
+</svg>

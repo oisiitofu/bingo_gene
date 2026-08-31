@@ -34,6 +34,7 @@ const ADMIN_COUNT_PLAYERS = Object.freeze(["おいしいとうふ", "えだ", "�
 const ADMIN_CHARACTER_COUNT = 87;
 const FIXED_RANKING_PLAYER_KEYS = new Set(ADMIN_COUNT_PLAYERS.map((name) => playerKey(name)));
 const CITY_SYSTEM = globalThis.TeamBingoCitySystem || null;
+const TOWER_SYSTEM = globalThis.TeamBingoMonsterTowerSystem || null;
 
 export const ONLINE_REACTIONS = Object.freeze([
   { id: "clap", label: "拍手", mark: "👏" },
@@ -791,6 +792,7 @@ export class OnlineCoordinator {
     this.territoryUnsubscribe = null;
     this.territoryArchiveUnsubscribe = null;
     this.cityUnsubscribe = null;
+    this.towerUnsubscribe = null;
     this.reactionUnsubscribe = null;
     this.seenReactionIds = new Set();
     this.lastReactionSentAt = 0;
@@ -809,6 +811,9 @@ export class OnlineCoordinator {
     this.cityState = null;
     this.cityInitPromise = null;
     this.cityAutoDevelopmentPromise = null;
+    this.towerState = null;
+    this.towerInitPromise = null;
+    this.towerSettlePromise = null;
     this.globalProcessedActions = new Set();
     this.lastMasterLobbySyncKey = "";
     this.masterHandoverTimer = 0;
@@ -1060,6 +1065,7 @@ export class OnlineCoordinator {
       this.subscribeTerritory();
       this.subscribeTerritoryArchive();
       this.subscribeCity();
+      this.subscribeTower();
       this.startGhostCleanupTimer();
       const restored = await this.restoreSession();
       if (!restored) this.showLobby();
@@ -1096,6 +1102,7 @@ export class OnlineCoordinator {
               <button type="button" class="online-simple-button" id="onlineLocalMode">LOCAL MODE</button>
               <button type="button" class="online-simple-button" id="onlineTerritoryMode">六王領土戦</button>
               <button type="button" class="online-simple-button" id="onlineCityMode">BINGO CITY</button>
+              <button type="button" class="online-simple-button" id="onlineTowerMode">MONSTER TOWER</button>
               <button type="button" class="online-simple-button" id="onlineWorldTournament">世界大会</button>
             </div>
             <div class="online-lobby-audio">
@@ -1323,6 +1330,7 @@ export class OnlineCoordinator {
           <button type="button" class="online-simple-button" id="onlineOpenControl" hidden>CONTROL</button>
           <button type="button" class="online-simple-button" id="onlineOpenLobby">ROOMS</button>
           <button type="button" class="online-simple-button" id="onlineOpenTerritory">六王領土戦</button>
+          <button type="button" class="online-simple-button" id="onlineOpenTower">MONSTER TOWER</button>
           <button type="button" class="online-simple-button danger" id="onlineCloseRoom" hidden>ROOM CLOSE</button>
           <button type="button" class="online-simple-button danger" id="onlineLeaveRoom">LEAVE</button>
         </div>
@@ -1345,6 +1353,7 @@ export class OnlineCoordinator {
       localMode: document.getElementById("onlineLocalMode"),
       territoryMode: document.getElementById("onlineTerritoryMode"),
       cityMode: document.getElementById("onlineCityMode"),
+      towerMode: document.getElementById("onlineTowerMode"),
       worldTournament: document.getElementById("onlineWorldTournament"),
       adminMode: document.getElementById("onlineAdminMode"),
       errorBanner: document.getElementById("onlineErrorBanner"),
@@ -1423,6 +1432,7 @@ export class OnlineCoordinator {
       openControl: document.getElementById("onlineOpenControl"),
       openLobby: document.getElementById("onlineOpenLobby"),
       openTerritory: document.getElementById("onlineOpenTerritory"),
+      openTower: document.getElementById("onlineOpenTower"),
       closeRoom: document.getElementById("onlineCloseRoom"),
       leaveRoom: document.getElementById("onlineLeaveRoom")
     };
@@ -1440,6 +1450,7 @@ export class OnlineCoordinator {
     this.ui.localMode.addEventListener("click", () => this.enterLocalMode());
     this.ui.territoryMode.addEventListener("click", () => this.openTerritoryWindow());
     this.ui.cityMode.addEventListener("click", () => this.openCityWindow());
+    this.ui.towerMode.addEventListener("click", () => this.openTowerMode());
     this.ui.worldTournament.addEventListener("click", async () => {
       await this.enterLocalMode();
       this.bridge.openWorldTournament?.();
@@ -1550,6 +1561,10 @@ export class OnlineCoordinator {
     this.ui.openTerritory.addEventListener("click", () => {
       this.setSessionMenuOpen(false);
       this.openTerritoryWindow();
+    });
+    this.ui.openTower.addEventListener("click", () => {
+      this.setSessionMenuOpen(false);
+      this.openTowerMode();
     });
     this.ui.statusClose.addEventListener("click", () => this.ui.statusDialog.close());
     this.ui.connectionList.addEventListener("click", (event) => {
@@ -3188,6 +3203,8 @@ export class OnlineCoordinator {
   getTerritoryState() { return clone(this.territoryState); }
 
   getCityState() { return clone(this.cityState); }
+  getTowerState() { return clone(this.towerState); }
+  getGlobalStats() { return clone(this.globalStatsSnapshot); }
   getPreviousTerritoryState() { return clone(this.previousTerritoryState); }
   getTerritoryArchive() { return clone(this.territoryArchive); }
 
@@ -3209,6 +3226,11 @@ export class OnlineCoordinator {
       return true;
     }
     return false;
+  }
+
+  openTowerMode() {
+    this.bridge.openTowerMode?.(this.towerState);
+    return true;
   }
   isApplyingRemote() { return this.applyingRemote; }
   isBusy() { return Boolean(this.busy); }
@@ -3513,6 +3535,10 @@ export class OnlineCoordinator {
       };
       this.standaloneStatsBaseline = clone(this.globalStatsSnapshot);
       this.bridge.applyOnlineStatsSnapshot?.(this.globalStatsSnapshot);
+      const towerHasPlaceholderParty = TOWER_SYSTEM && Object.values(this.towerState?.players || {}).some((player) => (
+        Array.isArray(player?.party) && player.party.length === TOWER_SYSTEM.PARTY_SIZE && player.party.every((member) => member?.nodeId === "egg")
+      ));
+      if (towerHasPlaceholderParty) this.settleTower(true).catch((error) => console.warn("Tower roster refresh failed", error));
       if (this.ui?.adminPage?.classList?.contains?.("show")) this.renderAdminPlayerCountEditor();
     });
   }
@@ -3560,6 +3586,52 @@ export class OnlineCoordinator {
       }
       this.ensureCityState().catch((error) => console.warn("City initialization failed", error));
     });
+  }
+
+  subscribeTower() {
+    if (this.towerUnsubscribe || !TOWER_SYSTEM) return;
+    this.towerUnsubscribe = this.backend.subscribe(this.path("tower/current"), (snapshot) => {
+      this.towerState = snapshot ? clone(snapshot) : null;
+      if (snapshot) {
+        this.bridge.applyTowerSnapshot?.(snapshot);
+        return;
+      }
+      this.ensureTowerState().catch((error) => console.warn("Tower initialization failed", error));
+    });
+  }
+
+  async ensureTowerState() {
+    if (!TOWER_SYSTEM || !this.backend) return null;
+    if (this.towerInitPromise) return this.towerInitPromise;
+    const now = this.backend.serverNow();
+    this.towerInitPromise = this.backend.transaction(this.path("tower/current"), (current) => (
+      Number(current?.version) === Number(TOWER_SYSTEM.VERSION)
+        ? TOWER_SYSTEM.normalizeState(current, this.globalStatsSnapshot?.playerStats, now)
+        : TOWER_SYSTEM.createInitialState(this.globalStatsSnapshot?.playerStats, now)
+    )).then((result) => {
+      this.towerState = clone(result.value || null);
+      if (this.towerState) this.bridge.applyTowerSnapshot?.(this.towerState);
+      return this.towerState;
+    }).finally(() => { this.towerInitPromise = null; });
+    return this.towerInitPromise;
+  }
+
+  async settleTower(force = false) {
+    if (!TOWER_SYSTEM || !this.backend) return null;
+    if (this.towerSettlePromise) return this.towerSettlePromise;
+    const now = this.backend.serverNow();
+    this.towerSettlePromise = this.backend.transaction(this.path("tower/current"), (current) => {
+      const result = TOWER_SYSTEM.advanceState(current, this.globalStatsSnapshot?.playerStats, now, { maxTicks: 1440 });
+      if (!force && current && !result.processed && Number(current.version) === Number(TOWER_SYSTEM.VERSION)) return undefined;
+      return result.state;
+    }).then((result) => {
+      if (result.value) {
+        this.towerState = clone(result.value);
+        this.bridge.applyTowerSnapshot?.(this.towerState);
+      }
+      return this.towerState;
+    }).finally(() => { this.towerSettlePromise = null; });
+    return this.towerSettlePromise;
   }
 
   async settleCityAutoDevelopment() {

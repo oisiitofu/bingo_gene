@@ -2,10 +2,12 @@ import "../monster-system.js";
 import "../territory-equipment.js";
 import "../territory-system.js";
 import "../city-system.js";
+import "../tower-system.js";
 
 const Territory = globalThis.TeamBingoTerritorySystem;
 const Equipment = globalThis.TeamBingoTerritoryEquipment;
 const City = globalThis.TeamBingoCitySystem;
+const Tower = globalThis.TeamBingoMonsterTowerSystem;
 const TOKEN_URL = "https://oauth2.googleapis.com/token";
 const FIREBASE_SCOPES = [
   "https://www.googleapis.com/auth/firebase.database",
@@ -419,6 +421,90 @@ export async function advanceCities(env, now = Date.now()) {
   }
 }
 
+function trimProcessedRewards(source, limit = 2000) {
+  return Object.fromEntries(Object.entries(source || {}).sort(([, a], [, b]) => Number(b) - Number(a)).slice(0, limit));
+}
+
+export async function mergeTowerRewardsWithToken(env, token, rewards = {}) {
+  const entries = Object.entries(rewards || {}).filter(([id, reward]) => id && reward?.playerName && reward?.mastery);
+  if (!entries.length) return { merged: 0 };
+  const statsPath = rootPath(env, "globalStats");
+  for (let attempt = 0; attempt < 6; attempt += 1) {
+    const current = await readDatabase(env, statsPath, token, true);
+    const next = current.value || {};
+    next.playerStats ||= { players: {}, rivalries: {}, recentMatches: [] };
+    next.playerStats.players ||= {};
+    next.towerRewardsProcessed ||= {};
+    let merged = 0;
+    entries.forEach(([id, reward]) => {
+      if (next.towerRewardsProcessed[id]) return;
+      const key = Tower.playerKey(reward.playerName);
+      const record = next.playerStats.players[key] || { name: reward.playerName };
+      record.monsterMastery ||= {};
+      Object.entries(reward.mastery || {}).forEach(([nodeId, amount]) => {
+        record.monsterMastery[nodeId] = Math.max(0, Number(record.monsterMastery[nodeId]) || 0) + Math.max(0, Number(amount) || 0);
+      });
+      next.playerStats.players[key] = record;
+      next.towerRewardsProcessed[id] = Number(reward.createdAt) || Date.now();
+      merged += 1;
+    });
+    if (!merged) return { merged: 0 };
+    next.towerRewardsProcessed = trimProcessedRewards(next.towerRewardsProcessed);
+    const written = await writeDatabase(env, statsPath, next, token, current.etag);
+    if (written.committed) return { merged };
+  }
+  throw new Error("Tower mastery update conflicted repeatedly");
+}
+
+export async function advanceTowerWithToken(env, token, now = Date.now()) {
+  const statsPath = rootPath(env, "globalStats");
+  const currentPath = rootPath(env, "tower/current");
+  for (let attempt = 0; attempt < 6; attempt += 1) {
+    const [statsResult, currentResult] = await Promise.all([
+      readDatabase(env, statsPath, token),
+      readDatabase(env, currentPath, token, true)
+    ]);
+    const playerStats = statsResult.value?.playerStats || { players: {} };
+    const advanced = Tower.advanceState(currentResult.value, playerStats, now, { maxTicks: 1440 });
+    const requiresWrite = !currentResult.value || Number(currentResult.value?.version) !== Tower.VERSION || advanced.processed > 0;
+    let towerState = advanced.state;
+    if (requiresWrite) {
+      const written = await writeDatabase(env, currentPath, towerState, token, currentResult.etag);
+      if (!written.committed) continue;
+      towerState = written.value || towerState;
+    }
+    const rewardResult = await mergeTowerRewardsWithToken(env, token, towerState.rewardQueue || {});
+    return {
+      ok: true,
+      changed: requiresWrite,
+      processed: advanced.processed,
+      rewards: rewardResult.merged,
+      revision: towerState.revision,
+      nextTickAt: towerState.nextTickAt
+    };
+  }
+  throw new Error("Tower state update conflicted repeatedly");
+}
+
+export async function advanceTower(env, now = Date.now()) {
+  if (env.FIREBASE_CLIENT_EMAIL && env.FIREBASE_PRIVATE_KEY) {
+    return advanceTowerWithToken(env, await accessToken(env), now);
+  }
+  const account = await firebaseIdentity(env, "accounts:signUp", { returnSecureToken: true });
+  const anonymousEnv = { ...env, FIREBASE_USE_AUTH_QUERY: "true" };
+  const sessionPath = rootPath(env, `adminSessions/${account.localId}`);
+  try {
+    await writeDatabase(anonymousEnv, sessionPath, {
+      pinHash: env.TEAM_BINGO_ADMIN_PIN_HASH || "6440e6a91202aeddb45b070a80533f65a689c37d0cf1842ab2bd962e33377880",
+      expiresAt: Date.now() + 15 * 60 * 1000
+    }, account.idToken);
+    return await advanceTowerWithToken(anonymousEnv, account.idToken, now);
+  } finally {
+    await writeDatabase(anonymousEnv, sessionPath, null, account.idToken).catch(() => {});
+    await firebaseIdentity(env, "accounts:delete", { idToken: account.idToken }).catch(() => {});
+  }
+}
+
 function json(value, status = 200) {
   return new Response(JSON.stringify(value), {
     status,
@@ -433,6 +519,7 @@ export default {
   async scheduled(_controller, env, context) {
     context.waitUntil(advanceFrontier(env));
     context.waitUntil(advanceCities(env));
+    context.waitUntil(advanceTower(env));
     context.waitUntil(createDailyBackup(env));
   },
 
@@ -445,6 +532,8 @@ export default {
         tickMinutes: Territory.TICK_MINUTES,
         cityMode: "六王都市開発",
         cityTickMinutes: City.TICK_MINUTES,
+        towerMode: "MONSTER TOWER",
+        towerFloors: Tower.MAX_FLOOR,
         now: Date.now()
       });
     }
@@ -456,8 +545,8 @@ export default {
       const actual = request.headers.get("authorization")?.replace(/^Bearer\s+/i, "") || "";
       if (!expected || actual !== expected) return json({ ok: false, error: "unauthorized" }, 401);
       try {
-        const [frontier, city] = await Promise.all([advanceFrontier(env), advanceCities(env)]);
-        return json({ ...frontier, city });
+        const [frontier, city, tower] = await Promise.all([advanceFrontier(env), advanceCities(env), advanceTower(env)]);
+        return json({ ...frontier, city, tower });
       } catch (error) {
         return json({ ok: false, error: String(error?.message || error) }, 500);
       }
