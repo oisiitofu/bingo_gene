@@ -9,6 +9,8 @@
   let selectedTileId = "";
   let buildMode = "";
   let buildCategory = "transport";
+  let buildPage = 0;
+  const BUILD_PAGE_SIZE = 12;
   let options = {};
   let busy = false;
   let noticeTimer = 0;
@@ -109,6 +111,13 @@
     const categoryButton = event.target.closest("[data-city-category]");
     if (categoryButton) {
       buildCategory = categoryButton.dataset.cityCategory;
+      buildPage = 0;
+      renderBuildMenu();
+      return;
+    }
+    const pageButton = event.target.closest("[data-city-build-page]");
+    if (pageButton) {
+      buildPage = Math.max(0, Number(pageButton.dataset.cityBuildPage) || 0);
       renderBuildMenu();
       return;
     }
@@ -155,15 +164,23 @@
       const count = Object.values(City.BUILDINGS).filter((building) => building.id !== "civic" && building.category === id).length;
       return `<button type="button" class="city-category-button ${buildCategory === id ? "active" : ""}" data-city-category="${id}"><span>${label}</span><b>${count}</b></button>`;
     }).join("");
-    host.innerHTML = Object.values(City.BUILDINGS)
-      .filter((building) => building.id !== "civic" && building.category === buildCategory && city?.unlocks?.[building.id])
+    const available = Object.values(City.BUILDINGS)
+      .filter((building) => building.id !== "civic" && building.category === buildCategory && city?.unlocks?.[building.id]);
+    const pageCount = Math.max(1, Math.ceil(available.length / BUILD_PAGE_SIZE));
+    buildPage = Math.min(buildPage, pageCount - 1);
+    const pageBuildings = available.slice(buildPage * BUILD_PAGE_SIZE, (buildPage + 1) * BUILD_PAGE_SIZE);
+    host.innerHTML = pageBuildings
       .map((building) => {
         const affordable = city.resources.money >= building.cost;
         return `<button type="button" class="city-build-button ${buildMode === building.id ? "active" : ""}" data-city-build="${building.id}" ${busy || !affordable || !canEditActiveCity() ? "disabled" : ""}>
           <span class="city-build-icon ${building.model || building.id}" aria-hidden="true"></span>
-          <span class="city-build-copy"><strong>${escapeHtml(building.name)}</strong><small>¥${formatNumber(building.cost)}</small></span>
+          <span class="city-build-copy"><strong>${escapeHtml(building.name)}</strong><small>STYLE ${String((building.visualTheme || 0) + 1).padStart(2, "0")} / ¥${formatNumber(building.cost)}</small></span>
         </button>`;
-      }).join("");
+      }).join("") + (pageCount > 1 ? `<nav class="city-build-pager" aria-label="建設カタログページ">
+        <button type="button" data-city-build-page="${Math.max(0, buildPage - 1)}" ${buildPage === 0 ? "disabled" : ""}>PREV</button>
+        <strong>${buildPage + 1}<small> / ${pageCount}</small></strong>
+        <button type="button" data-city-build-page="${Math.min(pageCount - 1, buildPage + 1)}" ${buildPage >= pageCount - 1 ? "disabled" : ""}>NEXT</button>
+      </nav>` : "");
   }
 
   function metric(label, value, suffix = "") {

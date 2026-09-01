@@ -136,6 +136,12 @@ body.city-mode-open { overflow: hidden; }
 .city-build-copy strong, .city-build-copy small { display: block; }
 .city-build-copy strong { font-size: 12px; }
 .city-build-copy small { margin-top: 3px; color: #92a8b4; font-size: 9px; }
+.city-build-pager { position: sticky; bottom: 0; display: grid; grid-template-columns: 1fr auto 1fr; align-items: center; gap: 6px; padding: 9px 0 2px; background: linear-gradient(transparent, #050e15 30%); }
+.city-build-pager button { min-height: 30px; border: 1px solid #344a58; color: #d8e6ed; background: #0c1922; font: 800 9px/1 inherit; cursor: pointer; }
+.city-build-pager button:hover:not(:disabled) { border-color: #50c9f3; color: #fff; background: #103449; }
+.city-build-pager button:disabled { opacity: .3; cursor: default; }
+.city-build-pager strong { min-width: 42px; color: #fff; text-align: center; font-size: 12px; }
+.city-build-pager small { color: #78909d; font-size: 8px; }
 .city-build-icon { width: 32px; height: 32px; position: relative; display: block; border: 1px solid #55717f; background: #152832; }
 .city-build-icon::before, .city-build-icon::after { content: ""; position: absolute; }
 .city-build-icon.road::before { inset: 4px 9px; background: #4b5358; border-left: 2px solid #ddd18e; border-right: 2px solid #ddd18e; }

@@ -556,6 +556,7 @@
       const variant = Math.max(0, Number(definition.variant) || 0);
       const builders = { residential: buildResidential, commercial: buildCommercial, industrial: buildIndustrial, park: buildPark, power: buildPower, water: buildWater, civic: buildCivic, arena: buildArena };
       (builders[definition.model] || buildResidential)(group, level, playerColor, tile.id, variant);
+      addDistrictIdentity(group, definition.model, level, playerColor, tile.id, variant);
     }
 
     function addBase(group, color) {
@@ -583,6 +584,131 @@
 
     function addFacadeBand(group, material, x, y, z, width, depth = .025) {
       return mesh(shared.cube, material, [x, y, z], [width, .045, depth], group);
+    }
+
+    const DISTRICT_ACCENT_COLORS = [0xd6b44d, 0x55ccef, 0x73c96b, 0xee6d58, 0xa97be8, 0xf19ed0, 0x54d5ba, 0xf2a342, 0xd8e5ed, 0x6f91ff];
+
+    function districtMaterial(theme, playerColor, glow = false) {
+      const material = (glow ? materials.glow : materials.gold).clone();
+      const themeColor = new THREE.Color(DISTRICT_ACCENT_COLORS[theme % DISTRICT_ACCENT_COLORS.length]);
+      material.color = themeColor.lerp(new THREE.Color(playerColor), .22);
+      if (glow) {
+        material.emissive = material.color.clone();
+        material.emissiveIntensity = 1.15;
+      }
+      dynamicResources.push(material);
+      return material;
+    }
+
+    function addDistrictIdentity(group, model, level, playerColor, seed, variant) {
+      const form = variant % 10;
+      const theme = Math.floor(variant / 10) % 10;
+      const edition = Math.floor(variant / 100);
+      if (theme === 0 && edition === 0) return;
+      const accent = districtMaterial(theme + edition * 4, playerColor, theme === 6 || theme === 9 || edition > 0);
+      const top = .44 + (form % 3) * .1 + (level - 1) * .05;
+      const phase = hashText(`${seed}:${variant}`) % 628 / 100;
+      const post = (x, z, height = .38, material = accent) => mesh(shared.cylinder12, material, [x, .13 + height / 2, z], [.028, height, .028], group);
+      const halo = (x, y, z, radius, material = accent) => {
+        const ring = mesh(shared.torus, material, [x, y, z], [radius, radius, radius], group);
+        ring.rotation.x = Math.PI / 2;
+        return ring;
+      };
+      const panel = (x, y, z, width = .2, depth = .12) => {
+        const item = addBlock(group, materials.glass, x, z, width, depth, .018, y);
+        item.rotation.x = -.22;
+        return item;
+      };
+      const cornerPosts = (height = .42, material = accent) => [-.29, .29].forEach((x) => [-.25, .25].forEach((z) => post(x, z, height, material)));
+
+      if (edition > 0) {
+        const signatureRadius = .29 + (form % 3) * .025;
+        const signature = halo(0, .18 + (form % 2) * .04, 0, signatureRadius);
+        signature.rotation.y = phase;
+        [-.31, .31].forEach((x) => post(x, -.27 + (form % 2) * .54, .26 + (form % 3) * .05, accent));
+      }
+
+      if (model === "residential") {
+        if (theme === 1) [-.2, 0, .2].forEach((x, index) => addTree(group, x, .27 - index * .03, .25, index % 2));
+        else if (theme === 2) [-.19, .19].forEach((x) => panel(x, top, -.23, .27, .15));
+        else if (theme === 3) [-.24, 0, .24].forEach((x) => [top, top + .2].forEach((y) => addFacadeBand(group, accent, x, y, .32, .14)));
+        else if (theme === 4) mesh(shared.sphere, materials.glass, [0, top + .2, 0], [.25, .27, .25], group);
+        else if (theme === 5) { cornerPosts(.34, materials.copper); mesh(shared.cylinder, accent, [0, top + .18, 0], [.2, .25, .2], group); }
+        else if (theme === 6) { cornerPosts(.48); halo(0, top + .42, 0, .28); }
+        else if (theme === 7) { [-.25, .25].forEach((x) => addBlock(group, materials.white, x, .05, .18, .5, .12, .13)); mesh(shared.cone, accent, [0, top + .36, 0], [.14, .42, .14], group); }
+        else if (theme === 8) { [-.26, .26].forEach((z) => addBlock(group, materials.concrete, 0, z, .58, .1, .08, .13)); [-.2, .2].forEach((x) => addTree(group, x, .28, .22, x > 0)); }
+        else { const ring = halo(0, top + .26, 0, .32); animated.push({ object: ring, type: "spin", speed: .35 }); }
+      } else if (model === "commercial") {
+        if (theme === 1) addFacadeBand(group, accent, 0, top + .1, .34, .54, .035);
+        else if (theme === 2) { const ring = halo(0, top + .34, 0, .26); animated.push({ object: ring, type: "spin", speed: .45 }); }
+        else if (theme === 3) { post(0, 0, .72, materials.darkMetal); mesh(shared.sphere, accent, [0, top + .52, 0], [.08, .08, .08], group); }
+        else if (theme === 4) { addBlock(group, materials.glass, 0, .28, .66, .18, .06, .22); [-.28, .28].forEach((x) => post(x, .28, .3)); }
+        else if (theme === 5) { [-.2, 0, .2].forEach((x) => mesh(shared.sphere, accent, [x, top + .15, 0], [.07, .07, .07], group)); }
+        else if (theme === 6) [-.22, .22].forEach((x) => addBlock(group, accent, x, .31, .18, .025, .28, top));
+        else if (theme === 7) mesh(shared.sphere, materials.glass, [0, top + .24, 0], [.3, .34, .3], group);
+        else if (theme === 8) [-.2, .2].forEach((x) => mesh(shared.cone, accent, [x, top + .35, 0], [.1, .5, .1], group));
+        else { mesh(shared.cylinder, materials.darkMetal, [0, top + .13, 0], [.34, .08, .34], group); addFacadeBand(group, accent, 0, top + .2, .35, .45); }
+      } else if (model === "industrial") {
+        if (theme === 1) [-.23, 0, .23].forEach((x) => mesh(shared.cylinder, materials.copper, [x, .42, .2], [.07, .5, .07], group));
+        else if (theme === 2) [-.2, .2].forEach((x) => mesh(shared.cylinder, accent, [x, .34, 0], [.16, .42, .16], group));
+        else if (theme === 3) { post(-.28, -.2, .8, materials.darkMetal); const boom = addBlock(group, accent, -.02, -.2, .52, .04, .04, .78); boom.rotation.z = -.18; }
+        else if (theme === 4) { const ring = halo(0, .52, 0, .3, materials.copper); ring.rotation.y = Math.PI / 2; }
+        else if (theme === 5) [-.25, .25].forEach((x) => mesh(shared.cone, materials.darkMetal, [x, .62, 0], [.11, .72, .11], group));
+        else if (theme === 6) [-.2, .2].forEach((z) => { const ring = halo(0, .32, z, .17); ring.rotation.y = Math.PI / 2; });
+        else if (theme === 7) { cornerPosts(.58, materials.darkMetal); addBlock(group, accent, 0, 0, .65, .06, .06, .68); }
+        else if (theme === 8) [-.23, 0, .23].forEach((x) => addBlock(group, materials.copper, x, .27, .16, .18, .18, .16));
+        else { mesh(shared.sphere, materials.glass, [0, .5, 0], [.24, .3, .24], group); const ring = halo(0, .5, 0, .34); animated.push({ object: ring, type: "spin", speed: .8 }); }
+      } else if (model === "park") {
+        if (theme === 1) { const pond = mesh(shared.cylinder, materials.lake, [0, .15, 0], [.28, .025, .2], group); animated.push({ object: pond, type: "water" }); }
+        else if (theme === 2) { cornerPosts(.28, materials.white); mesh(shared.cone, accent, [0, .48, 0], [.35, .18, .35], group); }
+        else if (theme === 3) [-.2, 0, .2].forEach((x, index) => mesh(index % 2 ? shared.cone : shared.sphere, accent, [x, .25 + index * .07, 0], [.08, .15, .08], group));
+        else if (theme === 4) { [-.22, .22].forEach((x) => addBlock(group, materials.white, x, 0, .14, .5, .04, .14)); addBlock(group, materials.white, 0, 0, .5, .1, .04, .14); }
+        else if (theme === 5) mesh(shared.sphere, materials.glass, [0, .38, 0], [.31, .45, .31], group);
+        else if (theme === 6) { const ring = halo(0, .3, 0, .29); ring.rotation.y = Math.PI / 2; animated.push({ object: ring, type: "spin", speed: .3 }); }
+        else if (theme === 7) [-.26, -.13, 0, .13, .26].forEach((z, index) => addBlock(group, accent, 0, z, .52 - Math.abs(index - 2) * .06, .04, .03 + index * .018, .13));
+        else if (theme === 8) { [-.2, .2].forEach((x) => mesh(shared.cone, accent, [x, .32, 0], [.12, .32, .12], group)); halo(0, .48, 0, .25); }
+        else { mesh(shared.cylinder12, materials.civic, [0, .52, 0], [.07, .72, .07], group); const ring = halo(0, .78, 0, .27); animated.push({ object: ring, type: "spin", speed: .6 }); }
+      } else if (model === "power") {
+        if (theme === 1) [-.22, 0, .22].forEach((x) => panel(x, .24, 0, .19, .3));
+        else if (theme === 2) [-.24, 0, .24].forEach((x, index) => { const rotor = halo(x, .62, 0, .14); rotor.rotation.y = Math.PI / 2; animated.push({ object: rotor, type: "spin", speed: 1 + index * .2 }); });
+        else if (theme === 3) { cornerPosts(.68, materials.darkMetal); halo(0, .72, 0, .31); }
+        else if (theme === 4) mesh(shared.sphere, materials.glass, [0, .47, 0], [.32, .5, .32], group);
+        else if (theme === 5) [-.25, 0, .25].forEach((x) => mesh(shared.cylinder, accent, [x, .38, 0], [.1, .55, .1], group));
+        else if (theme === 6) { const ring = halo(0, .52, 0, .38); ring.rotation.y = phase; animated.push({ object: ring, type: "spin", speed: 1.2 }); }
+        else if (theme === 7) [-.24, .24].forEach((x) => mesh(shared.cone, materials.copper, [x, .58, 0], [.1, .7, .1], group));
+        else if (theme === 8) { addBlock(group, materials.darkMetal, 0, 0, .64, .54, .24, .12); [-.2, .2].forEach((x) => halo(x, .42, .28, .12)); }
+        else { mesh(shared.cylinder12, materials.darkMetal, [0, .58, 0], [.13, .88, .13], group); [.3, .58, .86].forEach((y) => { const ring = halo(0, y, 0, .2 + y * .08); animated.push({ object: ring, type: "spin", speed: .8 + y }); }); }
+      } else if (model === "water") {
+        if (theme === 1) { const pool = mesh(shared.cylinder, materials.lake, [0, .16, 0], [.33, .03, .33], group); pool.scale.z = .66; animated.push({ object: pool, type: "water" }); }
+        else if (theme === 2) { cornerPosts(.5, materials.darkMetal); mesh(shared.cylinder, materials.lake, [0, .62, 0], [.27, .26, .27], group); }
+        else if (theme === 3) [-.22, 0, .22].forEach((x) => mesh(shared.cylinder, materials.glass, [x, .4, 0], [.13, .55, .13], group));
+        else if (theme === 4) [-.24, .24].forEach((x) => halo(x, .38, 0, .16));
+        else if (theme === 5) { addBlock(group, materials.civic, 0, 0, .62, .48, .26, .12); mesh(shared.sphere, materials.glass, [0, .58, 0], [.22, .28, .22], group); }
+        else if (theme === 6) { const ring = halo(0, .4, 0, .31); ring.rotation.y = Math.PI / 2; animated.push({ object: ring, type: "spin", speed: .7 }); }
+        else if (theme === 7) [-.26, -.13, 0, .13, .26].forEach((x) => addBlock(group, materials.lake, x, 0, .08, .56, .04, .13));
+        else if (theme === 8) { mesh(shared.sphere, materials.glass, [0, .42, 0], [.34, .5, .34], group); halo(0, .62, 0, .37); }
+        else { post(0, 0, .88, materials.darkMetal); [.34, .58, .82].forEach((y) => halo(0, y, 0, .18 + y * .08)); }
+      } else if (model === "civic") {
+        if (theme === 1) { cornerPosts(.46, materials.civic); mesh(shared.sphere, accent, [0, .75, 0], [.16, .1, .16], group); }
+        else if (theme === 2) { addBlock(group, accent, 0, .31, .52, .03, .18, .42); post(0, 0, .88, materials.darkMetal); }
+        else if (theme === 3) [-.25, 0, .25].forEach((x) => post(x, .28, .5, materials.civic));
+        else if (theme === 4) mesh(shared.sphere, materials.glass, [0, .64, 0], [.32, .36, .32], group);
+        else if (theme === 5) { halo(0, .65, 0, .31); mesh(shared.cone, accent, [0, 1.02, 0], [.12, .4, .12], group); }
+        else if (theme === 6) { const ring = halo(0, .66, 0, .34); ring.rotation.y = Math.PI / 2; animated.push({ object: ring, type: "spin", speed: .35 }); }
+        else if (theme === 7) [-.3, .3].forEach((x) => addBlock(group, materials.civic, x, 0, .16, .52, .34, .12));
+        else if (theme === 8) { post(0, 0, 1.1, materials.glass); mesh(shared.sphere, accent, [0, 1.23, 0], [.1, .1, .1], group); }
+        else { mesh(shared.cylinder, materials.glass, [0, .65, 0], [.24, .78, .24], group); const ring = halo(0, .9, 0, .33); animated.push({ object: ring, type: "spin", speed: .42 }); }
+      } else if (model === "arena") {
+        if (theme === 1) cornerPosts(.74, accent);
+        else if (theme === 2) { [-.27, .27].forEach((x) => addBlock(group, materials.glass, x, 0, .08, .52, .48, .5)); }
+        else if (theme === 3) { const ring = halo(0, .84, 0, .42); animated.push({ object: ring, type: "spin", speed: .45 }); }
+        else if (theme === 4) [-.28, .28].forEach((x) => mesh(shared.cone, accent, [x, .88, 0], [.12, .62, .12], group));
+        else if (theme === 5) mesh(shared.sphere, materials.glass, [0, .76, 0], [.46, .36, .4], group);
+        else if (theme === 6) { post(0, 0, 1.15, materials.darkMetal); [.72, 1].forEach((y) => { const ring = halo(0, y, 0, .31); animated.push({ object: ring, type: "spin", speed: y }); }); }
+        else if (theme === 7) [-.31, 0, .31].forEach((x) => addBlock(group, accent, x, .31, .14, .025, .34, .48));
+        else if (theme === 8) { cornerPosts(.82, materials.gold); halo(0, .98, 0, .36, materials.gold); }
+        else { const skyRing = halo(0, 1.06, 0, .45); skyRing.rotation.y = phase; animated.push({ object: skyRing, type: "spin", speed: .85 }); mesh(shared.sphere, materials.glass, [0, .78, 0], [.38, .26, .34], group); }
+      }
     }
 
     function buildResidential(group, level, color, seed, variant) {

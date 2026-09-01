@@ -49,7 +49,7 @@
     arena: { category: "landmark", baseCost: 2400, upkeep: 14, stats: { jobs: 58, happiness: 7, tourism: 16, tax: 30 } }
   });
 
-  const CATALOG = Object.freeze({
+  const BASE_CATALOG = Object.freeze({
     residential: ["集合住宅", "低層レジデンス", "中庭アパート", "ウォーターフロント住宅", "丘陵テラス", "都市型マンション", "ファミリー団地", "学生レジデンス", "スマートハウス街", "高層レジデンス", "庭園住宅区", "リバーサイド住宅", "エコタウン", "スカイコンドミニアム", "王都迎賓住宅"],
     commercial: ["商業タワー", "駅前モール", "オフィスセンター", "市場通り", "シネマコンプレックス", "ホテルスクエア", "フードホール", "デジタル商店街", "金融センター", "百貨店", "観光マーケット", "メディアタワー", "国際会議場", "ラグジュアリーモール", "天空展望ホテル"],
     industrial: ["先端工業区", "物流センター", "食品工場", "精密機械工場", "リサイクルプラント", "データセンター", "バイオ研究工場", "ロボット工場", "造船ドック", "資材精製所", "自動車工場", "航空開発区", "宇宙技術工場", "巨大物流港", "未来生産都市"],
@@ -60,19 +60,79 @@
     arena: ["ビンゴアリーナ", "市民スタジアム", "eスポーツドーム", "ライブアリーナ", "モンスター競技場", "世界大会記念館", "六王ホール", "勝利の大劇場", "天空闘技場", "チャンピオンシップドーム"]
   });
 
+  const CATALOG_WORDS = Object.freeze({
+    residential: {
+      prefixes: ["朝凪", "星見", "白樺", "蒼波", "陽だまり", "月影", "銀嶺", "風花", "珊瑚", "虹空"],
+      cores: ["ガーデンハウス", "コートレジデンス", "タワーヴィラ", "中庭長屋", "水上住宅区", "空中テラス", "森のコモンズ", "アトリエ街区", "ドームハビタット", "未来集合邸", "段丘住居群", "運河ロフト", "光庭ホームズ", "共生ハビタット", "丘上メゾネット"]
+    },
+    commercial: {
+      prefixes: ["暁光", "流星", "翠風", "白金", "蒼海", "花灯", "雷鳴", "雪月", "琥珀", "極彩"],
+      cores: ["マーケット", "バザール", "ギャラリア", "ビジネスハブ", "メディア街区", "グルメ横丁", "空中モール", "クリエイター街", "ネオンプラザ", "交易センター", "クラフトアーケード", "シアター街", "展望スクエア", "夜市回廊", "デザイン港"]
+    },
+    industrial: {
+      prefixes: ["黒鉄", "蒼炉", "紅蓮", "白磁", "雷光", "深海", "天空", "極地", "翠環", "星核"],
+      cores: ["ギガファクトリー", "精密工房群", "物流スパイン", "ロボット造船所", "循環精製区", "バイオラボ", "航空組立港", "量子製造所", "地下生産区", "宇宙開発ヤード", "ナノ素材炉", "自律搬送基地", "巨大鋳造棟", "メカニカル港", "高密度加工区"]
+    },
+    park: {
+      prefixes: ["木漏れ日", "星降る", "風渡る", "花霞", "水鏡", "鳥歌", "月灯り", "虹架け", "雲上", "四季彩"],
+      cores: ["ボタニカルガーデン", "冒険広場", "水辺回廊", "彫刻の森", "空中庭園", "生態観察園", "音楽公園", "スポーツ緑地", "光の丘", "都市サファリ", "迷路庭園", "野外劇場", "温室パーク", "妖精の森", "風車草原"]
+    },
+    power: {
+      prefixes: ["雷神", "日輪", "月潮", "火山", "蒼天", "風王", "深層", "星間", "翠環", "白光"],
+      cores: ["エネルギースパイア", "発電リング", "蓄電要塞", "タービン群", "プラズマ炉", "太陽帆区", "潮力心臓部", "地熱コア", "量子変電所", "ゼロ排出ハブ"]
+    },
+    water: {
+      prefixes: ["青環", "水晶", "白波", "深蒼", "虹泉", "雪解", "翠流", "月雫", "海鳴", "天水"],
+      cores: ["アクアリザーバー", "浄化回廊", "給水スパイア", "雨庭センター", "淡水化ドーム", "水質ラボ", "地下水庫", "運河ゲート", "循環ポンプ群", "雲水採取塔"]
+    },
+    civic: {
+      prefixes: ["六王", "白亜", "蒼穹", "朝陽", "月桂", "星冠", "風雅", "大樹", "未来", "王都"],
+      cores: ["行政宮殿", "市民フォーラム", "文化殿堂", "総合医療城", "学術院", "中央アーカイブ", "防災司令塔", "交通ターミナル", "科学芸術館", "国際交流門"]
+    },
+    arena: {
+      prefixes: ["轟炎", "蒼雷", "黄金", "白銀", "星天", "深紅", "極光", "六王", "夢幻", "覇者"],
+      cores: ["グランドアリーナ", "バトルコロシアム", "ライブドーム", "スカイスタジアム", "モンスターリング", "チャンピオンホール", "フェスティバルパーク", "勝利劇場", "ワールドサーキット", "伝説闘技殿"]
+    }
+  });
+
+  function expandCatalog(model, names, target = names.length * 10) {
+    const output = [...names];
+    const known = new Set(output);
+    const words = CATALOG_WORDS[model];
+    words.prefixes.forEach((prefix) => words.cores.forEach((core) => {
+      const name = `${prefix}${core}`;
+      if (output.length < target && !known.has(name)) {
+        known.add(name);
+        output.push(name);
+      }
+    }));
+    return Object.freeze(output.slice(0, target));
+  }
+
+  const CATALOG = Object.freeze(Object.fromEntries(
+    Object.entries(BASE_CATALOG).map(([model, names]) => [model, expandCatalog(model, names)])
+  ));
+
   function makeDefinition(model, name, index) {
     const base = BASE_MODELS[model];
-    const tier = Math.floor(index / 3);
-    const multiplier = 1 + index * .16;
+    const visualForm = index % 10;
+    const visualTheme = Math.floor(index / 10) % 10;
+    const visualEdition = Math.floor(index / 100);
+    const tier = Math.min(6, Math.floor(index / 18));
+    const multiplier = 1 + Math.min(index, 24) * .12 + visualTheme * .08;
     const definition = {
       id: `${model}-${String(index + 1).padStart(2, "0")}`,
       name,
       model,
       variant: index,
+      visualForm,
+      visualTheme,
+      visualEdition,
+      visualSignature: `${model}:${visualForm}:${visualTheme}:${visualEdition}`,
       category: base.category,
       cost: Math.round(base.baseCost * multiplier / 10) * 10,
       upkeep: Math.max(1, Math.round(base.upkeep * (1 + index * .09))),
-      description: `${name}。${index >= 10 ? "都市を象徴する大規模" : index >= 5 ? "発展した街区向けの" : "地域に根ざした"}${base.category === "residential" ? "居住施設です。" : base.category === "commercial" ? "商業・雇用施設です。" : base.category === "industrial" ? "生産・物流施設です。" : base.category === "public" ? "公共空間です。" : base.category === "infrastructure" ? "都市基盤施設です。" : "都市の中核施設です。"}`
+      description: `${name}。${visualTheme >= 7 ? "都市の象徴となる独創的な" : visualTheme >= 3 ? "街の個性を広げる発展型の" : index >= 5 ? "発展した街区向けの" : "地域に根ざした"}${base.category === "residential" ? "居住施設です。" : base.category === "commercial" ? "商業・雇用施設です。" : base.category === "industrial" ? "生産・物流施設です。" : base.category === "public" ? "公共空間です。" : base.category === "infrastructure" ? "都市基盤施設です。" : "都市の中核施設です。"}`
     };
     Object.entries(base.stats).forEach(([field, value]) => {
       definition[field] = Math.max(1, Math.round(value * (1 + tier * .22)));
@@ -87,7 +147,7 @@
       avenue: { id: "avenue", name: "並木大通り", model: "road", category: "transport", cost: 260, upkeep: 2, road: true, happiness: 1, description: "街路樹と歩道を備えた大通り。" },
       boulevard: { id: "boulevard", name: "都市環状道路", model: "road", category: "transport", cost: 420, upkeep: 2, road: true, description: "交通量の多い地区を結ぶ幹線道路。" },
       bridge: { id: "bridge", name: "河川ブリッジ", model: "road", category: "transport", cost: 680, upkeep: 3, road: true, bridge: true, description: "川や湖を越えて街を接続する橋。" },
-      civic: { id: "civic", name: "市庁舎", model: "civic", variant: 0, category: "landmark", cost: 0, upkeep: 8, jobs: 40, happiness: 5, safety: 8, tourism: 8, unique: true, description: "都市運営の中心。" }
+      civic: { id: "civic", name: "市庁舎", model: "civic", variant: 0, visualForm: 0, visualTheme: 0, visualEdition: 0, visualSignature: "civic:0:0:0", category: "landmark", cost: 0, upkeep: 8, jobs: 40, happiness: 5, safety: 8, tourism: 8, unique: true, description: "都市運営の中心。" }
     };
     Object.entries(CATALOG).forEach(([model, names]) => names.forEach((name, index) => {
       const definition = makeDefinition(model, name, index);
@@ -99,6 +159,11 @@
     return Object.freeze(entries);
   })();
   const BUILDING_IDS = Object.freeze(Object.keys(BUILDINGS));
+  const BUILDINGS_BY_MODEL = Object.freeze(Object.fromEntries(Object.keys(BASE_MODELS).map((model) => [
+    model,
+    Object.freeze(Object.values(BUILDINGS).filter((definition) => definition.model === model))
+  ])));
+  const AUTO_BUILDINGS = Object.freeze(Object.values(BUILDINGS).filter((definition) => !isRoadDefinition(definition) && !definition.unique));
 
   function clone(value) {
     return value === undefined ? undefined : JSON.parse(JSON.stringify(value));
@@ -437,7 +502,7 @@
     const models = [...new Set([...needs, ...autoDistrictModels(city, now), "residential", "commercial", "industrial", "park", "civic", "arena", "power", "water"] )];
     const cursor = Math.max(0, Number(city.autoDevelopment?.cursor) || 0);
     for (const model of models) {
-      const choices = Object.values(BUILDINGS).filter((definition) => definition.model === model && !definition.unique && definition.cost <= surplus);
+      const choices = (BUILDINGS_BY_MODEL[model] || []).filter((definition) => !definition.unique && definition.cost <= surplus);
       if (choices.length) return choices[(cursor + Math.floor(Number(now) / TICK_MS)) % choices.length];
     }
     return null;
@@ -494,8 +559,8 @@
       let id = findAutoBuildingPlot(city, selected, threshold, now);
       if (!id) {
         const surplus = Math.max(0, Number(city.resources.money) - threshold);
-        const alternatives = Object.values(BUILDINGS)
-          .filter((definition) => !isRoadDefinition(definition) && !definition.unique && definition.cost <= surplus)
+        const alternatives = AUTO_BUILDINGS
+          .filter((definition) => definition.cost <= surplus)
           .sort((a, b) => autoPlotScore(city, autoCandidateIds(city)[0] || tileId(CITY_CENTER, CITY_CENTER), b, now) - autoPlotScore(city, autoCandidateIds(city)[0] || tileId(CITY_CENTER, CITY_CENTER), a, now));
         for (const alternative of alternatives) {
           id = findAutoBuildingPlot(city, alternative, threshold, now);

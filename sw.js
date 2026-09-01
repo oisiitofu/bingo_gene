@@ -1,6 +1,6 @@
 "use strict";
 
-const CACHE_VERSION = "team-bingo-v1-20260901-city-tower-balance-141";
+const CACHE_VERSION = "team-bingo-v1-20260901-city-object-catalog-142";
 const SHELL_CACHE = `${CACHE_VERSION}-shell`;
 const ASSET_CACHE = `${CACHE_VERSION}-assets`;
 const SHELL_FILES = [
@@ -14,10 +14,10 @@ const SHELL_FILES = [
   "./territory-map-3d.js",
   "./territory-mode.js",
   "./territory-mode.css",
-  "./city-system.js?v=20260901-city-tower-balance-141",
-  "./city-map-3d.js?v=20260901-tower-city-territory-139",
-  "./city-mode.js?v=20260901-tower-city-territory-139",
-  "./city-mode.css?v=20260901-tower-city-territory-139",
+  "./city-system.js?v=20260901-city-object-catalog-142",
+  "./city-map-3d.js?v=20260901-city-object-catalog-142",
+  "./city-mode.js?v=20260901-city-object-catalog-142",
+  "./city-mode.css?v=20260901-city-object-catalog-142",
   "./tower-system.js?v=20260901-city-tower-balance-141",
   "./tower-mode.js?v=20260901-city-tower-balance-141",
   "./tower-mode.css?v=20260901-city-tower-balance-141",

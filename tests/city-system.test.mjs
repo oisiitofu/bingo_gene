@@ -9,7 +9,7 @@ test("creates six persistent player cities with starter infrastructure", () => {
   assert.equal(state.version, 1);
   assert.equal(City.GRID_SIZE, 160);
   assert.ok(City.GRID_SIZE * City.GRID_SIZE >= 16 * 16 * 100);
-  assert.ok(Object.keys(City.BUILDINGS).length >= 90);
+  assert.ok(Object.keys(City.BUILDINGS).length >= 1004);
   assert.equal(Object.keys(state.players).length, 6);
   Object.values(state.players).forEach((city) => {
     assert.equal(city.resources.money, City.AUTO_BUILD_THRESHOLD);
@@ -140,11 +140,15 @@ test("current maps keep their tile coordinates while obsolete resources are remo
   assert.deepEqual(normalized.players.tofu.resources, { money: 24680 });
 });
 
-test("every building genre exposes at least ten distinct visual variants", () => {
+test("every building genre exposes ten times its original distinct visual assets", () => {
+  const expectedCounts = { residential: 150, commercial: 150, industrial: 150, park: 150, power: 100, water: 100, civic: 100, arena: 100 };
   ["residential", "commercial", "industrial", "park", "power", "water", "civic", "arena"].forEach((model) => {
     const variants = Object.values(City.BUILDINGS).filter((building) => building.model === model);
-    assert.ok(variants.length >= 10, `${model} only has ${variants.length} variants`);
+    assert.equal(variants.length, expectedCounts[model], `${model} only has ${variants.length} variants`);
     assert.equal(new Set(variants.map((building) => building.variant)).size, variants.length);
+    assert.equal(new Set(variants.map((building) => building.name)).size, variants.length);
+    assert.equal(new Set(variants.map((building) => building.visualSignature)).size, variants.length);
+    assert.deepEqual(new Set(variants.map((building) => building.visualTheme)), new Set([0, 1, 2, 3, 4, 5, 6, 7, 8, 9]));
   });
 });
 
