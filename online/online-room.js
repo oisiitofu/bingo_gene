@@ -3229,6 +3229,10 @@ export class OnlineCoordinator {
   }
 
   openTowerMode() {
+    if (typeof this.bridge.openTowerWindow === "function") {
+      this.bridge.openTowerWindow();
+      return true;
+    }
     this.bridge.openTowerMode?.(this.towerState);
     return true;
   }

@@ -839,7 +839,9 @@
     const level = masteryLevel(experience);
     const boosted = { ...source, masteryLevel: level };
     ["hp", "attack", "defense", "magic", "magicDefense", "speed"].forEach((key) => {
-      boosted[key] = Math.max(1, Math.round(Number(source[key]) || 0) + level);
+      const base = Math.max(1, Number(source[key]) || 0);
+      const growthRate = key === "hp" ? .03 : (key === "speed" ? .015 : .025);
+      boosted[key] = Math.max(1, Math.round(base * (1 + (level - 1) * growthRate)) + level);
     });
     return boosted;
   }

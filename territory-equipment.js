@@ -8,11 +8,11 @@
   ]);
 
   const RARITIES = Object.freeze([
-    { id: "common", name: "コモン", color: "#aeb8c5", rank: 1, chance: .67, prefix: "旅人の", power: 10, conditionalPercent: 1 },
-    { id: "rare", name: "レア", color: "#45a7ff", rank: 2, chance: .219, prefix: "蒼紋の", power: 25, conditionalPercent: 2 },
-    { id: "epic", name: "エピック", color: "#c86cff", rank: 3, chance: .08, prefix: "王家の", power: 50, conditionalPercent: 3 },
-    { id: "mythic", name: "ミシック", color: "#ff5b87", rank: 4, chance: .03, prefix: "覇王の", power: 90, conditionalPercent: 5 },
-    { id: "legendary", name: "レジェンダリー", color: "#ffcf3d", rank: 5, chance: .001, prefix: "神話の", power: 240, conditionalPercent: 12 }
+    { id: "common", name: "コモン", color: "#aeb8c5", rank: 1, chance: .67, prefix: "旅人の", power: 14, conditionalPercent: 4 },
+    { id: "rare", name: "レア", color: "#45a7ff", rank: 2, chance: .219, prefix: "蒼紋の", power: 36, conditionalPercent: 7 },
+    { id: "epic", name: "エピック", color: "#c86cff", rank: 3, chance: .08, prefix: "王家の", power: 75, conditionalPercent: 11 },
+    { id: "mythic", name: "ミシック", color: "#ff5b87", rank: 4, chance: .03, prefix: "覇王の", power: 140, conditionalPercent: 17 },
+    { id: "legendary", name: "レジェンダリー", color: "#ffcf3d", rank: 5, chance: .001, prefix: "神話の", power: 320, conditionalPercent: 30 }
   ]);
 
   const SLOT_BY_ID = Object.freeze(Object.fromEntries(SLOTS.map((slot) => [slot.id, slot])));
@@ -129,17 +129,17 @@
 
   function scaledStats(source, rarityRank, slot, variant = 0) {
     const result = {};
-    const rankBonus = [0, 0, 1, 2, 4, 12][rarityRank] || 0;
+    const rankBonus = [0, 2, 5, 9, 16, 32][rarityRank] || 0;
     Object.entries(source || {}).forEach(([stat, base]) => {
-      const scale = stat === "hp" ? 2 : 1;
-      result[stat] = Math.max(1, Math.round(Number(base) * scale + rankBonus * (stat === "hp" ? 2 : 1)));
+      const scale = stat === "hp" ? 6 : 2;
+      result[stat] = Math.max(1, Math.round(Number(base) * scale + rankBonus * (stat === "hp" ? 3 : 1.5)));
     });
     if (!Object.keys(result).length) {
       result[slot === "weapon" ? "attack" : (slot === "armor" ? "defense" : "speed")] = Math.max(1, rankBonus);
     }
     if (variant > 0 && variant % 3 === 0) {
       const secondary = SECONDARY_STATS[(variant + rarityRank) % SECONDARY_STATS.length];
-      const amount = rarityRank === 5 ? (secondary === "hp" ? 10 : 5) : (secondary === "hp" ? 2 : 1);
+      const amount = rarityRank === 5 ? (secondary === "hp" ? 36 : 14) : (secondary === "hp" ? 8 + rarityRank * 3 : 3 + rarityRank * 2);
       result[secondary] = (Number(result[secondary]) || 0) + amount;
     }
     return result;
@@ -453,7 +453,7 @@
         (item.attackType && item.attackType === monsterStats.attackType);
       if (matches) {
         const primary = monsterStats.attackType === "magic" ? "magic" : "attack";
-        result[primary] = Math.max(1, Math.round((Number(result[primary]) || 0) + item.conditionalPercent));
+        result[primary] = Math.max(1, Math.round((Number(result[primary]) || 0) * (1 + item.conditionalPercent / 100)));
       }
     });
     return result;

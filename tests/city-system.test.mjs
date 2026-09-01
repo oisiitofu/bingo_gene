@@ -159,3 +159,25 @@ test("automatic development spends only surplus money above ten thousand", () =>
   assert.ok(city.resources.money >= City.AUTO_BUILD_THRESHOLD);
   assert.ok(city.resources.money < 18000);
 });
+
+test("automatic development prioritizes varied districts over road spam", () => {
+  const state = City.createInitialState(2_000_000);
+  const signatures = new Set();
+  City.PLAYERS.forEach((player, index) => {
+    const city = state.players[player.id];
+    city.resources.money = 250000;
+    const before = new Set(Object.keys(city.tiles));
+    City.autoDevelopCity(city, 2_000_100 + index * City.TICK_MS, 70);
+    const additions = Object.values(city.tiles).filter((tile) => !before.has(tile.id));
+    const roadCount = additions.filter((tile) => City.isRoadTile(tile)).length;
+    const districtCounts = Object.fromEntries(Object.values(City.BUILDINGS)
+      .map((definition) => definition.model)
+      .filter((model) => !["road", "avenue", "boulevard"].includes(model))
+      .map((model) => [model, additions.filter((tile) => City.BUILDINGS[tile.buildingId]?.model === model).length]));
+    assert.ok(additions.length >= 15, `${player.id} did not develop enough plots`);
+    assert.ok(roadCount <= Math.ceil(additions.length * .35), `${player.id} built too many roads`);
+    assert.ok(Object.values(districtCounts).filter((count) => count > 0).length >= 3, `${player.id} lacks district variety`);
+    signatures.add(JSON.stringify(districtCounts));
+  });
+  assert.ok(signatures.size >= 4);
+});

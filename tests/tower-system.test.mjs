@@ -21,6 +21,22 @@ function richStats(masteryXp = 250000) {
   };
 }
 
+function stageFiveStats() {
+  const ids = Object.values(Monsters.NODES)
+    .filter((node) => Number(node.stage) === 5 && !node.legendary)
+    .slice(0, 12)
+    .map((node) => node.id);
+  const dex = Object.fromEntries(ids.map((id) => [id, 1]));
+  return {
+    players: Object.fromEntries(Tower.PLAYERS.map((player) => [Tower.playerKey(player.name), {
+      name: player.name,
+      monsterDex: dex,
+      monsterMastery: {},
+      territoryEquipmentInventory: {}
+    }]))
+  };
+}
+
 test("tower creates six independent five-monster parties", () => {
   const state = Tower.createInitialState(richStats(), 1000);
   assert.equal(Object.keys(state.players).length, 6);
@@ -41,7 +57,7 @@ test("every floor has its own boss asset and rising power", () => {
 
 test("one realtime turn resolves HP damage before changing phase", () => {
   const now = 10_000;
-  const stats = richStats();
+  const stats = { players: {} };
   const initial = Tower.createInitialState(stats, now);
   const before = initial.players.tofu.phase;
   const result = Tower.advanceState(initial, stats, now + Tower.PHASE_MS, { maxTicks: 10 });
@@ -51,6 +67,35 @@ test("one realtime turn resolves HP damage before changing phase", () => {
   assert.equal(player.battle.turn, 1);
   assert.ok(player.battle.hp > 0 && player.battle.hp < player.battle.maxHp);
   assert.ok(player.lastCombatTurn.partyDamage > 0);
+});
+
+test("a level-one rank-five party can clear floor 30 without a defeat", () => {
+  const now = 20_000;
+  const stats = stageFiveStats();
+  let state = Tower.createInitialState(stats, now);
+  let turns = 0;
+  while (state.players.tofu.bestFloor < 31 && state.players.tofu.losses === 0 && turns < 6000) {
+    state = Tower.advanceState(state, stats, state.nextTickAt, { maxTicks: 1 }).state;
+    turns += 1;
+  }
+  assert.equal(state.players.tofu.losses, 0);
+  assert.ok(state.players.tofu.bestFloor >= 31);
+  assert.ok(turns < 6000);
+});
+
+test("mastery levels and equipment now provide material combat growth", () => {
+  const node = Object.values(Monsters.NODES).find((candidate) => Number(candidate.stage) === 5 && !candidate.legendary);
+  const base = Monsters.combatStats(node.id);
+  const mastered = Monsters.applyMasteryStats(base, 250000);
+  assert.ok(mastered.hp >= base.hp * 2);
+  assert.ok(Math.max(mastered.attack, mastered.magic) >= Math.max(base.attack, base.magic) * 1.8);
+
+  const Equipment = globalThis.TeamBingoTerritoryEquipment;
+  const common = Equipment.ITEMS_BY_RARITY.common.find((item) => item.slot === "weapon");
+  const legendary = Equipment.ITEMS_BY_RARITY.legendary.find((item) => item.slot === "weapon");
+  const commonStats = Equipment.applyEquipmentStats(base, { weapon: common.id }, node.id);
+  const legendaryStats = Equipment.applyEquipmentStats(base, { weapon: legendary.id }, node.id);
+  assert.ok(Math.max(legendaryStats.attack, legendaryStats.magic) > Math.max(commonStats.attack, commonStats.magic) + 20);
 });
 
 test("a defeated party rests for one hour and another party takes over", () => {

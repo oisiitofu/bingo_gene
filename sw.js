@@ -1,32 +1,32 @@
 "use strict";
 
-const CACHE_VERSION = "team-bingo-v1-20260901-tower-hp-battle-140";
+const CACHE_VERSION = "team-bingo-v1-20260901-city-tower-balance-141";
 const SHELL_CACHE = `${CACHE_VERSION}-shell`;
 const ASSET_CACHE = `${CACHE_VERSION}-assets`;
 const SHELL_FILES = [
   "./",
   "./index.html",
-  "./monster-system.js",
+  "./monster-system.js?v=20260901-city-tower-balance-141",
   "./monster-pose-bounds.js",
-  "./territory-equipment.js",
+  "./territory-equipment.js?v=20260901-city-tower-balance-141",
   "./territory-system.js",
   "./vendor/three/three.min.js",
   "./territory-map-3d.js",
   "./territory-mode.js",
   "./territory-mode.css",
-  "./city-system.js?v=20260901-tower-city-territory-139",
+  "./city-system.js?v=20260901-city-tower-balance-141",
   "./city-map-3d.js?v=20260901-tower-city-territory-139",
   "./city-mode.js?v=20260901-tower-city-territory-139",
   "./city-mode.css?v=20260901-tower-city-territory-139",
-  "./tower-system.js?v=20260901-tower-hp-battle-140",
-  "./tower-mode.js?v=20260901-tower-hp-battle-140",
-  "./tower-mode.css?v=20260901-tower-hp-battle-140",
+  "./tower-system.js?v=20260901-city-tower-balance-141",
+  "./tower-mode.js?v=20260901-city-tower-balance-141",
+  "./tower-mode.css?v=20260901-city-tower-balance-141",
   "./world-tournament.js",
   "./world-tournament.css",
   "./monster-page.css",
   "./monster-battle.css",
   "./online/online-room.css",
-  "./online/online-room.js",
+  "./online/online-room.js?v=20260901-city-tower-balance-141",
   "./images/territory/strategy-map-backdrop-v2.png",
   "./images/territory/textures/stone-wall.png",
   "./images/territory/textures/roof-tiles.png",

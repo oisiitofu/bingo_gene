@@ -11,6 +11,7 @@
   const CHECKPOINT_INTERVAL = 10;
   const MAX_LOG = 160;
   const MAX_REWARDS = 500;
+  const BATTLE_BALANCE_VERSION = 2;
 
   const PLAYERS = Object.freeze([
     { id: "tofu", name: "おいしいとうふ", color: "#e8e5dc" },
@@ -97,8 +98,10 @@
   function enemyPower(floorValue, phaseValue) {
     const floor = Math.max(1, Math.min(MAX_FLOOR, Number(floorValue) || 1));
     const phase = Math.max(1, Math.min(PHASES_PER_FLOOR, Number(phaseValue) || 1));
-    const floorPower = 600 + floor * 22 + floor * floor * .06;
-    const phaseMultiplier = phase === PHASES_PER_FLOOR ? 1.22 : .79 + phase * .021;
+    const floorPower = floor <= 30
+      ? 190 + floor * 7.5 + floor * floor * .035
+      : 446.5 + (floor - 30) * 14 + (floor - 30) * (floor - 30) * .25;
+    const phaseMultiplier = phase === PHASES_PER_FLOOR ? 1.15 : .84 + phase * .02;
     return Math.round(floorPower * phaseMultiplier);
   }
 
@@ -128,7 +131,7 @@
 
   function enemyBattleFor(floor, phase) {
     const enemy = enemyFor(floor, phase);
-    const maxHp = Math.max(1, Math.round(enemy.power * (enemy.boss ? 6.2 : 3.6)));
+    const maxHp = Math.max(1, Math.round(enemy.power * (enemy.boss ? 4 : 2.35)));
     return {
       id: enemy.id,
       floor: Math.max(1, Number(floor) || 1),
@@ -137,6 +140,7 @@
       maxHp,
       hp: maxHp,
       turn: 0,
+      balanceVersion: BATTLE_BALANCE_VERSION,
       lastTurn: null
     };
   }
@@ -150,8 +154,16 @@
     }
     const fallback = enemyBattleFor(player.floor, player.phase);
     current.name = expected.name;
-    current.maxHp = Math.max(1, Number(current.maxHp) || fallback.maxHp);
-    current.hp = Math.max(0, Math.min(current.maxHp, Number.isFinite(Number(current.hp)) ? Number(current.hp) : current.maxHp));
+    if (Number(current.balanceVersion) !== BATTLE_BALANCE_VERSION) {
+      const oldMaxHp = Math.max(1, Number(current.maxHp) || fallback.maxHp);
+      const hpRatio = Math.max(0, Math.min(1, Number.isFinite(Number(current.hp)) ? Number(current.hp) / oldMaxHp : 1));
+      current.maxHp = fallback.maxHp;
+      current.hp = Math.round(current.maxHp * hpRatio);
+      current.balanceVersion = BATTLE_BALANCE_VERSION;
+    } else {
+      current.maxHp = Math.max(1, Number(current.maxHp) || fallback.maxHp);
+      current.hp = Math.max(0, Math.min(current.maxHp, Number.isFinite(Number(current.hp)) ? Number(current.hp) : current.maxHp));
+    }
     current.turn = Math.max(0, Math.floor(Number(current.turn) || 0));
     return current;
   }
@@ -292,7 +304,9 @@
       if (current.party.length !== PARTY_SIZE || (hasOnlyEggs && hasUnlockedMonsters)) selectParty(current, record, now);
       current.party = current.party.map((member, slot) => {
         const normalized = partyMember(member, slot);
-        normalized.hp = Math.max(0, Math.min(normalized.maxHp, Number(member?.hp) || 0));
+        const previousMaxHp = Math.max(1, Number(member?.maxHp) || normalized.maxHp);
+        const previousRatio = Math.max(0, Math.min(1, (Number(member?.hp) || 0) / previousMaxHp));
+        normalized.hp = Math.max(0, Math.min(normalized.maxHp, Math.round(normalized.maxHp * previousRatio)));
         return normalized;
       });
       ensureEnemyBattle(current);
@@ -373,7 +387,7 @@
     const experience = 3 + Math.floor(player.floor / 8) + (enemy.boss ? 10 : 0);
     queueMastery(state, player, experience, now);
     if (player.phase < PHASES_PER_FLOOR) {
-      player.party.forEach((member) => { member.hp = Math.min(member.maxHp, member.hp + Math.round(member.maxHp * .12)); });
+      player.party.forEach((member) => { member.hp = Math.min(member.maxHp, member.hp + Math.round(member.maxHp * .32)); });
       player.phase += 1;
       if (player.floor > player.bestFloor || (player.floor === player.bestFloor && player.phase > player.bestPhase)) {
         player.bestFloor = player.floor;
@@ -385,7 +399,7 @@
       return;
     }
     player.clears = (Number(player.clears) || 0) + 1;
-    player.party.forEach((member) => { member.hp = Math.min(member.maxHp, member.hp + Math.round(member.maxHp * .5)); });
+    player.party.forEach((member) => { member.hp = Math.min(member.maxHp, member.hp + Math.round(member.maxHp * .7)); });
     const clearedFloor = player.floor;
     if (clearedFloor >= MAX_FLOOR) {
       player.status = "complete";
@@ -427,7 +441,7 @@
         if (battle.hp <= 0) return;
         const stats = combatStats(member.nodeId, member.masteryXp, member.equipment);
         const offense = Math.max(Number(stats.attack) || 1, Number(stats.magic) || 1);
-        const enemyDefense = Math.max(20, enemy.power * (enemy.boss ? .25 : .18));
+        const enemyDefense = Math.max(12, enemy.power * (enemy.boss ? .14 : .09));
         const variance = .88 + random() * .24;
         const damage = Math.max(1, Math.round(offense * variance * (100 / (100 + enemyDefense))));
         battle.hp = Math.max(0, battle.hp - damage);
@@ -445,7 +459,7 @@
         const target = pool.splice(targetIndex, 1)[0];
         const stats = combatStats(target.nodeId, target.masteryXp, target.equipment);
         const defense = Math.max(1, Math.max(Number(stats.defense) || 1, Number(stats.magicDefense) || 1));
-        const rawAttack = enemy.power * (enemy.boss ? .46 : .34) / Math.sqrt(targetCount);
+        const rawAttack = enemy.power * (enemy.boss ? .2 : .14) / Math.sqrt(targetCount);
         const damage = Math.max(1, Math.round(rawAttack * (.88 + random() * .24) * (100 / (100 + defense))));
         target.hp = Math.max(0, target.hp - damage);
         enemyDamage += damage;
@@ -497,7 +511,7 @@
   }
 
   global.TeamBingoMonsterTowerSystem = Object.freeze({
-    VERSION, MAX_FLOOR, PHASES_PER_FLOOR, PARTY_SIZE, TURN_MS, PHASE_MS, RECOVERY_MS, CHECKPOINT_INTERVAL,
+    VERSION, MAX_FLOOR, PHASES_PER_FLOOR, PARTY_SIZE, TURN_MS, PHASE_MS, RECOVERY_MS, CHECKPOINT_INTERVAL, BATTLE_BALANCE_VERSION,
     PLAYERS, BOSS_DOMAINS, BOSS_FORMS, clone, hashText, playerKey, bossForFloor, enemyFor, enemyPower, enemyBattleFor, ensureEnemyBattle,
     combatStats, combatPower, rosterFor, partyPower, createInitialState, normalizeState, advanceState, standings
   });

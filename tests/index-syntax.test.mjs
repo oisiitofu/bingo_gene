@@ -17,9 +17,9 @@ test("online lobby boot bypasses stale browser modules and retries once", () => 
   const html = readFileSync(new URL("../index.html", import.meta.url), "utf8");
   const serviceWorker = readFileSync(new URL("../sw.js", import.meta.url), "utf8");
 
-  assert.match(html, /online-room\.js\?v=20260901-tower-city-territory-139/);
+  assert.match(html, /online-room\.js\?v=20260901-city-tower-balance-141/);
   assert.match(html, /retry=\$\{Date\.now\(\)\}/);
-  assert.match(serviceWorker, /20260901-tower-hp-battle-140/);
+  assert.match(serviceWorker, /20260901-city-tower-balance-141/);
 });
 
 test("one-bingo audio, Likecy skill timing, and reach badge rules stay aligned", () => {
@@ -202,13 +202,13 @@ test("六王領土戦のクライアント、Worker、Firebaseルールが公開
   const rules = JSON.parse(readFileSync(new URL("../firebase-database.rules.json", import.meta.url), "utf8"));
   const worker = readFileSync(new URL("../worker/territory-worker.mjs", import.meta.url), "utf8");
 
-  assert.match(html, /id="territoryModeButton">六王領土戦</);
+  assert.match(html, /id="territoryModeButton" aria-label="六王領土戦">領土戦</);
   assert.match(html, /id="setupMonsterButton">MONSTER</);
-  assert.match(html, /id="playTerritoryModeButton">/);
+  assert.match(html, /id="playTerritoryModeButton" aria-label="六王領土戦">領土戦</);
   assert.match(html, /function openTerritoryWindow\(\)/);
   assert.match(html, /searchParams\.set\("territory", "1"\)/);
   assert.match(html, /src="territory-system\.js"/);
-  assert.match(html, /src="territory-equipment\.js"/);
+  assert.match(html, /src="territory-equipment\.js\?v=20260901-city-tower-balance-141"/);
   assert.match(html, /src="vendor\/three\/three\.min\.js"/);
   assert.match(html, /src="territory-map-3d\.js"/);
   assert.match(html, /src="territory-mode\.js"/);
@@ -334,7 +334,7 @@ test("BINGO CITY is connected to the shared client, worker tick, rules, and offl
   assert.match(cityMap, /terrainMix.*Float32BufferAttribute/);
   assert.match(cityMap, /terrainSoil/);
   assert.doesNotMatch(cityMap, /InstancedMesh\(shared\.terrain|BoxGeometry\(TILE \* \.96/);
-  assert.match(html, /src="city-system\.js\?v=20260901-tower-city-territory-139"/);
+  assert.match(html, /src="city-system\.js\?v=20260901-city-tower-balance-141"/);
   assert.match(html, /src="city-map-3d\.js\?v=20260901-tower-city-territory-139"/);
   assert.match(html, /src="city-mode\.js\?v=20260901-tower-city-territory-139"/);
   assert.match(html, /searchParams\.set\("city", "1"\)/);
@@ -348,7 +348,7 @@ test("BINGO CITY is connected to the shared client, worker tick, rules, and offl
   assert.match(worker, /advanceCitiesWithToken/);
   assert.match(worker, /context\.waitUntil\(advanceCities\(env\)\)/);
   assert.ok(rules.rules.teamBingoV1.cities.current, "Firebase city rules are missing");
-  assert.match(serviceWorker, /\.\/city-system\.js\?v=20260901-tower-city-territory-139/);
+  assert.match(serviceWorker, /\.\/city-system\.js\?v=20260901-city-tower-balance-141/);
   assert.doesNotMatch(serviceWorker, /SHELL_FILES = \[[\s\S]*?images\/city\/textures/);
 });
 
@@ -363,8 +363,12 @@ test("MONSTER TOWER is connected to realtime client, worker, rules, and 100 isol
   const towerSystem = readFileSync(new URL("../tower-system.js", import.meta.url), "utf8");
   assert.match(html, /id="towerModeButton"/);
   assert.match(html, /id="playTowerModeButton"/);
-  assert.match(html, /src="tower-system\.js\?v=20260901-tower-hp-battle-140"/);
-  assert.match(html, /src="tower-mode\.js\?v=20260901-tower-hp-battle-140"/);
+  assert.match(html, /src="tower-system\.js\?v=20260901-city-tower-balance-141"/);
+  assert.match(html, /src="tower-mode\.js\?v=20260901-city-tower-balance-141"/);
+  assert.match(html, /function openTowerWindow\(\)/);
+  assert.match(html, /searchParams\.set\("tower", "1"\)/);
+  assert.match(html, /id="playTowerModeButton" aria-label="MONSTER TOWER" href="\?tower=1" target="_blank" rel="noopener">TOWER</);
+  assert.match(onlineRoom, /typeof this\.bridge\.openTowerWindow === "function"/);
   assert.match(onlineRoom, /subscribeTower\(\)/);
   assert.match(onlineRoom, /tower\/current/);
   assert.match(worker, /advanceTower\(env\)/);

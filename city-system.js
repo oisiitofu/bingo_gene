@@ -20,6 +20,14 @@
     { id: "lickey", name: "Lickey", color: "#35baff", accent: "#f5c84c", cityName: "Lickey王都", terrainPreset: "peninsula" }
   ]);
   const PLAYER_BY_ID = Object.freeze(Object.fromEntries(PLAYERS.map((player) => [player.id, player])));
+  const AUTO_CITY_PERSONALITIES = Object.freeze({
+    tofu: [["residential", "park", "commercial", "park"], ["residential", "civic", "park", "commercial"], ["park", "residential", "water", "commercial"]],
+    eda: [["industrial", "commercial", "civic", "residential"], ["commercial", "industrial", "arena", "park"], ["civic", "residential", "industrial", "commercial"]],
+    jan: [["commercial", "arena", "residential", "park"], ["residential", "commercial", "civic", "arena"], ["arena", "park", "commercial", "residential"]],
+    rima: [["industrial", "commercial", "residential", "power"], ["commercial", "residential", "park", "industrial"], ["residential", "industrial", "civic", "commercial"]],
+    kento: [["commercial", "civic", "park", "residential"], ["arena", "commercial", "residential", "power"], ["park", "commercial", "civic", "residential"]],
+    lickey: [["civic", "commercial", "residential", "arena"], ["residential", "park", "commercial", "civic"], ["arena", "civic", "commercial", "residential"]]
+  });
 
   const TERRAIN = Object.freeze({
     grass: { id: "grass", name: "草地", buildable: true },
@@ -408,16 +416,71 @@
     });
   }
 
-  function chooseAutoBuilding(city) {
+  function autoDistrictModels(city, now) {
+    const cursor = Math.max(0, Number(city.autoDevelopment?.cursor) || 0);
+    const profiles = AUTO_CITY_PERSONALITIES[city.id] || AUTO_CITY_PERSONALITIES.tofu;
+    const cycle = Math.floor(cursor / 7 + Math.floor(Number(now) / (TICK_MS * 6))) % profiles.length;
+    const profile = profiles[cycle];
+    const offset = cursor % profile.length;
+    return [...profile.slice(offset), ...profile.slice(0, offset)];
+  }
+
+  function chooseAutoBuilding(city, now, reserveMoney) {
     const metrics = calculateMetrics(city);
-    let model = "commercial";
-    if (metrics.powerCoverage < 100) model = "power";
-    else if (metrics.waterCoverage < 100) model = "water";
-    else if (metrics.capacity - metrics.population < 220) model = "residential";
-    else if (metrics.jobs < metrics.population * .52) model = Number(city.autoDevelopment.cursor) % 3 === 0 ? "industrial" : "commercial";
-    else if (metrics.happiness < 78 || Number(city.autoDevelopment.cursor) % 5 === 0) model = "park";
-    const choices = Object.values(BUILDINGS).filter((definition) => definition.model === model && !definition.unique && definition.cost <= 1600);
-    return choices[Number(city.autoDevelopment.cursor) % Math.max(1, choices.length)] || BUILDINGS.residential;
+    const surplus = Math.max(0, Number(city.resources?.money) - Number(reserveMoney));
+    const needs = [];
+    if (metrics.powerCoverage < 95) needs.push("power");
+    if (metrics.waterCoverage < 95) needs.push("water");
+    if (metrics.capacity - metrics.population < 260) needs.push("residential");
+    if (metrics.jobs < metrics.population * .58) needs.push(Number(city.autoDevelopment.cursor) % 3 === 0 ? "industrial" : "commercial");
+    if (metrics.happiness < 82) needs.push("park");
+    const models = [...new Set([...needs, ...autoDistrictModels(city, now), "residential", "commercial", "industrial", "park", "civic", "arena", "power", "water"] )];
+    const cursor = Math.max(0, Number(city.autoDevelopment?.cursor) || 0);
+    for (const model of models) {
+      const choices = Object.values(BUILDINGS).filter((definition) => definition.model === model && !definition.unique && definition.cost <= surplus);
+      if (choices.length) return choices[(cursor + Math.floor(Number(now) / TICK_MS)) % choices.length];
+    }
+    return null;
+  }
+
+  function autoPlotScore(city, id, definition, now) {
+    const point = parseTileId(id);
+    const dx = point.x - CITY_CENTER;
+    const dz = point.z - CITY_CENTER;
+    const distance = Math.hypot(dx, dz);
+    const cursor = Math.max(0, Number(city.autoDevelopment?.cursor) || 0);
+    const style = (hash2(`${city.id}:layout`, Math.floor(cursor / 9), Math.floor(Number(now) / (TICK_MS * 12))) * 4) | 0;
+    const sameNeighbors = neighbors(id).filter((neighborId) => BUILDINGS[city.tiles?.[neighborId]?.buildingId]?.model === definition.model).length;
+    const waterEdges = neighbors(id).filter((neighborId) => {
+      const neighbor = parseTileId(neighborId);
+      return terrainAt(city.id, neighbor.x, neighbor.z).water;
+    }).length;
+    let shape = -distance;
+    if (style === 1) shape = -Math.abs(dx) * 1.8 - Math.abs(dz) * .35;
+    else if (style === 2) shape = -Math.abs(distance - (9 + Math.floor(cursor / 12) * 2)) * 2;
+    else if (style === 3) shape = sameNeighbors * 15 - distance * .45;
+    const waterfront = ["commercial", "park", "civic", "arena"].includes(definition.model) ? waterEdges * 9 : 0;
+    return shape + sameNeighbors * 7 + waterfront + hash2(`${city.id}:${definition.id}:${cursor}`, point.x, point.z) * 8;
+  }
+
+  function findAutoBuildingPlot(city, definition, reserveMoney, now) {
+    return autoCandidateIds(city)
+      .filter((id) => canBuild(city, id, definition.id, { reserveMoney }).ok)
+      .sort((a, b) => autoPlotScore(city, b, definition, now) - autoPlotScore(city, a, definition, now) || a.localeCompare(b))[0] || "";
+  }
+
+  function findAutoRoadPlot(city, definition, reserveMoney, now) {
+    return autoCandidateIds(city)
+      .filter((id) => canBuild(city, id, definition.id, { reserveMoney }).ok)
+      .sort((a, b) => {
+        const pa = parseTileId(a);
+        const pb = parseTileId(b);
+        const roadLinksA = neighbors(a).filter((id) => isRoadTile(city.tiles?.[id])).length;
+        const roadLinksB = neighbors(b).filter((id) => isRoadTile(city.tiles?.[id])).length;
+        const distanceA = Math.hypot(pa.x - CITY_CENTER, pa.z - CITY_CENTER);
+        const distanceB = Math.hypot(pb.x - CITY_CENTER, pb.z - CITY_CENTER);
+        return roadLinksA - roadLinksB || distanceB - distanceA || hash2(`${city.id}:road:${now}`, pb.x, pb.z) - hash2(`${city.id}:road:${now}`, pa.x, pa.z);
+      })[0] || "";
   }
 
   function autoDevelopCity(city, now, limit = 8) {
@@ -426,13 +489,23 @@
     const threshold = Math.max(AUTO_BUILD_THRESHOLD, Number(city.autoDevelopment.threshold) || AUTO_BUILD_THRESHOLD);
     let placed = 0;
     while (city.resources.money > threshold && placed < limit) {
-      const definition = chooseAutoBuilding(city);
-      const candidates = autoCandidateIds(city);
-      let id = candidates.find((candidate) => canBuild(city, candidate, definition.id, { reserveMoney: threshold }).ok);
-      let selected = definition;
+      let selected = chooseAutoBuilding(city, now, threshold);
+      if (!selected) break;
+      let id = findAutoBuildingPlot(city, selected, threshold, now);
       if (!id) {
-        selected = BUILDINGS.road;
-        id = candidates.find((candidate) => canBuild(city, candidate, selected.id, { reserveMoney: threshold }).ok);
+        const surplus = Math.max(0, Number(city.resources.money) - threshold);
+        const alternatives = Object.values(BUILDINGS)
+          .filter((definition) => !isRoadDefinition(definition) && !definition.unique && definition.cost <= surplus)
+          .sort((a, b) => autoPlotScore(city, autoCandidateIds(city)[0] || tileId(CITY_CENTER, CITY_CENTER), b, now) - autoPlotScore(city, autoCandidateIds(city)[0] || tileId(CITY_CENTER, CITY_CENTER), a, now));
+        for (const alternative of alternatives) {
+          id = findAutoBuildingPlot(city, alternative, threshold, now);
+          if (id) { selected = alternative; break; }
+        }
+      }
+      if (!id) {
+        const roadChoices = [BUILDINGS.avenue, BUILDINGS.road, BUILDINGS.boulevard].filter((definition) => definition.cost <= city.resources.money - threshold);
+        selected = roadChoices[(Number(city.autoDevelopment.cursor) || 0) % Math.max(1, roadChoices.length)] || BUILDINGS.road;
+        id = findAutoRoadPlot(city, selected, threshold, now);
       }
       if (!id) break;
       placeBuilding(city, id, selected);

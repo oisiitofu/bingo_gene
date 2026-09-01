@@ -110,7 +110,7 @@
 
   function memberHtml(member, player, index) {
     const ratio = Math.max(0, Math.min(100, Math.round((Number(member.hp) || 0) / Math.max(1, Number(member.maxHp) || 1) * 100)));
-    const masteryLevel = Monsters()?.masteryLevel?.(member.masteryXp)?.level || 1;
+    const masteryLevel = Number(Monsters()?.masteryLevel?.(member.masteryXp)) || 1;
     return `<button type="button" class="tower-party-member${member.hp <= 0 ? " is-ko" : ""}" style="--tower-player-color:${player.color};--tower-slot:${index}" data-tower-monster="${escapeHtml(member.nodeId)}" data-tower-index="${index}" aria-label="${escapeHtml(member.name)}の詳細">
       <span class="tower-mini-monster" style="${spriteStyle(member.nodeId, "left")}"></span>
       <span class="tower-member-info"><b class="tower-member-name">${escapeHtml(member.name)}</b><span class="tower-member-meta">絆 Lv.${masteryLevel} · POWER ${(Number(member.power) || 0).toLocaleString()}</span><span class="tower-hp-label"><b>HP</b>${Math.round(Number(member.hp) || 0).toLocaleString()} / ${Math.round(Number(member.maxHp) || 1).toLocaleString()}</span><span class="tower-hp"><i style="--tower-hp:${ratio}%"></i></span></span>
@@ -133,11 +133,11 @@
     if (!panel || !host) return;
     const node = Monsters()?.NODES?.[member.nodeId] || Monsters()?.NODES?.egg || {};
     const stats = Tower()?.combatStats?.(member.nodeId, member.masteryXp, member.equipment) || {};
-    const mastery = Monsters()?.masteryLevel?.(member.masteryXp);
+    const masteryLevel = Number(Monsters()?.masteryLevel?.(member.masteryXp)) || 1;
     const rows = [["HP", stats.hp], ["攻撃", stats.attack], ["防御", stats.defense], ["魔攻", stats.magic], ["魔防", stats.magicDefense], ["素早さ", stats.speed]];
     host.innerHTML = `<div class="tower-detail-layout" style="--tower-player-color:${player?.color || "#f0cc5c"}">
       <div class="tower-detail-art"><div style="${spriteStyle(member.nodeId, "left")}"></div></div>
-      <div class="tower-detail-copy"><small>${escapeHtml(player?.name || "TOWER PT")} / PARTY MEMBER</small><h3>${escapeHtml(node.name || member.name)}</h3><p>☆${Number(node.stage) || 0} · 絆 Lv.${mastery?.level || 1} · POWER ${(Number(member.power) || 0).toLocaleString()}</p>
+      <div class="tower-detail-copy"><small>${escapeHtml(player?.name || "TOWER PT")} / PARTY MEMBER</small><h3>${escapeHtml(node.name || member.name)}</h3><p>☆${Number(node.stage) || 0} · 絆 Lv.${masteryLevel} · POWER ${(Number(member.power) || 0).toLocaleString()}</p>
         <div class="tower-detail-current-hp"><span>CURRENT HP</span><b>${Math.round(Number(member.hp) || 0).toLocaleString()} / ${Math.round(Number(member.maxHp) || 1).toLocaleString()}</b></div>
         <div class="tower-detail-stats">${rows.map(([label, value]) => `<span><small>${label}</small><b>${Math.round(Number(value) || 0).toLocaleString()}</b></span>`).join("")}</div>
         <h4>EQUIPMENT</h4><div class="tower-detail-equipment-list">${equipmentHtml(member)}</div>
