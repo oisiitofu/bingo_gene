@@ -319,7 +319,8 @@ test("BINGO CITY is connected to the shared client, worker tick, rules, and offl
   assert.match(html, /class="btn frame mode-entry-btn" id="playTerritoryModeButton"/);
   assert.match(html, /class="btn frame mode-entry-btn" id="playCityModeButton"/);
   assert.match(html, /\.btn\.mode-entry-btn::before,[\s\S]*?content: none/);
-  assert.match(html, /#cityModeButton,[\s\S]*?#playCityModeButton[\s\S]*?font-size: 10px/);
+  assert.match(html, /#territoryModeButton,[\s\S]*?#playTowerModeButton[\s\S]*?height: 42px[\s\S]*?font-size: 10px/);
+  assert.match(html, /#playScreen \.top-buttons \.mode-entry-btn \{[\s\S]*?flex: 0 0 78px;[\s\S]*?width: 78px/);
   assert.doesNotMatch(cityMode, /city\.resources\.hype|city-resource hype/);
   assert.doesNotMatch(citySystem, /resources: \{[^}]*hype|return \{[^}]*hype/);
   assert.doesNotMatch(citySystem, /resources\.(?:materials|research|blueprints|hype)|materialsOutput|baseMaterials/);

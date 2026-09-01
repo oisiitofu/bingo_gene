@@ -456,12 +456,24 @@
       padding: 9px 10px;
     }
 
+    #territoryModeButton,
+    #playTerritoryModeButton,
     #cityModeButton,
     #playCityModeButton,
     #towerModeButton,
     #playTowerModeButton {
-      padding-inline: 5px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      height: 42px;
+      min-height: 42px;
+      padding: 0 7px;
       font-size: 10px;
+    }
+
+    #playScreen .top-buttons .mode-entry-btn {
+      flex: 0 0 78px;
+      width: 78px;
     }
 
     .setup-top-bar .volume-control {
@@ -7654,6 +7666,11 @@
       overflow: hidden;
       text-overflow: ellipsis;
       white-space: nowrap;
+    }
+
+    body.compact-ipad-mode #playScreen .top-buttons .mode-entry-btn {
+      flex: 1 1 0;
+      width: auto;
     }
 
     body.compact-ipad-mode .top-left > .btn,
