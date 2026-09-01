@@ -357,6 +357,7 @@ test("MONSTER TOWER is connected to realtime client, worker, rules, and 100 isol
   const onlineRoom = readFileSync(new URL("../online/online-room.js", import.meta.url), "utf8");
   const worker = readFileSync(new URL("../worker/territory-worker.mjs", import.meta.url), "utf8");
   const firebaseRules = readFileSync(new URL("../firebase-database.rules.json", import.meta.url), "utf8");
+  const firebaseRuleObject = JSON.parse(firebaseRules);
   const serviceWorker = readFileSync(new URL("../sw.js", import.meta.url), "utf8");
   const towerMode = readFileSync(new URL("../tower-mode.js", import.meta.url), "utf8");
   const towerSystem = readFileSync(new URL("../tower-system.js", import.meta.url), "utf8");
@@ -368,6 +369,10 @@ test("MONSTER TOWER is connected to realtime client, worker, rules, and 100 isol
   assert.match(onlineRoom, /tower\/current/);
   assert.match(worker, /advanceTower\(env\)/);
   assert.match(firebaseRules, /"tower"\s*:\s*\{/);
+  const towerValidation = firebaseRuleObject.rules.teamBingoV1.tower.current[".validate"];
+  const towerPlayerValidation = firebaseRuleObject.rules.teamBingoV1.tower.current.players.$playerId[".validate"];
+  assert.match(towerValidation, /newData\.child\('version'\)\.val\(\) === 2/);
+  assert.match(towerPlayerValidation, /newData\.child\('battle'\)\.hasChildren/);
   assert.match(serviceWorker, /tower-battle-hall\.png/);
   assert.match(towerMode, /data-tower-history-panel/);
   assert.match(towerMode, /data-tower-monster/);
