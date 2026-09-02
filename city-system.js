@@ -2,7 +2,8 @@
   "use strict";
 
   const VERSION = 1;
-  const MAP_SCHEMA = 3;
+  const MAP_SCHEMA = 4;
+  const TERRAIN_REVISION = 2;
   const GRID_SIZE = 160;
   const CITY_CENTER = Math.floor(GRID_SIZE / 2);
   const TICK_MINUTES = 10;
@@ -363,7 +364,7 @@
   function createPlayerCity(player, now) {
     const city = {
       id: player.id, name: player.cityName, ownerName: player.name, color: player.color, accent: player.accent,
-      terrainPreset: player.terrainPreset, mapSchema: MAP_SCHEMA, level: 1,
+      terrainPreset: player.terrainPreset, mapSchema: MAP_SCHEMA, terrainRevision: TERRAIN_REVISION, level: 1,
       resources: { money: AUTO_BUILD_THRESHOLD },
       metrics: emptyMetrics(), economy: { taxRate: 10, lastIncome: 0, lastExpense: 0, balance: 0 },
       autoDevelopment: { enabled: true, threshold: AUTO_BUILD_THRESHOLD, placed: 0, cursor: 0 },
@@ -375,7 +376,7 @@
 
   function createInitialState(now = Date.now()) {
     const timestamp = Number(now) || Date.now();
-    return { version: VERSION, mapSchema: MAP_SCHEMA, revision: 0, players: Object.fromEntries(PLAYERS.map((player) => [player.id, createPlayerCity(player, timestamp)])), processedRewards: {}, processedCommands: {}, lastTickAt: timestamp, nextTickAt: timestamp + TICK_MS, updatedAt: timestamp };
+    return { version: VERSION, mapSchema: MAP_SCHEMA, terrainRevision: TERRAIN_REVISION, revision: 0, players: Object.fromEntries(PLAYERS.map((player) => [player.id, createPlayerCity(player, timestamp)])), processedRewards: {}, processedCommands: {}, lastTickAt: timestamp, nextTickAt: timestamp + TICK_MS, updatedAt: timestamp };
   }
 
   function normalizeState(value, now = Date.now()) {
@@ -397,6 +398,7 @@
         }));
       }
       city.mapSchema = MAP_SCHEMA;
+      city.terrainRevision = TERRAIN_REVISION;
       city.terrainPreset = player.terrainPreset;
       city.resources = { money: Math.max(0, Number(city.resources?.money) || 0) };
       city.unlocks = { ...allUnlocks(), ...(city.unlocks || {}) };
@@ -404,6 +406,7 @@
       city.metrics = calculateMetrics(city);
     });
     state.mapSchema = MAP_SCHEMA;
+    state.terrainRevision = TERRAIN_REVISION;
     state.processedCommands ||= {};
     state.processedRewards ||= {};
     return state;
@@ -666,6 +669,8 @@
 
   function advanceState(value, now = Date.now(), options = {}) {
     const originalSchema = Number(value?.mapSchema) || 0;
+    const originalTerrainRevision = Number(value?.terrainRevision) || 0;
+    const migrated = originalSchema < MAP_SCHEMA || originalTerrainRevision < TERRAIN_REVISION;
     const state = normalizeState(value, now);
     const maximum = Math.max(1, Number(options.maxTicks) || 144);
     let processed = 0;
@@ -677,11 +682,11 @@
       processed += 1;
     }
     state.nextTickAt = cursor;
-    if (processed || originalSchema < MAP_SCHEMA) {
+    if (processed || migrated) {
       state.revision = (Number(state.revision) || 0) + Math.max(1, processed);
       state.updatedAt = Number(now);
     }
-    return { state, processed, caughtUp: cursor > Number(now), migrated: originalSchema < MAP_SCHEMA };
+    return { state, processed, caughtUp: cursor > Number(now), migrated };
   }
 
   function rewardForPlayer(entry = {}) {
@@ -727,7 +732,7 @@
   }
 
   const api = {
-    VERSION, MAP_SCHEMA, GRID_SIZE, CITY_CENTER, TICK_MINUTES, TICK_MS, AUTO_BUILD_THRESHOLD,
+    VERSION, MAP_SCHEMA, TERRAIN_REVISION, GRID_SIZE, CITY_CENTER, TICK_MINUTES, TICK_MS, AUTO_BUILD_THRESHOLD,
     PLAYERS, PLAYER_BY_ID, TERRAIN, BUILDINGS, BUILDING_IDS,
     clone, playerKey, playerForName, tileId, parseTileId, neighbors, terrainAt,
     createInitialState, normalizeState, calculateMetrics, canBuild, applyCommand, autoDevelopCity, advanceState,

@@ -7,6 +7,9 @@ const City = globalThis.TeamBingoCitySystem;
 test("creates six persistent player cities with starter infrastructure", () => {
   const state = City.createInitialState(1_000_000);
   assert.equal(state.version, 1);
+  assert.equal(City.MAP_SCHEMA, 4);
+  assert.equal(City.TERRAIN_REVISION, 2);
+  assert.equal(state.terrainRevision, City.TERRAIN_REVISION);
   assert.equal(City.GRID_SIZE, 160);
   assert.ok(City.GRID_SIZE * City.GRID_SIZE >= 16 * 16 * 100);
   assert.ok(Object.keys(City.BUILDINGS).length >= 1004);
@@ -16,6 +19,7 @@ test("creates six persistent player cities with starter infrastructure", () => {
     assert.deepEqual(Object.keys(city.resources), ["money"]);
     assert.ok(city.tiles[City.tileId(City.CITY_CENTER - 1, City.CITY_CENTER - 1)]);
     assert.equal(city.mapSchema, City.MAP_SCHEMA);
+    assert.equal(city.terrainRevision, City.TERRAIN_REVISION);
     assert.ok(city.metrics.population > 0);
     assert.ok(city.metrics.capacity >= 360);
     assert.ok(city.metrics.powerSupply >= city.metrics.powerDemand);
@@ -149,6 +153,34 @@ test("current maps keep their tile coordinates while obsolete resources are remo
   const normalized = City.normalizeState(current, 1_000_100);
   assert.ok(normalized.players.tofu.tiles[marker]);
   assert.deepEqual(normalized.players.tofu.resources, { money: 24680 });
+});
+
+test("existing developed cities migrate to the current terrain without losing city data", () => {
+  const current = City.createInitialState(1_000_000);
+  const marker = City.tileId(City.CITY_CENTER + 5, City.CITY_CENTER + 2);
+  current.mapSchema = 3;
+  current.terrainRevision = 1;
+  current.revision = 17;
+  current.players.tofu.mapSchema = 3;
+  current.players.tofu.terrainRevision = 1;
+  current.players.tofu.resources.money = 87654;
+  current.players.tofu.tiles[marker] = { id: marker, kind: "building", buildingId: "residential", level: 2 };
+  current.players.tofu.history = { keep: { id: "keep", message: "既存都市の履歴" } };
+
+  const result = City.advanceState(current, 1_000_100, { maxTicks: 1 });
+  assert.equal(result.migrated, true);
+  assert.equal(result.processed, 0);
+  assert.equal(result.state.mapSchema, City.MAP_SCHEMA);
+  assert.equal(result.state.terrainRevision, City.TERRAIN_REVISION);
+  assert.equal(result.state.revision, 18);
+  assert.equal(result.state.players.tofu.terrainRevision, City.TERRAIN_REVISION);
+  assert.equal(result.state.players.tofu.resources.money, 87654);
+  assert.deepEqual(result.state.players.tofu.tiles[marker], current.players.tofu.tiles[marker]);
+  assert.deepEqual(result.state.players.tofu.history, current.players.tofu.history);
+
+  const currentResult = City.advanceState(result.state, 1_000_200, { maxTicks: 1 });
+  assert.equal(currentResult.migrated, false);
+  assert.equal(currentResult.state.revision, 18);
 });
 
 test("every building genre exposes ten times its original distinct visual assets", () => {
