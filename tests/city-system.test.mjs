@@ -95,18 +95,29 @@ test("standings include all six cities", () => {
   assert.ok(standings.every((entry) => entry.cityName && Number.isFinite(entry.cityScore)));
 });
 
-test("all six cities generate distinct broad terrain with land, water, and mountains", () => {
+test("all six cities generate distinct blended biomes with buildable and natural land", () => {
   const signatures = new Set();
+  const terrainTypes = new Set();
   City.PLAYERS.forEach((player) => {
-    const counts = { grass: 0, soil: 0, mountain: 0, river: 0, lake: 0, sea: 0 };
+    const counts = {};
+    let buildable = 0;
+    let natural = 0;
     for (let z = 0; z < City.GRID_SIZE; z += 4) {
-      for (let x = 0; x < City.GRID_SIZE; x += 4) counts[City.terrainAt(player.id, x, z).type] += 1;
+      for (let x = 0; x < City.GRID_SIZE; x += 4) {
+        const terrain = City.terrainAt(player.id, x, z);
+        counts[terrain.type] = (counts[terrain.type] || 0) + 1;
+        terrainTypes.add(terrain.type);
+        if (terrain.buildable) buildable += 1;
+        else natural += 1;
+      }
     }
-    assert.ok(counts.grass + counts.soil > 300, `${player.id} has too little buildable land`);
-    assert.ok(counts.mountain + counts.river + counts.lake + counts.sea > 0, `${player.id} has no natural terrain`);
+    assert.ok(buildable > 300, `${player.id} has too little buildable land`);
+    assert.ok(natural > 0, `${player.id} has no natural terrain`);
+    assert.ok(Object.keys(counts).length >= 8, `${player.id} has too little biome variety`);
     signatures.add(JSON.stringify(counts));
   });
   assert.equal(signatures.size, City.PLAYERS.length);
+  assert.deepEqual(terrainTypes, new Set(["grass", "meadow", "flower", "forest", "scrub", "soil", "sand", "wetland", "badlands", "volcanic", "cliff", "mountain", "snow", "river", "lake", "lagoon", "sea"]));
 });
 
 test("legacy 16x16 cities migrate into the center without losing buildings or money", () => {

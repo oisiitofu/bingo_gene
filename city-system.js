@@ -31,10 +31,21 @@
 
   const TERRAIN = Object.freeze({
     grass: { id: "grass", name: "草地", buildable: true },
+    meadow: { id: "meadow", name: "草原", buildable: true },
+    flower: { id: "flower", name: "花草原", buildable: true },
+    forest: { id: "forest", name: "森林", buildable: true },
+    scrub: { id: "scrub", name: "灌木地", buildable: true },
     soil: { id: "soil", name: "土", buildable: true },
-    mountain: { id: "mountain", name: "山岳", buildable: false },
+    sand: { id: "sand", name: "砂浜", buildable: true },
+    wetland: { id: "wetland", name: "湿地", buildable: false },
+    badlands: { id: "badlands", name: "乾燥台地", buildable: true },
+    volcanic: { id: "volcanic", name: "火山岩地", buildable: false },
+    cliff: { id: "cliff", name: "断崖", buildable: false, elevated: true },
+    mountain: { id: "mountain", name: "山岳", buildable: false, elevated: true },
+    snow: { id: "snow", name: "雪稜", buildable: false, elevated: true },
     river: { id: "river", name: "川", buildable: false, water: true },
     lake: { id: "lake", name: "湖", buildable: false, water: true },
+    lagoon: { id: "lagoon", name: "潟湖", buildable: false, water: true },
     sea: { id: "sea", name: "海", buildable: false, water: true }
   });
 
@@ -241,49 +252,91 @@
     }
     const broad = valueNoise(`${player.id}-broad`, px, pz, 29);
     const detail = valueNoise(`${player.id}-detail`, px, pz, 9);
+    const biome = valueNoise(`${player.id}-biome`, px - 37, pz + 61, 17);
     const ridge = valueNoise(`${player.id}-ridge`, px + 41, pz - 23, 18);
-    let type = detail < .24 ? "soil" : "grass";
+    let type = detail < .16 ? "soil" : detail > .82 ? "forest" : biome > .78 ? "flower" : biome > .58 ? "meadow" : biome < .2 ? "scrub" : "grass";
     let height = Math.max(0, (broad - .35) * .28);
     const edge = Math.min(px, pz, GRID_SIZE - 1 - px, GRID_SIZE - 1 - pz);
     const nx = px / (GRID_SIZE - 1);
     const nz = pz / (GRID_SIZE - 1);
     if (player.terrainPreset === "coast") {
       const shoreline = 126 + Math.sin(pz * .075) * 10 + (broad - .5) * 18;
-      if (px > shoreline) type = "sea";
-      else if (ridge > .76 && px < 52) type = "mountain";
-      else if (Math.hypot(px - 105, pz - 43) < 9 + broad * 3) type = "lake";
+      const lakeDistance = Math.hypot(px - 105, pz - 43);
+      if (px > shoreline + 5) type = "sea";
+      else if (px > shoreline) type = "lagoon";
+      else if (px > shoreline - 5) type = "sand";
+      else if (ridge > .88 && px < 52) type = "snow";
+      else if (ridge > .79 && px < 56) type = "mountain";
+      else if (ridge > .71 && px < 61) type = "cliff";
+      else if (lakeDistance < 9 + broad * 3) type = "lake";
+      else if (lakeDistance < 14 + broad * 3) type = "wetland";
+      else if (biome > .7 && px < 75) type = "forest";
     } else if (player.terrainPreset === "river-valley") {
       const river = 46 + px * .43 + Math.sin(px * .09) * 8;
-      if (Math.abs(pz - river) < 2.4 + broad * 1.7) type = "river";
-      else if ((ridge > .69 && (px < 42 || pz > 122)) || edge < 3) type = "mountain";
+      const riverDistance = Math.abs(pz - river);
+      if (riverDistance < 2.4 + broad * 1.7) type = "river";
+      else if (riverDistance < 5.2 + broad * 2) type = "wetland";
+      else if ((ridge > .86 && (px < 42 || pz > 122))) type = "snow";
+      else if ((ridge > .75 && (px < 45 || pz > 119)) || edge < 3) type = "mountain";
+      else if (ridge > .66 && (px < 48 || pz > 116)) type = "cliff";
+      else if (biome > .7) type = "forest";
+      else if (biome > .5) type = "meadow";
     } else if (player.terrainPreset === "highland") {
       if (edge < 8 && broad < .55) type = "sea";
-      else if (ridge > .62 || (nx < .3 && nz < .42)) type = "mountain";
+      else if (edge < 12 && broad < .6) type = "sand";
+      else if (ridge > .85 || (nx < .2 && nz < .3)) type = "snow";
+      else if (ridge > .7 || (nx < .3 && nz < .42)) type = "mountain";
+      else if (ridge > .6 || (nx < .35 && nz < .46)) type = "cliff";
       else if (Math.hypot(px - 112, pz - 112) < 10 + detail * 3) type = "lake";
+      else if (ridge > .52) type = "meadow";
+      else if (biome > .78) type = "flower";
     } else if (player.terrainPreset === "dry-basin") {
-      type = detail < .62 ? "soil" : "grass";
+      type = detail < .22 ? "volcanic" : detail < .58 ? "badlands" : biome < .48 ? "scrub" : "grass";
       const river = 112 - px * .27 + Math.sin(px * .08) * 5;
-      if (Math.abs(pz - river) < 2) type = "river";
-      else if (edge < 6 || (ridge > .72 && distance > 43)) type = "mountain";
+      const riverDistance = Math.abs(pz - river);
+      if (riverDistance < 2) type = "river";
+      else if (riverDistance < 4.8) type = "wetland";
+      else if (ridge > .88 && distance > 43) type = "volcanic";
+      else if (edge < 6 || (ridge > .76 && distance > 43)) type = "mountain";
+      else if (ridge > .67 && distance > 38) type = "cliff";
     } else if (player.terrainPreset === "lake-district") {
-      const lakeA = Math.hypot(px - 43, pz - 52) < 13 + broad * 4;
-      const lakeB = Math.hypot(px - 119, pz - 103) < 16 + detail * 3;
+      const lakeDistanceA = Math.hypot(px - 43, pz - 52) - (13 + broad * 4);
+      const lakeDistanceB = Math.hypot(px - 119, pz - 103) - (16 + detail * 3);
       const waterway = Math.abs(pz - (80 + Math.sin(px * .07) * 17)) < 1.8;
-      if (lakeA || lakeB) type = "lake";
+      if (lakeDistanceA < 0 || lakeDistanceB < 0) type = "lake";
+      else if (lakeDistanceA < 5 || lakeDistanceB < 5) type = "wetland";
       else if (waterway && px > 49 && px < 112) type = "river";
-      else if (ridge > .75 && pz < 38) type = "mountain";
+      else if (ridge > .87 && pz < 38) type = "snow";
+      else if (ridge > .76 && pz < 42) type = "mountain";
+      else if (ridge > .67 && pz < 46) type = "cliff";
+      else if (biome > .72) type = "forest";
+      else if (biome > .55) type = "flower";
     } else if (player.terrainPreset === "peninsula") {
       const westCoast = 18 + Math.sin(pz * .08) * 8;
       const southCoast = 139 + Math.sin(px * .065) * 8;
-      if (px < westCoast || pz > southCoast || (edge < 4 && broad < .58)) type = "sea";
-      else if (ridge > .73 && px > 108) type = "mountain";
+      const coastDistance = Math.min(px - westCoast, southCoast - pz);
+      if (coastDistance < -4 || (edge < 4 && broad < .58)) type = "sea";
+      else if (coastDistance < 0) type = "lagoon";
+      else if (coastDistance < 5) type = "sand";
+      else if (ridge > .87 && px > 108) type = "snow";
+      else if (ridge > .77 && px > 105) type = "mountain";
+      else if (ridge > .68 && px > 102) type = "cliff";
       else if (Math.hypot(px - 48, pz - 112) < 11 + detail * 3) type = "lake";
+      else if (biome > .73) type = "forest";
+      else if (biome > .56) type = "meadow";
     }
+    if (type === "cliff") height = .34 + ridge * 1.25;
     if (type === "mountain") height = .5 + ridge * 1.8;
+    if (type === "snow") height = .66 + ridge * 2.05;
+    if (type === "volcanic") height = .18 + ridge * .75;
+    if (type === "badlands") height = .08 + broad * .3;
+    if (type === "sand") height = .01;
+    if (type === "wetland") height = -.04;
     if (type === "river") height = -.3;
     if (type === "lake") height = -.5;
+    if (type === "lagoon") height = -.38;
     if (type === "sea") height = -1;
-    return { type, height, buildable: TERRAIN[type].buildable, water: Boolean(TERRAIN[type].water) };
+    return { type, height, buildable: TERRAIN[type].buildable, water: Boolean(TERRAIN[type].water), elevated: Boolean(TERRAIN[type].elevated) };
   }
 
   function initialTiles() {

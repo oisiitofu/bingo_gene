@@ -337,12 +337,15 @@ test("BINGO CITY is connected to the shared client, worker tick, rules, and offl
   assert.match(cityMap, /function createTerrainGrid/);
   assert.match(cityMap, /cornerSurfaceNormal/);
   assert.match(cityMap, /function terrainMixAtCorner/);
+  assert.match(cityMap, /function terrainStyleAtCorner/);
   assert.match(cityMap, /terrainMix.*Float32BufferAttribute/);
+  assert.match(cityMap, /terrainStyle.*Float32BufferAttribute/);
   assert.match(cityMap, /terrainSoil/);
+  assert.match(cityMap, /TERRAIN_RENDER_PROFILES/);
   assert.doesNotMatch(cityMap, /InstancedMesh\(shared\.terrain|BoxGeometry\(TILE \* \.96/);
-  assert.match(html, /src="city-system\.js\?v=20260901-city-object-catalog-142"/);
-  assert.match(html, /src="city-map-3d\.js\?v=20260901-city-object-catalog-142"/);
-  assert.match(html, /src="city-mode\.js\?v=20260901-city-object-catalog-142"/);
+  assert.match(html, /src="city-system\.js\?v=20260902-city-biomes-143"/);
+  assert.match(html, /src="city-map-3d\.js\?v=20260902-city-biomes-143"/);
+  assert.match(html, /src="city-mode\.js\?v=20260902-city-biomes-143"/);
   assert.match(html, /searchParams\.set\("city", "1"\)/);
   assert.match(html, /function cityPlayerIdForMember/);
   assert.match(html, /editablePlayerId/);
@@ -354,7 +357,7 @@ test("BINGO CITY is connected to the shared client, worker tick, rules, and offl
   assert.match(worker, /advanceCitiesWithToken/);
   assert.match(worker, /context\.waitUntil\(advanceCities\(env\)\)/);
   assert.ok(rules.rules.teamBingoV1.cities.current, "Firebase city rules are missing");
-  assert.match(serviceWorker, /\.\/city-system\.js\?v=20260901-city-object-catalog-142/);
+  assert.match(serviceWorker, /\.\/city-system\.js\?v=20260902-city-biomes-143/);
   assert.doesNotMatch(serviceWorker, /SHELL_FILES = \[[\s\S]*?images\/city\/textures/);
 });
 

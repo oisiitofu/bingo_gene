@@ -3,7 +3,26 @@
 
   const TILE = .86;
   const HEIGHT_SCALE = 2.5;
-  const WATER_HEIGHT = Object.freeze({ river: -.14, lake: -.2, sea: -.26 });
+  const WATER_HEIGHT = Object.freeze({ river: -.14, lake: -.2, lagoon: -.18, sea: -.26 });
+  const TERRAIN_RENDER_PROFILES = Object.freeze({
+    grass: { mix: [.92, .08, 0, 0], tint: [.96, 1.03, .88, .92] },
+    meadow: { mix: [.84, .16, 0, 0], tint: [.86, 1.08, .72, .9] },
+    flower: { mix: [.9, .1, 0, 0], tint: [1.02, 1.02, .78, .88] },
+    forest: { mix: [.72, .12, .16, 0], tint: [.64, .82, .52, .96] },
+    scrub: { mix: [.46, .44, .1, 0], tint: [.78, .84, .62, .98] },
+    soil: { mix: [.04, .96, 0, 0], tint: [1.02, .92, .78, 1] },
+    sand: { mix: [.08, .84, .08, 0], tint: [1.2, 1.08, .77, .96] },
+    wetland: { mix: [.38, .16, 0, .46], tint: [.62, .82, .64, .72] },
+    badlands: { mix: [.08, .7, .22, 0], tint: [.85, .63, .43, 1] },
+    volcanic: { mix: [0, .12, .88, 0], tint: [.34, .27, .25, 1] },
+    cliff: { mix: [.02, .1, .88, 0], tint: [.78, .8, .76, .98] },
+    mountain: { mix: [0, .04, .96, 0], tint: [.92, .96, .94, .98] },
+    snow: { mix: [.14, 0, .86, 0], tint: [1.22, 1.25, 1.3, .82] },
+    river: { mix: [0, 0, 0, 1], tint: [.42, .95, 1.16, .22] },
+    lake: { mix: [0, 0, 0, 1], tint: [.34, .82, 1.06, .2] },
+    lagoon: { mix: [.04, .04, 0, .92], tint: [.48, 1.08, 1.02, .24] },
+    sea: { mix: [0, 0, 0, 1], tint: [.22, .64, .9, .18] }
+  });
 
   function create(container, options = {}) {
     const THREE = global.THREE;
@@ -46,6 +65,7 @@
     let cornerHeightMemo = [];
     let cornerNormalMemo = [];
     let cornerTerrainMixMemo = [];
+    let cornerTerrainStyleMemo = [];
     const raycaster = new THREE.Raycaster();
     const pointer = new THREE.Vector2();
     const clock = new THREE.Clock();
@@ -119,6 +139,13 @@
         treeLeaf: new THREE.MeshStandardMaterial({ color: 0x4a924b, map: textures.foliage, roughness: .88 }),
         treeLeafLight: new THREE.MeshStandardMaterial({ color: 0x79ac54, map: textures.foliage, roughness: .86 }),
         grassDetail: new THREE.MeshStandardMaterial({ color: 0x57964a, roughness: .95 }),
+        reed: new THREE.MeshStandardMaterial({ color: 0x779451, roughness: .94 }),
+        flowerPink: new THREE.MeshStandardMaterial({ color: 0xe887a4, roughness: .82 }),
+        flowerYellow: new THREE.MeshStandardMaterial({ color: 0xf2cf55, roughness: .82 }),
+        sand: new THREE.MeshStandardMaterial({ color: 0xd9c188, roughness: .96 }),
+        snow: new THREE.MeshStandardMaterial({ color: 0xf2f7f8, roughness: .72 }),
+        volcanic: new THREE.MeshStandardMaterial({ color: 0x302b2a, roughness: .94 }),
+        lava: new THREE.MeshStandardMaterial({ color: 0xff6b24, emissive: 0xff2d08, emissiveIntensity: 1.5, roughness: .48 }),
         white: new THREE.MeshStandardMaterial({ color: 0xf4f1e8, roughness: .62 }),
         tire: new THREE.MeshStandardMaterial({ color: 0x111518, roughness: .82 }),
         chrome: new THREE.MeshStandardMaterial({ color: 0xbec8cb, roughness: .16, metalness: .92 }),
@@ -143,10 +170,10 @@
         shader.uniforms.terrainWater = { value: textures.water };
         shader.uniforms.terrainTime = { value: 0 };
         shader.vertexShader = shader.vertexShader
-          .replace("#include <common>", "#include <common>\nattribute vec4 terrainMix;\nvarying vec4 vTerrainMix;")
-          .replace("#include <uv_vertex>", "#include <uv_vertex>\nvTerrainMix = terrainMix;");
+          .replace("#include <common>", "#include <common>\nattribute vec4 terrainMix;\nattribute vec4 terrainStyle;\nvarying vec4 vTerrainMix;\nvarying vec4 vTerrainStyle;")
+          .replace("#include <uv_vertex>", "#include <uv_vertex>\nvTerrainMix = terrainMix;\nvTerrainStyle = terrainStyle;");
         shader.fragmentShader = shader.fragmentShader
-          .replace("#include <common>", "#include <common>\nuniform sampler2D terrainSoil;\nuniform sampler2D terrainRock;\nuniform sampler2D terrainWater;\nuniform float terrainTime;\nvarying vec4 vTerrainMix;")
+          .replace("#include <common>", "#include <common>\nuniform sampler2D terrainSoil;\nuniform sampler2D terrainRock;\nuniform sampler2D terrainWater;\nuniform float terrainTime;\nvarying vec4 vTerrainMix;\nvarying vec4 vTerrainStyle;")
           .replace("#include <map_fragment>", `
 #ifdef USE_MAP
   vec4 terrainWeights = max(vTerrainMix, vec4(0.0));
@@ -161,17 +188,19 @@
   soilTexel.rgb *= vec3(1.02, 0.92, 0.78);
   rockTexel.rgb *= vec3(0.92, 0.96, 0.94);
   waterTexel.rgb *= vec3(0.35, 0.88, 1.12);
-  diffuseColor *= grassTexel * terrainWeights.x
+  vec4 terrainColor = grassTexel * terrainWeights.x
     + soilTexel * terrainWeights.y
     + rockTexel * terrainWeights.z
     + waterTexel * terrainWeights.w;
+  terrainColor.rgb *= clamp(vTerrainStyle.rgb, vec3(0.18), vec3(1.35));
+  diffuseColor *= terrainColor;
 #endif
           `)
-          .replace("#include <roughnessmap_fragment>", "#include <roughnessmap_fragment>\nroughnessFactor = mix(roughnessFactor, 0.24, smoothstep(0.35, 0.9, vTerrainMix.w));")
+          .replace("#include <roughnessmap_fragment>", "#include <roughnessmap_fragment>\nroughnessFactor = mix(roughnessFactor, clamp(vTerrainStyle.a, 0.16, 1.0), 0.42);\nroughnessFactor = mix(roughnessFactor, 0.24, smoothstep(0.35, 0.9, vTerrainMix.w));")
           .replace("#include <metalnessmap_fragment>", "#include <metalnessmap_fragment>\nmetalnessFactor = mix(metalnessFactor, 0.08, smoothstep(0.45, 0.95, vTerrainMix.w));");
         material.userData.shader = shader;
       };
-      material.customProgramCacheKey = () => "bingo-city-terrain-splat-v1";
+      material.customProgramCacheKey = () => "bingo-city-terrain-biomes-v2";
       return material;
     }
 
@@ -262,6 +291,7 @@
       cornerHeightMemo = [];
       cornerNormalMemo = [];
       cornerTerrainMixMemo = [];
+      cornerTerrainStyleMemo = [];
       if (!city) return;
       createTerrain();
       const playerColor = new THREE.Color(city.color || "#f5c84c");
@@ -276,12 +306,13 @@
 
     function terrainCenterHeight(terrain, x = -1, z = -1) {
       if (terrain?.water) return WATER_HEIGHT[terrain.type] ?? -.18;
-      if (terrain?.type === "mountain" && x >= 0 && z >= 0) {
+      if (terrain?.elevated && x >= 0 && z >= 0) {
         const depth = Math.min(9, Number(mountainDepth[z * MAP_SIZE + x]) || 0);
         const ridgeA = Math.sin((x + 13) * .31) * Math.cos((z - 7) * .27);
         const ridgeB = Math.sin((x + z) * .17) * .55;
         const foothill = Math.pow(depth / 9, .72);
-        return .08 + foothill * 3.9 + (ridgeA + ridgeB) * (.08 + foothill * .34);
+        const elevationScale = terrain.type === "snow" ? 4.35 : terrain.type === "cliff" ? 3.25 : 3.9;
+        return .08 + foothill * elevationScale + (ridgeA + ridgeB) * (.08 + foothill * .34);
       }
       const rolling = x >= 0 && z >= 0
         ? (Math.sin((x + 5) * .071) + Math.cos((z - 9) * .063) + Math.sin((x + z) * .037)) * .035
@@ -329,13 +360,36 @@
           const terrain = terrainAtPoint(x, z);
           const distance = Math.hypot(x + .5 - gridX, z + .5 - gridZ);
           const weight = Math.exp(-(distance * distance) / 6.2);
-          const channel = terrain.water ? 3 : terrain.type === "mountain" ? 2 : terrain.type === "soil" ? 1 : 0;
-          weights[channel] += weight;
+          const profile = TERRAIN_RENDER_PROFILES[terrain.type] || TERRAIN_RENDER_PROFILES.grass;
+          profile.mix.forEach((amount, channel) => { weights[channel] += weight * amount; });
         }
       }
       const total = weights.reduce((sum, weight) => sum + weight, 0) || 1;
       const normalized = weights.map((weight) => weight / total);
       cornerTerrainMixMemo[cacheKey] = normalized;
+      return normalized;
+    }
+
+    function terrainStyleAtCorner(gridX, gridZ) {
+      const cacheKey = gridZ * (MAP_SIZE + 1) + gridX;
+      if (cornerTerrainStyleMemo[cacheKey]) return cornerTerrainStyleMemo[cacheKey];
+      const style = [0, 0, 0, 0];
+      let total = 0;
+      for (let dz = -3; dz <= 2; dz += 1) {
+        for (let dx = -3; dx <= 2; dx += 1) {
+          const x = gridX + dx;
+          const z = gridZ + dz;
+          if (x < 0 || z < 0 || x >= MAP_SIZE || z >= MAP_SIZE) continue;
+          const terrain = terrainAtPoint(x, z);
+          const distance = Math.hypot(x + .5 - gridX, z + .5 - gridZ);
+          const weight = Math.exp(-(distance * distance) / 4.8);
+          const tint = (TERRAIN_RENDER_PROFILES[terrain.type] || TERRAIN_RENDER_PROFILES.grass).tint;
+          tint.forEach((amount, channel) => { style[channel] += amount * weight; });
+          total += weight;
+        }
+      }
+      const normalized = style.map((amount) => amount / Math.max(.0001, total));
+      cornerTerrainStyleMemo[cacheKey] = normalized;
       return normalized;
     }
 
@@ -362,11 +416,12 @@
       ) / 4;
     }
 
-    function pushTerrainVertex(positions, normals, uvs, terrainMixes, x, y, z, u, v, normal, terrainMix) {
+    function pushTerrainVertex(positions, normals, uvs, terrainMixes, terrainStyles, x, y, z, u, v, normal, terrainMix, terrainStyle) {
       positions.push(x, y, z);
       normals.push(normal[0], normal[1], normal[2]);
       uvs.push(u, v);
       terrainMixes.push(terrainMix[0], terrainMix[1], terrainMix[2], terrainMix[3]);
+      terrainStyles.push(terrainStyle[0], terrainStyle[1], terrainStyle[2], terrainStyle[3]);
     }
 
     function createTerrainSurface(entries) {
@@ -375,6 +430,7 @@
       const normals = [];
       const uvs = [];
       const terrainMixes = [];
+      const terrainStyles = [];
       const faceTileIds = [];
       entries.forEach((entry) => {
         const id = City.tileId(entry.x, entry.z);
@@ -399,20 +455,25 @@
         const m10 = terrainMixAtCorner(entry.x + 1, entry.z);
         const m11 = terrainMixAtCorner(entry.x + 1, entry.z + 1);
         const m01 = terrainMixAtCorner(entry.x, entry.z + 1);
-        pushTerrainVertex(positions, normals, uvs, terrainMixes, x0, y00, z0, u0, v0, n00, m00);
-        pushTerrainVertex(positions, normals, uvs, terrainMixes, x1, y11, z1, u1, v1, n11, m11);
-        pushTerrainVertex(positions, normals, uvs, terrainMixes, x1, y10, z0, u1, v0, n10, m10);
-        pushTerrainVertex(positions, normals, uvs, terrainMixes, x0, y00, z0, u0, v0, n00, m00);
-        pushTerrainVertex(positions, normals, uvs, terrainMixes, x0, y01, z1, u0, v1, n01, m01);
-        pushTerrainVertex(positions, normals, uvs, terrainMixes, x1, y11, z1, u1, v1, n11, m11);
+        const s00 = terrainStyleAtCorner(entry.x, entry.z);
+        const s10 = terrainStyleAtCorner(entry.x + 1, entry.z);
+        const s11 = terrainStyleAtCorner(entry.x + 1, entry.z + 1);
+        const s01 = terrainStyleAtCorner(entry.x, entry.z + 1);
+        pushTerrainVertex(positions, normals, uvs, terrainMixes, terrainStyles, x0, y00, z0, u0, v0, n00, m00, s00);
+        pushTerrainVertex(positions, normals, uvs, terrainMixes, terrainStyles, x1, y11, z1, u1, v1, n11, m11, s11);
+        pushTerrainVertex(positions, normals, uvs, terrainMixes, terrainStyles, x1, y10, z0, u1, v0, n10, m10, s10);
+        pushTerrainVertex(positions, normals, uvs, terrainMixes, terrainStyles, x0, y00, z0, u0, v0, n00, m00, s00);
+        pushTerrainVertex(positions, normals, uvs, terrainMixes, terrainStyles, x0, y01, z1, u0, v1, n01, m01, s01);
+        pushTerrainVertex(positions, normals, uvs, terrainMixes, terrainStyles, x1, y11, z1, u1, v1, n11, m11, s11);
         faceTileIds.push(id, id);
-        if ((entry.terrain.type === "grass" || entry.terrain.type === "soil") && !city.tiles?.[id]) createNaturalDetail(position.x, position.z, id, entry.terrain.type, tileSurfaceHeight(id));
+        if (!entry.terrain.water && !city.tiles?.[id]) createNaturalDetail(position.x, position.z, id, entry.terrain.type, tileSurfaceHeight(id));
       });
       const geometry = new THREE.BufferGeometry();
       geometry.setAttribute("position", new THREE.Float32BufferAttribute(positions, 3));
       geometry.setAttribute("normal", new THREE.Float32BufferAttribute(normals, 3));
       geometry.setAttribute("uv", new THREE.Float32BufferAttribute(uvs, 2));
       geometry.setAttribute("terrainMix", new THREE.Float32BufferAttribute(terrainMixes, 4));
+      geometry.setAttribute("terrainStyle", new THREE.Float32BufferAttribute(terrainStyles, 4));
       geometry.computeBoundingSphere();
       dynamicResources.push(geometry);
       const surface = new THREE.Mesh(geometry, materials.terrain);
@@ -466,7 +527,7 @@
       let head = 0;
       let tail = 0;
       terrainCache.forEach((terrain, index) => {
-        if (terrain?.type === "mountain") return;
+        if (terrain?.elevated) return;
         distances[index] = 0;
         queue[tail++] = index;
       });
@@ -495,10 +556,10 @@
       return hash >>> 0;
     }
 
-    function createMountainDetail(x, z, surfaceY, seed) {
+    function createMountainDetail(x, z, surfaceY, seed, material = materials.mountain) {
       const hash = hashText(`${city.id}-${seed}`);
       const scale = .32 + (hash % 100) / 260;
-      const peak = mesh(shared.mountain, materials.mountain, [x, surfaceY + scale * .22, z], [scale * 1.2, scale * .62, scale], natureRoot);
+      const peak = mesh(shared.mountain, material, [x, surfaceY + scale * .22, z], [scale * 1.2, scale * .62, scale], natureRoot);
       peak.rotation.y = (hash % 628) / 100;
       peak.rotation.z = ((hash >>> 3) % 15 - 7) * .012;
       peak.castShadow = false;
@@ -506,15 +567,41 @@
 
     function createNaturalDetail(x, z, seed, type, surfaceY) {
       const hash = hashText(`${city.id}-${seed}`);
-      if (hash % 211 === 0) addTree(natureRoot, x - .16, z + .12, .58 + (hash % 17) / 80, hash % 2, surfaceY);
-      else if (hash % 149 === 0) {
-        const rock = mesh(shared.mountain, type === "soil" ? materials.mountain : materials.concrete, [x + .16, surfaceY + .045, z - .18], [.12, .08, .1], natureRoot);
-        rock.rotation.y = hash * .001;
-        rock.castShadow = false;
-      } else if (hash % 97 === 0) {
-        const grass = mesh(shared.cone, materials.grassDetail, [x - .16, surfaceY + .055, z + .16], [.055, .11, .055], natureRoot);
-        grass.rotation.z = .12;
+      const tuft = (material, offsetX = -.16, offsetZ = .16, scale = 1) => {
+        const grass = mesh(shared.cone, material, [x + offsetX, surfaceY + .055 * scale, z + offsetZ], [.045 * scale, .11 * scale, .045 * scale], natureRoot);
+        grass.rotation.z = ((hash >>> 4) % 15 - 7) * .025;
         grass.castShadow = false;
+      };
+      const rock = (material = materials.mountain, scale = 1) => {
+        const stone = mesh(shared.mountain, material, [x + .16, surfaceY + .045 * scale, z - .18], [.12 * scale, .08 * scale, .1 * scale], natureRoot);
+        stone.rotation.y = hash * .001;
+        stone.castShadow = false;
+      };
+      if (type === "forest" && hash % 43 === 0) {
+        addTree(natureRoot, x - .12, z + .08, .52 + (hash % 17) / 90, hash % 2, surfaceY);
+        if (hash % 3 === 0) addTree(natureRoot, x + .18, z - .16, .38 + (hash % 11) / 100, (hash >>> 2) % 2, surfaceY);
+      } else if (type === "flower" && hash % 61 === 0) {
+        [-.17, 0, .17].forEach((offset, index) => tuft(index % 2 ? materials.flowerPink : materials.flowerYellow, offset, .1 - index * .08, .45 + index * .08));
+      } else if (type === "meadow" && hash % 37 === 0) {
+        tuft(materials.grassDetail, -.18, .14, .85);
+        tuft(materials.grassDetail, .14, -.12, .65);
+      } else if (type === "scrub" && hash % 31 === 0) {
+        [-.14, .13].forEach((offset, index) => mesh(shared.treeCrown, index ? materials.treeLeafLight : materials.treeLeaf, [x + offset, surfaceY + .09, z - offset * .6], [.11, .08, .11], natureRoot));
+      } else if (type === "wetland" && hash % 31 === 0) {
+        [-.18, -.06, .08, .2].forEach((offset, index) => tuft(materials.reed, offset, (index % 2 ? -.1 : .12), .7 + index * .1));
+      } else if (type === "sand" && hash % 41 === 0) {
+        rock(materials.sand, .72);
+      } else if (type === "badlands" && hash % 29 === 0) {
+        rock(materials.copper, .92);
+      } else if (type === "volcanic" && hash % 43 === 0) {
+        createMountainDetail(x, z, surfaceY, seed, materials.volcanic);
+        if (hash % 5 === 0) mesh(shared.sphere, materials.lava, [x - .12, surfaceY + .035, z + .15], [.04, .025, .04], natureRoot).castShadow = false;
+      } else if (["cliff", "mountain", "snow"].includes(type) && hash % 53 === 0) {
+        createMountainDetail(x, z, surfaceY, seed, type === "snow" ? materials.snow : materials.mountain);
+      } else if (type === "soil" && hash % 83 === 0) {
+        rock(materials.mountain, .7);
+      } else if (type === "grass" && hash % 79 === 0) {
+        tuft(materials.grassDetail, -.16, .16, .8);
       }
     }
 
