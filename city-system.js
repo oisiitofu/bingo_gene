@@ -4,7 +4,7 @@
   const VERSION = 1;
   const MAP_SCHEMA = 4;
   const TERRAIN_REVISION = 2;
-  const FEATURE_REVISION = 3;
+  const FEATURE_REVISION = 4;
   const GRID_SIZE = 160;
   const CITY_CENTER = Math.floor(GRID_SIZE / 2);
   const TICK_MINUTES = 10;
@@ -38,6 +38,24 @@
     kento: Object.freeze({ id: "violet-media", title: "紫電配信都市", focus: "メディア・学術・商業", description: "配信・研究・高層商業を束ねた先進的な情報都市です。", effects: { education: 8, tourism: 7, jobs: 30 } }),
     lickey: Object.freeze({ id: "royal-capital", title: "蒼金王都", focus: "行政・観光・幸福", description: "城下町と公共施設を整え、格式と観光を両立する王都です。", effects: { safety: 5, happiness: 3, tourism: 10 } })
   });
+
+  const MISSION_POOLS = Object.freeze([
+    Object.freeze([
+      Object.freeze({ id: "open-3", title: "3マスを開ける", kind: "opens", target: 3, reward: 350 }),
+      Object.freeze({ id: "open-5", title: "5マスを開ける", kind: "opens", target: 5, reward: 700 }),
+      Object.freeze({ id: "open-7", title: "7マスを開ける", kind: "opens", target: 7, reward: 1100 })
+    ]),
+    Object.freeze([
+      Object.freeze({ id: "line-1", title: "1ライン完成", kind: "bingoLines", target: 1, reward: 600 }),
+      Object.freeze({ id: "line-2", title: "2ライン完成", kind: "bingoLines", target: 2, reward: 1000 }),
+      Object.freeze({ id: "victory", title: "試合に勝利", kind: "won", target: 1, reward: 900 })
+    ]),
+    Object.freeze([
+      Object.freeze({ id: "mvp", title: "MVPを獲得", kind: "mvp", target: 1, reward: 1200 }),
+      Object.freeze({ id: "straight", title: "ストレート勝利", kind: "victoryKind", value: "straight", target: 1, reward: 1400 }),
+      Object.freeze({ id: "comeback", title: "大逆転勝利", kind: "victoryKind", value: "comeback", target: 1, reward: 1400 })
+    ])
+  ]);
 
   const TERRAIN = Object.freeze({
     grass: { id: "grass", name: "草地", buildable: true },
@@ -407,7 +425,8 @@
       resources: { money: AUTO_BUILD_THRESHOLD },
       metrics: emptyMetrics(), economy: { taxRate: 10, lastIncome: 0, lastExpense: 0, balance: 0 },
       autoDevelopment: { enabled: true, threshold: AUTO_BUILD_THRESHOLD, placed: 0, cursor: 0 },
-      tiles: initialTiles(), unlocks: allUnlocks(), inbox: {}, history: {}, createdAt: now, updatedAt: now
+      tiles: initialTiles(), unlocks: allUnlocks(), inbox: {}, history: {},
+      missions: { completed: 0, total: 0, earned: 0, recent: {} }, createdAt: now, updatedAt: now
     };
     city.metrics = calculateMetrics(city);
     city.level = cityLevel(city.metrics.population, city.metrics.cityScore);
@@ -444,6 +463,12 @@
       city.resources = { money: Math.max(0, Number(city.resources?.money) || 0) };
       city.unlocks = { ...allUnlocks(), ...(city.unlocks || {}) };
       city.autoDevelopment = { enabled: true, threshold: AUTO_BUILD_THRESHOLD, placed: 0, cursor: 0, ...(city.autoDevelopment || {}) };
+      city.missions = {
+        completed: Math.max(0, Number(city.missions?.completed) || 0),
+        total: Math.max(0, Number(city.missions?.total) || 0),
+        earned: Math.max(0, Number(city.missions?.earned) || 0),
+        recent: city.missions?.recent && typeof city.missions.recent === "object" ? city.missions.recent : {}
+      };
       city.metrics = calculateMetrics(city);
       city.level = cityLevel(city.metrics.population, city.metrics.cityScore);
     });
@@ -843,8 +868,48 @@
     return { money: opens * 100 + bingoLines * 500 + (won ? 1500 : 300) };
   }
 
+  function missionsForMatch(matchId, playerId) {
+    const seed = `${String(matchId || "match")}:${String(playerId || "player")}`;
+    return MISSION_POOLS.map((pool, index) => {
+      const choice = Math.min(pool.length - 1, Math.floor(hash2(seed, index + 11, 47 + index * 13) * pool.length));
+      return { ...pool[choice] };
+    });
+  }
+
+  function resolveMission(mission, entry = {}) {
+    let progress = 0;
+    if (mission.kind === "opens") progress = Math.max(0, Number(entry.opens) || 0);
+    if (mission.kind === "bingoLines") progress = Math.max(0, Number(entry.bingoLines) || 0);
+    if (mission.kind === "won") progress = entry.won ? 1 : 0;
+    if (mission.kind === "mvp") progress = entry.mvp ? 1 : 0;
+    if (mission.kind === "victoryKind") progress = entry.won && entry.victoryKind === mission.value ? 1 : 0;
+    const completed = progress >= mission.target;
+    return { ...mission, progress, completed, earned: completed ? mission.reward : 0 };
+  }
+
+  function resolveMatchMissions(matchId, playerId, entry = {}) {
+    const missions = missionsForMatch(matchId, playerId).map((mission) => resolveMission(mission, entry));
+    return {
+      missions,
+      completed: missions.filter((mission) => mission.completed).length,
+      earned: missions.reduce((sum, mission) => sum + mission.earned, 0)
+    };
+  }
+
+  function missionStatus(city) {
+    const recent = Object.values(city?.missions?.recent || {})
+      .sort((a, b) => (Number(b.createdAt) || 0) - (Number(a.createdAt) || 0))[0] || null;
+    return {
+      completed: Math.max(0, Number(city?.missions?.completed) || 0),
+      total: Math.max(0, Number(city?.missions?.total) || 0),
+      earned: Math.max(0, Number(city?.missions?.earned) || 0),
+      recent
+    };
+  }
+
   function applyMatchReward(value, payload = {}, now = Date.now()) {
     const state = normalizeState(value, now);
+    if (payload.testMode) return { state, applied: false, testMode: true };
     const rewardId = String(payload.id || "");
     if (!rewardId) return { state, applied: false, error: "報酬IDがありません。" };
     if (state.processedRewards[rewardId]) return { state, applied: false, duplicate: true };
@@ -853,12 +918,22 @@
       const player = playerForName(entry?.name);
       const city = player ? state.players?.[player.id] : null;
       if (!city) return;
-      const reward = rewardForPlayer(entry);
-      Object.entries(reward).forEach(([field, amount]) => { city.resources[field] = Math.max(0, (Number(city.resources[field]) || 0) + Number(amount || 0)); });
+      const baseReward = rewardForPlayer(entry);
+      const missionResult = resolveMatchMissions(payload.matchId || rewardId, player.id, entry);
+      const reward = { money: baseReward.money + missionResult.earned, baseMoney: baseReward.money, missionMoney: missionResult.earned };
+      city.resources.money = Math.max(0, (Number(city.resources.money) || 0) + reward.money);
+      city.missions.completed += missionResult.completed;
+      city.missions.total += missionResult.missions.length;
+      city.missions.earned += missionResult.earned;
+      city.missions.recent[rewardId] = {
+        id: rewardId, matchId: payload.matchId || rewardId, missions: missionResult.missions,
+        completed: missionResult.completed, earned: missionResult.earned, createdAt: Number(now)
+      };
+      city.missions.recent = trimMap(city.missions.recent, 30);
       city.inbox ||= {};
-      city.inbox[rewardId] = { id: rewardId, matchId: payload.matchId || rewardId, reward, createdAt: Number(now), title: entry.won ? "BINGO VICTORY REWARD" : "BINGO MATCH REWARD" };
+      city.inbox[rewardId] = { id: rewardId, matchId: payload.matchId || rewardId, reward, missions: missionResult.missions, createdAt: Number(now), title: entry.won ? "BINGO VICTORY REWARD" : "BINGO MATCH REWARD" };
       city.inbox = trimMap(city.inbox, 30);
-      addHistory(city, "bingo", entry.won ? "ビンゴ勝利報酬" : "ビンゴ参加報酬", `資金 +${reward.money}`, now, { rewardId });
+      addHistory(city, "bingo", entry.won ? "ビンゴ勝利報酬" : "ビンゴ参加報酬", `資金 +${reward.money} / ミッション ${missionResult.completed}/3`, now, { rewardId, missionCompleted: missionResult.completed });
       autoDevelopCity(city, now, 5);
       city.updatedAt = Number(now);
       rewards[player.id] = reward;
@@ -880,10 +955,10 @@
 
   const api = {
     VERSION, MAP_SCHEMA, TERRAIN_REVISION, FEATURE_REVISION, GRID_SIZE, CITY_CENTER, TICK_MINUTES, TICK_MS, AUTO_BUILD_THRESHOLD,
-    PLAYERS, PLAYER_BY_ID, CITY_IDENTITIES, TERRAIN, CITY_STAGES, DISTRICTS, SIGNATURE_LANDMARKS, BUILDINGS, BUILDING_IDS,
+    PLAYERS, PLAYER_BY_ID, CITY_IDENTITIES, MISSION_POOLS, TERRAIN, CITY_STAGES, DISTRICTS, SIGNATURE_LANDMARKS, BUILDINGS, BUILDING_IDS,
     clone, playerKey, playerForName, tileId, parseTileId, neighbors, terrainAt,
     createInitialState, normalizeState, analyzeDistricts, cityLevel, cityStage, landmarkStatus, calculateMetrics, canBuild, applyCommand, autoDevelopCity, advanceState,
-    rewardForPlayer, applyMatchReward, standings, isRoadTile
+    rewardForPlayer, missionsForMatch, resolveMatchMissions, missionStatus, applyMatchReward, standings, isRoadTile
   };
 
   global.TeamBingoCitySystem = api;

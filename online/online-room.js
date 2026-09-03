@@ -3714,6 +3714,7 @@ export class OnlineCoordinator {
       return outcome.applied ? outcome.state : undefined;
     });
     if (outcome?.duplicate) return { ok: true, duplicate: true };
+    if (outcome?.testMode) return { ok: true, testMode: true };
     if (!result.committed) return { ok: false, error: outcome?.error || "都市報酬を保存できませんでした。" };
     this.cityState = clone(result.value);
     this.bridge.applyCitySnapshot?.(this.cityState);

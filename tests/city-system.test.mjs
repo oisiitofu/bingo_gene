@@ -9,7 +9,7 @@ test("creates six persistent player cities with starter infrastructure", () => {
   assert.equal(state.version, 1);
   assert.equal(City.MAP_SCHEMA, 4);
   assert.equal(City.TERRAIN_REVISION, 2);
-  assert.equal(City.FEATURE_REVISION, 3);
+  assert.equal(City.FEATURE_REVISION, 4);
   assert.equal(state.terrainRevision, City.TERRAIN_REVISION);
   assert.equal(state.featureRevision, City.FEATURE_REVISION);
   assert.equal(City.GRID_SIZE, 160);
@@ -74,7 +74,8 @@ test("match rewards only apply once and ignore non-fixed players", () => {
   const first = City.applyMatchReward(initial, payload, 1_000_100);
   assert.equal(first.applied, true);
   assert.deepEqual(Object.keys(first.rewards), ["tofu"]);
-  assert.equal(first.rewards.tofu.money, 3000);
+  assert.equal(first.rewards.tofu.baseMoney, 3000);
+  assert.equal(first.rewards.tofu.money, 3000 + first.rewards.tofu.missionMoney);
   assert.equal(Object.hasOwn(first.rewards.tofu, "hype"), false);
   assert.ok(first.state.players.tofu.autoDevelopment.placed > 0);
   assert.deepEqual(Object.keys(first.state.players.tofu.resources), ["money"]);
@@ -83,6 +84,43 @@ test("match rewards only apply once and ignore non-fixed players", () => {
   assert.equal(second.applied, false);
   assert.equal(second.duplicate, true);
   assert.equal(second.state.players.tofu.resources.money, first.state.players.tofu.resources.money);
+});
+
+test("bingo-linked missions are deterministic, persisted, and pay only completed goals", () => {
+  const initial = City.createInitialState(2_000_000);
+  const firstSet = City.missionsForMatch("mission-match", "jan");
+  const secondSet = City.missionsForMatch("mission-match", "jan");
+  assert.deepEqual(firstSet, secondSet);
+  assert.equal(firstSet.length, 3);
+  const special = firstSet.find((mission) => mission.kind === "victoryKind");
+  const entry = {
+    name: "ジャン", opens: 8, bingoLines: 2, won: true, mvp: true,
+    victoryKind: special?.value || "straight"
+  };
+  const resolved = City.resolveMatchMissions("mission-match", "jan", entry);
+  assert.equal(resolved.missions.length, 3);
+  assert.equal(resolved.completed, 3);
+  assert.equal(resolved.earned, resolved.missions.reduce((sum, mission) => sum + mission.reward, 0));
+
+  const result = City.applyMatchReward(initial, { id: "mission-reward", matchId: "mission-match", players: [entry] }, 2_000_100);
+  const status = City.missionStatus(result.state.players.jan);
+  assert.equal(result.applied, true);
+  assert.equal(status.completed, 3);
+  assert.equal(status.total, 3);
+  assert.equal(status.recent.id, "mission-reward");
+  assert.equal(status.earned, result.rewards.jan.missionMoney);
+});
+
+test("test-mode city rewards never alter resources, missions, or deduplication state", () => {
+  const initial = City.createInitialState(3_000_000);
+  const before = structuredClone(initial);
+  const result = City.applyMatchReward(initial, {
+    id: "test-mode-city-reward", testMode: true,
+    players: [{ name: "Kento", opens: 20, bingoLines: 2, won: true, mvp: true, victoryKind: "comeback" }]
+  }, 3_000_100);
+  assert.equal(result.applied, false);
+  assert.equal(result.testMode, true);
+  assert.deepEqual(result.state, before);
 });
 
 test("server ticks advance economy and stop at the requested catch-up limit", () => {

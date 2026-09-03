@@ -196,6 +196,19 @@ body.city-mode-open { overflow: hidden; }
 .city-identity b { overflow: hidden; color: #f3f8fa; font-size: 10px; text-overflow: ellipsis; white-space: nowrap; }
 .city-identity small { color: color-mix(in srgb, var(--identity-color) 70%, #dbe9ef); font-size: 8px; font-weight: 800; }
 .city-identity p { min-height: 0; margin: 2px 0 0; color: #8fa4ae; font-size: 8px; line-height: 1.45; }
+.city-missions { display: grid; gap: 4px; margin-top: 8px; padding: 8px; border: 1px solid rgba(91, 181, 218, .28); background: #07141c; }
+.city-mission-head, .city-mission-total { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+.city-mission-head span { color: #79bdd7; font-size: 7px; font-weight: 900; }
+.city-mission-head b { color: #f2cf65; font-size: 8px; }
+.city-missions > p { min-height: 0; margin: 2px 0; color: #7d929d; font-size: 8px; line-height: 1.45; }
+.city-mission-row { min-width: 0; display: grid; grid-template-columns: 34px minmax(0, 1fr) auto; align-items: center; gap: 5px; padding: 5px 6px; border-left: 2px solid #405662; background: #0b1a23; }
+.city-mission-row i { color: #80949e; font-size: 7px; font-style: normal; font-weight: 900; }
+.city-mission-row strong { overflow: hidden; color: #dce8ed; font-size: 8px; text-overflow: ellipsis; white-space: nowrap; }
+.city-mission-row small { color: #98abb4; font-size: 7px; }
+.city-mission-row.complete { border-left-color: #61d3a7; background: rgba(42, 135, 105, .12); }
+.city-mission-row.complete i, .city-mission-row.complete small { color: #6ee0b4; }
+.city-mission-total { padding-top: 5px; border-top: 1px solid rgba(154, 188, 204, .14); color: #8197a2; font-size: 7px; }
+.city-mission-total b { color: #e9c85d; font-size: 8px; }
 .city-landmark-status { display: grid; gap: 3px; margin-top: 8px; padding: 8px; border: 1px solid #3d4c53; background: #0a151b; }
 .city-landmark-status span { color: #80949e; font-size: 7px; font-weight: 900; }
 .city-landmark-status b { overflow: hidden; color: #eaf3f6; font-size: 10px; text-overflow: ellipsis; white-space: nowrap; }

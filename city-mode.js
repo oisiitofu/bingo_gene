@@ -198,6 +198,7 @@
     const districts = City.analyzeDistricts(city);
     const landmark = City.landmarkStatus(city);
     const identity = City.CITY_IDENTITIES[city.id];
+    const missionStatus = City.missionStatus(city);
     const districtList = districts.summary.length
       ? districts.summary.map((district) => `<div class="city-district-chip" style="--district-color:${district.color}"><span></span><b>${escapeHtml(district.name)}</b><small>${district.groups}地区 / ${district.tiles}区画</small></div>`).join("")
       : `<p class="city-district-empty">周辺に同系統の建物を集めると地区が成立します。</p>`;
@@ -218,6 +219,13 @@
       ${identity ? `<div class="city-identity" style="--identity-color:${city.color}">
         <span>CITY IDENTITY</span><b>${escapeHtml(identity.title)}</b><small>${escapeHtml(identity.focus)}</small><p>${escapeHtml(identity.description)}</p>
       </div>` : ""}
+      <div class="city-missions">
+        <div class="city-mission-head"><span>BINGO MISSIONS</span><b>${missionStatus.recent ? `${missionStatus.recent.completed}/3 CLEAR` : "NO RECORD"}</b></div>
+        ${missionStatus.recent ? missionStatus.recent.missions.map((mission) => `<div class="city-mission-row ${mission.completed ? "complete" : ""}">
+          <i>${mission.completed ? "CLEAR" : `${Math.min(mission.progress, mission.target)}/${mission.target}`}</i><strong>${escapeHtml(mission.title)}</strong><small>+¥${formatNumber(mission.reward)}</small>
+        </div>`).join("") : `<p>ビンゴをプレイすると都市ミッションが記録されます。</p>`}
+        <div class="city-mission-total"><span>累計 ${formatNumber(missionStatus.completed)} / ${formatNumber(missionStatus.total)} 達成</span><b>+¥${formatNumber(missionStatus.earned)}</b></div>
+      </div>
       ${landmark.definition ? `<div class="city-landmark-status ${landmark.built ? "built" : landmark.unlocked ? "ready" : "locked"}">
         <span>LANDMARK</span><b>${escapeHtml(landmark.definition.name)}</b><small>${landmark.built ? "完成" : landmark.unlocked ? "建設可能" : `Lv.${landmark.requiredLevel}・${landmark.requiredDistricts}地区で解放`}</small>
       </div>` : ""}
