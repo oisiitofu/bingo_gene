@@ -4,7 +4,7 @@
   const VERSION = 1;
   const MAP_SCHEMA = 4;
   const TERRAIN_REVISION = 2;
-  const FEATURE_REVISION = 8;
+  const FEATURE_REVISION = 9;
   const GRID_SIZE = 160;
   const CITY_CENTER = Math.floor(GRID_SIZE / 2);
   const TICK_MINUTES = 10;
@@ -47,6 +47,13 @@
     industry: Object.freeze({ id: "industry", name: "産業強化", short: "産業", description: "雇用と税収を大きく伸ばす一方、環境負荷が増えます。", effects: { jobs: 85, tax: 46, pollution: 8, happiness: -3 } }),
     transit: Object.freeze({ id: "transit", name: "交通改革", short: "交通", description: "公共交通を優先し、混雑を抑えて都市活動を支えます。", effects: { jobs: 22, tourism: 5 }, traffic: { capacity: 140, efficiency: 12, congestion: -14 } })
   });
+
+  const CITY_INTERACTIONS = Object.freeze({
+    trade: Object.freeze({ id: "trade", name: "都市交易", short: "交易", description: "特産品を交換し、双方の都市経済を潤します。", sourceMoney: 450, targetMoney: 300, relation: 3 }),
+    culture: Object.freeze({ id: "culture", name: "文化交流", short: "文化", description: "市民団を派遣し、長く続く友好関係を育てます。", sourceMoney: -250, targetMoney: 100, relation: 5 }),
+    aid: Object.freeze({ id: "aid", name: "復興支援", short: "支援", description: "資金を届け、都市間の強い信頼を築きます。", sourceMoney: -1200, targetMoney: 1200, relation: 8 })
+  });
+  const INTERACTION_COOLDOWN_MS = 3 * 60 * 60 * 1000;
 
   const MISSION_POOLS = Object.freeze([
     Object.freeze([
@@ -481,7 +488,7 @@
       autoDevelopment: { enabled: true, threshold: AUTO_BUILD_THRESHOLD, placed: 0, cursor: 0 },
       tiles: initialTiles(), unlocks: allUnlocks(), inbox: {}, history: {},
       missions: { completed: 0, total: 0, earned: 0, recent: {} }, life: createCityLife(player, now), events: createCityEventState(player.id, now),
-      policy: { id: "balanced", changedAt: Number(now) }, createdAt: now, updatedAt: now
+      policy: { id: "balanced", changedAt: Number(now) }, relations: {}, createdAt: now, updatedAt: now
     };
     city.metrics = calculateMetrics(city);
     city.level = cityLevel(city.metrics.population, city.metrics.cityScore);
@@ -540,6 +547,18 @@
         id: CITY_POLICIES[city.policy?.id] ? city.policy.id : "balanced",
         changedAt: Number(city.policy?.changedAt) || Number(city.createdAt) || Number(now)
       };
+      city.relations = city.relations && typeof city.relations === "object" ? city.relations : {};
+      Object.entries(city.relations).forEach(([targetId, relation]) => {
+        if (!PLAYER_BY_ID[targetId] || targetId === city.id) { delete city.relations[targetId]; return; }
+        city.relations[targetId] = {
+          score: Math.max(0, Math.min(100, Number(relation?.score) || 0)),
+          interactions: Math.max(0, Number(relation?.interactions) || 0),
+          trade: Math.max(0, Number(relation?.trade) || 0),
+          culture: Math.max(0, Number(relation?.culture) || 0),
+          aid: Math.max(0, Number(relation?.aid) || 0),
+          lastAt: Math.max(0, Number(relation?.lastAt) || 0)
+        };
+      });
       city.metrics = calculateMetrics(city);
       city.level = cityLevel(city.metrics.population, city.metrics.cityScore);
     });
@@ -701,6 +720,10 @@
     Object.entries(identity?.effects || {}).forEach(([field, value]) => { if (Object.hasOwn(totals, field)) totals[field] += Number(value) || 0; });
     const policy = CITY_POLICIES[city?.policy?.id] || CITY_POLICIES.balanced;
     Object.entries(policy.effects || {}).forEach(([field, value]) => { if (Object.hasOwn(totals, field)) totals[field] += Number(value) || 0; });
+    const relationScore = Object.values(city?.relations || {}).reduce((sum, relation) => sum + Math.max(0, Number(relation?.score) || 0), 0);
+    totals.happiness += Math.min(5, Math.floor(relationScore / 18));
+    totals.tourism += Math.min(12, Math.floor(relationScore / 9));
+    totals.jobs += Math.min(50, Math.floor(relationScore / 3));
     Object.entries(activeEventEffects(city)).forEach(([field, value]) => { if (Object.hasOwn(totals, field)) totals[field] += Number(value) || 0; });
     const population = Math.max(0, Math.min(Number(previous.population) || 0, Math.max(180, totals.populationCapacity)));
     const powerCoverage = totals.powerDemand ? Math.min(100, Math.round(totals.powerSupply / totals.powerDemand * 100)) : 100;
@@ -717,7 +740,7 @@
       efficiency: Math.max(0, Math.min(100, baseTraffic.efficiency + (Number(policy.traffic?.efficiency) || 0)))
     };
     const cityScore = Math.round(population * .55 + happiness * 14 + totals.jobs * 1.8 + totals.tourism * 20 + environment * 8 + Math.min(powerCoverage, waterCoverage) * 6 + Object.keys(city?.tiles || {}).length * 3 + districts.groups.length * 120 + traffic.efficiency * 6 - traffic.congestion * 3);
-    return { ...previous, population, capacity: totals.populationCapacity, happiness, jobs: totals.jobs, safety: Math.min(100, 52 + totals.safety), education: Math.min(100, 45 + totals.education), health: Math.min(100, 52 + totals.health), tourism: totals.tourism, environment, pollution: totals.pollution, powerDemand: totals.powerDemand, powerSupply: totals.powerSupply, waterDemand: totals.waterDemand, waterSupply: totals.waterSupply, employmentRate, powerCoverage, waterCoverage, trafficCongestion: traffic.congestion, transportEfficiency: traffic.efficiency, roadConnectivity: traffic.connectivity, publicTransit: traffic.publicTransit, trafficDemand: traffic.demand, trafficCapacity: traffic.capacity, cityScore, districtCount: districts.groups.length, identityId: identity?.id || "", policyId: policy.id, taxPotential: totals.tax, upkeep: totals.upkeep };
+    return { ...previous, population, capacity: totals.populationCapacity, happiness, jobs: totals.jobs, safety: Math.min(100, 52 + totals.safety), education: Math.min(100, 45 + totals.education), health: Math.min(100, 52 + totals.health), tourism: totals.tourism, environment, pollution: totals.pollution, powerDemand: totals.powerDemand, powerSupply: totals.powerSupply, waterDemand: totals.waterDemand, waterSupply: totals.waterSupply, employmentRate, powerCoverage, waterCoverage, trafficCongestion: traffic.congestion, transportEfficiency: traffic.efficiency, roadConnectivity: traffic.connectivity, publicTransit: traffic.publicTransit, trafficDemand: traffic.demand, trafficCapacity: traffic.capacity, cityScore, districtCount: districts.groups.length, identityId: identity?.id || "", policyId: policy.id, relationScore: Math.min(500, relationScore), taxPotential: totals.tax, upkeep: totals.upkeep };
   }
 
   function isRoadDefinition(definition) {
@@ -863,6 +886,42 @@
       city.policy = { id: policy.id, changedAt: Number(now) };
       addHistory(city, "policy", `市長方針「${policy.name}」`, policy.description, now, { policyId: policy.id });
       publishCityNews(city, "policy", `新たな市長方針「${policy.name}」`, policy.description, now, "positive", { policyId: policy.id });
+    } else if (command.type === "interact") {
+      const interaction = CITY_INTERACTIONS[String(command.interactionId || "")];
+      const target = state.players?.[String(command.targetPlayerId || "")];
+      if (!interaction || !target || target.id === city.id) return { state, applied: false, error: "交流する都市と内容を選び直してください。" };
+      const relation = city.relations?.[target.id] || {};
+      const remaining = INTERACTION_COOLDOWN_MS - (Number(now) - (Number(relation.lastAt) || 0));
+      if (remaining > 0) return { state, applied: false, error: `次の都市交流まであと${Math.ceil(remaining / 60000)}分です。` };
+      if ((Number(city.resources.money) || 0) + interaction.sourceMoney < 0) return { state, applied: false, error: "交流に必要な資金が足りません。" };
+      city.resources.money = Math.max(0, (Number(city.resources.money) || 0) + interaction.sourceMoney);
+      target.resources.money = Math.max(0, (Number(target.resources.money) || 0) + interaction.targetMoney);
+      const nextRelation = {
+        score: Math.min(100, (Number(relation.score) || 0) + interaction.relation),
+        interactions: (Number(relation.interactions) || 0) + 1,
+        trade: Number(relation.trade) || 0,
+        culture: Number(relation.culture) || 0,
+        aid: Number(relation.aid) || 0,
+        lastAt: Number(now)
+      };
+      nextRelation[interaction.id] += 1;
+      city.relations[target.id] = nextRelation;
+      const targetRelation = target.relations?.[city.id] || {};
+      target.relations ||= {};
+      target.relations[city.id] = {
+        score: Math.min(100, (Number(targetRelation.score) || 0) + interaction.relation),
+        interactions: (Number(targetRelation.interactions) || 0) + 1,
+        trade: (Number(targetRelation.trade) || 0) + (interaction.id === "trade" ? 1 : 0),
+        culture: (Number(targetRelation.culture) || 0) + (interaction.id === "culture" ? 1 : 0),
+        aid: (Number(targetRelation.aid) || 0) + (interaction.id === "aid" ? 1 : 0),
+        lastAt: Number(now)
+      };
+      addHistory(city, "interaction", `${target.name}と${interaction.name}`, interaction.description, now, { targetPlayerId: target.id, interactionId: interaction.id });
+      addHistory(target, "interaction", `${city.name}から${interaction.name}`, interaction.description, now, { sourcePlayerId: city.id, interactionId: interaction.id });
+      publishCityNews(city, "interaction", `${target.name}と${interaction.name}`, interaction.description, now, "positive", { targetPlayerId: target.id, interactionId: interaction.id });
+      publishCityNews(target, "interaction", `${city.name}から${interaction.name}`, interaction.description, now, "positive", { sourcePlayerId: city.id, interactionId: interaction.id });
+      target.metrics = calculateMetrics(target);
+      target.updatedAt = Number(now);
     } else if (command.type === "build") {
       const result = canBuild(city, id, String(command.buildingId || ""));
       if (!result.ok) return { state, applied: false, error: result.reason };
@@ -1173,7 +1232,7 @@
 
   const api = {
     VERSION, MAP_SCHEMA, TERRAIN_REVISION, FEATURE_REVISION, GRID_SIZE, CITY_CENTER, TICK_MINUTES, TICK_MS, AUTO_BUILD_THRESHOLD,
-    PLAYERS, PLAYER_BY_ID, CITY_IDENTITIES, CITY_POLICIES, MISSION_POOLS, CITIZEN_CASTS, CITY_EVENTS, TERRAIN, CITY_STAGES, DISTRICTS, SIGNATURE_LANDMARKS, BUILDINGS, BUILDING_IDS,
+    PLAYERS, PLAYER_BY_ID, CITY_IDENTITIES, CITY_POLICIES, CITY_INTERACTIONS, INTERACTION_COOLDOWN_MS, MISSION_POOLS, CITIZEN_CASTS, CITY_EVENTS, TERRAIN, CITY_STAGES, DISTRICTS, SIGNATURE_LANDMARKS, BUILDINGS, BUILDING_IDS,
     clone, playerKey, playerForName, tileId, parseTileId, neighbors, terrainAt,
     createInitialState, normalizeState, analyzeDistricts, analyzeTraffic, cityLevel, cityStage, landmarkStatus, calculateMetrics, canBuild, applyCommand, autoDevelopCity, advanceState,
     rewardForPlayer, missionsForMatch, resolveMatchMissions, missionStatus, lifeStatus, cityPulse, processCityEvents, eventStatus, applyMatchReward, standings, isRoadTile

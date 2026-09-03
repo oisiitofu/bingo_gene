@@ -9,7 +9,7 @@ test("creates six persistent player cities with starter infrastructure", () => {
   assert.equal(state.version, 1);
   assert.equal(City.MAP_SCHEMA, 4);
   assert.equal(City.TERRAIN_REVISION, 2);
-  assert.equal(City.FEATURE_REVISION, 8);
+  assert.equal(City.FEATURE_REVISION, 9);
   assert.equal(state.terrainRevision, City.TERRAIN_REVISION);
   assert.equal(state.featureRevision, City.FEATURE_REVISION);
   assert.equal(City.GRID_SIZE, 160);
@@ -362,6 +362,44 @@ test("legacy cities receive the balanced policy without losing existing data", (
   const normalized = City.normalizeState(state, 9_100_100);
   assert.equal(normalized.players.tofu.policy.id, "balanced");
   assert.equal(normalized.players.tofu.resources.money, 77777);
+});
+
+test("intercity actions update both cities, relationships, news, and enforce cooldowns", () => {
+  const now = 10_000_000_000;
+  const initial = City.createInitialState(now);
+  const tofuMoney = initial.players.tofu.resources.money;
+  const edaMoney = initial.players.eda.resources.money;
+  const result = City.applyCommand(initial, {
+    id: "city-link-one", type: "interact", playerId: "tofu", targetPlayerId: "eda", interactionId: "trade"
+  }, now + 100);
+  assert.equal(result.applied, true);
+  assert.equal(result.state.players.tofu.resources.money, tofuMoney + City.CITY_INTERACTIONS.trade.sourceMoney);
+  assert.equal(result.state.players.eda.resources.money, edaMoney + City.CITY_INTERACTIONS.trade.targetMoney);
+  assert.equal(result.state.players.tofu.relations.eda.score, City.CITY_INTERACTIONS.trade.relation);
+  assert.equal(result.state.players.eda.relations.tofu.score, City.CITY_INTERACTIONS.trade.relation);
+  assert.match(City.lifeStatus(result.state.players.tofu).news[0].title, /都市交易/);
+  assert.match(City.lifeStatus(result.state.players.eda).news[0].title, /都市交易/);
+  const blocked = City.applyCommand(result.state, {
+    id: "city-link-two", type: "interact", playerId: "tofu", targetPlayerId: "eda", interactionId: "culture"
+  }, now + 200);
+  assert.equal(blocked.applied, false);
+  assert.match(blocked.error, /あと/);
+  const later = City.applyCommand(result.state, {
+    id: "city-link-three", type: "interact", playerId: "tofu", targetPlayerId: "eda", interactionId: "culture"
+  }, now + 100 + City.INTERACTION_COOLDOWN_MS);
+  assert.equal(later.applied, true);
+  assert.equal(later.state.players.tofu.relations.eda.interactions, 2);
+});
+
+test("legacy cities gain empty relation maps without losing their policy", () => {
+  const state = City.createInitialState(10_100_000);
+  state.featureRevision = 8;
+  state.players.jan.featureRevision = 8;
+  delete state.players.jan.relations;
+  state.players.jan.policy = { id: "tourism", changedAt: 10_100_001 };
+  const normalized = City.normalizeState(state, 10_100_100);
+  assert.deepEqual(normalized.players.jan.relations, {});
+  assert.equal(normalized.players.jan.policy.id, "tourism");
 });
 
 test("existing cities migrate district features without losing developed plots", () => {

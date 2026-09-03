@@ -10,6 +10,7 @@
   let buildMode = "";
   let buildCategory = "transport";
   let buildPage = 0;
+  let interactionTargetId = "";
   const BUILD_PAGE_SIZE = 12;
   let options = {};
   let busy = false;
@@ -73,6 +74,7 @@
           <aside class="city-info-panel">
             <section class="city-metrics" data-city-metrics></section>
             <section class="city-life-panel" data-city-life></section>
+            <section class="city-interaction-panel" data-city-interactions></section>
             <section class="city-selection" data-city-selection></section>
             <section class="city-ranking">
               <div class="city-panel-heading"><span>CITY SCORE</span><strong>都市ランキング</strong></div>
@@ -125,6 +127,17 @@
     const policyButton = event.target.closest("[data-city-policy]");
     if (policyButton && !busy && !policyButton.disabled) {
       submitPolicy(policyButton.dataset.cityPolicy);
+      return;
+    }
+    const interactionTarget = event.target.closest("[data-city-interaction-target]");
+    if (interactionTarget) {
+      interactionTargetId = interactionTarget.dataset.cityInteractionTarget;
+      renderInteractions();
+      return;
+    }
+    const interactionButton = event.target.closest("[data-city-interaction]");
+    if (interactionButton && !busy && !interactionButton.disabled) {
+      submitInteraction(interactionButton.dataset.cityInteraction);
       return;
     }
     if (event.target.closest("[data-city-upgrade]")) submitCommand("upgrade");
@@ -302,6 +315,22 @@
     `;
   }
 
+  function renderInteractions() {
+    const host = root.querySelector("[data-city-interactions]");
+    if (!host) return;
+    const city = activeCity();
+    const targets = City.PLAYERS.filter((player) => player.id !== city.id);
+    if (!targets.some((player) => player.id === interactionTargetId)) interactionTargetId = targets[0]?.id || "";
+    const relation = city.relations?.[interactionTargetId] || {};
+    const remaining = Math.max(0, City.INTERACTION_COOLDOWN_MS - (Date.now() - (Number(relation.lastAt) || 0)));
+    host.innerHTML = `
+      <div class="city-panel-heading"><span>CITY LINK</span><strong>都市間交流</strong></div>
+      <div class="city-interaction-targets">${targets.map((player) => `<button type="button" class="${player.id === interactionTargetId ? "active" : ""}" data-city-interaction-target="${player.id}" style="--link-color:${player.color}"><span></span>${escapeHtml(player.name)}</button>`).join("")}</div>
+      <div class="city-relation-line"><span>友好度</span><b>${Math.round(Number(relation.score) || 0)} / 100</b><small>${remaining ? `再交流 ${Math.ceil(remaining / 60000)}分後` : "交流可能"}</small></div>
+      <div class="city-interaction-actions">${Object.values(City.CITY_INTERACTIONS).map((interaction) => `<button type="button" data-city-interaction="${interaction.id}" title="${escapeHtml(interaction.description)}" ${busy || remaining || !canEditActiveCity() ? "disabled" : ""}><b>${escapeHtml(interaction.short)}</b><small>${interaction.sourceMoney >= 0 ? "+" : ""}¥${formatNumber(interaction.sourceMoney)}</small></button>`).join("")}</div>
+    `;
+  }
+
   function renderRanking() {
     const ranking = City.standings(state);
     root.querySelector("[data-city-ranking]").innerHTML = ranking.map((entry, index) => `
@@ -344,6 +373,7 @@
     renderBuildMenu();
     renderMetrics();
     renderCityLife();
+    renderInteractions();
     renderSelection();
     renderRanking();
     renderMap();
@@ -410,6 +440,28 @@
     }
   }
 
+  async function submitInteraction(interactionId) {
+    if (busy || !options.onCommand || !canEditActiveCity() || !interactionTargetId) return;
+    busy = true;
+    renderInteractions();
+    try {
+      const result = await options.onCommand({
+        id: `city-link-${Date.now()}-${Math.random().toString(36).slice(2, 9)}`,
+        type: "interact",
+        playerId: activePlayerId,
+        targetPlayerId: interactionTargetId,
+        interactionId
+      });
+      if (result?.ok === false) throw new Error(result.error || "都市交流を反映できませんでした。");
+      showNotice(`${City.CITY_INTERACTIONS[interactionId]?.name || "都市交流"}が成立しました`, "success");
+    } catch (error) {
+      showNotice(String(error?.message || error), "error");
+    } finally {
+      busy = false;
+      renderInteractions();
+    }
+  }
+
   function applySnapshot(snapshot) {
     if (!snapshot) return;
     state = City.normalizeState(snapshot, Date.now());
@@ -425,6 +477,7 @@
     selectedTileId = "";
     buildMode = "";
     buildCategory = "transport";
+    interactionTargetId = "";
     root.hidden = false;
     root.classList.add("show");
     document.body.classList.add("city-mode-open");
