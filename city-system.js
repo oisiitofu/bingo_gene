@@ -4,7 +4,7 @@
   const VERSION = 1;
   const MAP_SCHEMA = 4;
   const TERRAIN_REVISION = 2;
-  const FEATURE_REVISION = 7;
+  const FEATURE_REVISION = 8;
   const GRID_SIZE = 160;
   const CITY_CENTER = Math.floor(GRID_SIZE / 2);
   const TICK_MINUTES = 10;
@@ -37,6 +37,15 @@
     rima: Object.freeze({ id: "midnight-logistics", title: "深夜補給都市", focus: "物流・商業・インフラ", description: "夜間も止まらない物流網と補給拠点で都市経済を支えます。", effects: { jobs: 38, powerSupply: 12, tax: 20 } }),
     kento: Object.freeze({ id: "violet-media", title: "紫電配信都市", focus: "メディア・学術・商業", description: "配信・研究・高層商業を束ねた先進的な情報都市です。", effects: { education: 8, tourism: 7, jobs: 30 } }),
     lickey: Object.freeze({ id: "royal-capital", title: "蒼金王都", focus: "行政・観光・幸福", description: "城下町と公共施設を整え、格式と観光を両立する王都です。", effects: { safety: 5, happiness: 3, tourism: 10 } })
+  });
+
+  const CITY_POLICIES = Object.freeze({
+    balanced: Object.freeze({ id: "balanced", name: "均衡都市", short: "均衡", description: "暮らし・産業・交通を偏りなく運営します。", effects: {} }),
+    growth: Object.freeze({ id: "growth", name: "成長優先", short: "成長", description: "住宅と雇用を増やし、都市の拡大を加速します。", effects: { populationCapacity: 320, jobs: 55, happiness: -3, powerDemand: 8, waterDemand: 8 } }),
+    green: Object.freeze({ id: "green", name: "環境共生", short: "環境", description: "緑と暮らしやすさを優先し、税収を少し抑えます。", effects: { environment: 13, happiness: 5, tax: -18 } }),
+    tourism: Object.freeze({ id: "tourism", name: "観光振興", short: "観光", description: "来訪者と商業収入を増やし、街のにぎわいを高めます。", effects: { tourism: 16, tax: 24, pollution: 2 } }),
+    industry: Object.freeze({ id: "industry", name: "産業強化", short: "産業", description: "雇用と税収を大きく伸ばす一方、環境負荷が増えます。", effects: { jobs: 85, tax: 46, pollution: 8, happiness: -3 } }),
+    transit: Object.freeze({ id: "transit", name: "交通改革", short: "交通", description: "公共交通を優先し、混雑を抑えて都市活動を支えます。", effects: { jobs: 22, tourism: 5 }, traffic: { capacity: 140, efficiency: 12, congestion: -14 } })
   });
 
   const MISSION_POOLS = Object.freeze([
@@ -471,7 +480,8 @@
       metrics: emptyMetrics(), economy: { taxRate: 10, lastIncome: 0, lastExpense: 0, balance: 0 },
       autoDevelopment: { enabled: true, threshold: AUTO_BUILD_THRESHOLD, placed: 0, cursor: 0 },
       tiles: initialTiles(), unlocks: allUnlocks(), inbox: {}, history: {},
-      missions: { completed: 0, total: 0, earned: 0, recent: {} }, life: createCityLife(player, now), events: createCityEventState(player.id, now), createdAt: now, updatedAt: now
+      missions: { completed: 0, total: 0, earned: 0, recent: {} }, life: createCityLife(player, now), events: createCityEventState(player.id, now),
+      policy: { id: "balanced", changedAt: Number(now) }, createdAt: now, updatedAt: now
     };
     city.metrics = calculateMetrics(city);
     city.level = cityLevel(city.metrics.population, city.metrics.cityScore);
@@ -525,6 +535,10 @@
         active: city.events?.active && typeof city.events.active === "object" ? city.events.active : {},
         history: city.events?.history && typeof city.events.history === "object" ? city.events.history : {},
         nextAt: Number(city.events?.nextAt) || initialEvents.nextAt
+      };
+      city.policy = {
+        id: CITY_POLICIES[city.policy?.id] ? city.policy.id : "balanced",
+        changedAt: Number(city.policy?.changedAt) || Number(city.createdAt) || Number(now)
       };
       city.metrics = calculateMetrics(city);
       city.level = cityLevel(city.metrics.population, city.metrics.cityScore);
@@ -685,6 +699,8 @@
     Object.entries(districts.effects).forEach(([field, value]) => { if (Object.hasOwn(totals, field)) totals[field] += Number(value) || 0; });
     const identity = CITY_IDENTITIES[city?.id];
     Object.entries(identity?.effects || {}).forEach(([field, value]) => { if (Object.hasOwn(totals, field)) totals[field] += Number(value) || 0; });
+    const policy = CITY_POLICIES[city?.policy?.id] || CITY_POLICIES.balanced;
+    Object.entries(policy.effects || {}).forEach(([field, value]) => { if (Object.hasOwn(totals, field)) totals[field] += Number(value) || 0; });
     Object.entries(activeEventEffects(city)).forEach(([field, value]) => { if (Object.hasOwn(totals, field)) totals[field] += Number(value) || 0; });
     const population = Math.max(0, Math.min(Number(previous.population) || 0, Math.max(180, totals.populationCapacity)));
     const powerCoverage = totals.powerDemand ? Math.min(100, Math.round(totals.powerSupply / totals.powerDemand * 100)) : 100;
@@ -693,9 +709,15 @@
     const infrastructurePenalty = Math.round((100 - Math.min(powerCoverage, waterCoverage)) * .38);
     const happiness = Math.max(0, Math.min(100, 62 + totals.happiness + Math.round(totals.environment * .35) - Math.round(totals.pollution * .75) - infrastructurePenalty));
     const environment = Math.max(0, Math.min(100, 68 + totals.environment - totals.pollution));
-    const traffic = analyzeTraffic(city, { population, jobs: totals.jobs, tourism: totals.tourism });
+    const baseTraffic = analyzeTraffic(city, { population, jobs: totals.jobs, tourism: totals.tourism });
+    const traffic = {
+      ...baseTraffic,
+      capacity: Math.max(1, baseTraffic.capacity + (Number(policy.traffic?.capacity) || 0)),
+      congestion: Math.max(0, Math.min(100, baseTraffic.congestion + (Number(policy.traffic?.congestion) || 0))),
+      efficiency: Math.max(0, Math.min(100, baseTraffic.efficiency + (Number(policy.traffic?.efficiency) || 0)))
+    };
     const cityScore = Math.round(population * .55 + happiness * 14 + totals.jobs * 1.8 + totals.tourism * 20 + environment * 8 + Math.min(powerCoverage, waterCoverage) * 6 + Object.keys(city?.tiles || {}).length * 3 + districts.groups.length * 120 + traffic.efficiency * 6 - traffic.congestion * 3);
-    return { ...previous, population, capacity: totals.populationCapacity, happiness, jobs: totals.jobs, safety: Math.min(100, 52 + totals.safety), education: Math.min(100, 45 + totals.education), health: Math.min(100, 52 + totals.health), tourism: totals.tourism, environment, pollution: totals.pollution, powerDemand: totals.powerDemand, powerSupply: totals.powerSupply, waterDemand: totals.waterDemand, waterSupply: totals.waterSupply, employmentRate, powerCoverage, waterCoverage, trafficCongestion: traffic.congestion, transportEfficiency: traffic.efficiency, roadConnectivity: traffic.connectivity, publicTransit: traffic.publicTransit, trafficDemand: traffic.demand, trafficCapacity: traffic.capacity, cityScore, districtCount: districts.groups.length, identityId: identity?.id || "", taxPotential: totals.tax, upkeep: totals.upkeep };
+    return { ...previous, population, capacity: totals.populationCapacity, happiness, jobs: totals.jobs, safety: Math.min(100, 52 + totals.safety), education: Math.min(100, 45 + totals.education), health: Math.min(100, 52 + totals.health), tourism: totals.tourism, environment, pollution: totals.pollution, powerDemand: totals.powerDemand, powerSupply: totals.powerSupply, waterDemand: totals.waterDemand, waterSupply: totals.waterSupply, employmentRate, powerCoverage, waterCoverage, trafficCongestion: traffic.congestion, transportEfficiency: traffic.efficiency, roadConnectivity: traffic.connectivity, publicTransit: traffic.publicTransit, trafficDemand: traffic.demand, trafficCapacity: traffic.capacity, cityScore, districtCount: districts.groups.length, identityId: identity?.id || "", policyId: policy.id, taxPotential: totals.tax, upkeep: totals.upkeep };
   }
 
   function isRoadDefinition(definition) {
@@ -834,7 +856,14 @@
     const city = state.players?.[command.playerId];
     if (!city) return { state, applied: false, error: "都市が見つかりません。" };
     const id = String(command.tileId || "");
-    if (command.type === "build") {
+    if (command.type === "set-policy") {
+      const policy = CITY_POLICIES[String(command.policyId || "")];
+      if (!policy) return { state, applied: false, error: "都市方針を選び直してください。" };
+      if (city.policy?.id === policy.id) return { state, applied: false, error: "すでに選択中の都市方針です。" };
+      city.policy = { id: policy.id, changedAt: Number(now) };
+      addHistory(city, "policy", `市長方針「${policy.name}」`, policy.description, now, { policyId: policy.id });
+      publishCityNews(city, "policy", `新たな市長方針「${policy.name}」`, policy.description, now, "positive", { policyId: policy.id });
+    } else if (command.type === "build") {
       const result = canBuild(city, id, String(command.buildingId || ""));
       if (!result.ok) return { state, applied: false, error: result.reason };
       placeBuilding(city, id, result.definition);
@@ -1144,7 +1173,7 @@
 
   const api = {
     VERSION, MAP_SCHEMA, TERRAIN_REVISION, FEATURE_REVISION, GRID_SIZE, CITY_CENTER, TICK_MINUTES, TICK_MS, AUTO_BUILD_THRESHOLD,
-    PLAYERS, PLAYER_BY_ID, CITY_IDENTITIES, MISSION_POOLS, CITIZEN_CASTS, CITY_EVENTS, TERRAIN, CITY_STAGES, DISTRICTS, SIGNATURE_LANDMARKS, BUILDINGS, BUILDING_IDS,
+    PLAYERS, PLAYER_BY_ID, CITY_IDENTITIES, CITY_POLICIES, MISSION_POOLS, CITIZEN_CASTS, CITY_EVENTS, TERRAIN, CITY_STAGES, DISTRICTS, SIGNATURE_LANDMARKS, BUILDINGS, BUILDING_IDS,
     clone, playerKey, playerForName, tileId, parseTileId, neighbors, terrainAt,
     createInitialState, normalizeState, analyzeDistricts, analyzeTraffic, cityLevel, cityStage, landmarkStatus, calculateMetrics, canBuild, applyCommand, autoDevelopCity, advanceState,
     rewardForPlayer, missionsForMatch, resolveMatchMissions, missionStatus, lifeStatus, cityPulse, processCityEvents, eventStatus, applyMatchReward, standings, isRoadTile

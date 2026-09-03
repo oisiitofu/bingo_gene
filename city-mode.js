@@ -122,6 +122,11 @@
       renderBuildMenu();
       return;
     }
+    const policyButton = event.target.closest("[data-city-policy]");
+    if (policyButton && !busy && !policyButton.disabled) {
+      submitPolicy(policyButton.dataset.cityPolicy);
+      return;
+    }
     if (event.target.closest("[data-city-upgrade]")) submitCommand("upgrade");
     if (event.target.closest("[data-city-demolish]")) submitCommand("demolish");
     if (event.target.closest("[data-city-focus-center]")) map3d?.focusTile(City.tileId(City.CITY_CENTER, City.CITY_CENTER));
@@ -199,6 +204,7 @@
     const districts = City.analyzeDistricts(city);
     const landmark = City.landmarkStatus(city);
     const identity = City.CITY_IDENTITIES[city.id];
+    const currentPolicy = City.CITY_POLICIES[city.policy?.id] || City.CITY_POLICIES.balanced;
     const missionStatus = City.missionStatus(city);
     const districtList = districts.summary.length
       ? districts.summary.map((district) => `<div class="city-district-chip" style="--district-color:${district.color}"><span></span><b>${escapeHtml(district.name)}</b><small>${district.groups}地区 / ${district.tiles}区画</small></div>`).join("")
@@ -223,6 +229,11 @@
       ${identity ? `<div class="city-identity" style="--identity-color:${city.color}">
         <span>CITY IDENTITY</span><b>${escapeHtml(identity.title)}</b><small>${escapeHtml(identity.focus)}</small><p>${escapeHtml(identity.description)}</p>
       </div>` : ""}
+      <div class="city-policy">
+        <div class="city-policy-head"><span>MAYOR POLICY</span><b>${escapeHtml(currentPolicy.name)}</b></div>
+        <p>${escapeHtml(currentPolicy.description)}</p>
+        <div class="city-policy-options">${Object.values(City.CITY_POLICIES).map((policy) => `<button type="button" class="${policy.id === currentPolicy.id ? "active" : ""}" data-city-policy="${policy.id}" title="${escapeHtml(policy.description)}" ${busy || !canEditActiveCity() || policy.id === currentPolicy.id ? "disabled" : ""}>${escapeHtml(policy.short)}</button>`).join("")}</div>
+      </div>
       <div class="city-missions">
         <div class="city-mission-head"><span>BINGO MISSIONS</span><b>${missionStatus.recent ? `${missionStatus.recent.completed}/3 CLEAR` : "NO RECORD"}</b></div>
         ${missionStatus.recent ? missionStatus.recent.missions.map((mission) => `<div class="city-mission-row ${mission.completed ? "complete" : ""}">
@@ -375,6 +386,27 @@
       busy = false;
       renderBuildMenu();
       renderSelection();
+    }
+  }
+
+  async function submitPolicy(policyId) {
+    if (busy || !options.onCommand || !canEditActiveCity()) return;
+    busy = true;
+    renderMetrics();
+    try {
+      const result = await options.onCommand({
+        id: `city-policy-${Date.now()}-${Math.random().toString(36).slice(2, 9)}`,
+        type: "set-policy",
+        playerId: activePlayerId,
+        policyId
+      });
+      if (result?.ok === false) throw new Error(result.error || "都市方針を反映できませんでした。");
+      showNotice(`市長方針を「${City.CITY_POLICIES[policyId]?.name || "新方針"}」へ変更しました`, "success");
+    } catch (error) {
+      showNotice(String(error?.message || error), "error");
+    } finally {
+      busy = false;
+      renderMetrics();
     }
   }
 

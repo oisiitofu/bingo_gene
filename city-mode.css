@@ -198,6 +198,16 @@ body.city-mode-open { overflow: hidden; }
 .city-identity b { overflow: hidden; color: #f3f8fa; font-size: 10px; text-overflow: ellipsis; white-space: nowrap; }
 .city-identity small { color: color-mix(in srgb, var(--identity-color) 70%, #dbe9ef); font-size: 8px; font-weight: 800; }
 .city-identity p { min-height: 0; margin: 2px 0 0; color: #8fa4ae; font-size: 8px; line-height: 1.45; }
+.city-policy { display: grid; gap: 5px; margin-top: 8px; padding: 8px; border: 1px solid rgba(129,171,190,.28); background: #07141c; }
+.city-policy-head { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+.city-policy-head span { color: #7693a0; font-size: 7px; font-weight: 900; }
+.city-policy-head b { color: #f2cf65; font-size: 9px; }
+.city-policy > p { min-height: 0; margin: 0; color: #8ca2ad; font-size: 8px; line-height: 1.45; }
+.city-policy-options { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 4px; }
+.city-policy-options button { min-width: 0; height: 25px; padding: 0 4px; border: 1px solid #40545e; color: #b9c9d0; font: 800 8px/1 system-ui, sans-serif; background: #0b1a22; cursor: pointer; }
+.city-policy-options button:hover:not(:disabled) { border-color: #6caec9; color: #fff; background: #102631; }
+.city-policy-options button.active { border-color: #e5c354; color: #fff0a8; background: #29230f; }
+.city-policy-options button:disabled:not(.active) { opacity: .42; cursor: default; }
 .city-missions { display: grid; gap: 4px; margin-top: 8px; padding: 8px; border: 1px solid rgba(91, 181, 218, .28); background: #07141c; }
 .city-mission-head, .city-mission-total { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
 .city-mission-head span { color: #79bdd7; font-size: 7px; font-weight: 900; }

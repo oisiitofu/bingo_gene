@@ -9,7 +9,7 @@ test("creates six persistent player cities with starter infrastructure", () => {
   assert.equal(state.version, 1);
   assert.equal(City.MAP_SCHEMA, 4);
   assert.equal(City.TERRAIN_REVISION, 2);
-  assert.equal(City.FEATURE_REVISION, 7);
+  assert.equal(City.FEATURE_REVISION, 8);
   assert.equal(state.terrainRevision, City.TERRAIN_REVISION);
   assert.equal(state.featureRevision, City.FEATURE_REVISION);
   assert.equal(City.GRID_SIZE, 160);
@@ -328,6 +328,40 @@ test("random city events are deterministic, temporary, bounded, and affect city 
     City.processCityEvents(city, now + index + 1);
   }
   assert.ok(City.eventStatus(city, Number.MAX_SAFE_INTEGER).history.length <= 48);
+});
+
+test("mayor policies persist, affect metrics, and are changed idempotently", () => {
+  const now = 9_000_000;
+  const initial = City.createInitialState(now);
+  assert.equal(initial.players.kento.policy.id, "balanced");
+  assert.equal(Object.keys(City.CITY_POLICIES).length, 6);
+  const baseline = City.calculateMetrics(initial.players.kento);
+  const result = City.applyCommand(initial, {
+    id: "policy-transit", type: "set-policy", playerId: "kento", policyId: "transit"
+  }, now + 100);
+  assert.equal(result.applied, true);
+  assert.equal(result.state.players.kento.policy.id, "transit");
+  assert.equal(result.state.players.kento.policy.changedAt, now + 100);
+  assert.ok(result.state.players.kento.metrics.transportEfficiency > baseline.transportEfficiency);
+  assert.ok(result.state.players.kento.metrics.trafficCapacity > baseline.trafficCapacity);
+  assert.match(City.lifeStatus(result.state.players.kento).news[0].title, /交通改革/);
+  const duplicate = City.applyCommand(result.state, {
+    id: "policy-transit", type: "set-policy", playerId: "kento", policyId: "green"
+  }, now + 200);
+  assert.equal(duplicate.applied, false);
+  assert.equal(duplicate.duplicate, true);
+  assert.equal(duplicate.state.players.kento.policy.id, "transit");
+});
+
+test("legacy cities receive the balanced policy without losing existing data", () => {
+  const state = City.createInitialState(9_100_000);
+  state.featureRevision = 7;
+  state.players.tofu.featureRevision = 7;
+  delete state.players.tofu.policy;
+  state.players.tofu.resources.money = 77777;
+  const normalized = City.normalizeState(state, 9_100_100);
+  assert.equal(normalized.players.tofu.policy.id, "balanced");
+  assert.equal(normalized.players.tofu.resources.money, 77777);
 });
 
 test("existing cities migrate district features without losing developed plots", () => {
