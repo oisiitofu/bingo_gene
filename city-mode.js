@@ -167,16 +167,19 @@
       return `<button type="button" class="city-category-button ${buildCategory === id ? "active" : ""}" data-city-category="${id}"><span>${label}</span><b>${count}</b></button>`;
     }).join("");
     const available = Object.values(City.BUILDINGS)
-      .filter((building) => building.id !== "civic" && building.category === buildCategory && city?.unlocks?.[building.id]);
+      .filter((building) => building.id !== "civic" && building.category === buildCategory && city?.unlocks?.[building.id] && (!building.ownerId || building.ownerId === city.id));
     const pageCount = Math.max(1, Math.ceil(available.length / BUILD_PAGE_SIZE));
     buildPage = Math.min(buildPage, pageCount - 1);
     const pageBuildings = available.slice(buildPage * BUILD_PAGE_SIZE, (buildPage + 1) * BUILD_PAGE_SIZE);
     host.innerHTML = pageBuildings
       .map((building) => {
         const affordable = city.resources.money >= building.cost;
-        return `<button type="button" class="city-build-button ${buildMode === building.id ? "active" : ""}" data-city-build="${building.id}" ${busy || !affordable || !canEditActiveCity() ? "disabled" : ""}>
+        const districtCount = City.analyzeDistricts(city).groups.length;
+        const unlocked = (!building.unlockLevel || city.level >= building.unlockLevel) && (!building.unlockDistricts || districtCount >= building.unlockDistricts);
+        const detail = unlocked ? `STYLE ${String((building.visualTheme || 0) + 1).padStart(2, "0")} / ¥${formatNumber(building.cost)}` : `LOCKED / Lv.${building.unlockLevel}・${building.unlockDistricts}地区`;
+        return `<button type="button" class="city-build-button ${building.signatureLandmark ? "signature" : ""} ${buildMode === building.id ? "active" : ""}" data-city-build="${building.id}" ${busy || !affordable || !unlocked || !canEditActiveCity() ? "disabled" : ""}>
           <span class="city-build-icon ${building.model || building.id}" aria-hidden="true"></span>
-          <span class="city-build-copy"><strong>${escapeHtml(building.name)}</strong><small>STYLE ${String((building.visualTheme || 0) + 1).padStart(2, "0")} / ¥${formatNumber(building.cost)}</small></span>
+          <span class="city-build-copy"><strong>${escapeHtml(building.name)}</strong><small>${escapeHtml(detail)}</small></span>
         </button>`;
       }).join("") + (pageCount > 1 ? `<nav class="city-build-pager" aria-label="建設カタログページ">
         <button type="button" data-city-build-page="${Math.max(0, buildPage - 1)}" ${buildPage === 0 ? "disabled" : ""}>PREV</button>
@@ -193,6 +196,7 @@
     const city = activeCity();
     const metrics = City.calculateMetrics(city);
     const districts = City.analyzeDistricts(city);
+    const landmark = City.landmarkStatus(city);
     const districtList = districts.summary.length
       ? districts.summary.map((district) => `<div class="city-district-chip" style="--district-color:${district.color}"><span></span><b>${escapeHtml(district.name)}</b><small>${district.groups}地区 / ${district.tiles}区画</small></div>`).join("")
       : `<p class="city-district-empty">周辺に同系統の建物を集めると地区が成立します。</p>`;
@@ -210,6 +214,9 @@
       <div class="city-economy-line"><span>前回収支</span><b class="${city.economy.balance >= 0 ? "plus" : "minus"}">${city.economy.balance >= 0 ? "+" : ""}¥${formatNumber(city.economy.balance)}</b></div>
       <div class="city-district-head"><span>DISTRICTS</span><b>${districts.groups.length}地区</b></div>
       <div class="city-district-list">${districtList}</div>
+      ${landmark.definition ? `<div class="city-landmark-status ${landmark.built ? "built" : landmark.unlocked ? "ready" : "locked"}">
+        <span>LANDMARK</span><b>${escapeHtml(landmark.definition.name)}</b><small>${landmark.built ? "完成" : landmark.unlocked ? "建設可能" : `Lv.${landmark.requiredLevel}・${landmark.requiredDistricts}地区で解放`}</small>
+      </div>` : ""}
     `;
   }
 

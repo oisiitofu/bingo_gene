@@ -4,7 +4,7 @@
   const VERSION = 1;
   const MAP_SCHEMA = 4;
   const TERRAIN_REVISION = 2;
-  const FEATURE_REVISION = 1;
+  const FEATURE_REVISION = 2;
   const GRID_SIZE = 160;
   const CITY_CENTER = Math.floor(GRID_SIZE / 2);
   const TICK_MINUTES = 10;
@@ -80,6 +80,15 @@
     water: { category: "infrastructure", baseCost: 1300, upkeep: 9, stats: { waterSupply: 105, environment: 2, jobs: 13 } },
     civic: { category: "landmark", baseCost: 1400, upkeep: 8, stats: { jobs: 38, happiness: 5, safety: 8, tourism: 7 } },
     arena: { category: "landmark", baseCost: 2400, upkeep: 14, stats: { jobs: 58, happiness: 7, tourism: 16, tax: 30 } }
+  });
+
+  const SIGNATURE_LANDMARKS = Object.freeze({
+    tofu: Object.freeze({ id: "signature-tofu", name: "白亜の豆腐宮殿", model: "signature-landmark", category: "landmark", ownerId: "tofu", signatureLandmark: true, unique: true, unlockLevel: 3, unlockDistricts: 2, cost: 48000, upkeep: 90, jobs: 160, happiness: 16, safety: 8, tourism: 55, environment: 8, tax: 120, description: "白磁と緑の庭園に包まれた、とうふ未来市の象徴です。" }),
+    eda: Object.freeze({ id: "signature-eda", name: "三刃武装要塞", model: "signature-landmark", category: "landmark", ownerId: "eda", signatureLandmark: true, unique: true, unlockLevel: 3, unlockDistricts: 2, cost: 52000, upkeep: 105, jobs: 210, happiness: 8, safety: 24, tourism: 38, tax: 150, description: "剣・銃・格闘の三塔が都市を守る巨大要塞です。" }),
+    jan: Object.freeze({ id: "signature-jan", name: "運命改変スタードーム", model: "signature-landmark", category: "landmark", ownerId: "jan", signatureLandmark: true, unique: true, unlockLevel: 3, unlockDistricts: 2, cost: 50000, upkeep: 96, jobs: 180, happiness: 18, tourism: 62, tax: 135, description: "黄金の星環が回転し続ける、運命改都の祝祭ドームです。" }),
+    rima: Object.freeze({ id: "signature-rima", name: "深夜補給ラーメン塔", model: "signature-landmark", category: "landmark", ownerId: "rima", signatureLandmark: true, unique: true, unlockLevel: 3, unlockDistricts: 2, cost: 47000, upkeep: 88, jobs: 195, happiness: 14, tourism: 46, health: 5, tax: 145, description: "ラーメンとエナジーを24時間供給する補給都市の心臓部です。" }),
+    kento: Object.freeze({ id: "signature-kento", name: "紫電配信スカイタワー", model: "signature-landmark", category: "landmark", ownerId: "kento", signatureLandmark: true, unique: true, unlockLevel: 3, unlockDistricts: 2, cost: 54000, upkeep: 110, jobs: 230, happiness: 12, education: 10, tourism: 58, tax: 165, description: "都市全域へ紫電のライブ映像を届ける超高層配信塔です。" }),
+    lickey: Object.freeze({ id: "signature-lickey", name: "Lickey王国大城塞", model: "signature-landmark", category: "landmark", ownerId: "lickey", signatureLandmark: true, unique: true, unlockLevel: 3, unlockDistricts: 2, cost: 56000, upkeep: 112, jobs: 200, happiness: 13, safety: 18, tourism: 65, tax: 155, description: "城下町を見守る、青と金の王国最大の城塞です。" })
   });
 
   const BASE_CATALOG = Object.freeze({
@@ -189,6 +198,7 @@
       if (legacyId) definition.id = legacyId;
       entries[definition.id] = definition;
     }));
+    Object.values(SIGNATURE_LANDMARKS).forEach((definition) => { entries[definition.id] = definition; });
     return Object.freeze(entries);
   })();
   const BUILDING_IDS = Object.freeze(Object.keys(BUILDINGS));
@@ -571,6 +581,7 @@
     const definition = BUILDINGS[buildingId];
     const point = parseTileId(id);
     if (!definition || !insideGrid(point.x, point.z)) return { ok: false, reason: "建設できない場所です。" };
+    if (definition.ownerId && definition.ownerId !== city.id) return { ok: false, reason: "このランドマークは別の都市専用です。" };
     if (city.tiles?.[id]) return { ok: false, reason: "すでに道路か建物があります。" };
     if (!city.unlocks?.[buildingId]) return { ok: false, reason: "まだ解放されていない施設です。" };
     const terrain = terrainAt(city.id, point.x, point.z);
@@ -578,6 +589,9 @@
       if (terrain.type !== "river" && terrain.type !== "lake") return { ok: false, reason: "橋は川か湖に建設してください。" };
     } else if (!terrain.buildable) return { ok: false, reason: `${TERRAIN[terrain.type].name}にはこの施設を建設できません。` };
     if (definition.unique && Object.values(city.tiles || {}).some((tile) => tile.buildingId === buildingId)) return { ok: false, reason: "この施設は都市に一つだけ建設できます。" };
+    const districtCount = analyzeDistricts(city).groups.length;
+    if (definition.unlockLevel && Number(city.level) < definition.unlockLevel) return { ok: false, reason: `都市LEVEL ${definition.unlockLevel}で解放されます。` };
+    if (definition.unlockDistricts && districtCount < definition.unlockDistricts) return { ok: false, reason: `${definition.unlockDistricts}地区の成立で解放されます。` };
     if (isRoadDefinition(definition) ? !connectedRoad(city, id) : !adjacentToRoad(city, id)) return { ok: false, reason: isRoadDefinition(definition) ? "既存の道路へ接続してください。" : "道路に接する場所を選んでください。" };
     const reserve = Math.max(0, Number(options.reserveMoney) || 0);
     if ((Number(city.resources?.money) || 0) - definition.cost < reserve) return { ok: false, reason: "資金が足りません。" };
@@ -761,6 +775,15 @@
     return CITY_STAGES.find((stage) => stage.level === Math.max(1, Math.min(6, Number(level) || 1))) || CITY_STAGES[0];
   }
 
+  function landmarkStatus(city) {
+    const definition = SIGNATURE_LANDMARKS[city?.id] || null;
+    if (!definition) return { definition: null, built: false, unlocked: false, districtCount: 0 };
+    const districtCount = analyzeDistricts(city).groups.length;
+    const built = Object.values(city?.tiles || {}).some((tile) => tile.buildingId === definition.id);
+    const unlocked = Number(city?.level) >= definition.unlockLevel && districtCount >= definition.unlockDistricts;
+    return { definition, built, unlocked, districtCount, requiredLevel: definition.unlockLevel, requiredDistricts: definition.unlockDistricts };
+  }
+
   function advanceCity(city, now) {
     const metrics = calculateMetrics(city);
     const infrastructure = Math.min(metrics.powerCoverage, metrics.waterCoverage) / 100;
@@ -847,9 +870,9 @@
 
   const api = {
     VERSION, MAP_SCHEMA, TERRAIN_REVISION, FEATURE_REVISION, GRID_SIZE, CITY_CENTER, TICK_MINUTES, TICK_MS, AUTO_BUILD_THRESHOLD,
-    PLAYERS, PLAYER_BY_ID, TERRAIN, CITY_STAGES, DISTRICTS, BUILDINGS, BUILDING_IDS,
+    PLAYERS, PLAYER_BY_ID, TERRAIN, CITY_STAGES, DISTRICTS, SIGNATURE_LANDMARKS, BUILDINGS, BUILDING_IDS,
     clone, playerKey, playerForName, tileId, parseTileId, neighbors, terrainAt,
-    createInitialState, normalizeState, analyzeDistricts, cityLevel, cityStage, calculateMetrics, canBuild, applyCommand, autoDevelopCity, advanceState,
+    createInitialState, normalizeState, analyzeDistricts, cityLevel, cityStage, landmarkStatus, calculateMetrics, canBuild, applyCommand, autoDevelopCity, advanceState,
     rewardForPlayer, applyMatchReward, standings, isRoadTile
   };
 

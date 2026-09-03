@@ -649,11 +649,80 @@
       const level = Math.max(1, Math.min(3, Number(tile.level) || 1));
       const variant = Math.max(0, Number(definition.variant) || 0);
       const builders = { residential: buildResidential, commercial: buildCommercial, industrial: buildIndustrial, park: buildPark, power: buildPower, water: buildWater, civic: buildCivic, arena: buildArena };
-      (builders[definition.model] || buildResidential)(group, level, playerColor, tile.id, variant);
-      addDistrictIdentity(group, definition.model, level, playerColor, tile.id, variant);
+      if (definition.signatureLandmark) buildSignatureLandmark(group, definition, playerColor, tile.id);
+      else {
+        (builders[definition.model] || buildResidential)(group, level, playerColor, tile.id, variant);
+        addDistrictIdentity(group, definition.model, level, playerColor, tile.id, variant);
+      }
       addFunctionalDistrictIdentity(group, districtAnalysis.tiles[tile.id]);
       const cityLevel = Math.max(1, Math.min(6, Number(city.level) || 1));
       if (["residential", "commercial", "civic"].includes(definition.model)) group.scale.y = 1 + (cityLevel - 1) * .025;
+    }
+
+    function landmarkMaterial(color, glow = false) {
+      const value = new THREE.Color(color);
+      const material = new THREE.MeshStandardMaterial({ color: value, emissive: glow ? value : 0x000000, emissiveIntensity: glow ? 1.15 : 0, roughness: glow ? .2 : .4, metalness: glow ? .48 : .62 });
+      dynamicResources.push(material);
+      return material;
+    }
+
+    function buildSignatureLandmark(group, definition, playerColor, seed) {
+      addBase(group, playerColor);
+      const primary = landmarkMaterial(definition.ownerId === "tofu" ? "#ecebe5" : playerColor, false);
+      const secondary = landmarkMaterial(definition.ownerId === "eda" ? "#418cff" : definition.ownerId === "rima" ? "#b7ef50" : definition.ownerId === "kento" ? "#d0a4ff" : definition.ownerId === "lickey" ? "#f0c95a" : "#fff08b", true);
+      const spin = (object, speed) => { animated.push({ object, type: "spin", speed }); return object; };
+      if (definition.ownerId === "tofu") {
+        addCappedBlock(group, primary, 0, 0, .7, .62, .42, materials.gold, .12);
+        [-.23, .23].forEach((x) => [-.19, .19].forEach((z) => addCappedBlock(group, materials.white, x, z, .19, .17, .5 + (x > 0 ? .1 : 0), primary, .12)));
+        addBlock(group, secondary, 0, 0, .28, .25, .16, .62);
+        spin(mesh(shared.torus, secondary, [0, 1.04, 0], [.32, .32, .32], group), .28).rotation.x = Math.PI / 2;
+        [-.28, .28].forEach((x) => addTree(group, x, .32, .2, x > 0, .12));
+      } else if (definition.ownerId === "eda") {
+        addCappedBlock(group, materials.darkMetal, 0, 0, .68, .62, .54, primary, .12);
+        [[-.25, -.17, primary], [0, .2, secondary], [.25, -.17, landmarkMaterial("#e84b55", true)]].forEach(([x, z, material], index) => {
+          mesh(shared.cylinder12, material, [x, .72 + index * .08, z], [.12, .95 + index * .16, .12], group);
+          mesh(shared.cone, material, [x, 1.28 + index * .16, z], [.17, .38, .17], group);
+        });
+        [-.31, .31].forEach((x) => addBlock(group, secondary, x, .26, .035, .34, .72, .18));
+      } else if (definition.ownerId === "jan") {
+        mesh(shared.sphere, materials.glass, [0, .5, 0], [.44, .34, .44], group);
+        mesh(shared.cylinder12, primary, [0, .31, 0], [.48, .18, .48], group);
+        const ring = spin(mesh(shared.torus, secondary, [0, .72, 0], [.48, .48, .48], group), .48);
+        ring.rotation.x = Math.PI / 2;
+        for (let index = 0; index < 5; index += 1) {
+          const angle = index / 5 * Math.PI * 2;
+          const ray = mesh(shared.cone, secondary, [Math.cos(angle) * .25, 1.08, Math.sin(angle) * .25], [.08, .3, .08], group);
+          ray.rotation.z = angle;
+        }
+        mesh(shared.sphere, secondary, [0, 1.03, 0], [.17, .17, .17], group);
+      } else if (definition.ownerId === "rima") {
+        mesh(shared.cylinder, primary, [-.12, .44, 0], [.38, .42, .38], group);
+        mesh(shared.torus, materials.gold, [-.12, .66, 0], [.39, .39, .39], group).rotation.x = Math.PI / 2;
+        [0, .09, .18].forEach((offset) => {
+          const noodle = mesh(shared.torus, secondary, [-.18 + offset, .72 + offset * .4, 0], [.16, .16, .16], group);
+          noodle.rotation.x = Math.PI / 2;
+        });
+        addCappedBlock(group, materials.darkMetal, .28, -.04, .18, .26, .9, secondary, .12);
+        mesh(shared.cylinder12, secondary, [.28, 1.13, -.04], [.08, .18, .08], group);
+      } else if (definition.ownerId === "kento") {
+        addCappedBlock(group, materials.darkMetal, 0, 0, .52, .48, .38, secondary, .12);
+        mesh(shared.cylinder12, materials.glass, [0, .88, 0], [.16, 1.35, .16], group);
+        [0, 1, 2].forEach((index) => {
+          const ring = spin(mesh(shared.torus, secondary, [0, .55 + index * .32, 0], [.28 - index * .035, .28 - index * .035, .28 - index * .035], group), .35 + index * .12);
+          ring.rotation.x = Math.PI / 2;
+        });
+        mesh(shared.cone, secondary, [0, 1.72, 0], [.12, .52, .12], group);
+      } else {
+        addCappedBlock(group, materials.civic, 0, 0, .58, .48, .72, secondary, .12);
+        [-.29, .29].forEach((x) => [-.24, .24].forEach((z) => {
+          mesh(shared.cylinder12, primary, [x, .58, z], [.11, .72, .11], group);
+          mesh(shared.cone, secondary, [x, 1.02, z], [.16, .34, .16], group);
+        }));
+        addBlock(group, primary, 0, .3, .22, .08, .65, .18);
+        mesh(shared.cone, secondary, [0, 1.2, 0], [.23, .42, .23], group);
+      }
+      const crown = spin(mesh(shared.torus, secondary, [0, 1.48, 0], [.2, .2, .2], group), .22 + hashText(seed) % 10 / 100);
+      crown.rotation.x = Math.PI / 2;
     }
 
     function functionalDistrictMaterial(type) {

@@ -9,7 +9,7 @@ test("creates six persistent player cities with starter infrastructure", () => {
   assert.equal(state.version, 1);
   assert.equal(City.MAP_SCHEMA, 4);
   assert.equal(City.TERRAIN_REVISION, 2);
-  assert.equal(City.FEATURE_REVISION, 1);
+  assert.equal(City.FEATURE_REVISION, 2);
   assert.equal(state.terrainRevision, City.TERRAIN_REVISION);
   assert.equal(state.featureRevision, City.FEATURE_REVISION);
   assert.equal(City.GRID_SIZE, 160);
@@ -185,6 +185,27 @@ test("city stages require both population and city score", () => {
   assert.equal(City.cityLevel(10000, 40000), 4);
   assert.equal(City.cityStage(4).name, "大都市");
   assert.equal(City.cityStage(99).name, "世界都市");
+});
+
+test("every city has one exclusive signature landmark with progression requirements", () => {
+  assert.equal(Object.keys(City.SIGNATURE_LANDMARKS).length, 6);
+  City.PLAYERS.forEach((player) => {
+    const definition = City.SIGNATURE_LANDMARKS[player.id];
+    assert.ok(definition);
+    assert.equal(definition.ownerId, player.id);
+    assert.equal(definition.signatureLandmark, true);
+    assert.equal(definition.unique, true);
+    assert.ok(definition.cost >= 45000);
+    assert.equal(City.BUILDINGS[definition.id], definition);
+  });
+  const city = City.createInitialState(1_000_000).players.tofu;
+  const status = City.landmarkStatus(city);
+  assert.equal(status.definition.id, "signature-tofu");
+  assert.equal(status.built, false);
+  assert.equal(status.unlocked, false);
+  const wrongCity = City.canBuild(city, City.tileId(City.CITY_CENTER + 3, City.CITY_CENTER + 1), "signature-eda");
+  assert.equal(wrongCity.ok, false);
+  assert.match(wrongCity.reason, /別の都市専用/);
 });
 
 test("existing cities migrate district features without losing developed plots", () => {
