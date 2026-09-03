@@ -4,7 +4,7 @@
   const VERSION = 1;
   const MAP_SCHEMA = 4;
   const TERRAIN_REVISION = 2;
-  const FEATURE_REVISION = 5;
+  const FEATURE_REVISION = 6;
   const GRID_SIZE = 160;
   const CITY_CENTER = Math.floor(GRID_SIZE / 2);
   const TICK_MINUTES = 10;
@@ -224,6 +224,9 @@
       avenue: { id: "avenue", name: "並木大通り", model: "road", category: "transport", cost: 260, upkeep: 2, road: true, happiness: 1, description: "街路樹と歩道を備えた大通り。" },
       boulevard: { id: "boulevard", name: "都市環状道路", model: "road", category: "transport", cost: 420, upkeep: 2, road: true, description: "交通量の多い地区を結ぶ幹線道路。" },
       bridge: { id: "bridge", name: "河川ブリッジ", model: "road", category: "transport", cost: 680, upkeep: 3, road: true, bridge: true, description: "川や湖を越えて街を接続する橋。" },
+      "bus-terminal": { id: "bus-terminal", name: "都市バスセンター", model: "transit", variant: 12, visualForm: 2, visualTheme: 1, visualEdition: 0, visualSignature: "transit:2:1:0", category: "transport", cost: 3200, upkeep: 18, jobs: 32, publicTransit: 24, transportCapacity: 120, description: "各地区を結ぶバス交通の中心拠点。" },
+      "metro-station": { id: "metro-station", name: "メトロ中央駅", model: "transit", variant: 18, visualForm: 8, visualTheme: 1, visualEdition: 0, visualSignature: "transit:8:1:0", category: "transport", cost: 7200, upkeep: 34, jobs: 55, publicTransit: 48, transportCapacity: 260, tourism: 5, description: "都市中心部の混雑を緩和する地下鉄駅。" },
+      "grand-station": { id: "grand-station", name: "都市圏中央駅", model: "transit", variant: 28, visualForm: 8, visualTheme: 2, visualEdition: 0, visualSignature: "transit:8:2:0", category: "transport", cost: 16000, upkeep: 62, jobs: 110, publicTransit: 80, transportCapacity: 520, tourism: 12, unique: true, description: "鉄道・地下鉄・バスを束ねる大規模交通ターミナル。" },
       civic: { id: "civic", name: "市庁舎", model: "civic", variant: 0, visualForm: 0, visualTheme: 0, visualEdition: 0, visualSignature: "civic:0:0:0", category: "landmark", cost: 0, upkeep: 8, jobs: 40, happiness: 5, safety: 8, tourism: 8, unique: true, description: "都市運営の中心。" }
     };
     Object.entries(CATALOG).forEach(([model, names]) => names.forEach((name, index) => {
@@ -599,6 +602,41 @@
     return { tiles: assignments, groups, summary: Object.values(summaryMap).sort((a, b) => b.tiles - a.tiles || a.name.localeCompare(b.name, "ja-JP")), effects };
   }
 
+  function analyzeTraffic(city, context = {}) {
+    const roads = Object.values(city?.tiles || {}).filter(isRoadTile);
+    const roadIds = new Set(roads.map((tile) => tile.id));
+    const visited = new Set();
+    let largestNetwork = 0;
+    roads.forEach((road) => {
+      if (visited.has(road.id)) return;
+      const queue = [road.id];
+      let size = 0;
+      visited.add(road.id);
+      while (queue.length) {
+        const id = queue.shift();
+        size += 1;
+        neighbors(id).forEach((nextId) => {
+          if (roadIds.has(nextId) && !visited.has(nextId)) { visited.add(nextId); queue.push(nextId); }
+        });
+      }
+      largestNetwork = Math.max(largestNetwork, size);
+    });
+    const roadCapacity = roads.reduce((sum, tile) => sum + ({ road: 12, avenue: 19, boulevard: 27, bridge: 14 }[tile.buildingId] || 12), 0);
+    const transitBuildings = Object.values(city?.tiles || {}).map((tile) => BUILDINGS[tile?.buildingId]).filter((definition) => Number(definition?.transportCapacity) > 0);
+    const publicTransit = transitBuildings.reduce((sum, definition) => sum + (Number(definition.publicTransit) || 0), 0);
+    const transitCapacity = transitBuildings.reduce((sum, definition) => sum + (Number(definition.transportCapacity) || 0), 0);
+    const population = Math.max(0, Number(context.population ?? city?.metrics?.population) || 0);
+    const jobs = Math.max(0, Number(context.jobs ?? city?.metrics?.jobs) || 0);
+    const tourism = Math.max(0, Number(context.tourism ?? city?.metrics?.tourism) || 0);
+    const demand = Math.max(1, Math.round(population * .16 + jobs * .11 + tourism * 1.8));
+    const capacity = Math.max(1, Math.round(roadCapacity + transitCapacity));
+    const connectivity = roads.length ? Math.round(largestNetwork / roads.length * 100) : 0;
+    const rawLoad = demand / capacity * 100;
+    const congestion = Math.max(0, Math.min(100, Math.round(rawLoad * (1.18 - connectivity / 500))));
+    const efficiency = Math.max(0, Math.min(100, Math.round(connectivity * .64 + (100 - congestion) * .28 + Math.min(100, publicTransit) * .08)));
+    return { roads: roads.length, connectedRoads: largestNetwork, connectivity, publicTransit: Math.min(100, publicTransit), demand, capacity, congestion, efficiency };
+  }
+
   function calculateMetrics(city) {
     const previous = city?.metrics || emptyMetrics();
     const totals = { populationCapacity: 0, jobs: 0, happiness: 0, safety: 0, education: 0, health: 0, tourism: 0, environment: 0, pollution: 0, powerDemand: 0, powerSupply: 0, waterDemand: 0, waterSupply: 0, tax: 0, upkeep: 0 };
@@ -619,8 +657,9 @@
     const infrastructurePenalty = Math.round((100 - Math.min(powerCoverage, waterCoverage)) * .38);
     const happiness = Math.max(0, Math.min(100, 62 + totals.happiness + Math.round(totals.environment * .35) - Math.round(totals.pollution * .75) - infrastructurePenalty));
     const environment = Math.max(0, Math.min(100, 68 + totals.environment - totals.pollution));
-    const cityScore = Math.round(population * .55 + happiness * 14 + totals.jobs * 1.8 + totals.tourism * 20 + environment * 8 + Math.min(powerCoverage, waterCoverage) * 6 + Object.keys(city?.tiles || {}).length * 3 + districts.groups.length * 120);
-    return { ...previous, population, capacity: totals.populationCapacity, happiness, jobs: totals.jobs, safety: Math.min(100, 52 + totals.safety), education: Math.min(100, 45 + totals.education), health: Math.min(100, 52 + totals.health), tourism: totals.tourism, environment, pollution: totals.pollution, powerDemand: totals.powerDemand, powerSupply: totals.powerSupply, waterDemand: totals.waterDemand, waterSupply: totals.waterSupply, employmentRate, powerCoverage, waterCoverage, cityScore, districtCount: districts.groups.length, identityId: identity?.id || "", taxPotential: totals.tax, upkeep: totals.upkeep };
+    const traffic = analyzeTraffic(city, { population, jobs: totals.jobs, tourism: totals.tourism });
+    const cityScore = Math.round(population * .55 + happiness * 14 + totals.jobs * 1.8 + totals.tourism * 20 + environment * 8 + Math.min(powerCoverage, waterCoverage) * 6 + Object.keys(city?.tiles || {}).length * 3 + districts.groups.length * 120 + traffic.efficiency * 6 - traffic.congestion * 3);
+    return { ...previous, population, capacity: totals.populationCapacity, happiness, jobs: totals.jobs, safety: Math.min(100, 52 + totals.safety), education: Math.min(100, 45 + totals.education), health: Math.min(100, 52 + totals.health), tourism: totals.tourism, environment, pollution: totals.pollution, powerDemand: totals.powerDemand, powerSupply: totals.powerSupply, waterDemand: totals.waterDemand, waterSupply: totals.waterSupply, employmentRate, powerCoverage, waterCoverage, trafficCongestion: traffic.congestion, transportEfficiency: traffic.efficiency, roadConnectivity: traffic.connectivity, publicTransit: traffic.publicTransit, trafficDemand: traffic.demand, trafficCapacity: traffic.capacity, cityScore, districtCount: districts.groups.length, identityId: identity?.id || "", taxPotential: totals.tax, upkeep: totals.upkeep };
   }
 
   function isRoadDefinition(definition) {
@@ -697,6 +736,8 @@
       title = "市民満足度が好調"; quote = "この街、かなり住み心地がいいですよ。友達にも自慢しています。"; tone = "positive";
     } else if (metrics.tourism >= 50) {
       title = "観光客で街がにぎわう"; quote = "遠くから来た人で通りがいっぱいです。街に活気がありますね。"; tone = "positive";
+    } else if (metrics.trafficCongestion >= 65) {
+      title = "交通混雑への対策が急務"; quote = "通勤時間の渋滞が気になります。駅や幹線道路がもっと欲しいですね。"; tone = "warning";
     } else if (districts.groups.length >= 2) {
       title = `${districts.groups.length}地区が都市を形成`; quote = "地区ごとの雰囲気が違って、歩くだけでも発見があります。"; tone = "positive";
     } else if (metrics.employmentRate < 75) {
@@ -907,7 +948,8 @@
     const gap = target - metrics.population;
     const growth = gap > 0 ? Math.max(0, Math.min(Math.ceil(gap * .035 * growthFactor), 24)) : Math.max(-12, Math.ceil(gap * .02));
     metrics.population = Math.max(0, metrics.population + growth);
-    const income = Math.max(0, Math.round(metrics.population * .018 * (city.economy.taxRate / 10) + metrics.taxPotential));
+    const trafficFactor = .84 + Math.max(0, Number(metrics.transportEfficiency) || 0) * .0016;
+    const income = Math.max(0, Math.round((metrics.population * .018 * (city.economy.taxRate / 10) + metrics.taxPotential) * trafficFactor));
     const expense = Math.max(0, Math.round(metrics.upkeep));
     city.resources.money = Math.max(0, Math.round((Number(city.resources.money) || 0) + income - expense));
     city.economy = { ...city.economy, lastIncome: income, lastExpense: expense, balance: income - expense };
@@ -1039,7 +1081,7 @@
     VERSION, MAP_SCHEMA, TERRAIN_REVISION, FEATURE_REVISION, GRID_SIZE, CITY_CENTER, TICK_MINUTES, TICK_MS, AUTO_BUILD_THRESHOLD,
     PLAYERS, PLAYER_BY_ID, CITY_IDENTITIES, MISSION_POOLS, CITIZEN_CASTS, TERRAIN, CITY_STAGES, DISTRICTS, SIGNATURE_LANDMARKS, BUILDINGS, BUILDING_IDS,
     clone, playerKey, playerForName, tileId, parseTileId, neighbors, terrainAt,
-    createInitialState, normalizeState, analyzeDistricts, cityLevel, cityStage, landmarkStatus, calculateMetrics, canBuild, applyCommand, autoDevelopCity, advanceState,
+    createInitialState, normalizeState, analyzeDistricts, analyzeTraffic, cityLevel, cityStage, landmarkStatus, calculateMetrics, canBuild, applyCommand, autoDevelopCity, advanceState,
     rewardForPlayer, missionsForMatch, resolveMatchMissions, missionStatus, lifeStatus, cityPulse, applyMatchReward, standings, isRoadTile
   };
 

@@ -648,7 +648,7 @@
       buildingRoot.add(group);
       const level = Math.max(1, Math.min(3, Number(tile.level) || 1));
       const variant = Math.max(0, Number(definition.variant) || 0);
-      const builders = { residential: buildResidential, commercial: buildCommercial, industrial: buildIndustrial, park: buildPark, power: buildPower, water: buildWater, civic: buildCivic, arena: buildArena };
+      const builders = { residential: buildResidential, commercial: buildCommercial, industrial: buildIndustrial, park: buildPark, power: buildPower, water: buildWater, civic: buildCivic, arena: buildArena, transit: buildCivic };
       if (definition.signatureLandmark) buildSignatureLandmark(group, definition, playerColor, tile.id);
       else {
         (builders[definition.model] || buildResidential)(group, level, playerColor, tile.id, variant);
@@ -1277,8 +1277,9 @@
       const roads = Object.values(city.tiles || {}).filter(City.isRoadTile);
       const roadIds = new Set(roads.map((tile) => tile.id));
       const routable = roads.filter((tile) => City.neighbors(tile.id).some((id) => roadIds.has(id)));
-      const cityLevel = Math.max(1, Math.min(6, Number(city.level) || 1));
-      const carCount = Math.min(32, Math.max(0, Math.floor(routable.length / 4) + (cityLevel - 1) * 2));
+      if (!routable.length) return;
+      const traffic = City.analyzeTraffic(city);
+      const carCount = Math.min(36, Math.max(2, Math.round(traffic.demand / 28) + Math.round(traffic.congestion / 18)));
       for (let index = 0; index < carCount; index += 1) {
         const tile = routable[Math.floor(index * routable.length / carCount)];
         const candidates = City.neighbors(tile.id).filter((id) => roadIds.has(id));
@@ -1293,9 +1294,10 @@
           nextId,
           previousId: "",
           progress: (index % 4) * .18,
-          speed: .13 + (index % 5) * .012,
+          speed: (.105 + (index % 5) * .01) * (.62 + traffic.efficiency / 180),
           lane: index % 2 ? .105 : -.105,
           seed: hashText(`${city.id}-traffic-${index}`),
+          congestion: traffic.congestion,
           steps: 0
         };
         updateTrafficCar(route, 0);
@@ -1313,7 +1315,8 @@
     }
 
     function updateTrafficCar(route, delta) {
-      route.progress += delta * route.speed;
+      const stopWave = route.congestion > 55 ? Math.max(.28, .72 + Math.sin(clock.elapsedTime * 1.8 + route.seed) * .42) : 1;
+      route.progress += delta * route.speed * stopWave;
       while (route.progress >= 1) {
         route.progress -= 1;
         route.previousId = route.currentId;

@@ -213,7 +213,10 @@
         ${metric("水道", metrics.waterCoverage, "%")}
         ${metric("観光", metrics.tourism)}
         ${metric("環境", metrics.environment, "%")}
+        ${metric("交通効率", metrics.transportEfficiency, "%")}
+        ${metric("混雑度", metrics.trafficCongestion, "%")}
       </div>
+      <div class="city-traffic-line"><span>道路接続 ${metrics.roadConnectivity}%</span><span>公共交通 ${metrics.publicTransit}</span><b>${formatNumber(metrics.trafficDemand)} / ${formatNumber(metrics.trafficCapacity)}</b></div>
       <div class="city-economy-line"><span>前回収支</span><b class="${city.economy.balance >= 0 ? "plus" : "minus"}">${city.economy.balance >= 0 ? "+" : ""}¥${formatNumber(city.economy.balance)}</b></div>
       <div class="city-district-head"><span>DISTRICTS</span><b>${districts.groups.length}地区</b></div>
       <div class="city-district-list">${districtList}</div>

@@ -9,7 +9,7 @@ test("creates six persistent player cities with starter infrastructure", () => {
   assert.equal(state.version, 1);
   assert.equal(City.MAP_SCHEMA, 4);
   assert.equal(City.TERRAIN_REVISION, 2);
-  assert.equal(City.FEATURE_REVISION, 5);
+  assert.equal(City.FEATURE_REVISION, 6);
   assert.equal(state.terrainRevision, City.TERRAIN_REVISION);
   assert.equal(state.featureRevision, City.FEATURE_REVISION);
   assert.equal(City.GRID_SIZE, 160);
@@ -286,6 +286,28 @@ test("city commands publish visible news without allowing an unbounded feed", ()
   const result = City.applyCommand(state, { id: "news-build", type: "build", playerId: "tofu", tileId: plot, buildingId: "residential" }, 40_000_000);
   assert.equal(result.applied, true);
   assert.match(City.lifeStatus(result.state.players.tofu).news[0].title, /完成/);
+});
+
+test("traffic analysis measures connected roads, congestion, and public transit capacity", () => {
+  const state = City.createInitialState(7_000_000);
+  const city = state.players.kento;
+  const baseline = City.analyzeTraffic(city);
+  assert.equal(baseline.connectivity, 100);
+  assert.ok(baseline.capacity > 0);
+  const remoteRoad = City.tileId(12, 12);
+  city.tiles[remoteRoad] = { id: remoteRoad, kind: "road", buildingId: "road", level: 1 };
+  const disconnected = City.analyzeTraffic(city);
+  assert.ok(disconnected.connectivity < baseline.connectivity);
+  const stationTile = City.tileId(City.CITY_CENTER + 2, City.CITY_CENTER + 2);
+  city.tiles[stationTile] = { id: stationTile, kind: "building", buildingId: "metro-station", level: 1 };
+  const transit = City.analyzeTraffic(city);
+  assert.ok(transit.capacity > disconnected.capacity);
+  assert.equal(transit.publicTransit, City.BUILDINGS["metro-station"].publicTransit);
+  const metrics = City.calculateMetrics(city);
+  assert.equal(metrics.trafficCapacity, transit.capacity);
+  assert.equal(metrics.publicTransit, transit.publicTransit);
+  assert.ok(metrics.trafficCongestion >= 0 && metrics.trafficCongestion <= 100);
+  assert.ok(metrics.transportEfficiency >= 0 && metrics.transportEfficiency <= 100);
 });
 
 test("existing cities migrate district features without losing developed plots", () => {
