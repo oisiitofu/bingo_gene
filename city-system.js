@@ -4,7 +4,7 @@
   const VERSION = 1;
   const MAP_SCHEMA = 4;
   const TERRAIN_REVISION = 2;
-  const FEATURE_REVISION = 2;
+  const FEATURE_REVISION = 3;
   const GRID_SIZE = 160;
   const CITY_CENTER = Math.floor(GRID_SIZE / 2);
   const TICK_MINUTES = 10;
@@ -29,6 +29,14 @@
     rima: [["industrial", "commercial", "residential", "power"], ["commercial", "residential", "park", "industrial"], ["residential", "industrial", "civic", "commercial"]],
     kento: [["commercial", "civic", "park", "residential"], ["arena", "commercial", "residential", "power"], ["park", "commercial", "civic", "residential"]],
     lickey: [["civic", "commercial", "residential", "arena"], ["residential", "park", "commercial", "civic"], ["arena", "civic", "commercial", "residential"]]
+  });
+  const CITY_IDENTITIES = Object.freeze({
+    tofu: Object.freeze({ id: "garden-future", title: "白緑共生都市", focus: "住宅・公園・環境", description: "住み心地と緑地を優先し、穏やかな街区を連ねる都市です。", effects: { happiness: 4, environment: 6, tourism: 2 } }),
+    eda: Object.freeze({ id: "trinity-fortress", title: "三刃要塞都市", focus: "工業・治安・雇用", description: "生産拠点と防災施設を集約し、力強い都市軸を形成します。", effects: { jobs: 45, safety: 8, tax: 18 } }),
+    jan: Object.freeze({ id: "destiny-entertainment", title: "運命祝祭都市", focus: "商業・娯楽・観光", description: "人が集まる商業街とアリーナを中心に、にぎわいを拡張します。", effects: { happiness: 3, tourism: 9, tax: 12 } }),
+    rima: Object.freeze({ id: "midnight-logistics", title: "深夜補給都市", focus: "物流・商業・インフラ", description: "夜間も止まらない物流網と補給拠点で都市経済を支えます。", effects: { jobs: 38, powerSupply: 12, tax: 20 } }),
+    kento: Object.freeze({ id: "violet-media", title: "紫電配信都市", focus: "メディア・学術・商業", description: "配信・研究・高層商業を束ねた先進的な情報都市です。", effects: { education: 8, tourism: 7, jobs: 30 } }),
+    lickey: Object.freeze({ id: "royal-capital", title: "蒼金王都", focus: "行政・観光・幸福", description: "城下町と公共施設を整え、格式と観光を両立する王都です。", effects: { safety: 5, happiness: 3, tourism: 10 } })
   });
 
   const TERRAIN = Object.freeze({
@@ -549,6 +557,8 @@
     });
     const districts = analyzeDistricts(city);
     Object.entries(districts.effects).forEach(([field, value]) => { if (Object.hasOwn(totals, field)) totals[field] += Number(value) || 0; });
+    const identity = CITY_IDENTITIES[city?.id];
+    Object.entries(identity?.effects || {}).forEach(([field, value]) => { if (Object.hasOwn(totals, field)) totals[field] += Number(value) || 0; });
     const population = Math.max(0, Math.min(Number(previous.population) || 0, Math.max(180, totals.populationCapacity)));
     const powerCoverage = totals.powerDemand ? Math.min(100, Math.round(totals.powerSupply / totals.powerDemand * 100)) : 100;
     const waterCoverage = totals.waterDemand ? Math.min(100, Math.round(totals.waterSupply / totals.waterDemand * 100)) : 100;
@@ -557,7 +567,7 @@
     const happiness = Math.max(0, Math.min(100, 62 + totals.happiness + Math.round(totals.environment * .35) - Math.round(totals.pollution * .75) - infrastructurePenalty));
     const environment = Math.max(0, Math.min(100, 68 + totals.environment - totals.pollution));
     const cityScore = Math.round(population * .55 + happiness * 14 + totals.jobs * 1.8 + totals.tourism * 20 + environment * 8 + Math.min(powerCoverage, waterCoverage) * 6 + Object.keys(city?.tiles || {}).length * 3 + districts.groups.length * 120);
-    return { ...previous, population, capacity: totals.populationCapacity, happiness, jobs: totals.jobs, safety: Math.min(100, 52 + totals.safety), education: Math.min(100, 45 + totals.education), health: Math.min(100, 52 + totals.health), tourism: totals.tourism, environment, pollution: totals.pollution, powerDemand: totals.powerDemand, powerSupply: totals.powerSupply, waterDemand: totals.waterDemand, waterSupply: totals.waterSupply, employmentRate, powerCoverage, waterCoverage, cityScore, districtCount: districts.groups.length, taxPotential: totals.tax, upkeep: totals.upkeep };
+    return { ...previous, population, capacity: totals.populationCapacity, happiness, jobs: totals.jobs, safety: Math.min(100, 52 + totals.safety), education: Math.min(100, 45 + totals.education), health: Math.min(100, 52 + totals.health), tourism: totals.tourism, environment, pollution: totals.pollution, powerDemand: totals.powerDemand, powerSupply: totals.powerSupply, waterDemand: totals.waterDemand, waterSupply: totals.waterSupply, employmentRate, powerCoverage, waterCoverage, cityScore, districtCount: districts.groups.length, identityId: identity?.id || "", taxPotential: totals.tax, upkeep: totals.upkeep };
   }
 
   function isRoadDefinition(definition) {
@@ -870,7 +880,7 @@
 
   const api = {
     VERSION, MAP_SCHEMA, TERRAIN_REVISION, FEATURE_REVISION, GRID_SIZE, CITY_CENTER, TICK_MINUTES, TICK_MS, AUTO_BUILD_THRESHOLD,
-    PLAYERS, PLAYER_BY_ID, TERRAIN, CITY_STAGES, DISTRICTS, SIGNATURE_LANDMARKS, BUILDINGS, BUILDING_IDS,
+    PLAYERS, PLAYER_BY_ID, CITY_IDENTITIES, TERRAIN, CITY_STAGES, DISTRICTS, SIGNATURE_LANDMARKS, BUILDINGS, BUILDING_IDS,
     clone, playerKey, playerForName, tileId, parseTileId, neighbors, terrainAt,
     createInitialState, normalizeState, analyzeDistricts, cityLevel, cityStage, landmarkStatus, calculateMetrics, canBuild, applyCommand, autoDevelopCity, advanceState,
     rewardForPlayer, applyMatchReward, standings, isRoadTile

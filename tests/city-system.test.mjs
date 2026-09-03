@@ -9,7 +9,7 @@ test("creates six persistent player cities with starter infrastructure", () => {
   assert.equal(state.version, 1);
   assert.equal(City.MAP_SCHEMA, 4);
   assert.equal(City.TERRAIN_REVISION, 2);
-  assert.equal(City.FEATURE_REVISION, 2);
+  assert.equal(City.FEATURE_REVISION, 3);
   assert.equal(state.terrainRevision, City.TERRAIN_REVISION);
   assert.equal(state.featureRevision, City.FEATURE_REVISION);
   assert.equal(City.GRID_SIZE, 160);
@@ -206,6 +206,19 @@ test("every city has one exclusive signature landmark with progression requireme
   const wrongCity = City.canBuild(city, City.tileId(City.CITY_CENTER + 3, City.CITY_CENTER + 1), "signature-eda");
   assert.equal(wrongCity.ok, false);
   assert.match(wrongCity.reason, /別の都市専用/);
+});
+
+test("the six cities have distinct identities that affect persistent city metrics", () => {
+  assert.equal(Object.keys(City.CITY_IDENTITIES).length, 6);
+  assert.equal(new Set(Object.values(City.CITY_IDENTITIES).map((identity) => identity.id)).size, 6);
+  City.PLAYERS.forEach((player) => {
+    const identity = City.CITY_IDENTITIES[player.id];
+    const city = City.createInitialState(1_000_000).players[player.id];
+    const metrics = City.calculateMetrics(city);
+    assert.ok(identity?.title && identity?.focus && identity?.description);
+    assert.equal(metrics.identityId, identity.id);
+    assert.ok(Object.keys(identity.effects).length >= 3);
+  });
 });
 
 test("existing cities migrate district features without losing developed plots", () => {

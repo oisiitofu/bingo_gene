@@ -197,6 +197,7 @@
     const metrics = City.calculateMetrics(city);
     const districts = City.analyzeDistricts(city);
     const landmark = City.landmarkStatus(city);
+    const identity = City.CITY_IDENTITIES[city.id];
     const districtList = districts.summary.length
       ? districts.summary.map((district) => `<div class="city-district-chip" style="--district-color:${district.color}"><span></span><b>${escapeHtml(district.name)}</b><small>${district.groups}地区 / ${district.tiles}区画</small></div>`).join("")
       : `<p class="city-district-empty">周辺に同系統の建物を集めると地区が成立します。</p>`;
@@ -214,6 +215,9 @@
       <div class="city-economy-line"><span>前回収支</span><b class="${city.economy.balance >= 0 ? "plus" : "minus"}">${city.economy.balance >= 0 ? "+" : ""}¥${formatNumber(city.economy.balance)}</b></div>
       <div class="city-district-head"><span>DISTRICTS</span><b>${districts.groups.length}地区</b></div>
       <div class="city-district-list">${districtList}</div>
+      ${identity ? `<div class="city-identity" style="--identity-color:${city.color}">
+        <span>CITY IDENTITY</span><b>${escapeHtml(identity.title)}</b><small>${escapeHtml(identity.focus)}</small><p>${escapeHtml(identity.description)}</p>
+      </div>` : ""}
       ${landmark.definition ? `<div class="city-landmark-status ${landmark.built ? "built" : landmark.unlocked ? "ready" : "locked"}">
         <span>LANDMARK</span><b>${escapeHtml(landmark.definition.name)}</b><small>${landmark.built ? "完成" : landmark.unlocked ? "建設可能" : `Lv.${landmark.requiredLevel}・${landmark.requiredDistricts}地区で解放`}</small>
       </div>` : ""}
