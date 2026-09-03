@@ -4,6 +4,7 @@
   const VERSION = 1;
   const MAP_SCHEMA = 4;
   const TERRAIN_REVISION = 2;
+  const FEATURE_REVISION = 1;
   const GRID_SIZE = 160;
   const CITY_CENTER = Math.floor(GRID_SIZE / 2);
   const TICK_MINUTES = 10;
@@ -48,6 +49,26 @@
     lake: { id: "lake", name: "湖", buildable: false, water: true },
     lagoon: { id: "lagoon", name: "潟湖", buildable: false, water: true },
     sea: { id: "sea", name: "海", buildable: false, water: true }
+  });
+
+  const CITY_STAGES = Object.freeze([
+    Object.freeze({ level: 1, name: "集落", minPopulation: 0, minScore: 0 }),
+    Object.freeze({ level: 2, name: "町", minPopulation: 500, minScore: 5000 }),
+    Object.freeze({ level: 3, name: "地方都市", minPopulation: 2500, minScore: 14000 }),
+    Object.freeze({ level: 4, name: "大都市", minPopulation: 10000, minScore: 40000 }),
+    Object.freeze({ level: 5, name: "メトロポリス", minPopulation: 30000, minScore: 100000 }),
+    Object.freeze({ level: 6, name: "世界都市", minPopulation: 100000, minScore: 280000 })
+  ]);
+
+  const DISTRICTS = Object.freeze({
+    "green-neighborhood": Object.freeze({ id: "green-neighborhood", name: "緑住区", color: "#76d17c", priority: 90, models: ["residential", "park"], requirements: { residential: 2, park: 2 }, effects: { happiness: 5, environment: 8, tourism: 2 } }),
+    "industrial-hub": Object.freeze({ id: "industrial-hub", name: "工業集積地", color: "#f3974f", priority: 85, models: ["industrial", "power"], requirements: { industrial: 3, power: 1 }, effects: { jobs: 55, tax: 35, pollution: 2 } }),
+    "entertainment-quarter": Object.freeze({ id: "entertainment-quarter", name: "娯楽街", color: "#e66fd2", priority: 80, models: ["arena", "commercial"], requirements: { arena: 1, commercial: 2 }, effects: { happiness: 4, tourism: 12, tax: 18 } }),
+    "civic-center": Object.freeze({ id: "civic-center", name: "行政中心地", color: "#f2cf66", priority: 75, models: ["civic", "commercial", "residential"], requirements: { civic: 2, commercial: 1 }, effects: { safety: 7, happiness: 3, tourism: 4 } }),
+    "waterfront": Object.freeze({ id: "waterfront", name: "ウォーターフロント", color: "#5bc8ed", priority: 70, models: ["commercial", "park", "civic", "arena"], requirements: { commercial: 2, park: 1 }, waterEdges: 2, effects: { happiness: 3, tourism: 10, environment: 3 } }),
+    "tourism-corridor": Object.freeze({ id: "tourism-corridor", name: "観光回廊", color: "#a8dc67", priority: 65, models: ["commercial", "park", "arena"], requirements: { commercial: 2, park: 2 }, effects: { tourism: 9, happiness: 3, tax: 12 } }),
+    "commercial-core": Object.freeze({ id: "commercial-core", name: "商業中心地", color: "#58bdf2", priority: 40, models: ["commercial"], requirements: { commercial: 3 }, effects: { jobs: 35, tourism: 5, tax: 28 } }),
+    "residential-quarter": Object.freeze({ id: "residential-quarter", name: "住宅街", color: "#d8bd8b", priority: 35, models: ["residential"], requirements: { residential: 3 }, effects: { happiness: 3, environment: 2 } })
   });
 
   const BASE_MODELS = Object.freeze({
@@ -364,19 +385,20 @@
   function createPlayerCity(player, now) {
     const city = {
       id: player.id, name: player.cityName, ownerName: player.name, color: player.color, accent: player.accent,
-      terrainPreset: player.terrainPreset, mapSchema: MAP_SCHEMA, terrainRevision: TERRAIN_REVISION, level: 1,
+      terrainPreset: player.terrainPreset, mapSchema: MAP_SCHEMA, terrainRevision: TERRAIN_REVISION, featureRevision: FEATURE_REVISION, level: 1,
       resources: { money: AUTO_BUILD_THRESHOLD },
       metrics: emptyMetrics(), economy: { taxRate: 10, lastIncome: 0, lastExpense: 0, balance: 0 },
       autoDevelopment: { enabled: true, threshold: AUTO_BUILD_THRESHOLD, placed: 0, cursor: 0 },
       tiles: initialTiles(), unlocks: allUnlocks(), inbox: {}, history: {}, createdAt: now, updatedAt: now
     };
     city.metrics = calculateMetrics(city);
+    city.level = cityLevel(city.metrics.population, city.metrics.cityScore);
     return city;
   }
 
   function createInitialState(now = Date.now()) {
     const timestamp = Number(now) || Date.now();
-    return { version: VERSION, mapSchema: MAP_SCHEMA, terrainRevision: TERRAIN_REVISION, revision: 0, players: Object.fromEntries(PLAYERS.map((player) => [player.id, createPlayerCity(player, timestamp)])), processedRewards: {}, processedCommands: {}, lastTickAt: timestamp, nextTickAt: timestamp + TICK_MS, updatedAt: timestamp };
+    return { version: VERSION, mapSchema: MAP_SCHEMA, terrainRevision: TERRAIN_REVISION, featureRevision: FEATURE_REVISION, revision: 0, players: Object.fromEntries(PLAYERS.map((player) => [player.id, createPlayerCity(player, timestamp)])), processedRewards: {}, processedCommands: {}, lastTickAt: timestamp, nextTickAt: timestamp + TICK_MS, updatedAt: timestamp };
   }
 
   function normalizeState(value, now = Date.now()) {
@@ -399,14 +421,17 @@
       }
       city.mapSchema = MAP_SCHEMA;
       city.terrainRevision = TERRAIN_REVISION;
+      city.featureRevision = FEATURE_REVISION;
       city.terrainPreset = player.terrainPreset;
       city.resources = { money: Math.max(0, Number(city.resources?.money) || 0) };
       city.unlocks = { ...allUnlocks(), ...(city.unlocks || {}) };
       city.autoDevelopment = { enabled: true, threshold: AUTO_BUILD_THRESHOLD, placed: 0, cursor: 0, ...(city.autoDevelopment || {}) };
       city.metrics = calculateMetrics(city);
+      city.level = cityLevel(city.metrics.population, city.metrics.cityScore);
     });
     state.mapSchema = MAP_SCHEMA;
     state.terrainRevision = TERRAIN_REVISION;
+    state.featureRevision = FEATURE_REVISION;
     state.processedCommands ||= {};
     state.processedRewards ||= {};
     return state;
@@ -414,6 +439,93 @@
 
   function buildingScale(tile) {
     return Math.max(1, Math.min(3, Number(tile?.level) || 1));
+  }
+
+  function districtNeighborhood(city, id, radius = 2) {
+    const origin = parseTileId(id);
+    const output = [];
+    for (let dz = -radius; dz <= radius; dz += 1) {
+      for (let dx = -radius; dx <= radius; dx += 1) {
+        const tile = city?.tiles?.[tileId(origin.x + dx, origin.z + dz)];
+        const definition = BUILDINGS[tile?.buildingId];
+        if (tile && definition && !isRoadDefinition(definition)) output.push({ tile, definition });
+      }
+    }
+    return output;
+  }
+
+  function districtWaterEdges(city, entries) {
+    return entries.reduce((total, entry) => total + neighbors(entry.tile.id).filter((id) => {
+      const point = parseTileId(id);
+      return terrainAt(city.id, point.x, point.z).water;
+    }).length, 0);
+  }
+
+  function matchesDistrict(city, definition, entries) {
+    const counts = entries.reduce((output, entry) => {
+      output[entry.definition.model] = (output[entry.definition.model] || 0) + 1;
+      return output;
+    }, {});
+    if (Object.entries(definition.requirements).some(([model, count]) => (counts[model] || 0) < count)) return false;
+    return !definition.waterEdges || districtWaterEdges(city, entries) >= definition.waterEdges;
+  }
+
+  function districtLinks(id) {
+    const point = parseTileId(id);
+    const output = [];
+    for (let dz = -2; dz <= 2; dz += 1) {
+      for (let dx = -2; dx <= 2; dx += 1) {
+        if ((!dx && !dz) || Math.abs(dx) + Math.abs(dz) > 2) continue;
+        output.push(tileId(point.x + dx, point.z + dz));
+      }
+    }
+    return output;
+  }
+
+  function analyzeDistricts(city) {
+    const assignments = {};
+    Object.values(city?.tiles || {}).forEach((tile) => {
+      const building = BUILDINGS[tile?.buildingId];
+      if (!building || isRoadDefinition(building)) return;
+      const entries = districtNeighborhood(city, tile.id);
+      const match = Object.values(DISTRICTS)
+        .filter((district) => district.models.includes(building.model) && matchesDistrict(city, district, entries))
+        .sort((a, b) => b.priority - a.priority || a.id.localeCompare(b.id))[0];
+      if (match) assignments[tile.id] = match.id;
+    });
+
+    const visited = new Set();
+    const groups = [];
+    Object.keys(assignments).sort().forEach((startId) => {
+      if (visited.has(startId)) return;
+      const type = assignments[startId];
+      const queue = [startId];
+      const tileIds = [];
+      visited.add(startId);
+      while (queue.length) {
+        const id = queue.shift();
+        tileIds.push(id);
+        districtLinks(id).forEach((nextId) => {
+          if (!visited.has(nextId) && assignments[nextId] === type) {
+            visited.add(nextId);
+            queue.push(nextId);
+          }
+        });
+      }
+      const definition = DISTRICTS[type];
+      groups.push({ id: `${type}-${groups.length + 1}`, type, name: definition.name, color: definition.color, tileIds: tileIds.sort(), effects: { ...definition.effects } });
+    });
+
+    const effects = {};
+    const summaryMap = {};
+    groups.forEach((group) => {
+      const scale = Math.max(1, Math.min(3, Math.ceil(group.tileIds.length / 5)));
+      Object.entries(group.effects).forEach(([field, value]) => { effects[field] = (effects[field] || 0) + Number(value) * scale; });
+      summaryMap[group.type] ||= { id: group.type, name: group.name, color: group.color, groups: 0, tiles: 0 };
+      summaryMap[group.type].groups += 1;
+      summaryMap[group.type].tiles += group.tileIds.length;
+    });
+    return { tiles: assignments, groups, summary: Object.values(summaryMap).sort((a, b) => b.tiles - a.tiles || a.name.localeCompare(b.name, "ja-JP")), effects };
   }
 
   function calculateMetrics(city) {
@@ -425,6 +537,8 @@
       const scale = buildingScale(tile);
       Object.keys(totals).forEach((field) => { if (definition[field]) totals[field] += Number(definition[field]) * scale; });
     });
+    const districts = analyzeDistricts(city);
+    Object.entries(districts.effects).forEach(([field, value]) => { if (Object.hasOwn(totals, field)) totals[field] += Number(value) || 0; });
     const population = Math.max(0, Math.min(Number(previous.population) || 0, Math.max(180, totals.populationCapacity)));
     const powerCoverage = totals.powerDemand ? Math.min(100, Math.round(totals.powerSupply / totals.powerDemand * 100)) : 100;
     const waterCoverage = totals.waterDemand ? Math.min(100, Math.round(totals.waterSupply / totals.waterDemand * 100)) : 100;
@@ -432,8 +546,8 @@
     const infrastructurePenalty = Math.round((100 - Math.min(powerCoverage, waterCoverage)) * .38);
     const happiness = Math.max(0, Math.min(100, 62 + totals.happiness + Math.round(totals.environment * .35) - Math.round(totals.pollution * .75) - infrastructurePenalty));
     const environment = Math.max(0, Math.min(100, 68 + totals.environment - totals.pollution));
-    const cityScore = Math.round(population * .55 + happiness * 14 + totals.jobs * 1.8 + totals.tourism * 20 + environment * 8 + Math.min(powerCoverage, waterCoverage) * 6 + Object.keys(city?.tiles || {}).length * 3);
-    return { ...previous, population, capacity: totals.populationCapacity, happiness, jobs: totals.jobs, safety: Math.min(100, 52 + totals.safety), education: Math.min(100, 45 + totals.education), health: Math.min(100, 52 + totals.health), tourism: totals.tourism, environment, pollution: totals.pollution, powerDemand: totals.powerDemand, powerSupply: totals.powerSupply, waterDemand: totals.waterDemand, waterSupply: totals.waterSupply, employmentRate, powerCoverage, waterCoverage, cityScore, taxPotential: totals.tax, upkeep: totals.upkeep };
+    const cityScore = Math.round(population * .55 + happiness * 14 + totals.jobs * 1.8 + totals.tourism * 20 + environment * 8 + Math.min(powerCoverage, waterCoverage) * 6 + Object.keys(city?.tiles || {}).length * 3 + districts.groups.length * 120);
+    return { ...previous, population, capacity: totals.populationCapacity, happiness, jobs: totals.jobs, safety: Math.min(100, 52 + totals.safety), education: Math.min(100, 45 + totals.education), health: Math.min(100, 52 + totals.health), tourism: totals.tourism, environment, pollution: totals.pollution, powerDemand: totals.powerDemand, powerSupply: totals.powerSupply, waterDemand: totals.waterDemand, waterSupply: totals.waterSupply, employmentRate, powerCoverage, waterCoverage, cityScore, districtCount: districts.groups.length, taxPotential: totals.tax, upkeep: totals.upkeep };
   }
 
   function isRoadDefinition(definition) {
@@ -639,13 +753,12 @@
     return placed;
   }
 
-  function cityLevel(population) {
-    if (population >= 100000) return 6;
-    if (population >= 30000) return 5;
-    if (population >= 10000) return 4;
-    if (population >= 2500) return 3;
-    if (population >= 500) return 2;
-    return 1;
+  function cityLevel(population, cityScore = Number.POSITIVE_INFINITY) {
+    return CITY_STAGES.filter((stage) => Number(population) >= stage.minPopulation && Number(cityScore) >= stage.minScore).at(-1)?.level || 1;
+  }
+
+  function cityStage(level) {
+    return CITY_STAGES.find((stage) => stage.level === Math.max(1, Math.min(6, Number(level) || 1))) || CITY_STAGES[0];
   }
 
   function advanceCity(city, now) {
@@ -662,7 +775,7 @@
     city.resources.money = Math.max(0, Math.round((Number(city.resources.money) || 0) + income - expense));
     city.economy = { ...city.economy, lastIncome: income, lastExpense: expense, balance: income - expense };
     city.metrics = calculateMetrics({ ...city, metrics });
-    city.level = cityLevel(city.metrics.population);
+    city.level = cityLevel(city.metrics.population, city.metrics.cityScore);
     autoDevelopCity(city, now);
     city.updatedAt = Number(now);
   }
@@ -670,7 +783,8 @@
   function advanceState(value, now = Date.now(), options = {}) {
     const originalSchema = Number(value?.mapSchema) || 0;
     const originalTerrainRevision = Number(value?.terrainRevision) || 0;
-    const migrated = originalSchema < MAP_SCHEMA || originalTerrainRevision < TERRAIN_REVISION;
+    const originalFeatureRevision = Number(value?.featureRevision) || 0;
+    const migrated = originalSchema < MAP_SCHEMA || originalTerrainRevision < TERRAIN_REVISION || originalFeatureRevision < FEATURE_REVISION;
     const state = normalizeState(value, now);
     const maximum = Math.max(1, Number(options.maxTicks) || 144);
     let processed = 0;
@@ -732,10 +846,10 @@
   }
 
   const api = {
-    VERSION, MAP_SCHEMA, TERRAIN_REVISION, GRID_SIZE, CITY_CENTER, TICK_MINUTES, TICK_MS, AUTO_BUILD_THRESHOLD,
-    PLAYERS, PLAYER_BY_ID, TERRAIN, BUILDINGS, BUILDING_IDS,
+    VERSION, MAP_SCHEMA, TERRAIN_REVISION, FEATURE_REVISION, GRID_SIZE, CITY_CENTER, TICK_MINUTES, TICK_MS, AUTO_BUILD_THRESHOLD,
+    PLAYERS, PLAYER_BY_ID, TERRAIN, CITY_STAGES, DISTRICTS, BUILDINGS, BUILDING_IDS,
     clone, playerKey, playerForName, tileId, parseTileId, neighbors, terrainAt,
-    createInitialState, normalizeState, calculateMetrics, canBuild, applyCommand, autoDevelopCity, advanceState,
+    createInitialState, normalizeState, analyzeDistricts, cityLevel, cityStage, calculateMetrics, canBuild, applyCommand, autoDevelopCity, advanceState,
     rewardForPlayer, applyMatchReward, standings, isRoadTile
   };
 

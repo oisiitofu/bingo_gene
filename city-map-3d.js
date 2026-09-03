@@ -66,6 +66,8 @@
     let cornerNormalMemo = [];
     let cornerTerrainMixMemo = [];
     let cornerTerrainStyleMemo = [];
+    let districtAnalysis = { tiles: {}, groups: [], summary: [], effects: {} };
+    let districtMaterialCache = {};
     const raycaster = new THREE.Raycaster();
     const pointer = new THREE.Vector2();
     const clock = new THREE.Clock();
@@ -292,9 +294,13 @@
       cornerNormalMemo = [];
       cornerTerrainMixMemo = [];
       cornerTerrainStyleMemo = [];
+      districtAnalysis = { tiles: {}, groups: [], summary: [], effects: {} };
+      districtMaterialCache = {};
       if (!city) return;
       createTerrain();
       const playerColor = new THREE.Color(city.color || "#f5c84c");
+      districtAnalysis = City.analyzeDistricts(city);
+      createDistrictBoundaries();
       Object.values(city.tiles || {}).forEach((tile) => {
         const definition = City.BUILDINGS[tile.buildingId];
         if (definition?.model === "road") createRoad(tile, definition);
@@ -625,6 +631,7 @@
         [-.25, .25].forEach((offset) => mesh(shared.lane, materials.lane, [position.x, y + .04, position.z + offset], [1, 1, 1], terrainRoot));
       }
       if (definition.id === "avenue") addTree(terrainRoot, position.x + .31, position.z + .31, .38, point.x % 2, surfaceY);
+      addCityStageRoadDetail(tile, position, y, horizontal, vertical);
       if (terrain.water && definition.bridge) {
         const waterY = terrainCenterHeight(terrain, point.x, point.z);
         const pillarHeight = Math.max(.2, y - waterY + .08);
@@ -644,6 +651,77 @@
       const builders = { residential: buildResidential, commercial: buildCommercial, industrial: buildIndustrial, park: buildPark, power: buildPower, water: buildWater, civic: buildCivic, arena: buildArena };
       (builders[definition.model] || buildResidential)(group, level, playerColor, tile.id, variant);
       addDistrictIdentity(group, definition.model, level, playerColor, tile.id, variant);
+      addFunctionalDistrictIdentity(group, districtAnalysis.tiles[tile.id]);
+      const cityLevel = Math.max(1, Math.min(6, Number(city.level) || 1));
+      if (["residential", "commercial", "civic"].includes(definition.model)) group.scale.y = 1 + (cityLevel - 1) * .025;
+    }
+
+    function functionalDistrictMaterial(type) {
+      if (districtMaterialCache[type]) return districtMaterialCache[type];
+      const definition = City.DISTRICTS[type];
+      const color = new THREE.Color(definition?.color || "#f2cf66");
+      const material = new THREE.MeshStandardMaterial({ color, emissive: color, emissiveIntensity: .18, roughness: .42, metalness: .18 });
+      dynamicResources.push(material);
+      districtMaterialCache[type] = material;
+      return material;
+    }
+
+    function addFunctionalDistrictIdentity(group, type) {
+      if (!type) return;
+      const material = functionalDistrictMaterial(type);
+      [-.34, .34].forEach((z) => mesh(shared.cube, material, [0, .135, z], [.68, .035, .025], group));
+      [-.34, .34].forEach((x) => mesh(shared.cube, material, [x, .135, 0], [.025, .035, .68], group));
+      if (type === "green-neighborhood") {
+        addTree(group, -.3, .28, .21, 0, .12);
+      } else if (type === "commercial-core" || type === "entertainment-quarter") {
+        const beacon = mesh(shared.cylinder12, material, [.29, .25, -.29], [.018, .25, .018], group);
+        const light = mesh(shared.sphere, material, [.29, .39, -.29], [.035, .035, .035], group);
+        animated.push({ object: light, type: "districtPulse", baseScale: .035, phase: hashText(type) % 31 });
+        beacon.castShadow = false;
+      }
+    }
+
+    function createDistrictBoundaries() {
+      const positionsByType = {};
+      const half = TILE * .47;
+      Object.entries(districtAnalysis.tiles || {}).forEach(([id, type]) => {
+        positionsByType[type] ||= [];
+        const center = worldPosition(id);
+        const y = tileSurfaceHeight(id) + .105;
+        const point = City.parseTileId(id);
+        const edges = [
+          { neighbor: City.tileId(point.x - 1, point.z), a: [center.x - half, y, center.z - half], b: [center.x - half, y, center.z + half] },
+          { neighbor: City.tileId(point.x + 1, point.z), a: [center.x + half, y, center.z - half], b: [center.x + half, y, center.z + half] },
+          { neighbor: City.tileId(point.x, point.z - 1), a: [center.x - half, y, center.z - half], b: [center.x + half, y, center.z - half] },
+          { neighbor: City.tileId(point.x, point.z + 1), a: [center.x - half, y, center.z + half], b: [center.x + half, y, center.z + half] }
+        ];
+        edges.forEach((edge) => {
+          if (districtAnalysis.tiles[edge.neighbor] === type) return;
+          positionsByType[type].push(...edge.a, ...edge.b);
+        });
+      });
+      Object.entries(positionsByType).forEach(([type, positions]) => {
+        if (!positions.length) return;
+        const geometry = new THREE.BufferGeometry();
+        geometry.setAttribute("position", new THREE.Float32BufferAttribute(positions, 3));
+        const definition = City.DISTRICTS[type];
+        const material = new THREE.LineBasicMaterial({ color: definition?.color || 0xf2cf66, transparent: true, opacity: .78, depthWrite: false, blending: THREE.AdditiveBlending });
+        dynamicResources.push(geometry, material);
+        const boundary = new THREE.LineSegments(geometry, material);
+        boundary.renderOrder = 5;
+        terrainRoot.add(boundary);
+      });
+    }
+
+    function addCityStageRoadDetail(tile, position, y, horizontal, vertical) {
+      const level = Math.max(1, Math.min(6, Number(city.level) || 1));
+      if (level < 2 || hashText(`${city.id}:${tile.id}:stage`) % Math.max(2, 7 - level) !== 0) return;
+      const poleMaterial = materials.darkMetal;
+      const lampMaterial = level >= 5 ? materials.glow : materials.headlight;
+      const x = position.x + (vertical ? .31 : -.31);
+      const z = position.z + (horizontal ? .31 : -.31);
+      mesh(shared.cylinder12, poleMaterial, [x, y + .16, z], [.014, .25, .014], terrainRoot).castShadow = false;
+      mesh(shared.sphere, lampMaterial, [x, y + .3, z], [.028, .028, .028], terrainRoot).castShadow = false;
     }
 
     function addBase(group, color) {
@@ -1130,7 +1208,8 @@
       const roads = Object.values(city.tiles || {}).filter(City.isRoadTile);
       const roadIds = new Set(roads.map((tile) => tile.id));
       const routable = roads.filter((tile) => City.neighbors(tile.id).some((id) => roadIds.has(id)));
-      const carCount = Math.min(18, Math.max(0, Math.floor(routable.length / 4)));
+      const cityLevel = Math.max(1, Math.min(6, Number(city.level) || 1));
+      const carCount = Math.min(32, Math.max(0, Math.floor(routable.length / 4) + (cityLevel - 1) * 2));
       for (let index = 0; index < carCount; index += 1) {
         const tile = routable[Math.floor(index * routable.length / carCount)];
         const candidates = City.neighbors(tile.id).filter((id) => roadIds.has(id));
@@ -1318,6 +1397,7 @@
         if (item.type === "spin") item.object.rotation.z = elapsed * item.speed;
         else if (item.type === "water") item.object.scale.y = .95 + Math.sin(elapsed * 2.4) * .1;
         else if (item.type === "pulse") item.object.scale.x = item.object.scale.y = 1 + Math.sin(elapsed * 2.2) * .035;
+        else if (item.type === "districtPulse") item.object.scale.setScalar(item.baseScale * (1 + Math.sin(elapsed * 2 + item.phase) * .12));
         else if (item.type === "car") updateTrafficCar(item, delta);
         else if (item.type === "selection") {
           item.object.rotation.z = Math.PI / 4 + elapsed * .65;

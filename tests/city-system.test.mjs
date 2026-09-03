@@ -9,7 +9,9 @@ test("creates six persistent player cities with starter infrastructure", () => {
   assert.equal(state.version, 1);
   assert.equal(City.MAP_SCHEMA, 4);
   assert.equal(City.TERRAIN_REVISION, 2);
+  assert.equal(City.FEATURE_REVISION, 1);
   assert.equal(state.terrainRevision, City.TERRAIN_REVISION);
+  assert.equal(state.featureRevision, City.FEATURE_REVISION);
   assert.equal(City.GRID_SIZE, 160);
   assert.ok(City.GRID_SIZE * City.GRID_SIZE >= 16 * 16 * 100);
   assert.ok(Object.keys(City.BUILDINGS).length >= 1004);
@@ -20,6 +22,7 @@ test("creates six persistent player cities with starter infrastructure", () => {
     assert.ok(city.tiles[City.tileId(City.CITY_CENTER - 1, City.CITY_CENTER - 1)]);
     assert.equal(city.mapSchema, City.MAP_SCHEMA);
     assert.equal(city.terrainRevision, City.TERRAIN_REVISION);
+    assert.equal(city.featureRevision, City.FEATURE_REVISION);
     assert.ok(city.metrics.population > 0);
     assert.ok(city.metrics.capacity >= 360);
     assert.ok(city.metrics.powerSupply >= city.metrics.powerDemand);
@@ -153,6 +156,53 @@ test("current maps keep their tile coordinates while obsolete resources are remo
   const normalized = City.normalizeState(current, 1_000_100);
   assert.ok(normalized.players.tofu.tiles[marker]);
   assert.deepEqual(normalized.players.tofu.resources, { money: 24680 });
+});
+
+test("districts form from nearby complementary buildings and contribute city effects", () => {
+  const state = City.createInitialState(1_000_000);
+  const city = state.players.tofu;
+  city.tiles = {};
+  [
+    [70, 70, "residential"], [71, 70, "residential"],
+    [70, 71, "park"], [71, 71, "park"]
+  ].forEach(([x, z, buildingId]) => {
+    const id = City.tileId(x, z);
+    city.tiles[id] = { id, kind: "building", buildingId, level: 1 };
+  });
+  const districts = City.analyzeDistricts(city);
+  assert.equal(districts.groups.length, 1);
+  assert.equal(districts.groups[0].type, "green-neighborhood");
+  assert.equal(districts.groups[0].tileIds.length, 4);
+  assert.equal(districts.summary[0].name, "緑住区");
+  assert.equal(districts.effects.happiness, City.DISTRICTS["green-neighborhood"].effects.happiness);
+  assert.equal(City.calculateMetrics(city).districtCount, 1);
+});
+
+test("city stages require both population and city score", () => {
+  assert.equal(City.cityLevel(499, 999999), 1);
+  assert.equal(City.cityLevel(500, 4999), 1);
+  assert.equal(City.cityLevel(500, 5000), 2);
+  assert.equal(City.cityLevel(10000, 40000), 4);
+  assert.equal(City.cityStage(4).name, "大都市");
+  assert.equal(City.cityStage(99).name, "世界都市");
+});
+
+test("existing cities migrate district features without losing developed plots", () => {
+  const current = City.createInitialState(1_000_000);
+  const marker = City.tileId(City.CITY_CENTER + 6, City.CITY_CENTER + 3);
+  current.featureRevision = 0;
+  current.revision = 31;
+  delete current.players.tofu.featureRevision;
+  current.players.tofu.resources.money = 65432;
+  current.players.tofu.tiles[marker] = { id: marker, kind: "building", buildingId: "commercial", level: 3 };
+
+  const result = City.advanceState(current, 1_000_100, { maxTicks: 1 });
+  assert.equal(result.migrated, true);
+  assert.equal(result.state.featureRevision, City.FEATURE_REVISION);
+  assert.equal(result.state.players.tofu.featureRevision, City.FEATURE_REVISION);
+  assert.equal(result.state.players.tofu.resources.money, 65432);
+  assert.deepEqual(result.state.players.tofu.tiles[marker], current.players.tofu.tiles[marker]);
+  assert.equal(result.state.revision, 32);
 });
 
 test("existing developed cities migrate to the current terrain without losing city data", () => {

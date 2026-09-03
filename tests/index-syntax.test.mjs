@@ -343,9 +343,9 @@ test("BINGO CITY is connected to the shared client, worker tick, rules, and offl
   assert.match(cityMap, /terrainSoil/);
   assert.match(cityMap, /TERRAIN_RENDER_PROFILES/);
   assert.doesNotMatch(cityMap, /InstancedMesh\(shared\.terrain|BoxGeometry\(TILE \* \.96/);
-  assert.match(html, /src="city-system\.js\?v=20260902-city-terrain-migration-144"/);
-  assert.match(html, /src="city-map-3d\.js\?v=20260902-city-terrain-migration-144"/);
-  assert.match(html, /src="city-mode\.js\?v=20260902-city-terrain-migration-144"/);
+  assert.match(html, /src="city-system\.js\?v=20260903-city-districts-145"/);
+  assert.match(html, /src="city-map-3d\.js\?v=20260903-city-districts-145"/);
+  assert.match(html, /src="city-mode\.js\?v=20260903-city-districts-145"/);
   assert.match(html, /searchParams\.set\("city", "1"\)/);
   assert.match(html, /function cityPlayerIdForMember/);
   assert.match(html, /editablePlayerId/);
@@ -354,13 +354,21 @@ test("BINGO CITY is connected to the shared client, worker tick, rules, and offl
   assert.match(online, /subscribeCity\(\)/);
   assert.match(online, /snapshot\.terrainRevision/);
   assert.match(online, /previousTerrainRevision/);
+  assert.match(online, /previousFeatureRevision/);
   assert.match(citySystem, /const TERRAIN_REVISION = 2/);
+  assert.match(citySystem, /const FEATURE_REVISION = 1/);
+  assert.match(citySystem, /function analyzeDistricts/);
+  assert.match(citySystem, /green-neighborhood/);
+  assert.match(citySystem, /function cityStage/);
+  assert.match(cityMap, /function createDistrictBoundaries/);
+  assert.match(cityMap, /function addCityStageRoadDetail/);
+  assert.match(cityMode, /city-district-chip/);
   assert.match(online, /applyCityCommand\(command = \{\}\)/);
   assert.match(online, /awardCityMatchRewards\(payload = \{\}\)/);
   assert.match(worker, /advanceCitiesWithToken/);
   assert.match(worker, /context\.waitUntil\(advanceCities\(env\)\)/);
   assert.ok(rules.rules.teamBingoV1.cities.current, "Firebase city rules are missing");
-  assert.match(serviceWorker, /\.\/city-system\.js\?v=20260902-city-terrain-migration-144/);
+  assert.match(serviceWorker, /\.\/city-system\.js\?v=20260903-city-districts-145/);
   assert.doesNotMatch(serviceWorker, /SHELL_FILES = \[[\s\S]*?images\/city\/textures/);
 });
 

@@ -144,9 +144,11 @@
   function renderResources() {
     const city = activeCity();
     if (!city) return;
+    const stage = City.cityStage(city.level);
     root.querySelector("[data-city-owner]").textContent = city.ownerName;
     root.querySelector("[data-city-name]").textContent = city.name;
-    root.querySelector("[data-city-level]").textContent = `CITY LEVEL ${city.level}`;
+    root.querySelector("[data-city-level]").textContent = `LEVEL ${city.level} ${stage.name}`;
+    root.dataset.cityStage = String(city.level);
     root.classList.toggle("is-readonly-city", !canEditActiveCity());
     root.querySelector("[data-city-resources]").innerHTML = [
       ["資金", `¥ ${formatNumber(city.resources.money)}`, "money"]
@@ -190,6 +192,10 @@
   function renderMetrics() {
     const city = activeCity();
     const metrics = City.calculateMetrics(city);
+    const districts = City.analyzeDistricts(city);
+    const districtList = districts.summary.length
+      ? districts.summary.map((district) => `<div class="city-district-chip" style="--district-color:${district.color}"><span></span><b>${escapeHtml(district.name)}</b><small>${district.groups}地区 / ${district.tiles}区画</small></div>`).join("")
+      : `<p class="city-district-empty">周辺に同系統の建物を集めると地区が成立します。</p>`;
     root.querySelector("[data-city-metrics]").innerHTML = `
       <div class="city-panel-heading"><span>CITY STATUS</span><strong>都市指標</strong></div>
       <div class="city-population"><span>人口</span><strong>${formatNumber(metrics.population)}</strong><small>収容 ${formatNumber(metrics.capacity)}</small></div>
@@ -202,6 +208,8 @@
         ${metric("環境", metrics.environment, "%")}
       </div>
       <div class="city-economy-line"><span>前回収支</span><b class="${city.economy.balance >= 0 ? "plus" : "minus"}">${city.economy.balance >= 0 ? "+" : ""}¥${formatNumber(city.economy.balance)}</b></div>
+      <div class="city-district-head"><span>DISTRICTS</span><b>${districts.groups.length}地区</b></div>
+      <div class="city-district-list">${districtList}</div>
     `;
   }
 
@@ -232,8 +240,11 @@
     }
     const building = City.BUILDINGS[tile.buildingId];
     const level = Number(tile.level) || 1;
+    const districtType = City.analyzeDistricts(city).tiles[selectedTileId];
+    const district = City.DISTRICTS[districtType];
     host.innerHTML = `<div class="city-panel-heading"><span>${escapeHtml(building.category.toUpperCase())}</span><strong>${escapeHtml(building.name)}</strong></div>
       <div class="city-building-level">LEVEL ${level}</div>
+      ${district ? `<div class="city-selection-district" style="--district-color:${district.color}"><span></span><b>${escapeHtml(district.name)}</b></div>` : ""}
       <p>${escapeHtml(building.description)}</p>
       <div class="city-selection-actions">
         ${building.id !== "road" && level < 3 ? `<button type="button" class="city-simple-button primary" data-city-upgrade ${busy ? "disabled" : ""}>UPGRADE</button>` : ""}
@@ -247,7 +258,7 @@
       <button type="button" class="city-rank-row ${entry.id === activePlayerId ? "active" : ""}" data-city-player="${entry.id}">
         <span class="city-rank-number">${index + 1}</span>
         <span class="city-rank-color" style="--rank-color:${entry.color}"></span>
-        <span class="city-rank-name"><b>${escapeHtml(entry.cityName)}</b><small>${escapeHtml(entry.name)}</small></span>
+        <span class="city-rank-name"><b>${escapeHtml(entry.cityName)}</b><small>${escapeHtml(entry.name)} / Lv.${entry.level} ${escapeHtml(City.cityStage(entry.level).name)}</small></span>
         <strong>${formatNumber(entry.cityScore)}</strong>
       </button>
     `).join("");

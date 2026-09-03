@@ -3579,7 +3579,8 @@ export class OnlineCoordinator {
       if (snapshot) {
         this.bridge.applyCitySnapshot?.(snapshot);
         const needsMigration = Number(snapshot.mapSchema) < Number(CITY_SYSTEM.MAP_SCHEMA)
-          || Number(snapshot.terrainRevision) < Number(CITY_SYSTEM.TERRAIN_REVISION);
+          || Number(snapshot.terrainRevision) < Number(CITY_SYSTEM.TERRAIN_REVISION)
+          || Number(snapshot.featureRevision) < Number(CITY_SYSTEM.FEATURE_REVISION);
         const needsAutoDevelopment = Object.values(snapshot.players || {}).some((city) => (
           city?.autoDevelopment?.enabled !== false
           && Number(city?.resources?.money || 0) > Number(CITY_SYSTEM.AUTO_BUILD_THRESHOLD)
@@ -3646,11 +3647,13 @@ export class OnlineCoordinator {
     this.cityAutoDevelopmentPromise = this.backend.transaction(this.path("cities/current"), (current) => {
       const previousSchema = Number(current?.mapSchema) || 0;
       const previousTerrainRevision = Number(current?.terrainRevision) || 0;
+      const previousFeatureRevision = Number(current?.featureRevision) || 0;
       const state = CITY_SYSTEM.normalizeState(current, now);
       let placed = 0;
       Object.values(state.players || {}).forEach((city) => { placed += CITY_SYSTEM.autoDevelopCity(city, now, 12); });
       const alreadyCurrent = previousSchema >= Number(CITY_SYSTEM.MAP_SCHEMA)
-        && previousTerrainRevision >= Number(CITY_SYSTEM.TERRAIN_REVISION);
+        && previousTerrainRevision >= Number(CITY_SYSTEM.TERRAIN_REVISION)
+        && previousFeatureRevision >= Number(CITY_SYSTEM.FEATURE_REVISION);
       if (!placed && alreadyCurrent) return undefined;
       state.revision = (Number(state.revision) || 0) + 1;
       state.updatedAt = Number(now);

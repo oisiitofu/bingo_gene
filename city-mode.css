@@ -179,9 +179,20 @@ body.city-mode-open { overflow: hidden; }
 .city-economy-line { display: flex; justify-content: space-between; margin-top: 7px; padding-top: 7px; border-top: 1px solid rgba(164,196,211,.16); font-size: 10px; }
 .city-economy-line .plus { color: #62dbab; }
 .city-economy-line .minus { color: #ef6a75; }
+.city-district-head { display: flex; align-items: center; justify-content: space-between; margin-top: 10px; padding-top: 8px; border-top: 1px solid rgba(164,196,211,.16); }
+.city-district-head span { color: #829aa7; font-size: 8px; font-weight: 900; }
+.city-district-head b { color: #f2cf65; font-size: 10px; }
+.city-district-list { display: grid; gap: 4px; margin-top: 6px; }
+.city-district-chip { min-width: 0; display: grid; grid-template-columns: 7px minmax(0, 1fr) auto; align-items: center; gap: 6px; padding: 6px 7px; border: 1px solid color-mix(in srgb, var(--district-color) 38%, #263c48); background: color-mix(in srgb, var(--district-color) 8%, #08151d); }
+.city-district-chip > span { width: 6px; height: 20px; background: var(--district-color); box-shadow: 0 0 8px color-mix(in srgb, var(--district-color) 72%, transparent); }
+.city-district-chip b { overflow: hidden; color: #eef7fa; font-size: 9px; text-overflow: ellipsis; white-space: nowrap; }
+.city-district-chip small { color: #8ca3ae; font-size: 7px; white-space: nowrap; }
+.city-district-empty { min-height: 0; margin: 5px 0 0; color: #708995; font-size: 8px; line-height: 1.5; }
 .city-selection p { min-height: 32px; margin: 9px 0; color: #a4b6bf; font-size: 10px; line-height: 1.55; }
 .city-building-level, .city-build-active { margin-top: 8px; padding: 7px; color: #f2cf65; font-size: 11px; font-weight: 900; background: rgba(242, 200, 91, .08); }
 .city-build-active { color: #68d9ff; background: rgba(80, 194, 235, .1); }
+.city-selection-district { display: flex; align-items: center; gap: 7px; margin-top: 6px; padding: 6px 8px; border-left: 3px solid var(--district-color); color: #eaf5f8; font-size: 10px; background: color-mix(in srgb, var(--district-color) 10%, #091720); }
+.city-selection-district span { width: 6px; height: 6px; background: var(--district-color); box-shadow: 0 0 8px var(--district-color); }
 .city-selection-actions { display: flex; gap: 6px; }
 .city-rank-row { width: 100%; display: grid; grid-template-columns: 20px 7px 1fr auto; align-items: center; gap: 7px; padding: 7px 3px; border: 0; border-bottom: 1px solid rgba(172,202,218,.12); color: #dbe7ed; text-align: left; background: none; cursor: pointer; }
 .city-rank-row.active { background: rgba(80, 190, 230, .08); }
