@@ -279,10 +279,12 @@
     const city = activeCity();
     const life = City.lifeStatus(city);
     const latest = life.news[0];
+    const eventStatus = City.eventStatus(city, Date.now());
     const speakers = life.residents.slice().sort((a, b) => (Number(b.lastSpokeAt) || 0) - (Number(a.lastSpokeAt) || 0)).slice(0, 3);
     root.querySelector("[data-city-life]").innerHTML = `
       <div class="city-panel-heading"><span>CITY LIVE</span><strong>市民・ニュース</strong></div>
       ${latest ? `<article class="city-news ${escapeHtml(latest.tone || "neutral")}"><span>${escapeHtml(latest.type.toUpperCase())}</span><b>${escapeHtml(latest.title)}</b><p>${escapeHtml(latest.detail)}</p></article>` : ""}
+      ${eventStatus.active.length ? `<div class="city-active-events">${eventStatus.active.map((entry) => `<div class="city-event ${escapeHtml(entry.tone || "neutral")}"><span>ACTIVE EVENT</span><b>${escapeHtml(entry.title)}</b><small>${Math.max(1, Math.ceil((entry.expiresAt - Date.now()) / 60000))}分</small></div>`).join("")}</div>` : ""}
       <div class="city-resident-list">${speakers.map((resident) => `<div class="city-resident">
         <i>${escapeHtml(resident.name.slice(0, 1))}</i><span><b>${escapeHtml(resident.name)}</b><small>${escapeHtml(resident.job)} / 満足 ${Math.round(resident.satisfaction)}%</small></span>
       </div>`).join("")}</div>

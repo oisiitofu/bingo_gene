@@ -4,7 +4,7 @@
   const VERSION = 1;
   const MAP_SCHEMA = 4;
   const TERRAIN_REVISION = 2;
-  const FEATURE_REVISION = 6;
+  const FEATURE_REVISION = 7;
   const GRID_SIZE = 160;
   const CITY_CENTER = Math.floor(GRID_SIZE / 2);
   const TICK_MINUTES = 10;
@@ -65,6 +65,21 @@
     kento: Object.freeze([["紫藤ミライ", "配信技師"], ["初見わこ", "メディア学生"], ["雷門ルイ", "電波研究員"], ["月城ネオン", "映像作家"], ["桐生ライブ", "市民記者"]]),
     lickey: Object.freeze([["蒼井キング", "王城建築士"], ["金森クラウン", "観光案内人"], ["城戸レオン", "近衛隊員"], ["海原ミント", "港湾商人"], ["王都リポ", "市民記者"]])
   });
+
+  const CITY_EVENTS = Object.freeze([
+    Object.freeze({ id: "festival", title: "六王シティフェス", detail: "中心街に屋台とステージが並び、観光客が押し寄せています。", tone: "positive", durationTicks: 12, money: 1200, effects: { happiness: 7, tourism: 16, tax: 24 } }),
+    Object.freeze({ id: "tech-expo", title: "未来技術博 開幕", detail: "研究者と企業が集まり、新技術の展示会が始まりました。", tone: "positive", durationTicks: 15, money: 900, effects: { education: 8, jobs: 32, tourism: 9 } }),
+    Object.freeze({ id: "tour-boom", title: "観光動画が大拡散", detail: "街の映像が話題になり、観光需要が急上昇しています。", tone: "positive", durationTicks: 10, money: 1500, effects: { tourism: 22, happiness: 3 } }),
+    Object.freeze({ id: "green-week", title: "都市緑化週間", detail: "市民参加の植樹活動で街路と公園が鮮やかになりました。", tone: "positive", durationTicks: 18, money: -300, effects: { environment: 10, happiness: 5 } }),
+    Object.freeze({ id: "night-market", title: "ナイトマーケット盛況", detail: "夜の商業区に市民と観光客が集まっています。", tone: "positive", durationTicks: 9, money: 1000, effects: { tourism: 10, tax: 35 } }),
+    Object.freeze({ id: "power-alert", title: "電力需給ひっ迫警報", detail: "使用電力が増加し、節電への協力が呼びかけられています。", tone: "warning", durationTicks: 8, money: -700, effects: { powerSupply: -18, happiness: -4 } }),
+    Object.freeze({ id: "cloudburst", title: "局地的豪雨", detail: "道路の一部で冠水が発生し、復旧班が対応しています。", tone: "warning", durationTicks: 7, money: -1100, effects: { safety: -5, environment: -3 } }),
+    Object.freeze({ id: "traffic-surge", title: "中心街で大渋滞", detail: "イベント来場車が集中し、公共交通の利用が推奨されています。", tone: "warning", durationTicks: 6, money: -500, effects: { jobs: -28, happiness: -5 } }),
+    Object.freeze({ id: "factory-order", title: "大型生産契約を獲得", detail: "市内企業が大型案件を受注し、雇用と税収が伸びています。", tone: "positive", durationTicks: 14, money: 1800, effects: { jobs: 55, tax: 42, pollution: 2 } }),
+    Object.freeze({ id: "volunteer", title: "市民ボランティア結集", detail: "市民が清掃と防災訓練に参加し、地域の連携が強まりました。", tone: "positive", durationTicks: 12, money: -200, effects: { safety: 7, environment: 5, happiness: 3 } }),
+    Object.freeze({ id: "water-maintenance", title: "大規模水道メンテナンス", detail: "安定供給に向けた更新工事が市内各所で進んでいます。", tone: "neutral", durationTicks: 6, money: -900, effects: { waterSupply: -12, jobs: 18 } }),
+    Object.freeze({ id: "championship", title: "ビンゴ選手権パブリックビューイング", detail: "勝負の行方を見守る市民で広場が埋め尽くされています。", tone: "positive", durationTicks: 10, money: 1300, effects: { happiness: 8, tourism: 12, tax: 18 } })
+  ]);
 
   const TERRAIN = Object.freeze({
     grass: { id: "grass", name: "草地", buildable: true },
@@ -443,6 +458,11 @@
     };
   }
 
+  function createCityEventState(playerId, now) {
+    const jitter = Math.floor(hash2(`${playerId}:event-start`, 7, 19) * TICK_MS * 12);
+    return { active: {}, history: {}, nextAt: Number(now) + TICK_MS * 24 + jitter };
+  }
+
   function createPlayerCity(player, now) {
     const city = {
       id: player.id, name: player.cityName, ownerName: player.name, color: player.color, accent: player.accent,
@@ -451,7 +471,7 @@
       metrics: emptyMetrics(), economy: { taxRate: 10, lastIncome: 0, lastExpense: 0, balance: 0 },
       autoDevelopment: { enabled: true, threshold: AUTO_BUILD_THRESHOLD, placed: 0, cursor: 0 },
       tiles: initialTiles(), unlocks: allUnlocks(), inbox: {}, history: {},
-      missions: { completed: 0, total: 0, earned: 0, recent: {} }, life: createCityLife(player, now), createdAt: now, updatedAt: now
+      missions: { completed: 0, total: 0, earned: 0, recent: {} }, life: createCityLife(player, now), events: createCityEventState(player.id, now), createdAt: now, updatedAt: now
     };
     city.metrics = calculateMetrics(city);
     city.level = cityLevel(city.metrics.population, city.metrics.cityScore);
@@ -499,6 +519,12 @@
         residents: city.life?.residents && typeof city.life.residents === "object" ? city.life.residents : initialLife.residents,
         news: city.life?.news && typeof city.life.news === "object" ? city.life.news : initialLife.news,
         lastNewsAt: Number(city.life?.lastNewsAt) || Number(city.createdAt) || Number(now)
+      };
+      const initialEvents = createCityEventState(player.id, city.createdAt || now);
+      city.events = {
+        active: city.events?.active && typeof city.events.active === "object" ? city.events.active : {},
+        history: city.events?.history && typeof city.events.history === "object" ? city.events.history : {},
+        nextAt: Number(city.events?.nextAt) || initialEvents.nextAt
       };
       city.metrics = calculateMetrics(city);
       city.level = cityLevel(city.metrics.population, city.metrics.cityScore);
@@ -637,6 +663,15 @@
     return { roads: roads.length, connectedRoads: largestNetwork, connectivity, publicTransit: Math.min(100, publicTransit), demand, capacity, congestion, efficiency };
   }
 
+  function activeEventEffects(city, now = Number(city?.updatedAt) || Date.now()) {
+    const effects = {};
+    Object.values(city?.events?.active || {}).forEach((entry) => {
+      if ((Number(entry.expiresAt) || 0) <= Number(now)) return;
+      Object.entries(entry.effects || {}).forEach(([field, value]) => { effects[field] = (effects[field] || 0) + (Number(value) || 0); });
+    });
+    return effects;
+  }
+
   function calculateMetrics(city) {
     const previous = city?.metrics || emptyMetrics();
     const totals = { populationCapacity: 0, jobs: 0, happiness: 0, safety: 0, education: 0, health: 0, tourism: 0, environment: 0, pollution: 0, powerDemand: 0, powerSupply: 0, waterDemand: 0, waterSupply: 0, tax: 0, upkeep: 0 };
@@ -650,6 +685,7 @@
     Object.entries(districts.effects).forEach(([field, value]) => { if (Object.hasOwn(totals, field)) totals[field] += Number(value) || 0; });
     const identity = CITY_IDENTITIES[city?.id];
     Object.entries(identity?.effects || {}).forEach(([field, value]) => { if (Object.hasOwn(totals, field)) totals[field] += Number(value) || 0; });
+    Object.entries(activeEventEffects(city)).forEach(([field, value]) => { if (Object.hasOwn(totals, field)) totals[field] += Number(value) || 0; });
     const population = Math.max(0, Math.min(Number(previous.population) || 0, Math.max(180, totals.populationCapacity)));
     const powerCoverage = totals.powerDemand ? Math.min(100, Math.round(totals.powerSupply / totals.powerDemand * 100)) : 100;
     const waterCoverage = totals.waterDemand ? Math.min(100, Math.round(totals.waterSupply / totals.waterDemand * 100)) : 100;
@@ -755,6 +791,34 @@
       news: Object.values(city?.life?.news || {}).sort((a, b) => (Number(b.createdAt) || 0) - (Number(a.createdAt) || 0)),
       lastNewsAt: Number(city?.life?.lastNewsAt) || 0
     };
+  }
+
+  function processCityEvents(city, now) {
+    const eventState = city.events ||= createCityEventState(city.id, now);
+    Object.entries(eventState.active || {}).forEach(([id, entry]) => {
+      if ((Number(entry.expiresAt) || 0) <= Number(now)) delete eventState.active[id];
+    });
+    if (Number(now) < (Number(eventState.nextAt) || 0)) return null;
+    const cycle = Math.floor(Number(now) / (TICK_MS * 6));
+    const definition = CITY_EVENTS[Math.min(CITY_EVENTS.length - 1, Math.floor(hash2(`${city.id}:event`, cycle, Number(city.level) || 1) * CITY_EVENTS.length))];
+    const id = `${definition.id}-${Number(now)}`;
+    const scale = 1 + Math.max(0, (Number(city.level) || 1) - 1) * .16;
+    const money = Math.round(definition.money * scale);
+    const entry = { ...definition, id, money, startedAt: Number(now), expiresAt: Number(now) + definition.durationTicks * TICK_MS };
+    eventState.active[id] = entry;
+    eventState.history[id] = { ...entry, createdAt: Number(now) };
+    eventState.history = trimMap(eventState.history, 48);
+    eventState.nextAt = Number(now) + TICK_MS * (30 + Math.floor(hash2(`${city.id}:event-next`, cycle, 31) * 18));
+    city.resources.money = Math.max(0, (Number(city.resources.money) || 0) + money);
+    addHistory(city, "city-event", definition.title, `${definition.detail} / 資金 ${money >= 0 ? "+" : ""}${money}`, now, { eventId: id });
+    publishCityNews(city, "city-event", definition.title, definition.detail, now, definition.tone, { eventId: id });
+    return entry;
+  }
+
+  function eventStatus(city, now = Date.now()) {
+    const active = Object.values(city?.events?.active || {}).filter((entry) => (Number(entry.expiresAt) || 0) > Number(now)).sort((a, b) => Number(a.expiresAt) - Number(b.expiresAt));
+    const history = Object.values(city?.events?.history || {}).sort((a, b) => (Number(b.startedAt) || 0) - (Number(a.startedAt) || 0));
+    return { active, history, nextAt: Number(city?.events?.nextAt) || 0 };
   }
 
   function placeBuilding(city, id, definition) {
@@ -940,6 +1004,7 @@
 
   function advanceCity(city, now) {
     const previousLevel = Number(city.level) || 1;
+    processCityEvents(city, now);
     const metrics = calculateMetrics(city);
     const infrastructure = Math.min(metrics.powerCoverage, metrics.waterCoverage) / 100;
     const jobsLimit = Math.max(180, Math.round(metrics.jobs / .44));
@@ -1079,10 +1144,10 @@
 
   const api = {
     VERSION, MAP_SCHEMA, TERRAIN_REVISION, FEATURE_REVISION, GRID_SIZE, CITY_CENTER, TICK_MINUTES, TICK_MS, AUTO_BUILD_THRESHOLD,
-    PLAYERS, PLAYER_BY_ID, CITY_IDENTITIES, MISSION_POOLS, CITIZEN_CASTS, TERRAIN, CITY_STAGES, DISTRICTS, SIGNATURE_LANDMARKS, BUILDINGS, BUILDING_IDS,
+    PLAYERS, PLAYER_BY_ID, CITY_IDENTITIES, MISSION_POOLS, CITIZEN_CASTS, CITY_EVENTS, TERRAIN, CITY_STAGES, DISTRICTS, SIGNATURE_LANDMARKS, BUILDINGS, BUILDING_IDS,
     clone, playerKey, playerForName, tileId, parseTileId, neighbors, terrainAt,
     createInitialState, normalizeState, analyzeDistricts, analyzeTraffic, cityLevel, cityStage, landmarkStatus, calculateMetrics, canBuild, applyCommand, autoDevelopCity, advanceState,
-    rewardForPlayer, missionsForMatch, resolveMatchMissions, missionStatus, lifeStatus, cityPulse, applyMatchReward, standings, isRoadTile
+    rewardForPlayer, missionsForMatch, resolveMatchMissions, missionStatus, lifeStatus, cityPulse, processCityEvents, eventStatus, applyMatchReward, standings, isRoadTile
   };
 
   global.TeamBingoCitySystem = api;

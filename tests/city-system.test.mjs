@@ -9,7 +9,7 @@ test("creates six persistent player cities with starter infrastructure", () => {
   assert.equal(state.version, 1);
   assert.equal(City.MAP_SCHEMA, 4);
   assert.equal(City.TERRAIN_REVISION, 2);
-  assert.equal(City.FEATURE_REVISION, 6);
+  assert.equal(City.FEATURE_REVISION, 7);
   assert.equal(state.terrainRevision, City.TERRAIN_REVISION);
   assert.equal(state.featureRevision, City.FEATURE_REVISION);
   assert.equal(City.GRID_SIZE, 160);
@@ -308,6 +308,26 @@ test("traffic analysis measures connected roads, congestion, and public transit 
   assert.equal(metrics.publicTransit, transit.publicTransit);
   assert.ok(metrics.trafficCongestion >= 0 && metrics.trafficCongestion <= 100);
   assert.ok(metrics.transportEfficiency >= 0 && metrics.transportEfficiency <= 100);
+});
+
+test("random city events are deterministic, temporary, bounded, and affect city resources", () => {
+  const now = 8_000_000;
+  const state = City.createInitialState(now);
+  const city = state.players.rima;
+  city.events.nextAt = now;
+  const money = city.resources.money;
+  const event = City.processCityEvents(city, now);
+  assert.ok(event && City.CITY_EVENTS.some((definition) => definition.id === event.id.split(`-${now}`)[0] || event.id.startsWith(`${definition.id}-`)));
+  assert.notEqual(city.resources.money, money);
+  assert.equal(City.eventStatus(city, now).active.length, 1);
+  assert.ok(City.lifeStatus(city).news[0].title);
+  City.processCityEvents(city, event.expiresAt + 1);
+  assert.equal(City.eventStatus(city, event.expiresAt + 1).active.length, 0);
+  for (let index = 0; index < 60; index += 1) {
+    city.events.nextAt = now + index + 1;
+    City.processCityEvents(city, now + index + 1);
+  }
+  assert.ok(City.eventStatus(city, Number.MAX_SAFE_INTEGER).history.length <= 48);
 });
 
 test("existing cities migrate district features without losing developed plots", () => {
