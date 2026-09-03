@@ -72,6 +72,7 @@
           </main>
           <aside class="city-info-panel">
             <section class="city-metrics" data-city-metrics></section>
+            <section class="city-life-panel" data-city-life></section>
             <section class="city-selection" data-city-selection></section>
             <section class="city-ranking">
               <div class="city-panel-heading"><span>CITY SCORE</span><strong>都市ランキング</strong></div>
@@ -271,6 +272,20 @@
       </div>`;
   }
 
+  function renderCityLife() {
+    const city = activeCity();
+    const life = City.lifeStatus(city);
+    const latest = life.news[0];
+    const speakers = life.residents.slice().sort((a, b) => (Number(b.lastSpokeAt) || 0) - (Number(a.lastSpokeAt) || 0)).slice(0, 3);
+    root.querySelector("[data-city-life]").innerHTML = `
+      <div class="city-panel-heading"><span>CITY LIVE</span><strong>市民・ニュース</strong></div>
+      ${latest ? `<article class="city-news ${escapeHtml(latest.tone || "neutral")}"><span>${escapeHtml(latest.type.toUpperCase())}</span><b>${escapeHtml(latest.title)}</b><p>${escapeHtml(latest.detail)}</p></article>` : ""}
+      <div class="city-resident-list">${speakers.map((resident) => `<div class="city-resident">
+        <i>${escapeHtml(resident.name.slice(0, 1))}</i><span><b>${escapeHtml(resident.name)}</b><small>${escapeHtml(resident.job)} / 満足 ${Math.round(resident.satisfaction)}%</small></span>
+      </div>`).join("")}</div>
+    `;
+  }
+
   function renderRanking() {
     const ranking = City.standings(state);
     root.querySelector("[data-city-ranking]").innerHTML = ranking.map((entry, index) => `
@@ -312,6 +327,7 @@
     renderResources();
     renderBuildMenu();
     renderMetrics();
+    renderCityLife();
     renderSelection();
     renderRanking();
     renderMap();

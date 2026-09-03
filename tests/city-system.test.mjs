@@ -9,7 +9,7 @@ test("creates six persistent player cities with starter infrastructure", () => {
   assert.equal(state.version, 1);
   assert.equal(City.MAP_SCHEMA, 4);
   assert.equal(City.TERRAIN_REVISION, 2);
-  assert.equal(City.FEATURE_REVISION, 4);
+  assert.equal(City.FEATURE_REVISION, 5);
   assert.equal(state.terrainRevision, City.TERRAIN_REVISION);
   assert.equal(state.featureRevision, City.FEATURE_REVISION);
   assert.equal(City.GRID_SIZE, 160);
@@ -257,6 +257,35 @@ test("the six cities have distinct identities that affect persistent city metric
     assert.equal(metrics.identityId, identity.id);
     assert.ok(Object.keys(identity.effects).length >= 3);
   });
+});
+
+test("each city keeps a distinct citizen cast and publishes metric-driven city news", () => {
+  const state = City.createInitialState(4_000_000);
+  const names = new Set();
+  City.PLAYERS.forEach((player, index) => {
+    const city = state.players[player.id];
+    const initial = City.lifeStatus(city);
+    assert.equal(initial.residents.length, 5);
+    initial.residents.forEach((resident) => names.add(resident.name));
+    city.metrics.happiness = index === 0 ? 92 : city.metrics.happiness;
+    const news = City.cityPulse(city, 4_000_000 + City.TICK_MS * (6 + index));
+    const updated = City.lifeStatus(city);
+    assert.ok(news?.title && news?.detail);
+    assert.equal(updated.news[0].id, news.id);
+    assert.ok(updated.residents.some((resident) => resident.lastSpokeAt > 4_000_000));
+  });
+  assert.equal(names.size, 30);
+});
+
+test("city commands publish visible news without allowing an unbounded feed", () => {
+  let state = City.createInitialState(5_000_000);
+  const city = state.players.tofu;
+  for (let index = 0; index < 42; index += 1) City.cityPulse(city, 5_000_000 + City.TICK_MS * (index + 1));
+  assert.ok(City.lifeStatus(city).news.length <= 36);
+  const plot = City.tileId(City.CITY_CENTER - 1, City.CITY_CENTER - 2);
+  const result = City.applyCommand(state, { id: "news-build", type: "build", playerId: "tofu", tileId: plot, buildingId: "residential" }, 40_000_000);
+  assert.equal(result.applied, true);
+  assert.match(City.lifeStatus(result.state.players.tofu).news[0].title, /完成/);
 });
 
 test("existing cities migrate district features without losing developed plots", () => {

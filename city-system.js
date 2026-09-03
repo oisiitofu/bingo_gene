@@ -4,7 +4,7 @@
   const VERSION = 1;
   const MAP_SCHEMA = 4;
   const TERRAIN_REVISION = 2;
-  const FEATURE_REVISION = 4;
+  const FEATURE_REVISION = 5;
   const GRID_SIZE = 160;
   const CITY_CENTER = Math.floor(GRID_SIZE / 2);
   const TICK_MINUTES = 10;
@@ -56,6 +56,15 @@
       Object.freeze({ id: "comeback", title: "大逆転勝利", kind: "victoryKind", value: "comeback", target: 1, reward: 1400 })
     ])
   ]);
+
+  const CITIZEN_CASTS = Object.freeze({
+    tofu: Object.freeze([["白井こはく", "庭園技師"], ["若葉みのり", "豆腐料理人"], ["灰田つむぎ", "住宅設計士"], ["緑川なごみ", "環境調査員"], ["雪村ましろ", "市民記者"]]),
+    eda: Object.freeze([["刃金レイ", "防災隊長"], ["赤城つばさ", "機械技師"], ["青峰ジン", "物流監督"], ["剣持カナタ", "警備士"], ["三枝ミナ", "市民記者"]]),
+    jan: Object.freeze([["星野ヒカル", "舞台演出家"], ["金城キララ", "イベント企画員"], ["運野めぐる", "商店主"], ["天川スバル", "ドーム整備士"], ["日向アキ", "市民記者"]]),
+    rima: Object.freeze([["麺谷すすむ", "深夜料理人"], ["橙野ライム", "物流運転士"], ["速水チャージ", "補給技師"], ["夜久ネル", "夜間警備員"], ["灯里レポ", "市民記者"]]),
+    kento: Object.freeze([["紫藤ミライ", "配信技師"], ["初見わこ", "メディア学生"], ["雷門ルイ", "電波研究員"], ["月城ネオン", "映像作家"], ["桐生ライブ", "市民記者"]]),
+    lickey: Object.freeze([["蒼井キング", "王城建築士"], ["金森クラウン", "観光案内人"], ["城戸レオン", "近衛隊員"], ["海原ミント", "港湾商人"], ["王都リポ", "市民記者"]])
+  });
 
   const TERRAIN = Object.freeze({
     grass: { id: "grass", name: "草地", buildable: true },
@@ -418,6 +427,19 @@
     return Object.fromEntries(BUILDING_IDS.map((id) => [id, true]));
   }
 
+  function createCityLife(player, now) {
+    const cast = CITIZEN_CASTS[player.id] || CITIZEN_CASTS.tofu;
+    return {
+      residents: Object.fromEntries(cast.map(([name, job], index) => [`resident-${index + 1}`, {
+        id: `resident-${index + 1}`, name, job, satisfaction: 70, lastQuote: "この街がどう育つか、楽しみにしています。", lastSpokeAt: Number(now)
+      }])),
+      news: {
+        [`${Number(now)}-founding`]: { id: `${Number(now)}-founding`, type: "founding", tone: "positive", title: `${player.cityName} 建設開始`, detail: "市民とともに新しい都市づくりが始まりました。", createdAt: Number(now) }
+      },
+      lastNewsAt: Number(now)
+    };
+  }
+
   function createPlayerCity(player, now) {
     const city = {
       id: player.id, name: player.cityName, ownerName: player.name, color: player.color, accent: player.accent,
@@ -426,7 +448,7 @@
       metrics: emptyMetrics(), economy: { taxRate: 10, lastIncome: 0, lastExpense: 0, balance: 0 },
       autoDevelopment: { enabled: true, threshold: AUTO_BUILD_THRESHOLD, placed: 0, cursor: 0 },
       tiles: initialTiles(), unlocks: allUnlocks(), inbox: {}, history: {},
-      missions: { completed: 0, total: 0, earned: 0, recent: {} }, createdAt: now, updatedAt: now
+      missions: { completed: 0, total: 0, earned: 0, recent: {} }, life: createCityLife(player, now), createdAt: now, updatedAt: now
     };
     city.metrics = calculateMetrics(city);
     city.level = cityLevel(city.metrics.population, city.metrics.cityScore);
@@ -468,6 +490,12 @@
         total: Math.max(0, Number(city.missions?.total) || 0),
         earned: Math.max(0, Number(city.missions?.earned) || 0),
         recent: city.missions?.recent && typeof city.missions.recent === "object" ? city.missions.recent : {}
+      };
+      const initialLife = createCityLife(player, city.createdAt || now);
+      city.life = {
+        residents: city.life?.residents && typeof city.life.residents === "object" ? city.life.residents : initialLife.residents,
+        news: city.life?.news && typeof city.life.news === "object" ? city.life.news : initialLife.news,
+        lastNewsAt: Number(city.life?.lastNewsAt) || Number(city.createdAt) || Number(now)
       };
       city.metrics = calculateMetrics(city);
       city.level = cityLevel(city.metrics.population, city.metrics.cityScore);
@@ -644,6 +672,50 @@
     city.history = trimMap(city.history, MAX_HISTORY);
   }
 
+  function publishCityNews(city, type, title, detail, now, tone = "neutral", extra = {}) {
+    city.life ||= createCityLife(PLAYER_BY_ID[city.id] || PLAYERS[0], now);
+    const id = `${Number(now)}-${type}-${Object.keys(city.life.news || {}).length}`;
+    city.life.news ||= {};
+    city.life.news[id] = { id, type, title, detail, tone, createdAt: Number(now), ...extra };
+    city.life.news = trimMap(city.life.news, 36);
+    city.life.lastNewsAt = Number(now);
+    return city.life.news[id];
+  }
+
+  function cityPulse(city, now) {
+    const metrics = calculateMetrics(city);
+    const districts = analyzeDistricts(city);
+    const residents = Object.values(city.life?.residents || {});
+    if (!residents.length) return null;
+    const speaker = residents[Math.min(residents.length - 1, Math.floor(hash2(`${city.id}:citizen`, Math.floor(Number(now) / (TICK_MS * 6)), residents.length) * residents.length))];
+    let title = "街角から届いた声";
+    let quote = "新しい建物が増えて、街を歩くのが毎日楽しみです。";
+    let tone = "neutral";
+    if (Math.min(metrics.powerCoverage, metrics.waterCoverage) < 90) {
+      title = "都市インフラに改善要望"; quote = "電気と水道が安定すれば、もっと暮らしやすくなりそうです。"; tone = "warning";
+    } else if (metrics.happiness >= 86) {
+      title = "市民満足度が好調"; quote = "この街、かなり住み心地がいいですよ。友達にも自慢しています。"; tone = "positive";
+    } else if (metrics.tourism >= 50) {
+      title = "観光客で街がにぎわう"; quote = "遠くから来た人で通りがいっぱいです。街に活気がありますね。"; tone = "positive";
+    } else if (districts.groups.length >= 2) {
+      title = `${districts.groups.length}地区が都市を形成`; quote = "地区ごとの雰囲気が違って、歩くだけでも発見があります。"; tone = "positive";
+    } else if (metrics.employmentRate < 75) {
+      title = "雇用対策を求める声"; quote = "働ける場所がもう少し増えると、街全体が元気になると思います。"; tone = "warning";
+    }
+    speaker.satisfaction = Math.max(0, Math.min(100, Math.round((metrics.happiness + metrics.employmentRate + Math.min(metrics.powerCoverage, metrics.waterCoverage)) / 3)));
+    speaker.lastQuote = quote;
+    speaker.lastSpokeAt = Number(now);
+    return publishCityNews(city, "citizen", title, `「${quote}」 ${speaker.name} / ${speaker.job}`, now, tone, { residentId: speaker.id });
+  }
+
+  function lifeStatus(city) {
+    return {
+      residents: Object.values(city?.life?.residents || {}).sort((a, b) => a.id.localeCompare(b.id)),
+      news: Object.values(city?.life?.news || {}).sort((a, b) => (Number(b.createdAt) || 0) - (Number(a.createdAt) || 0)),
+      lastNewsAt: Number(city?.life?.lastNewsAt) || 0
+    };
+  }
+
   function placeBuilding(city, id, definition) {
     city.resources.money -= definition.cost;
     city.tiles[id] = { id, kind: isRoadDefinition(definition) ? "road" : "building", buildingId: definition.id, level: 1 };
@@ -662,6 +734,7 @@
       if (!result.ok) return { state, applied: false, error: result.reason };
       placeBuilding(city, id, result.definition);
       addHistory(city, "build", `${result.definition.name} 建設`, `${id} に新しい施設が完成しました。`, now, { tileId: id, buildingId: result.definition.id });
+      publishCityNews(city, "build", `${result.definition.name} 完成`, `${id}で営業・運用を開始しました。`, now, "positive", { tileId: id, buildingId: result.definition.id });
     } else if (command.type === "upgrade") {
       const tile = city.tiles?.[id];
       const definition = BUILDINGS[tile?.buildingId];
@@ -673,6 +746,7 @@
       city.resources.money -= money;
       tile.level = nextLevel;
       addHistory(city, "upgrade", `${definition.name} LEVEL ${nextLevel}`, "建物の性能と外観が向上しました。", now, { tileId: id, buildingId: definition.id });
+      publishCityNews(city, "upgrade", `${definition.name} 拡張`, `LEVEL ${nextLevel}への改修が完了しました。`, now, "positive", { tileId: id, buildingId: definition.id });
     } else if (command.type === "demolish") {
       const tile = city.tiles?.[id];
       const definition = BUILDINGS[tile?.buildingId];
@@ -680,6 +754,7 @@
       city.resources.money += Math.round(definition.cost * .2);
       delete city.tiles[id];
       addHistory(city, "demolish", `${definition.name} 撤去`, "跡地を更地へ戻しました。", now, { tileId: id });
+      publishCityNews(city, "demolish", `${definition.name} 撤去`, "都市再編のため区画が更地へ戻されました。", now, "neutral", { tileId: id });
     } else return { state, applied: false, error: "未対応の都市操作です。" };
     city.metrics = calculateMetrics(city);
     city.updatedAt = Number(now);
@@ -797,7 +872,10 @@
       city.autoDevelopment.placed = (Number(city.autoDevelopment.placed) || 0) + 1;
       placed += 1;
     }
-    if (placed) addHistory(city, "auto-build", "自動都市開発", `${placed}区画を自動配置しました。`, now, { count: placed });
+    if (placed) {
+      addHistory(city, "auto-build", "自動都市開発", `${placed}区画を自動配置しました。`, now, { count: placed });
+      publishCityNews(city, "development", "都市開発プロジェクト進行", `${placed}区画で新しい施設が稼働しました。`, now, "positive", { count: placed });
+    }
     city.metrics = calculateMetrics(city);
     return placed;
   }
@@ -820,6 +898,7 @@
   }
 
   function advanceCity(city, now) {
+    const previousLevel = Number(city.level) || 1;
     const metrics = calculateMetrics(city);
     const infrastructure = Math.min(metrics.powerCoverage, metrics.waterCoverage) / 100;
     const jobsLimit = Math.max(180, Math.round(metrics.jobs / .44));
@@ -835,6 +914,8 @@
     city.metrics = calculateMetrics({ ...city, metrics });
     city.level = cityLevel(city.metrics.population, city.metrics.cityScore);
     autoDevelopCity(city, now);
+    if (city.level > previousLevel) publishCityNews(city, "level-up", `${cityStage(city.level).name}へ発展`, `都市LEVEL ${city.level}に到達しました。`, now, "positive", { level: city.level });
+    else if (Number(now) - (Number(city.life?.lastNewsAt) || 0) >= TICK_MS * 6) cityPulse(city, now);
     city.updatedAt = Number(now);
   }
 
@@ -934,6 +1015,7 @@
       city.inbox[rewardId] = { id: rewardId, matchId: payload.matchId || rewardId, reward, missions: missionResult.missions, createdAt: Number(now), title: entry.won ? "BINGO VICTORY REWARD" : "BINGO MATCH REWARD" };
       city.inbox = trimMap(city.inbox, 30);
       addHistory(city, "bingo", entry.won ? "ビンゴ勝利報酬" : "ビンゴ参加報酬", `資金 +${reward.money} / ミッション ${missionResult.completed}/3`, now, { rewardId, missionCompleted: missionResult.completed });
+      publishCityNews(city, "bingo", entry.won ? "ビンゴ勝利で都市が沸く" : "ビンゴ遠征隊が帰還", `ミッションを${missionResult.completed}件達成し、資金¥${reward.money}を獲得しました。`, now, entry.won ? "positive" : "neutral", { rewardId });
       autoDevelopCity(city, now, 5);
       city.updatedAt = Number(now);
       rewards[player.id] = reward;
@@ -955,10 +1037,10 @@
 
   const api = {
     VERSION, MAP_SCHEMA, TERRAIN_REVISION, FEATURE_REVISION, GRID_SIZE, CITY_CENTER, TICK_MINUTES, TICK_MS, AUTO_BUILD_THRESHOLD,
-    PLAYERS, PLAYER_BY_ID, CITY_IDENTITIES, MISSION_POOLS, TERRAIN, CITY_STAGES, DISTRICTS, SIGNATURE_LANDMARKS, BUILDINGS, BUILDING_IDS,
+    PLAYERS, PLAYER_BY_ID, CITY_IDENTITIES, MISSION_POOLS, CITIZEN_CASTS, TERRAIN, CITY_STAGES, DISTRICTS, SIGNATURE_LANDMARKS, BUILDINGS, BUILDING_IDS,
     clone, playerKey, playerForName, tileId, parseTileId, neighbors, terrainAt,
     createInitialState, normalizeState, analyzeDistricts, cityLevel, cityStage, landmarkStatus, calculateMetrics, canBuild, applyCommand, autoDevelopCity, advanceState,
-    rewardForPlayer, missionsForMatch, resolveMatchMissions, missionStatus, applyMatchReward, standings, isRoadTile
+    rewardForPlayer, missionsForMatch, resolveMatchMissions, missionStatus, lifeStatus, cityPulse, applyMatchReward, standings, isRoadTile
   };
 
   global.TeamBingoCitySystem = api;
