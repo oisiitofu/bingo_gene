@@ -17889,7 +17889,7 @@
       if ("serviceWorker" in navigator && /^https?:$/.test(location.protocol)) {
         navigator.serviceWorker.register("./sw.js").then((registration) => registration.update()).catch((error) => console.warn("Service worker registration failed", error));
       }
-      const onlineRoomModuleUrl = "./online/online-room.js?v=20260901-city-tower-balance-141";
+      const onlineRoomModuleUrl = "./online/online-room.js?v=20260905-life-menu-142";
       import(onlineRoomModuleUrl)
         .catch((firstError) => import(`${onlineRoomModuleUrl}&retry=${Date.now()}`)
           .catch((retryError) => {
@@ -17944,6 +17944,7 @@
         openCityWindow,
         openTowerMode,
         openTowerWindow,
+        openLifeWindow,
         createTerritoryInitialState: () => window.TeamBingoTerritorySystem?.createInitialState(state.playerStats, Date.now()) || null,
         createOnlineEvent,
         playOnlineEvent,
@@ -18641,6 +18642,12 @@
       if (onlineMock === "1") url.searchParams.set("onlineMock", "1");
       url.hash = "";
       return url.href;
+    }
+
+    function openLifeWindow() {
+      unlockAudio();
+      const lifeWindow = window.open(lifeWindowUrl(), "_blank");
+      lifeWindow?.focus();
     }
 
     function openLifeStandalone(snapshot) {

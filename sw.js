@@ -1,6 +1,6 @@
 "use strict";
 
-const CACHE_VERSION = "team-bingo-v1-20260905-life-board-162";
+const CACHE_VERSION = "team-bingo-v1-20260905-life-menu-163";
 const SHELL_CACHE = `${CACHE_VERSION}-shell`;
 const ASSET_CACHE = `${CACHE_VERSION}-assets`;
 const SHELL_FILES = [
@@ -35,7 +35,7 @@ const SHELL_FILES = [
   "./monster-page.css",
   "./monster-battle.css",
   "./online/online-room.css",
-  "./online/online-room.js?v=20260901-city-tower-balance-141",
+  "./online/online-room.js?v=20260905-life-menu-142",
   "./images/territory/strategy-map-backdrop-v2.png",
   "./images/territory/textures/stone-wall.png",
   "./images/territory/textures/roof-tiles.png",

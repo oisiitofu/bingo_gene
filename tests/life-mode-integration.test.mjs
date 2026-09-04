@@ -12,6 +12,9 @@ const rules = readFileSync(new URL("../firebase-database.rules.json", import.met
 test("六王人生すごろく is reachable from setup and match screens in a standalone tab", () => {
   assert.match(html, /id="lifeModeButton"[^>]+target="_blank"/);
   assert.match(html, /id="playLifeModeButton"[^>]+target="_blank"/);
+  assert.match(online, /id="onlineLifeMode">六王人生すごろく</);
+  assert.match(online, /this\.ui\.lifeMode\.addEventListener\("click", \(\) => this\.openLifeWindow\(\)\)/);
+  assert.match(html, /openLifeWindow,/);
   assert.match(html, /searchParams\.set\("life", "1"\)/);
   assert.match(html, /classList\.add\("life-standalone"\)/);
   assert.match(html, /src="life-board-system\.js\?v=\d+-life-board-\d+"/);

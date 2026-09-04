@@ -1123,6 +1123,7 @@ export class OnlineCoordinator {
               <button type="button" class="online-simple-button" id="onlineTerritoryMode">六王領土戦</button>
               <button type="button" class="online-simple-button" id="onlineCityMode">BINGO CITY</button>
               <button type="button" class="online-simple-button" id="onlineTowerMode">MONSTER TOWER</button>
+              <button type="button" class="online-simple-button" id="onlineLifeMode">六王人生すごろく</button>
               <button type="button" class="online-simple-button" id="onlineWorldTournament">世界大会</button>
             </div>
             <div class="online-lobby-audio">
@@ -1374,6 +1375,7 @@ export class OnlineCoordinator {
       territoryMode: document.getElementById("onlineTerritoryMode"),
       cityMode: document.getElementById("onlineCityMode"),
       towerMode: document.getElementById("onlineTowerMode"),
+      lifeMode: document.getElementById("onlineLifeMode"),
       worldTournament: document.getElementById("onlineWorldTournament"),
       adminMode: document.getElementById("onlineAdminMode"),
       errorBanner: document.getElementById("onlineErrorBanner"),
@@ -1471,6 +1473,7 @@ export class OnlineCoordinator {
     this.ui.territoryMode.addEventListener("click", () => this.openTerritoryWindow());
     this.ui.cityMode.addEventListener("click", () => this.openCityWindow());
     this.ui.towerMode.addEventListener("click", () => this.openTowerMode());
+    this.ui.lifeMode.addEventListener("click", () => this.openLifeWindow());
     this.ui.worldTournament.addEventListener("click", async () => {
       await this.enterLocalMode();
       this.bridge.openWorldTournament?.();
@@ -3255,6 +3258,20 @@ export class OnlineCoordinator {
       return true;
     }
     this.bridge.openTowerMode?.(this.towerState);
+    return true;
+  }
+
+  openLifeWindow() {
+    if (typeof this.bridge.openLifeWindow === "function") {
+      this.bridge.openLifeWindow();
+      return true;
+    }
+    const url = new URL(window.location.href);
+    const onlineMock = url.searchParams.get("onlineMock");
+    url.search = "";
+    url.searchParams.set("life", "1");
+    if (onlineMock === "1") url.searchParams.set("onlineMock", "1");
+    window.open(url.href, "_blank", "noopener");
     return true;
   }
   isApplyingRemote() { return this.applyingRemote; }
