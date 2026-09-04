@@ -4,7 +4,7 @@
   const VERSION = 1;
   const MAP_SCHEMA = 4;
   const TERRAIN_REVISION = 2;
-  const FEATURE_REVISION = 10;
+  const FEATURE_REVISION = 11;
   const GRID_SIZE = 160;
   const CITY_CENTER = Math.floor(GRID_SIZE / 2);
   const TICK_MINUTES = 10;
@@ -54,6 +54,8 @@
     aid: Object.freeze({ id: "aid", name: "復興支援", short: "支援", description: "資金を届け、都市間の強い信頼を築きます。", sourceMoney: -1200, targetMoney: 1200, relation: 8 })
   });
   const INTERACTION_COOLDOWN_MS = 3 * 60 * 60 * 1000;
+  const ALBUM_CAPTURE_COOLDOWN_MS = 30 * 60 * 1000;
+  const MAX_ALBUM_ENTRIES = 72;
 
   const CITY_WEATHER = Object.freeze({
     clear: Object.freeze({ id: "clear", name: "晴れ", icon: "SUN", effects: { happiness: 2, tourism: 4 } }),
@@ -519,10 +521,11 @@
       autoDevelopment: { enabled: true, threshold: AUTO_BUILD_THRESHOLD, placed: 0, cursor: 0 },
       tiles: initialTiles(), unlocks: allUnlocks(), inbox: {}, history: {},
       missions: { completed: 0, total: 0, earned: 0, recent: {} }, life: createCityLife(player, now), events: createCityEventState(player.id, now),
-      policy: { id: "balanced", changedAt: Number(now) }, relations: {}, createdAt: now, updatedAt: now
+      policy: { id: "balanced", changedAt: Number(now) }, relations: {}, album: { entries: {}, lastCapturedAt: 0 }, createdAt: now, updatedAt: now
     };
     city.metrics = calculateMetrics(city);
     city.level = cityLevel(city.metrics.population, city.metrics.cityScore);
+    recordCityAlbum(city, "founding", `${city.name} 誕生`, "最初の一歩を記録しました。", now, { id: "founding" });
     return city;
   }
 
@@ -590,8 +593,13 @@
           lastAt: Math.max(0, Number(relation?.lastAt) || 0)
         };
       });
+      city.album = {
+        entries: city.album?.entries && typeof city.album.entries === "object" ? city.album.entries : {},
+        lastCapturedAt: Math.max(0, Number(city.album?.lastCapturedAt) || 0)
+      };
       city.metrics = calculateMetrics(city);
       city.level = cityLevel(city.metrics.population, city.metrics.cityScore);
+      if (!Object.keys(city.album.entries).length) recordCityAlbum(city, "archive", `${city.name} 都市記録`, "共有CITYアルバムの記録を開始しました。", now, { id: "archive-start" });
     });
     state.mapSchema = MAP_SCHEMA;
     state.terrainRevision = TERRAIN_REVISION;
@@ -835,6 +843,36 @@
     return city.life.news[id];
   }
 
+  function recordCityAlbum(city, type, title, caption, now, extra = {}) {
+    city.album ||= { entries: {}, lastCapturedAt: 0 };
+    city.album.entries ||= {};
+    const id = String(extra.id || `${type}-${Number(now)}-${Object.keys(city.album.entries).length}`);
+    if (city.album.entries[id]) return city.album.entries[id];
+    const metrics = calculateMetrics(city);
+    const climate = cityEnvironment(city, now);
+    const districts = analyzeDistricts(city);
+    const landmark = landmarkStatus(city);
+    const entry = {
+      id, type: String(type || "snapshot"), title: String(title || city.name), caption: String(caption || "都市の記録です。"),
+      createdAt: Number(now), level: Number(city.level) || 1, stage: cityStage(city.level).name,
+      population: Math.max(0, Number(metrics.population) || 0), cityScore: Math.max(0, Number(metrics.cityScore) || 0),
+      happiness: Math.max(0, Number(metrics.happiness) || 0), districtCount: districts.groups.length,
+      tileCount: Object.keys(city.tiles || {}).length, weatherId: climate.weather.id, weatherName: climate.weather.name,
+      phaseId: climate.phase.id, phaseName: climate.phase.name, landmarkBuilt: landmark.built,
+      ...extra
+    };
+    city.album.entries[id] = entry;
+    city.album.entries = trimMap(city.album.entries, MAX_ALBUM_ENTRIES);
+    return entry;
+  }
+
+  function albumStatus(city) {
+    return {
+      entries: Object.values(city?.album?.entries || {}).sort((a, b) => (Number(b.createdAt) || 0) - (Number(a.createdAt) || 0)),
+      lastCapturedAt: Math.max(0, Number(city?.album?.lastCapturedAt) || 0)
+    };
+  }
+
   function cityPulse(city, now) {
     const metrics = calculateMetrics(city);
     const districts = analyzeDistricts(city);
@@ -890,6 +928,7 @@
     city.resources.money = Math.max(0, (Number(city.resources.money) || 0) + money);
     addHistory(city, "city-event", definition.title, `${definition.detail} / 資金 ${money >= 0 ? "+" : ""}${money}`, now, { eventId: id });
     publishCityNews(city, "city-event", definition.title, definition.detail, now, definition.tone, { eventId: id });
+    recordCityAlbum(city, "event", definition.title, definition.detail, now, { id: `event-${id}`, eventId: id });
     return entry;
   }
 
@@ -919,6 +958,7 @@
       city.policy = { id: policy.id, changedAt: Number(now) };
       addHistory(city, "policy", `市長方針「${policy.name}」`, policy.description, now, { policyId: policy.id });
       publishCityNews(city, "policy", `新たな市長方針「${policy.name}」`, policy.description, now, "positive", { policyId: policy.id });
+      recordCityAlbum(city, "policy", `市長方針 ${policy.name}`, policy.description, now, { id: `policy-${commandId}` });
     } else if (command.type === "interact") {
       const interaction = CITY_INTERACTIONS[String(command.interactionId || "")];
       const target = state.players?.[String(command.targetPlayerId || "")];
@@ -953,14 +993,25 @@
       addHistory(target, "interaction", `${city.name}から${interaction.name}`, interaction.description, now, { sourcePlayerId: city.id, interactionId: interaction.id });
       publishCityNews(city, "interaction", `${target.name}と${interaction.name}`, interaction.description, now, "positive", { targetPlayerId: target.id, interactionId: interaction.id });
       publishCityNews(target, "interaction", `${city.name}から${interaction.name}`, interaction.description, now, "positive", { sourcePlayerId: city.id, interactionId: interaction.id });
+      recordCityAlbum(city, "interaction", `${target.name}と${interaction.name}`, interaction.description, now, { id: `interaction-${commandId}` });
+      recordCityAlbum(target, "interaction", `${city.name}から${interaction.name}`, interaction.description, now, { id: `interaction-${commandId}` });
       target.metrics = calculateMetrics(target);
       target.updatedAt = Number(now);
+    } else if (command.type === "capture-album") {
+      const lastCapturedAt = Number(city.album?.lastCapturedAt) || 0;
+      const remaining = ALBUM_CAPTURE_COOLDOWN_MS - (Number(now) - lastCapturedAt);
+      if (remaining > 0) return { state, applied: false, error: `次の記念撮影まであと${Math.ceil(remaining / 60000)}分です。` };
+      city.album ||= { entries: {}, lastCapturedAt: 0 };
+      city.album.lastCapturedAt = Number(now);
+      recordCityAlbum(city, "snapshot", `${city.name} 記念撮影`, `${cityStage(city.level).name}として発展する街の現在を残しました。`, now, { id: `snapshot-${commandId}` });
+      addHistory(city, "album", "CITYアルバム撮影", "現在の都市景観をアルバムへ保存しました。", now, { albumId: `snapshot-${commandId}` });
     } else if (command.type === "build") {
       const result = canBuild(city, id, String(command.buildingId || ""));
       if (!result.ok) return { state, applied: false, error: result.reason };
       placeBuilding(city, id, result.definition);
       addHistory(city, "build", `${result.definition.name} 建設`, `${id} に新しい施設が完成しました。`, now, { tileId: id, buildingId: result.definition.id });
       publishCityNews(city, "build", `${result.definition.name} 完成`, `${id}で営業・運用を開始しました。`, now, "positive", { tileId: id, buildingId: result.definition.id });
+      if (result.definition.signatureLandmark) recordCityAlbum(city, "landmark", `${result.definition.name} 完成`, "都市を象徴するランドマークが完成しました。", now, { id: `landmark-${result.definition.id}` });
     } else if (command.type === "upgrade") {
       const tile = city.tiles?.[id];
       const definition = BUILDINGS[tile?.buildingId];
@@ -1142,7 +1193,10 @@
     city.metrics = calculateMetrics({ ...city, metrics });
     city.level = cityLevel(city.metrics.population, city.metrics.cityScore);
     autoDevelopCity(city, now);
-    if (city.level > previousLevel) publishCityNews(city, "level-up", `${cityStage(city.level).name}へ発展`, `都市LEVEL ${city.level}に到達しました。`, now, "positive", { level: city.level });
+    if (city.level > previousLevel) {
+      publishCityNews(city, "level-up", `${cityStage(city.level).name}へ発展`, `都市LEVEL ${city.level}に到達しました。`, now, "positive", { level: city.level });
+      recordCityAlbum(city, "level-up", `${cityStage(city.level).name}へ発展`, `都市LEVEL ${city.level}到達の瞬間です。`, now, { id: `level-${city.level}` });
+    }
     else if (Number(now) - (Number(city.life?.lastNewsAt) || 0) >= TICK_MS * 6) cityPulse(city, now);
     city.updatedAt = Number(now);
   }
@@ -1244,6 +1298,7 @@
       city.inbox = trimMap(city.inbox, 30);
       addHistory(city, "bingo", entry.won ? "ビンゴ勝利報酬" : "ビンゴ参加報酬", `資金 +${reward.money} / ミッション ${missionResult.completed}/3`, now, { rewardId, missionCompleted: missionResult.completed });
       publishCityNews(city, "bingo", entry.won ? "ビンゴ勝利で都市が沸く" : "ビンゴ遠征隊が帰還", `ミッションを${missionResult.completed}件達成し、資金¥${reward.money}を獲得しました。`, now, entry.won ? "positive" : "neutral", { rewardId });
+      if (entry.won) recordCityAlbum(city, "bingo", "ビンゴ勝利を祝う街", `市民が勝利と資金¥${reward.money}の獲得を祝いました。`, now, { id: `bingo-${rewardId}`, rewardId });
       autoDevelopCity(city, now, 5);
       city.updatedAt = Number(now);
       rewards[player.id] = reward;
@@ -1264,11 +1319,11 @@
   }
 
   const api = {
-    VERSION, MAP_SCHEMA, TERRAIN_REVISION, FEATURE_REVISION, GRID_SIZE, CITY_CENTER, TICK_MINUTES, TICK_MS, AUTO_BUILD_THRESHOLD,
+    VERSION, MAP_SCHEMA, TERRAIN_REVISION, FEATURE_REVISION, GRID_SIZE, CITY_CENTER, TICK_MINUTES, TICK_MS, AUTO_BUILD_THRESHOLD, ALBUM_CAPTURE_COOLDOWN_MS, MAX_ALBUM_ENTRIES,
     PLAYERS, PLAYER_BY_ID, CITY_IDENTITIES, CITY_POLICIES, CITY_INTERACTIONS, INTERACTION_COOLDOWN_MS, CITY_WEATHER, CITY_DAY_PHASES, MISSION_POOLS, CITIZEN_CASTS, CITY_EVENTS, TERRAIN, CITY_STAGES, DISTRICTS, SIGNATURE_LANDMARKS, BUILDINGS, BUILDING_IDS,
     clone, playerKey, playerForName, tileId, parseTileId, neighbors, terrainAt,
     createInitialState, normalizeState, analyzeDistricts, analyzeTraffic, cityEnvironment, cityLevel, cityStage, landmarkStatus, calculateMetrics, canBuild, applyCommand, autoDevelopCity, advanceState,
-    rewardForPlayer, missionsForMatch, resolveMatchMissions, missionStatus, lifeStatus, cityPulse, processCityEvents, eventStatus, applyMatchReward, standings, isRoadTile
+    rewardForPlayer, missionsForMatch, resolveMatchMissions, missionStatus, lifeStatus, cityPulse, processCityEvents, eventStatus, recordCityAlbum, albumStatus, applyMatchReward, standings, isRoadTile
   };
 
   global.TeamBingoCitySystem = api;

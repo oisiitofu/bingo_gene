@@ -9,7 +9,7 @@ test("creates six persistent player cities with starter infrastructure", () => {
   assert.equal(state.version, 1);
   assert.equal(City.MAP_SCHEMA, 4);
   assert.equal(City.TERRAIN_REVISION, 2);
-  assert.equal(City.FEATURE_REVISION, 10);
+  assert.equal(City.FEATURE_REVISION, 11);
   assert.equal(state.terrainRevision, City.TERRAIN_REVISION);
   assert.equal(state.featureRevision, City.FEATURE_REVISION);
   assert.equal(City.GRID_SIZE, 160);
@@ -26,6 +26,7 @@ test("creates six persistent player cities with starter infrastructure", () => {
     assert.ok(city.metrics.population > 0);
     assert.ok(city.metrics.capacity >= 360);
     assert.ok(city.metrics.powerSupply >= city.metrics.powerDemand);
+    assert.equal(City.albumStatus(city).entries.length, 1);
     assert.equal(Object.hasOwn(city.resources, "hype"), false);
   });
 });
@@ -424,6 +425,48 @@ test("weather is reflected in persisted city metrics without adding mutable reso
   assert.equal(metrics.weatherId, environment.weather.id);
   assert.equal(metrics.dayPhase, environment.phase.id);
   assert.deepEqual(Object.keys(city.resources), ["money"]);
+});
+
+test("city album stores lightweight shared postcards and enforces manual capture cooldown", () => {
+  const now = 12_000_000_000;
+  const initial = City.createInitialState(now);
+  const city = initial.players.eda;
+  const founding = City.albumStatus(city).entries[0];
+  assert.equal(founding.type, "founding");
+  assert.ok(founding.population > 0);
+  assert.ok(founding.weatherId);
+  assert.equal(Object.hasOwn(founding, "image"), false);
+  const captured = City.applyCommand(initial, {
+    id: "album-capture-one", type: "capture-album", playerId: "eda"
+  }, now + 100);
+  assert.equal(captured.applied, true);
+  assert.equal(City.albumStatus(captured.state.players.eda).entries.length, 2);
+  const blocked = City.applyCommand(captured.state, {
+    id: "album-capture-two", type: "capture-album", playerId: "eda"
+  }, now + 200);
+  assert.equal(blocked.applied, false);
+  assert.match(blocked.error, /あと/);
+  const later = City.applyCommand(captured.state, {
+    id: "album-capture-three", type: "capture-album", playerId: "eda"
+  }, now + 100 + City.ALBUM_CAPTURE_COOLDOWN_MS);
+  assert.equal(later.applied, true);
+  assert.equal(City.albumStatus(later.state.players.eda).entries.length, 3);
+});
+
+test("city album remains bounded and legacy cities receive one archive entry", () => {
+  const now = 12_100_000_000;
+  const state = City.createInitialState(now);
+  const city = state.players.rima;
+  for (let index = 0; index < City.MAX_ALBUM_ENTRIES + 20; index += 1) {
+    City.recordCityAlbum(city, "snapshot", `記録 ${index}`, "保存上限の確認", now + index + 1, { id: `bounded-${index}` });
+  }
+  assert.equal(City.albumStatus(city).entries.length, City.MAX_ALBUM_ENTRIES);
+  state.featureRevision = 10;
+  state.players.tofu.featureRevision = 10;
+  delete state.players.tofu.album;
+  const normalized = City.normalizeState(state, now + 1000);
+  assert.equal(City.albumStatus(normalized.players.tofu).entries.length, 1);
+  assert.equal(City.albumStatus(normalized.players.tofu).entries[0].type, "archive");
 });
 
 test("existing cities migrate district features without losing developed plots", () => {

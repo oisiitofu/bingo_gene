@@ -272,6 +272,38 @@ body.city-mode-open { overflow: hidden; }
 .city-selection-district span { width: 6px; height: 6px; background: var(--district-color); box-shadow: 0 0 8px var(--district-color); }
 .city-selection-actions { display: flex; gap: 6px; }
 .city-rank-row { width: 100%; display: grid; grid-template-columns: 20px 7px 1fr auto; align-items: center; gap: 7px; padding: 7px 3px; border: 0; border-bottom: 1px solid rgba(172,202,218,.12); color: #dbe7ed; text-align: left; background: none; cursor: pointer; }
+
+.city-album-overlay { position: absolute; inset: 0; z-index: 40; padding: 20px; background: rgba(2, 8, 13, .94); backdrop-filter: blur(8px); }
+.city-album-overlay[hidden] { display: none; }
+.city-album-shell { width: min(1500px, 100%); height: 100%; display: grid; grid-template-rows: auto auto minmax(0, 1fr); margin: 0 auto; border: 1px solid #3d5662; background: #071018; box-shadow: 0 22px 70px rgba(0,0,0,.55); }
+.city-album-head { min-width: 0; display: flex; align-items: center; justify-content: space-between; gap: 18px; padding: 17px 20px; border-bottom: 1px solid #314752; background: #0b1821; }
+.city-album-head span { color: #7e9aa8; font-size: 8px; font-weight: 900; }
+.city-album-head h2 { margin: 2px 0 0; font-size: 24px; line-height: 1; }
+.city-album-head p { min-height: 0; margin: 5px 0 0; color: #93a9b4; font-size: 9px; }
+.city-album-actions { display: flex; gap: 6px; }
+.city-album-tabs { display: grid; grid-template-columns: repeat(6, minmax(0, 1fr)); gap: 5px; padding: 8px 12px; border-bottom: 1px solid #273b45; background: #08141c; }
+.city-album-tabs button { min-width: 0; height: 31px; display: flex; align-items: center; justify-content: center; gap: 6px; overflow: hidden; border: 1px solid #344a55; color: #94aab4; font: 800 9px/1 system-ui, sans-serif; text-overflow: ellipsis; white-space: nowrap; background: #0b1921; cursor: pointer; }
+.city-album-tabs button span { width: 6px; height: 14px; flex: 0 0 auto; background: var(--album-city); }
+.city-album-tabs button.active { border-color: var(--album-city); color: #fff; background: color-mix(in srgb, var(--album-city) 10%, #0b1921); }
+.city-album-grid { min-height: 0; display: grid; grid-template-columns: repeat(auto-fill, minmax(310px, 1fr)); align-content: start; gap: 11px; padding: 14px; overflow: auto; }
+.city-album-card { min-width: 0; display: grid; grid-template-columns: 42% minmax(0, 1fr); min-height: 170px; overflow: hidden; border: 1px solid color-mix(in srgb, var(--album-city) 58%, #40515a); background: #0c1820; }
+.city-album-scene { position: relative; min-width: 0; display: grid; align-content: end; gap: 3px; padding: 12px; overflow: hidden; background-color: color-mix(in srgb, var(--album-city) 24%, #172934); }
+.city-album-scene::before { content: ""; position: absolute; inset: 18% -30% -42%; border: 18px double color-mix(in srgb, var(--album-accent) 48%, #314a56); transform: rotate(34deg); opacity: .48; }
+.city-album-scene::after { content: ""; position: absolute; left: 0; right: 0; bottom: 0; height: 5px; background: var(--album-city); }
+.city-album-scene > * { position: relative; z-index: 1; }
+.city-album-scene span { color: #cce0e9; font-size: 8px; font-weight: 900; }
+.city-album-scene b { font-size: 20px; line-height: 1; }
+.city-album-scene i { color: #d8e8ee; font-size: 10px; font-style: normal; font-weight: 800; }
+.city-album-card.phase-night .city-album-scene { background-color: color-mix(in srgb, var(--album-city) 14%, #071425); }
+.city-album-card.weather-rain .city-album-scene, .city-album-card.weather-storm .city-album-scene { box-shadow: inset 0 0 60px rgba(49,112,154,.32); }
+.city-album-card.type-landmark .city-album-scene, .city-album-card.type-bingo .city-album-scene { box-shadow: inset 0 0 0 2px #e8ca63, inset 0 0 48px rgba(232,202,99,.22); }
+.city-album-copy { min-width: 0; display: grid; grid-template-rows: auto auto minmax(0, 1fr) auto; gap: 5px; padding: 12px; }
+.city-album-copy > span { color: #78919d; font-size: 7px; font-weight: 900; }
+.city-album-copy > strong { overflow: hidden; color: #f1f7f9; font-size: 13px; text-overflow: ellipsis; white-space: nowrap; }
+.city-album-copy > p { min-height: 0; margin: 0; color: #9cafb8; font-size: 9px; line-height: 1.55; }
+.city-album-copy footer { display: flex; flex-wrap: wrap; gap: 4px; }
+.city-album-copy footer b { padding: 4px 6px; color: #b8cad1; font-size: 7px; background: #13232c; }
+.city-album-empty { grid-column: 1 / -1; margin: 30px; color: #8096a0; text-align: center; }
 .city-rank-row.active { background: rgba(80, 190, 230, .08); }
 .city-rank-number { color: #788f9b; font-size: 10px; font-weight: 900; text-align: center; }
 .city-rank-color { width: 6px; height: 26px; background: var(--rank-color); box-shadow: 0 0 7px var(--rank-color); }

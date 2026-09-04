@@ -11,6 +11,7 @@
   let buildCategory = "transport";
   let buildPage = 0;
   let interactionTargetId = "";
+  let albumOpen = false;
   const BUILD_PAGE_SIZE = 12;
   let options = {};
   let busy = false;
@@ -43,6 +44,7 @@
           </div>
           <div class="city-city-tabs" data-city-tabs></div>
           <div class="city-head-actions">
+            <button type="button" class="city-simple-button" data-city-album-open>ALBUM</button>
             <button type="button" class="city-simple-button" data-city-focus-center>中心街</button>
             <button type="button" class="city-simple-button" data-city-reset-view>全域</button>
             <button type="button" class="city-simple-button" data-city-close>CLOSE</button>
@@ -82,6 +84,19 @@
             </section>
           </aside>
         </div>
+        <div class="city-album-overlay" data-city-album hidden>
+          <section class="city-album-shell">
+            <header class="city-album-head">
+              <div><span>CITY ARCHIVE</span><h2>CITYアルバム</h2><p data-city-album-summary></p></div>
+              <div class="city-album-actions">
+                <button type="button" class="city-simple-button primary" data-city-album-capture>記念撮影</button>
+                <button type="button" class="city-simple-button" data-city-album-close>CLOSE</button>
+              </div>
+            </header>
+            <nav class="city-album-tabs" data-city-album-tabs></nav>
+            <div class="city-album-grid" data-city-album-grid></div>
+          </section>
+        </div>
       </section>
     `);
     root = document.getElementById("cityMode");
@@ -97,6 +112,26 @@
       buildMode = "";
       map3d?.setBuildMode("");
       render();
+      return;
+    }
+    const albumPlayer = event.target.closest("[data-city-album-player]");
+    if (albumPlayer) {
+      activePlayerId = albumPlayer.dataset.cityAlbumPlayer;
+      renderAlbum();
+      return;
+    }
+    if (event.target.closest("[data-city-album-open]")) {
+      albumOpen = true;
+      renderAlbum();
+      return;
+    }
+    if (event.target.closest("[data-city-album-close]")) {
+      albumOpen = false;
+      renderAlbum();
+      return;
+    }
+    if (event.target.closest("[data-city-album-capture]")) {
+      submitAlbumCapture();
       return;
     }
     const buildButton = event.target.closest("[data-city-build]");
@@ -345,6 +380,27 @@
     `).join("");
   }
 
+  function renderAlbum() {
+    const overlay = root.querySelector("[data-city-album]");
+    if (!overlay) return;
+    overlay.hidden = !albumOpen;
+    if (!albumOpen) return;
+    const city = activeCity();
+    const album = City.albumStatus(city);
+    const remaining = Math.max(0, City.ALBUM_CAPTURE_COOLDOWN_MS - (Date.now() - album.lastCapturedAt));
+    root.querySelector("[data-city-album-summary]").textContent = `${city.name} / ${album.entries.length} RECORDS`;
+    root.querySelector("[data-city-album-capture]").disabled = busy || !canEditActiveCity() || remaining > 0;
+    root.querySelector("[data-city-album-capture]").textContent = remaining ? `撮影まで ${Math.ceil(remaining / 60000)}分` : "記念撮影";
+    root.querySelector("[data-city-album-tabs]").innerHTML = City.PLAYERS.map((player) => `<button type="button" class="${player.id === activePlayerId ? "active" : ""}" data-city-album-player="${player.id}" style="--album-city:${player.color}"><span></span>${escapeHtml(player.name)}</button>`).join("");
+    root.querySelector("[data-city-album-grid]").innerHTML = album.entries.length ? album.entries.map((entry) => {
+      const date = new Date(Number(entry.createdAt) || 0).toLocaleString("ja-JP", { timeZone: "Asia/Tokyo", month: "2-digit", day: "2-digit", hour: "2-digit", minute: "2-digit" });
+      return `<article class="city-album-card type-${escapeHtml(entry.type)} phase-${escapeHtml(entry.phaseId)} weather-${escapeHtml(entry.weatherId)}" style="--album-city:${city.color};--album-accent:${city.accent}">
+        <div class="city-album-scene"><span>${escapeHtml(entry.phaseName)} / ${escapeHtml(entry.weatherName)}</span><b>LEVEL ${entry.level}</b><i>${escapeHtml(entry.stage)}</i></div>
+        <div class="city-album-copy"><span>${escapeHtml(entry.type.toUpperCase())} / ${escapeHtml(date)}</span><strong>${escapeHtml(entry.title)}</strong><p>${escapeHtml(entry.caption)}</p><footer><b>人口 ${formatNumber(entry.population)}</b><b>SCORE ${formatNumber(entry.cityScore)}</b><b>${entry.districtCount}地区</b></footer></div>
+      </article>`;
+    }).join("") : `<p class="city-album-empty">まだ都市の記録がありません。</p>`;
+  }
+
   function renderTick() {
     const host = root.querySelector("[data-city-next-tick]");
     const remaining = Math.max(0, (Number(state?.nextTickAt) || Date.now()) - Date.now());
@@ -380,6 +436,7 @@
     renderRanking();
     renderMap();
     renderTick();
+    renderAlbum();
   }
 
   function showNotice(text, kind = "") {
@@ -464,6 +521,26 @@
     }
   }
 
+  async function submitAlbumCapture() {
+    if (busy || !options.onCommand || !canEditActiveCity()) return;
+    busy = true;
+    renderAlbum();
+    try {
+      const result = await options.onCommand({
+        id: `city-album-${Date.now()}-${Math.random().toString(36).slice(2, 9)}`,
+        type: "capture-album",
+        playerId: activePlayerId
+      });
+      if (result?.ok === false) throw new Error(result.error || "記念撮影を保存できませんでした。");
+      showNotice("CITYアルバムへ記念写真を保存しました", "success");
+    } catch (error) {
+      showNotice(String(error?.message || error), "error");
+    } finally {
+      busy = false;
+      renderAlbum();
+    }
+  }
+
   function applySnapshot(snapshot) {
     if (!snapshot) return;
     state = City.normalizeState(snapshot, Date.now());
@@ -480,6 +557,7 @@
     buildMode = "";
     buildCategory = "transport";
     interactionTargetId = "";
+    albumOpen = false;
     root.hidden = false;
     root.classList.add("show");
     document.body.classList.add("city-mode-open");
@@ -491,6 +569,7 @@
     if (!root) return;
     root.hidden = true;
     root.classList.remove("show");
+    albumOpen = false;
     document.body.classList.remove("city-mode-open");
     map3d?.destroy();
     map3d = null;
