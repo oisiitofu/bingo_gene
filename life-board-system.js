@@ -7,6 +7,7 @@
   const MAX_HISTORY = 600;
   const MAX_PROCESSED_OPENS = 6000;
   const STARTING_CASH = 300000;
+  const SERVER_TICK_MS = 6 * 60 * 60 * 1000;
 
   const PLAYERS = Object.freeze([
     { id: "tofu", name: "おいしいとうふ", color: "#e8e5dc", accent: "#8fc66c", strategy: "steady", specialty: "housing" },
@@ -222,6 +223,7 @@
 
   function createInitialState(now = Date.now()) {
     const timestamp = Number(now) || Date.now();
+    const tickStart = Math.floor(timestamp / SERVER_TICK_MS) * SERVER_TICK_MS;
     return {
       version: VERSION,
       boardRevision: 2,
@@ -231,6 +233,9 @@
       rewardQueue: {},
       processedOpens: {},
       globalHistory: {},
+      serverCycle: 0,
+      lastServerTickAt: tickStart,
+      nextServerTickAt: tickStart + SERVER_TICK_MS,
       createdAt: timestamp,
       updatedAt: timestamp
     };
@@ -299,9 +304,27 @@
     state.rewardQueue = trimMap(state.rewardQueue, 1000);
     state.processedOpens = trimMap(state.processedOpens, MAX_PROCESSED_OPENS);
     state.globalHistory = trimMap(state.globalHistory, MAX_HISTORY);
+    state.serverCycle = Math.max(0, Math.trunc(Number(state.serverCycle) || 0));
+    state.lastServerTickAt = Number(state.lastServerTickAt) || initial.lastServerTickAt;
+    state.nextServerTickAt = Number(state.nextServerTickAt) || state.lastServerTickAt + SERVER_TICK_MS;
     state.createdAt = Number(state.createdAt) || Number(now);
     state.updatedAt = Number(state.updatedAt) || Number(now);
+    PLAYERS.forEach((definition) => updateNetWorth(state.players[definition.id], state.market));
     return state;
+  }
+
+  function assetValue(player, market) {
+    const propertyValue = Object.values(player?.assets?.homes || {}).reduce((sum, property) => sum + Math.max(0, Number(property?.value) || 0), 0);
+    const stockValue = Object.values(player?.assets?.stocks || {}).reduce((sum, holding) => {
+      const stock = market?.stocks?.[holding?.id];
+      return sum + Math.max(0, Number(holding?.shares) || 0) * Math.max(0, Number(stock?.price) || 0);
+    }, 0);
+    return Math.round(propertyValue + stockValue);
+  }
+
+  function updateNetWorth(player, market) {
+    player.netWorth = Math.round((Number(player.cash) || 0) - (Number(player.debt) || 0) + assetValue(player, market));
+    return player.netWorth;
   }
 
   function applyMoney(player, amount) {
@@ -542,6 +565,52 @@
     return events;
   }
 
+  function runServerTick(state, at) {
+    const cycle = (Number(state.serverCycle) || 0) + 1;
+    updateMarket(state, `life-server:${cycle}:${at}`, at);
+    PLAYERS.forEach((definition) => {
+      const player = state.players[definition.id];
+      const properties = Object.values(player.assets?.homes || {});
+      const rent = properties.reduce((sum, property) => sum + Math.round((Number(property.value) || 0) * .002), 0);
+      const upkeep = properties.reduce((sum, property) => sum + Math.round((Number(property.value) || 0) * .0005), 0);
+      const interest = Math.round((Number(player.debt) || 0) * .0015);
+      if (interest > 0) {
+        player.debt += interest;
+        player.lifetimeExpense += interest;
+      }
+      const propertyIncome = rent - upkeep;
+      if (propertyIncome) applyMoney(player, propertyIncome);
+      updateNetWorth(player, state.market);
+      if (propertyIncome || interest) {
+        const space = BOARD[Math.max(0, (Number(player.position) || 1) - 1)];
+        addEvent(state, player, `server:${cycle}:${player.id}`, space, {
+          type: "passive",
+          title: "オフライン人生決算",
+          detail: `不動産収支 ${propertyIncome >= 0 ? "+" : ""}¥${propertyIncome.toLocaleString("ja-JP")} / 借金利息 -¥${interest.toLocaleString("ja-JP")}`,
+          amount: propertyIncome - interest
+        }, at);
+      }
+      player.updatedAt = Number(at);
+    });
+    state.serverCycle = cycle;
+    state.lastServerTickAt = Number(at);
+    state.nextServerTickAt = Number(at) + SERVER_TICK_MS;
+    state.globalHistory = trimMap(state.globalHistory, MAX_HISTORY);
+    state.revision = (Number(state.revision) || 0) + 1;
+    state.updatedAt = Number(at);
+  }
+
+  function advanceServerState(value, now = Date.now(), options = {}) {
+    const state = normalizeState(value, now);
+    const maxTicks = Math.max(1, Math.min(240, Math.trunc(Number(options.maxTicks) || 120)));
+    let processed = 0;
+    while (state.nextServerTickAt <= Number(now) && processed < maxTicks) {
+      runServerTick(state, state.nextServerTickAt);
+      processed += 1;
+    }
+    return { state, processed, caughtUp: state.nextServerTickAt > Number(now) };
+  }
+
   function checkpointGachaCount(player) {
     const worth = player.cash - player.debt;
     if (worth < 0) return 1;
@@ -664,7 +733,7 @@
       createdAt: Number(now)
     };
     player.updatedAt = Number(now);
-    player.netWorth = player.cash - player.debt;
+    PLAYERS.forEach((candidate) => updateNetWorth(state.players[candidate.id], state.market));
     state.processedOpens[openId] = { playerId: player.id, createdAt: Number(now) };
     state.processedOpens = trimMap(state.processedOpens, MAX_PROCESSED_OPENS);
     state.globalHistory = trimMap(state.globalHistory, MAX_HISTORY);
@@ -690,11 +759,12 @@
   }
 
   const api = {
-    VERSION, BOARD_SIZE, REGION_SIZE, MAX_HISTORY, MAX_PROCESSED_OPENS, STARTING_CASH,
+    VERSION, BOARD_SIZE, REGION_SIZE, MAX_HISTORY, MAX_PROCESSED_OPENS, STARTING_CASH, SERVER_TICK_MS,
     PLAYERS, PLAYER_BY_ID, REGIONS, CATEGORY_COUNTS, STOCKS, JOBS, PROPERTY_NAMES, MONEY_EVENTS, BOARD,
     clone, playerKey, playerForName, hash32, seededUnit, seededInt, deterministicShuffle,
     generateBoard, boardCategoryCounts, createInitialState, normalizeState, checkpointGachaCount,
-    applyMoney, chooseJob, propertyDefinition, updateMarket, processPaydays, applyOpenRoll, buildOpenId
+    applyMoney, assetValue, updateNetWorth, chooseJob, propertyDefinition, updateMarket, processPaydays,
+    advanceServerState, applyOpenRoll, buildOpenId
   };
 
   global.TeamBingoLifeBoardSystem = api;

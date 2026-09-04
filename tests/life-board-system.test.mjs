@@ -199,3 +199,26 @@ test("interaction and risk spaces use large reversible life-money swings", () =>
   assert.equal(risk.result.events.at(-1).category, "risk");
   assert.ok(Math.abs(risk.result.events.at(-1).amount) >= 120000);
 });
+
+test("server progression advances the shared market and settles offline property and debt", () => {
+  const start = Date.UTC(2026, 8, 5, 0, 0);
+  const state = Life.createInitialState(start);
+  const player = state.players.tofu;
+  player.assets.homes.home = { id: "home", value: 1_000_000 };
+  player.debt = 200_000;
+  player.cash = 50_000;
+  const until = state.nextServerTickAt + Life.SERVER_TICK_MS;
+  const first = Life.advanceServerState(state, until);
+  const second = Life.advanceServerState(structuredClone(state), until);
+
+  assert.equal(first.processed, 2);
+  assert.equal(first.caughtUp, true);
+  assert.deepEqual(first.state, second.state);
+  assert.equal(first.state.serverCycle, 2);
+  assert.equal(first.state.market.cycle, 2);
+  assert.equal(first.state.players.tofu.cash, 50_000);
+  assert.ok(first.state.players.tofu.debt < 200_000);
+  assert.ok(first.state.players.tofu.lifetimeExpense > 0);
+  assert.ok(first.state.players.tofu.netWorth > first.state.players.tofu.cash - first.state.players.tofu.debt);
+  assert.ok(first.state.players.tofu.assets.eventHistory.some((event) => event.category === "passive"));
+});

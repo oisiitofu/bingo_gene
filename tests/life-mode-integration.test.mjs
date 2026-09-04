@@ -63,4 +63,5 @@ test("life state is subscribed online, permitted by rules, and available offline
   assert.match(workerCache, /life-board-system\.js/);
   assert.match(workerCache, /life-mode\.js/);
   assert.match(workerCache, /life-mode\.css/);
+  assert.match(online, /awardLifeBoardOpen\(payload/);
 });

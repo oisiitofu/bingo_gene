@@ -151,6 +151,41 @@ test("人生すごろくWorkerは共有報酬を確定してキューを完了�
   }
 });
 
+test("人生すごろくWorkerはブラウザ不在でも共有経済を進行する", async () => {
+  const originalFetch = globalThis.fetch;
+  const Life = globalThis.TeamBingoLifeBoardSystem;
+  const start = Date.UTC(2026, 8, 5, 0, 0);
+  const life = Life.createInitialState(start);
+  life.players.lickey.assets.homes.castle = { id: "castle", value: 2_000_000 };
+  let saved = structuredClone(life);
+  let writes = 0;
+  globalThis.fetch = async (input, init = {}) => {
+    const url = String(input);
+    if (!url.endsWith("/teamBingoV1/life/current.json")) throw new Error(`Unexpected request: ${url}`);
+    if (init.method === "PUT") {
+      saved = JSON.parse(init.body);
+      writes += 1;
+      return Response.json(saved);
+    }
+    return new Response(JSON.stringify(saved), { headers: { "content-type": "application/json", etag: '"life-offline"' } });
+  };
+
+  try {
+    const { advanceLifeWithToken } = await import("../worker/territory-worker.mjs");
+    const result = await advanceLifeWithToken({
+      FIREBASE_DATABASE_URL: "https://database.test",
+      FIREBASE_DATABASE_ROOT: "teamBingoV1"
+    }, "life-token", life.nextServerTickAt + Life.SERVER_TICK_MS);
+    assert.equal(result.changed, true);
+    assert.equal(result.processed, 2);
+    assert.equal(writes, 1);
+    assert.equal(saved.serverCycle, 2);
+    assert.ok(saved.players.lickey.cash > Life.STARTING_CASH);
+  } finally {
+    globalThis.fetch = originalFetch;
+  }
+});
+
 const { privateKey } = generateKeyPairSync("rsa", {
   modulusLength: 2048,
   privateKeyEncoding: { type: "pkcs8", format: "pem" },

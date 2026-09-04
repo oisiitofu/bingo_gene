@@ -698,6 +698,44 @@ export async function settleLifeRewards(env, now = Date.now()) {
   }
 }
 
+export async function advanceLifeWithToken(env, token, now = Date.now()) {
+  const path = rootPath(env, "life/current");
+  for (let attempt = 0; attempt < 6; attempt += 1) {
+    const current = await readDatabase(env, path, token, true);
+    const advanced = Life.advanceServerState(current.value, now, { maxTicks: 120 });
+    const requiresWrite = !current.value || advanced.processed > 0 || Number(current.value?.boardRevision) !== 2;
+    if (!requiresWrite) return { ok: true, changed: false, processed: 0, caughtUp: advanced.caughtUp, revision: advanced.state.revision, nextTickAt: advanced.state.nextServerTickAt };
+    const written = await writeDatabase(env, path, advanced.state, token, current.etag);
+    if (written.committed) return { ok: true, changed: true, processed: advanced.processed, caughtUp: advanced.caughtUp, revision: advanced.state.revision, nextTickAt: advanced.state.nextServerTickAt };
+  }
+  throw new Error("Life server progression conflicted repeatedly");
+}
+
+export async function advanceLife(env, now = Date.now()) {
+  if (env.FIREBASE_CLIENT_EMAIL && env.FIREBASE_PRIVATE_KEY) {
+    return advanceLifeWithToken(env, await accessToken(env), now);
+  }
+  const account = await firebaseIdentity(env, "accounts:signUp", { returnSecureToken: true });
+  const anonymousEnv = { ...env, FIREBASE_USE_AUTH_QUERY: "true" };
+  const sessionPath = rootPath(env, `adminSessions/${account.localId}`);
+  try {
+    await writeDatabase(anonymousEnv, sessionPath, {
+      pinHash: env.TEAM_BINGO_ADMIN_PIN_HASH || "6440e6a91202aeddb45b070a80533f65a689c37d0cf1842ab2bd962e33377880",
+      expiresAt: Date.now() + 15 * 60 * 1000
+    }, account.idToken);
+    return await advanceLifeWithToken(anonymousEnv, account.idToken, now);
+  } finally {
+    await writeDatabase(anonymousEnv, sessionPath, null, account.idToken).catch(() => {});
+    await firebaseIdentity(env, "accounts:delete", { idToken: account.idToken }).catch(() => {});
+  }
+}
+
+async function maintainLife(env, now = Date.now()) {
+  const advance = await advanceLife(env, now);
+  const rewards = await settleLifeRewards(env, now);
+  return { advance, rewards };
+}
+
 export async function mergeTowerRewardsWithToken(env, token, rewards = {}) {
   const entries = Object.entries(rewards || {}).filter(([id, reward]) => id && reward?.playerName && reward?.mastery);
   if (!entries.length) return { merged: 0 };
@@ -793,7 +831,7 @@ export default {
     context.waitUntil(advanceFrontier(env));
     context.waitUntil(advanceCities(env));
     context.waitUntil(advanceTower(env));
-    context.waitUntil(settleLifeRewards(env));
+    context.waitUntil(maintainLife(env));
     context.waitUntil(createDailyBackup(env));
   },
 
@@ -820,7 +858,7 @@ export default {
       const actual = request.headers.get("authorization")?.replace(/^Bearer\s+/i, "") || "";
       if (!expected || actual !== expected) return json({ ok: false, error: "unauthorized" }, 401);
       try {
-        const [frontier, city, tower, life] = await Promise.all([advanceFrontier(env), advanceCities(env), advanceTower(env), settleLifeRewards(env)]);
+        const [frontier, city, tower, life] = await Promise.all([advanceFrontier(env), advanceCities(env), advanceTower(env), maintainLife(env)]);
         return json({ ...frontier, city, tower, life });
       } catch (error) {
         return json({ ok: false, error: String(error?.message || error) }, 500);
