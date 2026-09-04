@@ -7,7 +7,8 @@
 
   const CATEGORY_COLORS = {
     money: 0x52c985, job: 0x4e92d8, property: 0xd49a5a, stock: 0x8b70d8,
-    monster: 0xdb5b77, equipment: 0xe2b94d, city: 0x4ec3c9, interaction: 0xf17b4f,
+    monster: 0xdb5b77, equipment: 0xe2b94d, city: 0x4ec3c9, territory: 0xe45746,
+    tower: 0x8f72e8, interaction: 0xf17b4f,
     risk: 0xcf3e48, checkpoint: 0xffd84d
   };
   const AVATAR_URLS = Object.freeze(Object.fromEntries(System.PLAYERS.map((player) => [player.id, `images/life/avatars/${player.id}.png?v=20260905-nonhuman-3`])));

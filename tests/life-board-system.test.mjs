@@ -9,6 +9,8 @@ test("builds one deterministic 1000-space board with exact category totals", () 
   assert.deepEqual(Life.generateBoard(), Life.generateBoard());
   assert.deepEqual(Life.boardCategoryCounts(), Life.CATEGORY_COUNTS);
   assert.equal(Life.REGIONS.length, 10);
+  assert.equal(Life.CATEGORY_COUNTS.territory, 25);
+  assert.equal(Life.CATEGORY_COUNTS.tower, 25);
   Life.REGIONS.forEach((region, index) => {
     const regionSpaces = Life.BOARD.filter((space) => space.regionId === region.id);
     assert.equal(regionSpaces.length, 100);
@@ -41,6 +43,7 @@ test("legacy life records migrate without losing player progress", () => {
   }, 5000);
 
   assert.equal(migrated.version, Life.VERSION);
+  assert.equal(migrated.boardRevision, 2);
   assert.equal(migrated.revision, 8);
   assert.equal(migrated.players.tofu.cash, 765432);
   assert.equal(migrated.players.tofu.position, 47);
@@ -160,10 +163,12 @@ test("career, property, stocks, and cross-mode rewards persist real state change
   assert.equal(stock.result.events.at(-1).category, "stock");
   assert.ok(Object.keys(stock.record.assets.stocks).length >= 1);
 
-  for (const category of ["monster", "equipment", "city"]) {
+  for (const category of ["monster", "equipment", "city", "territory", "tower"]) {
     const linked = landOnCategory(category, "Kento");
     assert.equal(linked.result.events.at(-1).category, category);
     assert.ok(Object.keys(linked.result.state.rewardQueue).length >= 1);
+    if (category === "territory") assert.ok(linked.record.integrationRewards.territoryRecovery > 0);
+    if (category === "tower") assert.ok(linked.record.integrationRewards.towerRestMinutes > 0);
   }
 });
 

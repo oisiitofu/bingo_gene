@@ -32,13 +32,15 @@
   ]);
 
   const CATEGORY_COUNTS = Object.freeze({
-    money: 520,
+    money: 470,
     job: 100,
     property: 80,
     stock: 80,
     monster: 60,
     equipment: 50,
     city: 40,
+    territory: 25,
+    tower: 25,
     interaction: 30,
     risk: 30,
     checkpoint: 10
@@ -137,7 +139,7 @@
       if (category === "checkpoint") return;
       for (let index = 0; index < count; index += 1) entries.push(category);
     });
-    return deterministicShuffle(entries, "six-kings-life-board-v1");
+    return deterministicShuffle(entries, "six-kings-life-board-v2");
   }
 
   function spaceTitle(category, number) {
@@ -149,6 +151,8 @@
       monster: ["モンスターの縁", "育成ボーナス", "絆の出会い"],
       equipment: ["装備発見", "宝箱出現", "装備ガチャ券"],
       city: ["CITY連携", "都市投資", "街の依頼"],
+      territory: ["領土戦支援", "六王援軍", "遠征補給"],
+      tower: ["TOWER休息", "塔の加護", "登頂支援"],
       interaction: ["六王交流", "プレイヤーイベント", "運命の出会い"],
       risk: ["ハイリスク勝負", "一発逆転", "運命の大勝負"]
     };
@@ -220,7 +224,7 @@
     const timestamp = Number(now) || Date.now();
     return {
       version: VERSION,
-      boardRevision: 1,
+      boardRevision: 2,
       revision: 0,
       players: Object.fromEntries(PLAYERS.map((player) => [player.id, createPlayerState(player, timestamp)])),
       market: initialMarket(timestamp),
@@ -281,7 +285,7 @@
     const initial = createInitialState(now);
     const state = { ...initial, ...clone(value) };
     state.version = VERSION;
-    state.boardRevision = 1;
+    state.boardRevision = 2;
     state.revision = Math.max(0, Math.trunc(Number(state.revision) || 0));
     state.players = normalizeMap(state.players);
     PLAYERS.forEach((player) => {
@@ -437,7 +441,9 @@
     const mapping = {
       monster: { key: "monsterExp", title: "モンスター特訓成功", detail: `手持ちモンスターへ経験値${amount}を予約しました。` },
       equipment: { key: "equipment", title: "装備ガチャ券発見", detail: "装備ガチャを1回獲得しました。" },
-      city: { key: "cityMoney", title: "BINGO CITYへ投資", detail: `都市資金へ¥${(amount * 100).toLocaleString("ja-JP")}を送りました。` }
+      city: { key: "cityMoney", title: "BINGO CITYへ投資", detail: `都市資金へ¥${(amount * 100).toLocaleString("ja-JP")}を送りました。` },
+      territory: { key: "territoryRecovery", title: "領土戦へ補給隊到着", detail: `負傷待機を${amount}分短縮し、守備隊を回復します。` },
+      tower: { key: "towerRestMinutes", title: "TOWERへ休息の加護", detail: `休養時間を${amount}分短縮し、登頂部隊を回復します。` }
     };
     const definition = mapping[space.category];
     const rewardId = `life-reward:${player.id}:${seed}:${space.number}`;
@@ -493,6 +499,7 @@
     const rewards = {
       job: [25000, 85000], property: [-90000, 140000], stock: [-120000, 180000],
       monster: [10000, 50000], equipment: [15000, 70000], city: [20000, 90000],
+      territory: [20000, 90000], tower: [20000, 90000],
       interaction: [-50000, 90000], risk: [-350000, 500000]
     };
     const range = rewards[space.category] || [-20000, 40000];
@@ -511,7 +518,7 @@
     if (space.category === "job") return jobEvent(player, space, seed);
     if (space.category === "property") return propertyEvent(player, space, seed);
     if (space.category === "stock") return stockEvent(state, player, space, seed, now);
-    if (["monster", "equipment", "city"].includes(space.category)) return integrationEvent(state, player, space, seed, now);
+    if (["monster", "equipment", "city", "territory", "tower"].includes(space.category)) return integrationEvent(state, player, space, seed, now);
     if (space.category === "interaction") return interactionEvent(state, player, seed);
     if (space.category === "risk") return riskEvent(player, seed);
     return placeholderEvent(player, space, seed);

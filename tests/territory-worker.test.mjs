@@ -48,22 +48,77 @@ test("人生すごろくの都市投資はCITY共有資金へ一度だけ反映�
   assert.equal(duplicate.state.players.tofu.resources.money, before + 24600);
 });
 
+test("人生すごろくの領土戦補給は負傷時間と守備隊を回復する", async () => {
+  const { applyLifeTerritoryRewards } = await import("../worker/territory-worker.mjs");
+  const Territory = globalThis.TeamBingoTerritorySystem;
+  const now = Date.UTC(2026, 8, 5, 10, 0);
+  const playerStats = { players: {} };
+  const state = Territory.createInitialState(playerStats, now);
+  state.players.tofu.injuredMonsters["child-ember"] = now + 90 * 60_000;
+  const tile = Object.values(state.tiles).find((entry) => entry.ownerId === "tofu" && entry.garrison);
+  tile.garrison.hype = 20;
+  tile.garrison.fatigue = 5;
+  tile.garrison.lineup[0].hp = 15;
+  const rewards = { supply: { id: "supply", playerId: "tofu", type: "territoryRecovery", amount: 60, status: "pending" } };
+  const first = applyLifeTerritoryRewards(state, playerStats, rewards, now);
+
+  assert.equal(first.applied, 1);
+  assert.equal(first.state.players.tofu.injuredMonsters["child-ember"], now + 30 * 60_000);
+  const recovered = first.state.tiles[tile.id].garrison;
+  assert.ok(recovered.hype > 20);
+  assert.ok(recovered.fatigue < 5);
+  assert.ok(recovered.lineup[0].hp > 15);
+  assert.equal(applyLifeTerritoryRewards(first.state, playerStats, rewards, now + 1000).applied, 0);
+});
+
+test("人生すごろくのTOWER加護は休養時間とパーティHPを回復する", async () => {
+  const { applyLifeTowerRewards } = await import("../worker/territory-worker.mjs");
+  const Tower = globalThis.TeamBingoMonsterTowerSystem;
+  const now = Date.UTC(2026, 8, 5, 10, 0);
+  const playerStats = { players: {} };
+  const state = Tower.createInitialState(playerStats, now);
+  const player = state.players.jan;
+  player.resting["child-ember"] = now + 90 * 60_000;
+  player.waitingUntil = now + 90 * 60_000;
+  player.status = "resting";
+  player.party[0].hp = 1;
+  const rewards = { rest: { id: "rest", playerId: "jan", type: "towerRestMinutes", amount: 60, status: "pending" } };
+  const first = applyLifeTowerRewards(state, playerStats, rewards, now);
+
+  assert.equal(first.applied, 1);
+  assert.equal(first.state.players.jan.resting["child-ember"], now + 30 * 60_000);
+  assert.equal(first.state.players.jan.waitingUntil, now + 30 * 60_000);
+  assert.ok(first.state.players.jan.party[0].hp > 1);
+  assert.equal(applyLifeTowerRewards(first.state, playerStats, rewards, now + 1000).applied, 0);
+});
+
 test("人生すごろくWorkerは共有報酬を確定してキューを完了にする", async () => {
   const originalFetch = globalThis.fetch;
   const Life = globalThis.TeamBingoLifeBoardSystem;
   const City = globalThis.TeamBingoCitySystem;
+  const Territory = globalThis.TeamBingoTerritorySystem;
+  const Tower = globalThis.TeamBingoMonsterTowerSystem;
   const life = Life.createInitialState(1000);
   life.rewardQueue.rewardA = { id: "rewardA", playerId: "eda", type: "monsterExp", amount: 40, status: "pending", createdAt: 1000 };
   life.rewardQueue.rewardB = { id: "rewardB", playerId: "eda", type: "cityMoney", amount: 18000, status: "pending", createdAt: 1000 };
+  life.rewardQueue.rewardC = { id: "rewardC", playerId: "eda", type: "territoryRecovery", amount: 45, status: "pending", createdAt: 1000 };
+  life.rewardQueue.rewardD = { id: "rewardD", playerId: "eda", type: "towerRestMinutes", amount: 50, status: "pending", createdAt: 1000 };
   const values = {
     life,
     stats: { playerStats: { players: { "えだ": { name: "えだ", monsterDex: { "child-frost": 1 } } } } },
-    city: City.createInitialState(1000)
+    city: City.createInitialState(1000),
+    frontier: Territory.createInitialState({ players: {} }, 1000),
+    tower: Tower.createInitialState({ players: {} }, 1000)
   };
   const writes = [];
   globalThis.fetch = async (input, init = {}) => {
     const url = String(input);
-    const key = url.includes("/life/current.json") ? "life" : url.includes("/globalStats.json") ? "stats" : url.includes("/cities/current.json") ? "city" : "";
+    const key = url.includes("/life/current.json") ? "life"
+      : url.includes("/globalStats.json") ? "stats"
+      : url.includes("/cities/current.json") ? "city"
+      : url.includes("/frontier/current.json") ? "frontier"
+      : url.includes("/tower/current.json") ? "tower"
+      : "";
     if (!key) throw new Error(`Unexpected request: ${init.method || "GET"} ${url}`);
     if (init.method === "PUT") {
       values[key] = JSON.parse(init.body);
@@ -80,12 +135,16 @@ test("人生すごろくWorkerは共有報酬を確定してキューを完了�
       FIREBASE_DATABASE_ROOT: "teamBingoV1"
     }, "worker-token", 5000);
 
-    assert.deepEqual(result, { ok: true, pending: 2, stats: 1, city: 1, settled: 2 });
+    assert.deepEqual(result, { ok: true, pending: 4, stats: 1, city: 1, territory: 1, tower: 1, settled: 4 });
     assert.equal(values.stats.playerStats.players["えだ"].monsterMastery["child-frost"], 40);
     assert.equal(values.city.players.eda.resources.money, City.AUTO_BUILD_THRESHOLD + 18000);
     assert.equal(values.life.rewardQueue.rewardA.status, "settled");
     assert.equal(values.life.rewardQueue.rewardB.status, "settled");
-    assert.deepEqual(writes.map((entry) => entry.key).sort(), ["city", "life", "stats"]);
+    assert.equal(values.life.rewardQueue.rewardC.status, "settled");
+    assert.equal(values.life.rewardQueue.rewardD.status, "settled");
+    assert.equal(values.frontier.lifeRewardsProcessed.rewardC, 5000);
+    assert.equal(values.tower.lifeRewardsProcessed.rewardD, 5000);
+    assert.deepEqual(writes.map((entry) => entry.key).sort(), ["city", "frontier", "life", "stats", "tower"]);
     assert.ok(writes.every((entry) => entry.etag));
   } finally {
     globalThis.fetch = originalFetch;

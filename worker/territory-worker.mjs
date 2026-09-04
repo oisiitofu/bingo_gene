@@ -503,6 +503,75 @@ export function applyLifeCityRewards(value, rewards = {}, now = Date.now()) {
   return { state: next, applied };
 }
 
+export function applyLifeTerritoryRewards(value, playerStats = {}, rewards = {}, now = Date.now()) {
+  const next = Territory.normalizeState(value, playerStats, now);
+  next.lifeRewardsProcessed ||= {};
+  let applied = 0;
+  lifeRewardEntries(rewards).forEach(([id, reward]) => {
+    if (reward.type !== "territoryRecovery" || next.lifeRewardsProcessed[id]) return;
+    const player = next.players?.[reward.playerId];
+    if (!player) return;
+    const minutes = Math.max(1, Math.min(360, Math.floor(Number(reward.amount) || 1)));
+    const reduction = minutes * 60_000;
+    player.injuredMonsters ||= {};
+    Object.entries(player.injuredMonsters).forEach(([nodeId, until]) => {
+      const reduced = Number(until) - reduction;
+      if (reduced <= Number(now)) delete player.injuredMonsters[nodeId];
+      else player.injuredMonsters[nodeId] = reduced;
+    });
+    Object.values(next.tiles || {}).forEach((tile) => {
+      const party = tile?.garrison;
+      if (!party || party.ownerId !== reward.playerId) return;
+      party.hype = Math.min(100, (Number(party.hype) || 0) + Math.max(5, Math.ceil(minutes / 5)));
+      party.fatigue = Math.max(0, (Number(party.fatigue) || 0) - Math.max(1, minutes / 30));
+      (party.lineup || []).forEach((member) => {
+        member.hp = Math.min(100, (Number(member.hp) || 0) + Math.max(10, Math.ceil(minutes / 3)));
+      });
+    });
+    next.lifeRewardsProcessed[id] = Number(now);
+    applied += 1;
+  });
+  next.lifeRewardsProcessed = trimProcessedRewards(next.lifeRewardsProcessed);
+  if (applied) {
+    Territory.refreshRecoveredGarrisons(next, playerStats, now);
+    next.revision = (Number(next.revision) || 0) + 1;
+    next.updatedAt = Number(now);
+  }
+  return { state: next, applied };
+}
+
+export function applyLifeTowerRewards(value, playerStats = {}, rewards = {}, now = Date.now()) {
+  let next = Tower.normalizeState(value, playerStats, now);
+  next.lifeRewardsProcessed ||= {};
+  let applied = 0;
+  lifeRewardEntries(rewards).forEach(([id, reward]) => {
+    if (reward.type !== "towerRestMinutes" || next.lifeRewardsProcessed[id]) return;
+    const player = next.players?.[reward.playerId];
+    if (!player) return;
+    const minutes = Math.max(1, Math.min(360, Math.floor(Number(reward.amount) || 1)));
+    const reduction = minutes * 60_000;
+    player.resting = Object.fromEntries(Object.entries(player.resting || {}).flatMap(([nodeId, until]) => {
+      const reduced = Number(until) - reduction;
+      return reduced > Number(now) ? [[nodeId, reduced]] : [];
+    }));
+    player.waitingUntil = Math.max(0, (Number(player.waitingUntil) || 0) - reduction);
+    if (player.waitingUntil <= Number(now) && player.status === "resting") player.status = "climbing";
+    (player.party || []).forEach((member) => {
+      const recovery = Math.max(1, Math.round((Number(member.maxHp) || 1) * Math.min(.5, .1 + minutes / 600)));
+      member.hp = Math.min(Number(member.maxHp) || 1, (Number(member.hp) || 0) + recovery);
+    });
+    next.lifeRewardsProcessed[id] = Number(now);
+    applied += 1;
+  });
+  next.lifeRewardsProcessed = trimProcessedRewards(next.lifeRewardsProcessed);
+  if (applied) {
+    next = Tower.normalizeState(next, playerStats, now);
+    next.revision = (Number(next.revision) || 0) + 1;
+    next.updatedAt = Number(now);
+  }
+  return { state: next, applied };
+}
+
 async function mergeLifeStatsRewardsWithToken(env, token, rewards, now) {
   if (!lifeRewardEntries(rewards).some(([, reward]) => ["equipment", "monsterExp"].includes(reward.type))) return 0;
   const path = rootPath(env, "globalStats");
@@ -527,6 +596,42 @@ async function mergeLifeCityRewardsWithToken(env, token, rewards, now) {
     if (written.committed) return result.applied;
   }
   throw new Error("Life city reward update conflicted repeatedly");
+}
+
+async function mergeLifeTerritoryRewardsWithToken(env, token, rewards, now) {
+  if (!lifeRewardEntries(rewards).some(([, reward]) => reward.type === "territoryRecovery")) return 0;
+  const [statsResult, initial] = await Promise.all([
+    readDatabase(env, rootPath(env, "globalStats"), token),
+    readDatabase(env, rootPath(env, "frontier/current"), token, true)
+  ]);
+  const playerStats = statsResult.value?.playerStats || { players: {} };
+  let current = initial;
+  for (let attempt = 0; attempt < 6; attempt += 1) {
+    const result = applyLifeTerritoryRewards(current.value, playerStats, rewards, now);
+    if (!result.applied) return 0;
+    const written = await writeDatabase(env, rootPath(env, "frontier/current"), result.state, token, current.etag);
+    if (written.committed) return result.applied;
+    current = await readDatabase(env, rootPath(env, "frontier/current"), token, true);
+  }
+  throw new Error("Life territory reward update conflicted repeatedly");
+}
+
+async function mergeLifeTowerRestRewardsWithToken(env, token, rewards, now) {
+  if (!lifeRewardEntries(rewards).some(([, reward]) => reward.type === "towerRestMinutes")) return 0;
+  const [statsResult, initial] = await Promise.all([
+    readDatabase(env, rootPath(env, "globalStats"), token),
+    readDatabase(env, rootPath(env, "tower/current"), token, true)
+  ]);
+  const playerStats = statsResult.value?.playerStats || { players: {} };
+  let current = initial;
+  for (let attempt = 0; attempt < 6; attempt += 1) {
+    const result = applyLifeTowerRewards(current.value, playerStats, rewards, now);
+    if (!result.applied) return 0;
+    const written = await writeDatabase(env, rootPath(env, "tower/current"), result.state, token, current.etag);
+    if (written.committed) return result.applied;
+    current = await readDatabase(env, rootPath(env, "tower/current"), token, true);
+  }
+  throw new Error("Life tower reward update conflicted repeatedly");
 }
 
 async function markLifeRewardsSettledWithToken(env, token, rewardIds, now) {
@@ -561,15 +666,17 @@ export async function settleLifeRewardsWithToken(env, token, now = Date.now()) {
   const current = await readDatabase(env, path, token);
   const state = Life.normalizeState(current.value, now);
   const entries = lifeRewardEntries(state.rewardQueue);
-  if (!entries.length) return { ok: true, pending: 0, stats: 0, city: 0, settled: 0 };
+  if (!entries.length) return { ok: true, pending: 0, stats: 0, city: 0, territory: 0, tower: 0, settled: 0 };
   const rewards = Object.fromEntries(entries);
-  const [stats, city] = await Promise.all([
+  const [stats, city, territory, tower] = await Promise.all([
     mergeLifeStatsRewardsWithToken(env, token, rewards, now),
-    mergeLifeCityRewardsWithToken(env, token, rewards, now)
+    mergeLifeCityRewardsWithToken(env, token, rewards, now),
+    mergeLifeTerritoryRewardsWithToken(env, token, rewards, now),
+    mergeLifeTowerRestRewardsWithToken(env, token, rewards, now)
   ]);
   const ids = entries.map(([id]) => id);
   await markLifeRewardsSettledWithToken(env, token, ids, now);
-  return { ok: true, pending: entries.length, stats, city, settled: ids.length };
+  return { ok: true, pending: entries.length, stats, city, territory, tower, settled: ids.length };
 }
 
 export async function settleLifeRewards(env, now = Date.now()) {
