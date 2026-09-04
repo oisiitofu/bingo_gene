@@ -107,3 +107,69 @@ test("money settlement pays debt first and records new debt when cash runs out",
   assert.equal(player.cash, 60000);
   assert.equal(player.netWorth, 60000);
 });
+
+function landOnCategory(category, playerName = "おいしいとうふ", configure = () => {}) {
+  const space = Life.BOARD.find((candidate) => candidate.category === category && candidate.number > 12 && !candidate.checkpoint);
+  assert.ok(space, `missing ${category} space`);
+  const player = Life.playerForName(playerName);
+  const id = `land-${category}-${player.id}`;
+  const die = Life.seededInt(`${id}:${player.id}:die`, 1, 6);
+  const state = Life.createInitialState(7_000_000);
+  const record = state.players[player.id];
+  record.totalSpaces = space.number - die;
+  record.position = record.totalSpaces % Life.BOARD_SIZE;
+  configure(record, state);
+  const result = Life.applyOpenRoll(state, {
+    id, matchId: "category-match", playerName, team: "red", cellIndex: space.number, characterId: 1
+  }, 7_000_100);
+  return { result, record: result.state.players[player.id], space };
+}
+
+test("career, property, stocks, and cross-mode rewards persist real state changes", () => {
+  const career = landOnCategory("job", "えだ");
+  assert.equal(career.result.events.at(-1).category, "job");
+  assert.ok(career.record.job.id);
+
+  const property = landOnCategory("property", "Lickey", (record) => { record.cash = 2_000_000; });
+  assert.equal(property.result.events.at(-1).category, "property");
+  assert.ok(Object.keys(property.record.assets.homes).length >= 1);
+
+  const stock = landOnCategory("stock", "リーマ", (record) => { record.cash = 2_000_000; });
+  assert.equal(stock.result.state.market.cycle, 1);
+  assert.equal(stock.result.events.at(-1).category, "stock");
+  assert.ok(Object.keys(stock.record.assets.stocks).length >= 1);
+
+  for (const category of ["monster", "equipment", "city"]) {
+    const linked = landOnCategory(category, "Kento");
+    assert.equal(linked.result.events.at(-1).category, category);
+    assert.ok(Object.keys(linked.result.state.rewardQueue).length >= 1);
+  }
+});
+
+test("crossing each 25-space boundary pays the current job salary", () => {
+  const state = Life.createInitialState(8_000_000);
+  const player = state.players.kento;
+  player.totalSpaces = 24;
+  player.position = 24;
+  player.job = structuredClone(Life.JOBS.find((job) => job.id === "engineer"));
+  const before = player.cash;
+  const result = Life.applyOpenRoll(state, {
+    id: "payday-roll", matchId: "payday-match", playerName: "Kento", team: "blue", cellIndex: 7
+  }, 8_000_100);
+  assert.equal(result.state.players.kento.paydays, 1);
+  assert.ok(result.events.some((event) => event.category === "payday"));
+  assert.ok(result.state.players.kento.lifetimeIncome >= 130000);
+  assert.notEqual(result.state.players.kento.cash, before);
+});
+
+test("interaction and risk spaces use large reversible life-money swings", () => {
+  const interaction = landOnCategory("interaction", "ジャン");
+  const event = interaction.result.events.at(-1);
+  assert.equal(event.category, "interaction");
+  assert.ok(Math.abs(event.amount) >= 40000);
+  assert.ok(event.targetPlayerId);
+
+  const risk = landOnCategory("risk", "ジャン", (record) => { record.cash = 1_000_000; });
+  assert.equal(risk.result.events.at(-1).category, "risk");
+  assert.ok(Math.abs(risk.result.events.at(-1).amount) >= 120000);
+});

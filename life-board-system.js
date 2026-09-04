@@ -69,6 +69,11 @@
     { id: "unemployed", name: "自由すぎる無職", salary: 0, rank: 0 }
   ]);
 
+  const PROPERTY_NAMES = Object.freeze([
+    "はじまり荘", "青春シェアハウス", "駅前ワンルーム", "海辺のコテージ", "山岳ログハウス",
+    "ネオンタワーレジデンス", "王都の庭園邸", "宇宙窓つき住居", "六王スカイマンション", "伝説の大豪邸"
+  ]);
+
   const MONEY_EVENTS = Object.freeze([
     { title: "臨時ボーナス！", detail: "働きぶりが評価され、特別賞与を受け取りました。", min: 60000, max: 240000 },
     { title: "旅行で大散財", detail: "最高の思い出と引き換えに財布が軽くなりました。", min: -260000, max: -70000 },
@@ -196,6 +201,7 @@
       job: clone(JOBS[0]),
       paydays: 0,
       assets: emptyAssets(),
+      integrationRewards: { monsterExp: 0, monsterBond: 0, cityMoney: 0, territoryRecovery: 0, towerRestMinutes: 0 },
       lastRoll: null,
       createdAt: Number(now),
       updatedAt: Number(now)
@@ -218,6 +224,7 @@
       revision: 0,
       players: Object.fromEntries(PLAYERS.map((player) => [player.id, createPlayerState(player, timestamp)])),
       market: initialMarket(timestamp),
+      rewardQueue: {},
       processedOpens: {},
       globalHistory: {},
       createdAt: timestamp,
@@ -257,6 +264,13 @@
     player.assets.stocks = normalizeMap(player.assets.stocks);
     player.assets.equipmentGacha = Array.isArray(player.assets.equipmentGacha) ? player.assets.equipmentGacha.slice(-100) : [];
     player.assets.eventHistory = Array.isArray(player.assets.eventHistory) ? player.assets.eventHistory.slice(-MAX_HISTORY) : [];
+    player.integrationRewards = {
+      monsterExp: Math.max(0, Number(player.integrationRewards?.monsterExp) || 0),
+      monsterBond: Math.max(0, Number(player.integrationRewards?.monsterBond) || 0),
+      cityMoney: Math.max(0, Number(player.integrationRewards?.cityMoney) || 0),
+      territoryRecovery: Math.max(0, Number(player.integrationRewards?.territoryRecovery) || 0),
+      towerRestMinutes: Math.max(0, Number(player.integrationRewards?.towerRestMinutes) || 0)
+    };
     player.netWorth = player.cash - player.debt;
     player.updatedAt = Number(player.updatedAt) || Number(now);
     return player;
@@ -274,6 +288,7 @@
     });
     state.market = { ...initialMarket(now), ...normalizeMap(state.market) };
     state.market.stocks = { ...initialMarket(now).stocks, ...normalizeMap(state.market.stocks) };
+    state.rewardQueue = trimMap(state.rewardQueue, 1000);
     state.processedOpens = trimMap(state.processedOpens, MAX_PROCESSED_OPENS);
     state.globalHistory = trimMap(state.globalHistory, MAX_HISTORY);
     state.createdAt = Number(state.createdAt) || Number(now);
@@ -309,6 +324,167 @@
     return { type: "money", title: definition.title, detail: definition.detail, amount };
   }
 
+  function chooseJob(player, space, seed) {
+    const regionRank = Math.max(1, Math.min(9, space.regionIndex + 1));
+    const specialtyBoost = PLAYER_BY_ID[player.id]?.specialty === "career" ? 1 : 0;
+    const eligible = JOBS.filter((job) => job.rank <= regionRank + specialtyBoost && job.id !== "unemployed");
+    if (seededUnit(`${seed}:unemployed`) < 0.04) return JOBS.find((job) => job.id === "unemployed");
+    return eligible[seededInt(`${seed}:job`, 0, eligible.length - 1)] || JOBS[0];
+  }
+
+  function jobEvent(player, space, seed) {
+    const previous = player.job;
+    const offer = chooseJob(player, space, seed);
+    const accepts = offer.rank >= previous.rank
+      || PLAYER_BY_ID[player.id]?.strategy === "chaos"
+      || seededUnit(`${seed}:accept`) < 0.22;
+    if (accepts) player.job = clone(offer);
+    const signingBonus = accepts && offer.rank > previous.rank ? offer.rank * 25000 : 0;
+    if (signingBonus) applyMoney(player, signingBonus);
+    return {
+      type: "job",
+      title: accepts ? `${offer.name}に${previous.id === offer.id ? "再任" : "転職"}！` : `${offer.name}からスカウト`,
+      detail: accepts
+        ? `給料は¥${offer.salary.toLocaleString("ja-JP")}。${signingBonus ? `契約金¥${signingBonus.toLocaleString("ja-JP")}も獲得！` : "新しい仕事が始まります。"}`
+        : `${previous.name}を続ける決断をしました。`,
+      amount: signingBonus,
+      jobId: player.job.id
+    };
+  }
+
+  function propertyDefinition(space, seed) {
+    const tier = space.regionIndex + 1;
+    const variation = seededInt(`${seed}:property`, 0, 3);
+    const cost = Math.round((180000 + tier * 125000 + variation * 60000) / 10000) * 10000;
+    return {
+      id: `property-${space.number}-${variation}`,
+      name: PROPERTY_NAMES[space.regionIndex],
+      tier,
+      purchasePrice: cost,
+      value: cost,
+      maintenance: Math.round(cost * 0.015),
+      acquiredAtSpace: space.number
+    };
+  }
+
+  function propertyEvent(player, space, seed) {
+    const property = propertyDefinition(space, seed);
+    const existing = player.assets.homes[property.id];
+    if (existing) {
+      const income = Math.round(existing.value * (0.05 + seededUnit(`${seed}:rent`) * 0.08));
+      applyMoney(player, income);
+      return { type: "property", title: `${existing.name}から臨時収入`, detail: `不動産収益として¥${income.toLocaleString("ja-JP")}を受け取りました。`, amount: income, propertyId: existing.id };
+    }
+    const wealthBias = PLAYER_BY_ID[player.id]?.specialty === "property" ? 1.25 : 1;
+    const canBuy = player.cash >= property.purchasePrice / wealthBias;
+    if (canBuy) {
+      applyMoney(player, -property.purchasePrice);
+      player.assets.homes[property.id] = property;
+      return { type: "property", title: `${property.name}を購入！`, detail: `¥${property.purchasePrice.toLocaleString("ja-JP")}で新しい資産を手に入れました。`, amount: -property.purchasePrice, propertyId: property.id };
+    }
+    const viewingCost = Math.min(30000, Math.max(5000, Math.round(property.purchasePrice * 0.02)));
+    applyMoney(player, -viewingCost);
+    return { type: "property", title: `${property.name}を内見`, detail: `購入には届かず、諸費用¥${viewingCost.toLocaleString("ja-JP")}だけ支払いました。`, amount: -viewingCost, propertyId: property.id };
+  }
+
+  function updateMarket(state, seed, now) {
+    state.market.cycle = (Number(state.market.cycle) || 0) + 1;
+    Object.values(state.market.stocks).forEach((stock) => {
+      const previous = Math.max(100, Number(stock.price) || 1000);
+      const movement = (seededUnit(`${seed}:${stock.id}:market`) * 2 - 1) * (Number(stock.volatility) || 0.1);
+      stock.previousPrice = previous;
+      stock.price = Math.max(100, Math.round(previous * (1 + movement)));
+      stock.change = (stock.price - previous) / previous;
+    });
+    state.market.updatedAt = Number(now);
+  }
+
+  function stockEvent(state, player, space, seed, now) {
+    updateMarket(state, seed, now);
+    const stocks = Object.values(state.market.stocks);
+    const stock = stocks[seededInt(`${seed}:stock`, 0, stocks.length - 1)];
+    const holding = player.assets.stocks[stock.id] || { id: stock.id, name: stock.name, shares: 0, invested: 0 };
+    const strategy = PLAYER_BY_ID[player.id]?.strategy;
+    const budgetRates = { steady: 0.08, aggressive: 0.25, chaos: 0.35, balanced: 0.14, growth: 0.2, wealth: 0.18 };
+    const budget = Math.max(0, Math.floor(player.cash * (budgetRates[strategy] || 0.12)));
+    if (stock.change < -0.045 && holding.shares > 0 && strategy !== "aggressive") {
+      const shares = Math.max(1, Math.ceil(holding.shares / 2));
+      const income = shares * stock.price;
+      holding.shares -= shares;
+      applyMoney(player, income);
+      if (holding.shares) player.assets.stocks[stock.id] = holding;
+      else delete player.assets.stocks[stock.id];
+      return { type: "stock", title: `${stock.name}を売却`, detail: `${shares}株を売り、¥${income.toLocaleString("ja-JP")}を確保しました。`, amount: income, stockId: stock.id };
+    }
+    const shares = Math.floor(budget / stock.price);
+    if (shares > 0) {
+      const cost = shares * stock.price;
+      holding.shares += shares;
+      holding.invested += cost;
+      player.assets.stocks[stock.id] = holding;
+      applyMoney(player, -cost);
+      return { type: "stock", title: `${stock.name}へ投資`, detail: `${shares}株を¥${cost.toLocaleString("ja-JP")}で購入。株価は${stock.change >= 0 ? "+" : ""}${Math.round(stock.change * 1000) / 10}%です。`, amount: -cost, stockId: stock.id };
+    }
+    return { type: "stock", title: `${stock.name}を観察`, detail: `株価は¥${stock.price.toLocaleString("ja-JP")}。今回は資金を温存しました。`, amount: 0, stockId: stock.id };
+  }
+
+  function integrationEvent(state, player, space, seed, now) {
+    const amount = seededInt(`${seed}:integration`, 30, 120);
+    const mapping = {
+      monster: { key: "monsterExp", title: "モンスター特訓成功", detail: `手持ちモンスターへ経験値${amount}を予約しました。` },
+      equipment: { key: "equipment", title: "装備ガチャ券発見", detail: "装備ガチャを1回獲得しました。" },
+      city: { key: "cityMoney", title: "BINGO CITYへ投資", detail: `都市資金へ¥${(amount * 100).toLocaleString("ja-JP")}を送りました。` }
+    };
+    const definition = mapping[space.category];
+    const rewardId = `life-reward:${player.id}:${seed}:${space.number}`;
+    if (space.category === "equipment") {
+      state.rewardQueue[rewardId] = { id: rewardId, playerId: player.id, type: "equipment", count: 1, createdAt: Number(now) };
+      player.assets.equipmentGacha.push({ id: rewardId, checkpoint: 0, count: 1, status: "pending", createdAt: Number(now) });
+    } else {
+      const value = space.category === "city" ? amount * 100 : amount;
+      player.integrationRewards[definition.key] += value;
+      state.rewardQueue[rewardId] = { id: rewardId, playerId: player.id, type: definition.key, amount: value, createdAt: Number(now) };
+    }
+    return { type: space.category, title: definition.title, detail: definition.detail, amount: 0, rewardId };
+  }
+
+  function interactionEvent(state, player, seed) {
+    const targets = PLAYERS.filter((candidate) => candidate.id !== player.id);
+    const targetDefinition = targets[seededInt(`${seed}:target`, 0, targets.length - 1)];
+    const target = state.players[targetDefinition.id];
+    const amount = seededInt(`${seed}:gift`, 40000, 180000);
+    const win = seededUnit(`${seed}:direction`) >= 0.5;
+    if (win) {
+      applyMoney(target, -amount);
+      applyMoney(player, amount);
+    } else {
+      applyMoney(player, -amount);
+      applyMoney(target, amount);
+    }
+    target.updatedAt = Number(state.updatedAt) || Date.now();
+    return {
+      type: "interaction",
+      title: win ? `${target.name}との勝負に勝利！` : `${target.name}へごちそう`,
+      detail: win ? `人生ゲーム対決で¥${amount.toLocaleString("ja-JP")}を獲得しました。` : `豪快に¥${amount.toLocaleString("ja-JP")}を振る舞いました。`,
+      amount: win ? amount : -amount,
+      targetPlayerId: target.id
+    };
+  }
+
+  function riskEvent(player, seed) {
+    const stake = seededInt(`${seed}:stake`, 120000, 600000);
+    const chance = PLAYER_BY_ID[player.id]?.specialty === "chance" ? 0.58 : 0.46;
+    const won = seededUnit(`${seed}:result`) < chance;
+    const amount = won ? Math.round(stake * 1.4) : -stake;
+    applyMoney(player, amount);
+    return {
+      type: "risk",
+      title: won ? "一発逆転、大成功！" : "大勝負に敗北…",
+      detail: `${won ? "勝負を制して" : "勝負に敗れて"}¥${Math.abs(amount).toLocaleString("ja-JP")} ${won ? "獲得" : "損失"}しました。`,
+      amount
+    };
+  }
+
   function placeholderEvent(player, space, seed) {
     const rewards = {
       job: [25000, 85000], property: [-90000, 140000], stock: [-120000, 180000],
@@ -324,6 +500,35 @@
       detail: `${REGIONS[space.regionIndex].name}で新しい人生イベントが発生しました。`,
       amount
     };
+  }
+
+  function resolveLandingEvent(state, player, space, seed, now) {
+    if (space.category === "money") return moneyEvent(player, seed);
+    if (space.category === "job") return jobEvent(player, space, seed);
+    if (space.category === "property") return propertyEvent(player, space, seed);
+    if (space.category === "stock") return stockEvent(state, player, space, seed, now);
+    if (["monster", "equipment", "city"].includes(space.category)) return integrationEvent(state, player, space, seed, now);
+    if (space.category === "interaction") return interactionEvent(state, player, seed);
+    if (space.category === "risk") return riskEvent(player, seed);
+    return placeholderEvent(player, space, seed);
+  }
+
+  function processPaydays(player, totalBefore, totalAfter) {
+    const crossed = Math.floor(totalAfter / 25) - Math.floor(totalBefore / 25);
+    if (crossed <= 0) return [];
+    const events = [];
+    for (let index = 0; index < crossed; index += 1) {
+      const salary = Math.max(0, Number(player.job?.salary) || 0);
+      player.paydays += 1;
+      if (salary) applyMoney(player, salary);
+      events.push({
+        type: "payday",
+        title: salary ? `${player.job.name} 給料日` : "自由すぎる給料日",
+        detail: salary ? `給料¥${salary.toLocaleString("ja-JP")}を受け取りました。` : "収入はゼロ。でも時間はたっぷりあります。",
+        amount: salary
+      });
+    }
+    return events;
   }
 
   function checkpointGachaCount(player) {
@@ -368,6 +573,11 @@
       detail: event.detail,
       amount: Number(event.amount) || 0,
       equipmentDraws: Number(event.equipmentDraws) || 0,
+      ...(event.jobId ? { jobId: event.jobId } : {}),
+      ...(event.propertyId ? { propertyId: event.propertyId } : {}),
+      ...(event.stockId ? { stockId: event.stockId } : {}),
+      ...(event.rewardId ? { rewardId: event.rewardId } : {}),
+      ...(event.targetPlayerId ? { targetPlayerId: event.targetPlayerId } : {}),
       createdAt: Number(now)
     };
     player.assets.eventHistory.push(entry);
@@ -403,13 +613,16 @@
     const landing = BOARD[position === 0 ? BOARD_SIZE - 1 : position - 1];
     const events = [];
 
+    processPaydays(player, totalBefore, totalAfter).forEach((event, index) => {
+      const paydaySpace = BOARD[Math.max(0, Math.min(BOARD_SIZE - 1, landing.index - index))];
+      events.push(addEvent(state, player, openId, paydaySpace, event, now));
+    });
+
     crossedCheckpoints(totalBefore, totalAfter).forEach((space) => {
       events.push(addEvent(state, player, openId, space, checkpointEvent(player, space, openId, now), now));
     });
     if (!landing.checkpoint) {
-      const event = landing.category === "money"
-        ? moneyEvent(player, `${openId}:${landing.number}`)
-        : placeholderEvent(player, landing, `${openId}:${landing.number}`);
+      const event = resolveLandingEvent(state, player, landing, `${openId}:${landing.number}`, now);
       events.push(addEvent(state, player, openId, landing, event, now));
     }
 
@@ -457,10 +670,10 @@
 
   const api = {
     VERSION, BOARD_SIZE, REGION_SIZE, MAX_HISTORY, MAX_PROCESSED_OPENS, STARTING_CASH,
-    PLAYERS, PLAYER_BY_ID, REGIONS, CATEGORY_COUNTS, STOCKS, JOBS, MONEY_EVENTS, BOARD,
+    PLAYERS, PLAYER_BY_ID, REGIONS, CATEGORY_COUNTS, STOCKS, JOBS, PROPERTY_NAMES, MONEY_EVENTS, BOARD,
     clone, playerKey, playerForName, hash32, seededUnit, seededInt, deterministicShuffle,
     generateBoard, boardCategoryCounts, createInitialState, normalizeState, checkpointGachaCount,
-    applyMoney, applyOpenRoll, buildOpenId
+    applyMoney, chooseJob, propertyDefinition, updateMarket, processPaydays, applyOpenRoll, buildOpenId
   };
 
   global.TeamBingoLifeBoardSystem = api;
