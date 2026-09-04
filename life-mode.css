@@ -1,0 +1,138 @@
+.life-mode {
+  --life-panel: rgba(8, 12, 20, .9);
+  position: fixed;
+  inset: 0;
+  z-index: 3900;
+  display: none;
+  overflow: hidden;
+  color: #f5f7fb;
+  background: #090c12;
+  font-family: "Arial Black", "Yu Gothic", sans-serif;
+}
+.life-mode.open { display: block; }
+.life-mode canvas { position: absolute; inset: 0; width: 100%; height: 100%; }
+.life-mode::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background: linear-gradient(90deg, rgba(0,0,0,.5), transparent 24%, transparent 72%, rgba(0,0,0,.62));
+}
+.life-head {
+  position: absolute;
+  z-index: 2;
+  top: 18px;
+  left: 20px;
+  right: 20px;
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+  pointer-events: none;
+}
+.life-title { text-shadow: 0 3px 18px #000; }
+.life-title small { display: block; color: #f2cc54; font-size: 11px; letter-spacing: 0; }
+.life-title strong { display: block; margin-top: 2px; font-size: clamp(24px, 3vw, 46px); line-height: 1; }
+.life-head-actions { display: flex; gap: 8px; pointer-events: auto; }
+.life-simple-btn {
+  min-width: 92px;
+  min-height: 38px;
+  border: 1px solid rgba(255,255,255,.28);
+  border-radius: 4px;
+  color: #fff;
+  background: rgba(7,10,16,.88);
+  font: 700 11px/1 "Arial Black", "Yu Gothic", sans-serif;
+  cursor: pointer;
+}
+.life-simple-btn:hover, .life-simple-btn.active { border-color: #f2cc54; color: #ffe47e; background: #19170f; }
+.life-roster {
+  position: absolute;
+  z-index: 2;
+  top: 100px;
+  left: 18px;
+  width: min(250px, 24vw);
+  display: grid;
+  gap: 7px;
+}
+.life-player-card {
+  position: relative;
+  display: grid;
+  grid-template-columns: 42px 1fr auto;
+  align-items: center;
+  min-height: 56px;
+  padding: 6px 8px;
+  overflow: hidden;
+  border: 1px solid rgba(255,255,255,.18);
+  border-left: 4px solid var(--player-color);
+  border-radius: 4px;
+  color: #fff;
+  background: var(--life-panel);
+  text-align: left;
+  cursor: pointer;
+}
+.life-player-card.active { border-color: var(--player-color); box-shadow: 0 0 18px color-mix(in srgb, var(--player-color) 55%, transparent); }
+.life-player-card img { width: 40px; height: 44px; object-fit: contain; }
+.life-player-card b, .life-player-card span { display: block; white-space: nowrap; }
+.life-player-card b { overflow: hidden; font-size: 11px; text-overflow: ellipsis; }
+.life-player-card small { color: #9da8b9; font-size: 8px; }
+.life-player-card span { color: #ffe47e; font-size: 10px; text-align: right; }
+.life-status {
+  position: absolute;
+  z-index: 2;
+  top: 100px;
+  right: 18px;
+  width: min(310px, 28vw);
+  padding: 14px;
+  border: 1px solid rgba(255,255,255,.2);
+  border-radius: 4px;
+  background: var(--life-panel);
+}
+.life-status-head { display: flex; align-items: center; gap: 10px; border-bottom: 1px solid rgba(255,255,255,.14); padding-bottom: 10px; }
+.life-status-head img { width: 74px; height: 86px; object-fit: contain; }
+.life-status-head small, .life-stat small { display: block; color: #8f9caf; font-size: 8px; }
+.life-status-head b { display: block; font-size: 16px; }
+.life-status-head strong { color: #ffe47e; font-size: 12px; }
+.life-stat-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 7px; margin-top: 10px; }
+.life-stat { padding: 8px; background: rgba(255,255,255,.055); }
+.life-stat b { display: block; margin-top: 3px; font-size: 12px; }
+.life-market { margin-top: 10px; }
+.life-market h3 { margin: 0 0 6px; color: #9da8b9; font-size: 9px; }
+.life-stock { display: grid; grid-template-columns: 1fr auto auto; gap: 8px; padding: 5px 2px; border-top: 1px solid rgba(255,255,255,.08); font-size: 8px; }
+.life-stock .up { color: #65e39b; }.life-stock .down { color: #ff7182; }
+.life-event-log {
+  position: absolute;
+  z-index: 2;
+  left: max(18px, calc(50% - 360px));
+  right: max(18px, calc(50% - 360px));
+  bottom: 18px;
+  min-height: 74px;
+  padding: 11px 14px;
+  border-top: 2px solid #f2cc54;
+  background: rgba(7,10,16,.92);
+  box-shadow: 0 -10px 30px rgba(0,0,0,.35);
+}
+.life-event-log small { color: #f2cc54; font-size: 9px; }
+.life-event-log b { display: block; margin-top: 3px; font-size: 15px; }
+.life-event-log p { margin: 3px 0 0; color: #c5ccd7; font: 600 10px/1.45 "Yu Gothic", sans-serif; }
+.life-region-chip {
+  position: absolute;
+  z-index: 2;
+  top: 72px;
+  left: 50%;
+  transform: translateX(-50%);
+  padding: 7px 15px;
+  border: 1px solid rgba(255,255,255,.25);
+  background: rgba(6,9,14,.78);
+  font-size: 10px;
+}
+@media (max-width: 900px) {
+  .life-roster { top: auto; left: 8px; right: 8px; bottom: 96px; width: auto; grid-template-columns: repeat(6, minmax(0,1fr)); }
+  .life-player-card { display: block; min-height: 54px; padding: 4px; text-align: center; }
+  .life-player-card img { width: 34px; height: 34px; }
+  .life-player-card small, .life-player-card span { display: none; }
+  .life-player-card b { font-size: 7px; }
+  .life-status { top: 86px; right: 8px; width: 210px; padding: 8px; }
+  .life-status-head img { width: 45px; height: 52px; }
+  .life-market { display: none; }
+  .life-event-log { left: 8px; right: 8px; bottom: 8px; min-height: 65px; }
+}

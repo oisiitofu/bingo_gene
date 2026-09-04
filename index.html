@@ -8,6 +8,7 @@
   <link rel="stylesheet" href="territory-mode.css" />
   <link rel="stylesheet" href="city-mode.css?v=20260904-city-album-155" />
   <link rel="stylesheet" href="tower-mode.css?v=20260901-city-tower-balance-141" />
+  <link rel="stylesheet" href="life-mode.css?v=20260904-life-board-1" />
   <link rel="stylesheet" href="monster-page.css" />
   <link rel="stylesheet" href="world-tournament.css" />
   <script src="online/firebase-config.js"></script>
@@ -21,6 +22,9 @@
     if (new URLSearchParams(location.search).get("tower") === "1") {
       document.documentElement.classList.add("tower-standalone");
     }
+    if (new URLSearchParams(location.search).get("life") === "1") {
+      document.documentElement.classList.add("life-standalone");
+    }
     if (window.TEAM_BINGO_ONLINE_CONFIG?.enabled || new URLSearchParams(location.search).get("onlineMock") === "1") {
       document.documentElement.classList.add("online-booting");
     }
@@ -28,12 +32,14 @@
   <style>
     html.territory-standalone body,
     html.city-standalone body,
-    html.tower-standalone body {
+    html.tower-standalone body,
+    html.life-standalone body {
       background: #070a11;
     }
     html.territory-standalone body > .app,
     html.city-standalone body > .app,
-    html.tower-standalone body > .app {
+    html.tower-standalone body > .app,
+    html.life-standalone body > .app {
       visibility: hidden !important;
       pointer-events: none !important;
     }
@@ -444,7 +450,7 @@
     .setup-quick-links {
       width: min(520px, 100%);
       display: grid;
-      grid-template-columns: repeat(5, minmax(0, 1fr));
+      grid-template-columns: repeat(6, minmax(0, 1fr));
       gap: 8px;
     }
 
@@ -461,7 +467,9 @@
     #cityModeButton,
     #playCityModeButton,
     #towerModeButton,
-    #playTowerModeButton {
+    #playTowerModeButton,
+    #lifeModeButton,
+    #playLifeModeButton {
       display: inline-flex;
       align-items: center;
       justify-content: center;
@@ -8072,6 +8080,7 @@
             <button type="button" class="btn mode-entry-btn" id="territoryModeButton" aria-label="六王領土戦">領土戦</button>
             <button type="button" class="btn mode-entry-btn" id="cityModeButton" aria-label="BINGO CITY">CITY</button>
             <a class="btn mode-entry-btn" id="towerModeButton" aria-label="MONSTER TOWER" href="?tower=1" target="_blank" rel="noopener">TOWER</a>
+            <a class="btn mode-entry-btn" id="lifeModeButton" aria-label="六王人生すごろく" href="?life=1" target="_blank" rel="noopener">LIFE</a>
           </div>
         </div>
         <div class="setup-top-right">
@@ -8209,6 +8218,7 @@
             <button type="button" class="btn frame mode-entry-btn" id="playTerritoryModeButton" aria-label="六王領土戦">領土戦</button>
             <button type="button" class="btn frame mode-entry-btn" id="playCityModeButton" aria-label="BINGO CITY">CITY</button>
             <a class="btn frame mode-entry-btn" id="playTowerModeButton" aria-label="MONSTER TOWER" href="?tower=1" target="_blank" rel="noopener">TOWER</a>
+            <a class="btn frame mode-entry-btn" id="playLifeModeButton" aria-label="六王人生すごろく" href="?life=1" target="_blank" rel="noopener">LIFE</a>
           </div>
         </div>
         <div class="top-right">
@@ -8665,6 +8675,7 @@
   <script src="city-map-3d.js?v=20260904-city-album-155"></script>
   <script src="city-mode.js?v=20260904-city-album-155"></script>
   <script src="tower-mode.js?v=20260901-city-tower-balance-141"></script>
+  <script src="life-mode.js?v=20260904-life-board-1"></script>
   <script src="world-tournament.js"></script>
   <script>
     "use strict";
@@ -9504,7 +9515,7 @@
         "adminMonsterBattleModal", "adminMonsterRed1", "adminMonsterRed2", "adminMonsterBlue1", "adminMonsterBlue2", "adminMonsterBattleShuffle", "adminMonsterBattleCancel", "adminMonsterBattleStart",
         "teamSelectModal", "teamSelectList", "teamSelectRedMembers", "teamSelectBlueMembers", "teamSelectShuffleButton", "teamSelectConfirmButton", "teamSelectCancelButton", "teamSelectError",
         "statsSeasonSelect", "statsSeasonList", "statsTournamentList", "statsTerritoryList",
-        "randomEventButton", "monsterBattleModeButton", "singleMonsterModeButton", "doubleMonsterModeButton", "compactModeButton", "testModeControl", "testModeCheckbox", "testModeLabel", "testModeBadge", "territoryModeButton", "playTerritoryModeButton", "cityModeButton", "playCityModeButton", "towerModeButton", "playTowerModeButton",
+        "randomEventButton", "monsterBattleModeButton", "singleMonsterModeButton", "doubleMonsterModeButton", "compactModeButton", "testModeControl", "testModeCheckbox", "testModeLabel", "testModeBadge", "territoryModeButton", "playTerritoryModeButton", "cityModeButton", "playCityModeButton", "towerModeButton", "playTowerModeButton", "lifeModeButton", "playLifeModeButton",
         "matchReplayModal", "replayMatchMeta", "replaySummary", "replayBoards", "replayTimeline", "replayCloseButton",
         "replayPrevButton", "replayPlayButton", "replayRange", "replayStepLabel",
         "feverAura", "fxLayer", "openedByPopover", "victoryParticles", "setupThemePlayer", "copyrightToggle",
@@ -9553,6 +9564,8 @@
       els.playCityModeButton?.addEventListener("click", openCityWindow);
       if (els.towerModeButton) els.towerModeButton.href = towerWindowUrl();
       if (els.playTowerModeButton) els.playTowerModeButton.href = towerWindowUrl();
+      if (els.lifeModeButton) els.lifeModeButton.href = lifeWindowUrl();
+      if (els.playLifeModeButton) els.playLifeModeButton.href = lifeWindowUrl();
       els.setupStatsButton.addEventListener("click", showStatsPage);
       els.playStatsButton.addEventListener("click", showStatsPage);
       els.setupMonsterButton?.addEventListener("click", showMonsterDexPage);
@@ -17860,6 +17873,7 @@
     let territoryStandaloneOpened = false;
     let cityStandaloneOpened = false;
     let towerStandaloneOpened = false;
+    let lifeStandaloneOpened = false;
 
     function beginOnlineEventCapture() {
       onlineEventCapture = { timeline: [] };
@@ -17975,6 +17989,12 @@
             coordinator.hideLobby?.();
             const towerSnapshot = coordinator.getTowerState?.();
             if (towerSnapshot) openTowerStandalone(towerSnapshot);
+            return;
+          }
+          if (isLifeStandalonePage()) {
+            coordinator.hideLobby?.();
+            const lifeSnapshot = coordinator.getLifeBoardState?.();
+            if (lifeSnapshot) openLifeStandalone(lifeSnapshot);
             return;
           }
           if (isCityStandalonePage()) {
@@ -18391,6 +18411,8 @@
 
     function applyLifeBoardSnapshot(snapshot) {
       state.lifeBoardSnapshot = snapshot ? cloneOnlineValue(snapshot) : null;
+      window.TeamBingoLifeMode?.applySnapshot(snapshot);
+      if (isLifeStandalonePage()) openLifeStandalone(snapshot);
     }
 
     function configureWorldTournament() {
@@ -18604,6 +18626,31 @@
           if (isTowerStandalonePage() && window.opener) window.close();
           else if (!onlineCoordinator?.isOnline?.() && !document.querySelector(".screen.active")) onlineCoordinator?.showLobby?.();
         }
+      });
+    }
+
+    function isLifeStandalonePage() {
+      return new URLSearchParams(location.search).get("life") === "1";
+    }
+
+    function lifeWindowUrl() {
+      const url = new URL(location.href);
+      const onlineMock = url.searchParams.get("onlineMock");
+      url.search = "";
+      url.searchParams.set("life", "1");
+      if (onlineMock === "1") url.searchParams.set("onlineMock", "1");
+      url.hash = "";
+      return url.href;
+    }
+
+    function openLifeStandalone(snapshot) {
+      if (!snapshot || lifeStandaloneOpened) return;
+      lifeStandaloneOpened = true;
+      onlineCoordinator?.hideLobby?.();
+      window.TeamBingoLifeMode?.open({
+        state: snapshot,
+        playerId: window.TeamBingoLifeBoardSystem?.playerForName?.(onlineSession.memberName)?.id || "tofu",
+        onClose: () => { if (window.opener) window.close(); }
       });
     }
 
