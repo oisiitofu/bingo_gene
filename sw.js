@@ -1,6 +1,6 @@
 "use strict";
 
-const CACHE_VERSION = "team-bingo-v1-20260904-life-board-156";
+const CACHE_VERSION = "team-bingo-v1-20260905-life-board-157";
 const SHELL_CACHE = `${CACHE_VERSION}-shell`;
 const ASSET_CACHE = `${CACHE_VERSION}-assets`;
 const SHELL_FILES = [
@@ -19,9 +19,9 @@ const SHELL_FILES = [
   "./city-mode.js?v=20260904-city-album-155",
   "./city-mode.css?v=20260904-city-album-155",
   "./tower-system.js?v=20260901-city-tower-balance-141",
-  "./life-board-system.js?v=20260904-life-board-1",
-  "./life-mode.js?v=20260904-life-board-1",
-  "./life-mode.css?v=20260904-life-board-1",
+  "./life-board-system.js?v=20260905-life-board-2",
+  "./life-mode.js?v=20260905-life-board-2",
+  "./life-mode.css?v=20260905-life-board-2",
   "./tower-mode.js?v=20260901-city-tower-balance-141",
   "./tower-mode.css?v=20260901-city-tower-balance-141",
   "./world-tournament.js",

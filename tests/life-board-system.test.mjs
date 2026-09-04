@@ -32,6 +32,23 @@ test("creates persistent life records only for the fixed six", () => {
   assert.equal(Life.playerForName("guest"), null);
 });
 
+test("legacy life records migrate without losing player progress", () => {
+  const migrated = Life.normalizeState({
+    version: 0,
+    revision: 8,
+    players: { tofu: { cash: 765432, totalSpaces: 47, position: 47, rolls: 9 } },
+    market: { stocks: { "tofu-foods": { price: 2222 } } }
+  }, 5000);
+
+  assert.equal(migrated.version, Life.VERSION);
+  assert.equal(migrated.revision, 8);
+  assert.equal(migrated.players.tofu.cash, 765432);
+  assert.equal(migrated.players.tofu.position, 47);
+  assert.equal(Object.keys(migrated.players).length, 6);
+  assert.equal(migrated.market.stocks["tofu-foods"].price, 2222);
+  assert.equal(migrated.market.stocks["tofu-foods"].volatility, 0.08);
+});
+
 test("applies a deterministic roll once per attributed bingo open", () => {
   const payload = {
     id: "life-open:match-1:red:12:jan",

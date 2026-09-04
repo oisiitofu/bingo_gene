@@ -14,9 +14,9 @@ test("六王人生すごろく is reachable from setup and match screens in a st
   assert.match(html, /id="playLifeModeButton"[^>]+target="_blank"/);
   assert.match(html, /searchParams\.set\("life", "1"\)/);
   assert.match(html, /classList\.add\("life-standalone"\)/);
-  assert.match(html, /src="life-board-system\.js\?v=20260904-life-board-1"/);
-  assert.match(html, /src="life-mode\.js\?v=20260904-life-board-1"/);
-  assert.match(html, /href="life-mode\.css\?v=20260904-life-board-1"/);
+  assert.match(html, /src="life-board-system\.js\?v=\d+-life-board-\d+"/);
+  assert.match(html, /src="life-mode\.js\?v=\d+-life-board-\d+"/);
+  assert.match(html, /href="life-mode\.css\?v=\d+-life-board-\d+"/);
 });
 
 test("the life board renders 1000 spaces with one instanced mesh and bounded animation", () => {
@@ -24,6 +24,8 @@ test("the life board renders 1000 spaces with one instanced mesh and bounded ani
   assert.match(mode, /if \(!root\?\.classList\.contains\("open"\) \|\| !renderer\)/);
   assert.match(mode, /cancelAnimationFrame\(frame\)/);
   assert.match(mode, /OVERVIEW/);
+  assert.match(mode, /rollAnimations/);
+  assert.match(mode, /new THREE\.BoxGeometry\(1\.05, 1\.05, 1\.05\)/);
   assert.match(css, /\.life-mode\.open/);
 });
 
@@ -32,7 +34,17 @@ test("all six life avatars are independent transparent-ready files", () => {
     const url = new URL(`../images/life/avatars/${player}.png`, import.meta.url);
     assert.equal(existsSync(url), true, `${player} avatar missing`);
     assert.ok(statSync(url).size > 500000, `${player} avatar is unexpectedly small`);
+    assert.equal(readFileSync(url)[25], 6, `${player} avatar must use RGBA transparency`);
   }
+});
+
+test("life history and data controls are available without exposing resets to regular players", () => {
+  assert.match(mode, /data-life-history/);
+  assert.match(mode, /data-life-admin hidden/);
+  assert.match(mode, /team-bingo-life-board/);
+  assert.match(online, /adminResetLifeBoard\(target/);
+  assert.match(online, /adminImportLifeBoard\(value/);
+  assert.match(html, /isAdmin: Boolean\(onlineCoordinator\?\.isAdminMode/);
 });
 
 test("life state is subscribed online, permitted by rules, and available offline", () => {

@@ -277,8 +277,9 @@
   }
 
   function normalizeState(value, now = Date.now()) {
-    if (!value || Number(value.version) !== VERSION) return createInitialState(now);
-    const state = clone(value);
+    if (!value || typeof value !== "object") return createInitialState(now);
+    const initial = createInitialState(now);
+    const state = { ...initial, ...clone(value) };
     state.version = VERSION;
     state.boardRevision = 1;
     state.revision = Math.max(0, Math.trunc(Number(state.revision) || 0));
@@ -287,7 +288,10 @@
       state.players[player.id] = normalizePlayerState(state.players[player.id], player, now);
     });
     state.market = { ...initialMarket(now), ...normalizeMap(state.market) };
-    state.market.stocks = { ...initialMarket(now).stocks, ...normalizeMap(state.market.stocks) };
+    state.market.stocks = Object.fromEntries(STOCKS.map((stock) => [stock.id, {
+      ...initial.market.stocks[stock.id],
+      ...normalizeMap(state.market.stocks?.[stock.id])
+    }]));
     state.rewardQueue = trimMap(state.rewardQueue, 1000);
     state.processedOpens = trimMap(state.processedOpens, MAX_PROCESSED_OPENS);
     state.globalHistory = trimMap(state.globalHistory, MAX_HISTORY);

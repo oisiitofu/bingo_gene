@@ -1,11 +1,11 @@
 {
   "version": 1,
-  "generatedAt": "2026-09-04T11:14:12.208Z",
+  "generatedAt": "2026-09-04T16:59:03.347Z",
   "totals": {
     "all": 989,
     "images": 826,
     "audio": 163,
-    "bytes": 664441397
+    "bytes": 666695807
   },
   "assets": [
     {
@@ -1578,37 +1578,37 @@
       "path": "images/life/avatars/eda.png",
       "type": "image",
       "category": "images/life/avatars",
-      "bytes": 1330869
+      "bytes": 2151957
     },
     {
       "path": "images/life/avatars/jan.png",
       "type": "image",
       "category": "images/life/avatars",
-      "bytes": 1352448
+      "bytes": 1504940
     },
     {
       "path": "images/life/avatars/kento.png",
       "type": "image",
       "category": "images/life/avatars",
-      "bytes": 1101626
+      "bytes": 1669869
     },
     {
       "path": "images/life/avatars/lickey.png",
       "type": "image",
       "category": "images/life/avatars",
-      "bytes": 1448983
+      "bytes": 1625934
     },
     {
       "path": "images/life/avatars/rima.png",
       "type": "image",
       "category": "images/life/avatars",
-      "bytes": 1172343
+      "bytes": 1795779
     },
     {
       "path": "images/life/avatars/tofu.png",
       "type": "image",
       "category": "images/life/avatars",
-      "bytes": 1581969
+      "bytes": 1494169
     },
     {
       "path": "images/monster-battle/arena.png",

@@ -3,7 +3,7 @@ import assert from "node:assert/strict";
 
 globalThis.location ||= { search: "" };
 await import("../life-board-system.js");
-const { OnlineCoordinator } = await import(`../online/online-room.js?life-board-test=${Date.now()}`);
+const { OnlineCoordinator, resetLifeBoardState } = await import(`../online/online-room.js?life-board-test=${Date.now()}`);
 
 const clone = (value) => value === undefined ? undefined : JSON.parse(JSON.stringify(value));
 
@@ -79,4 +79,17 @@ test("online life rolls ignore test matches and non-fixed participants", async (
   assert.equal(testResult.testMode, true);
   assert.equal(guestResult.ignored, true);
   assert.equal(getAtPath(store, "teamBingoV1/life/current"), undefined);
+});
+
+test("admin player reset removes only that player's life history and pending rewards", () => {
+  const Life = globalThis.TeamBingoLifeBoardSystem;
+  let state = Life.createInitialState(1000);
+  state = Life.applyOpenRoll(state, { id: "jan-open", playerName: "ジャン", matchId: "m", team: "red", cellIndex: 1 }, 2000).state;
+  state = Life.applyOpenRoll(state, { id: "eda-open", playerName: "えだ", matchId: "m", team: "blue", cellIndex: 2 }, 3000).state;
+  const reset = resetLifeBoardState(state, "jan", 4000);
+
+  assert.equal(reset.players.jan.rolls, 0);
+  assert.equal(reset.players.eda.rolls, 1);
+  assert.ok(Object.values(reset.processedOpens).every((entry) => entry.playerId !== "jan"));
+  assert.ok(Object.values(reset.globalHistory).every((entry) => entry.playerId !== "jan"));
 });

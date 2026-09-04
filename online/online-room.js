@@ -37,6 +37,21 @@ const CITY_SYSTEM = globalThis.TeamBingoCitySystem || null;
 const TOWER_SYSTEM = globalThis.TeamBingoMonsterTowerSystem || null;
 const LIFE_BOARD_SYSTEM = globalThis.TeamBingoLifeBoardSystem || null;
 
+export function resetLifeBoardState(value, target = "all", now = Date.now()) {
+  if (!LIFE_BOARD_SYSTEM) return null;
+  if (target === "all") return LIFE_BOARD_SYSTEM.createInitialState(now);
+  if (!LIFE_BOARD_SYSTEM.PLAYER_BY_ID[target]) return null;
+  const next = LIFE_BOARD_SYSTEM.normalizeState(value, now);
+  const initial = LIFE_BOARD_SYSTEM.createInitialState(now);
+  next.players[target] = initial.players[target];
+  next.processedOpens = Object.fromEntries(Object.entries(next.processedOpens || {}).filter(([, entry]) => entry?.playerId !== target));
+  next.rewardQueue = Object.fromEntries(Object.entries(next.rewardQueue || {}).filter(([, reward]) => reward?.playerId !== target));
+  next.globalHistory = Object.fromEntries(Object.entries(next.globalHistory || {}).filter(([, entry]) => entry?.playerId !== target));
+  next.revision += 1;
+  next.updatedAt = Number(now);
+  return next;
+}
+
 export const ONLINE_REACTIONS = Object.freeze([
   { id: "clap", label: "拍手", mark: "👏" },
   { id: "nice", label: "ナイス", mark: "👍" },
@@ -3629,9 +3644,7 @@ export class OnlineCoordinator {
     if (this.lifeBoardInitPromise) return this.lifeBoardInitPromise;
     const now = this.backend.serverNow();
     this.lifeBoardInitPromise = this.backend.transaction(this.path("life/current"), (current) => (
-      Number(current?.version) === Number(LIFE_BOARD_SYSTEM.VERSION)
-        ? LIFE_BOARD_SYSTEM.normalizeState(current, now)
-        : LIFE_BOARD_SYSTEM.createInitialState(now)
+      current ? LIFE_BOARD_SYSTEM.normalizeState(current, now) : LIFE_BOARD_SYSTEM.createInitialState(now)
     )).then((result) => {
       this.lifeBoardState = clone(result.value || null);
       if (this.lifeBoardState) this.bridge.applyLifeBoardSnapshot?.(this.lifeBoardState);
@@ -3659,6 +3672,35 @@ export class OnlineCoordinator {
     this.lifeBoardState = clone(result.value);
     this.bridge.applyLifeBoardSnapshot?.(this.lifeBoardState);
     return { ok: true, die: outcome.die, landing: clone(outcome.landing), events: clone(outcome.events) };
+  }
+
+  async adminResetLifeBoard(target = "all") {
+    if (!LIFE_BOARD_SYSTEM || !this.backend || !this.isAdminMode()) return { ok: false, error: "ADMIN ONLY" };
+    if (!await this.verifyAdminSession()) return { ok: false, error: "管理者セッションを確認できません。" };
+    const now = this.backend.serverNow();
+    const result = await this.backend.transaction(this.path("life/current"), (current) => {
+      return resetLifeBoardState(current, target, now) || undefined;
+    });
+    if (!result.committed) return { ok: false, error: "人生データをリセットできませんでした。" };
+    this.lifeBoardState = clone(result.value);
+    this.bridge.applyLifeBoardSnapshot?.(this.lifeBoardState);
+    return { ok: true, state: clone(this.lifeBoardState) };
+  }
+
+  async adminImportLifeBoard(value) {
+    if (!LIFE_BOARD_SYSTEM || !this.backend || !this.isAdminMode()) return { ok: false, error: "ADMIN ONLY" };
+    if (!await this.verifyAdminSession()) return { ok: false, error: "管理者セッションを確認できません。" };
+    if (!value || typeof value !== "object" || !value.players || Number(value.version) > LIFE_BOARD_SYSTEM.VERSION) {
+      return { ok: false, error: "対応していない人生データです。" };
+    }
+    const now = this.backend.serverNow();
+    const imported = LIFE_BOARD_SYSTEM.normalizeState(value, now);
+    imported.revision = Math.max(Number(imported.revision) || 0, Number(this.lifeBoardState?.revision) || 0) + 1;
+    imported.updatedAt = now;
+    const result = await this.backend.set(this.path("life/current"), imported);
+    this.lifeBoardState = clone(result || imported);
+    this.bridge.applyLifeBoardSnapshot?.(this.lifeBoardState);
+    return { ok: true, state: clone(this.lifeBoardState) };
   }
 
   async ensureTowerState() {
