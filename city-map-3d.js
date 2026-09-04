@@ -50,8 +50,9 @@
     const buildingRoot = new THREE.Group();
     const natureRoot = new THREE.Group();
     const trafficRoot = new THREE.Group();
+    const weatherRoot = new THREE.Group();
     const selectionRoot = new THREE.Group();
-    scene.add(terrainRoot, buildingRoot, natureRoot, trafficRoot, selectionRoot);
+    scene.add(terrainRoot, buildingRoot, natureRoot, trafficRoot, weatherRoot, selectionRoot);
 
     const textures = loadTextures();
     const materials = createMaterials();
@@ -81,6 +82,10 @@
     let pitch = .74;
     let distance = 48;
     let drag = null;
+    let hemisphere = null;
+    let sun = null;
+    let fill = null;
+    let environmentVisual = { weatherId: "clear", sunIntensity: 5.8, hemisphereIntensity: 2.35 };
 
     setupLights();
     createEnvironment();
@@ -225,8 +230,9 @@
     }
 
     function setupLights() {
-      scene.add(new THREE.HemisphereLight(0xe9f7ff, 0x66705a, 2.35));
-      const sun = new THREE.DirectionalLight(0xfff1d1, 5.8);
+      hemisphere = new THREE.HemisphereLight(0xe9f7ff, 0x66705a, 2.35);
+      scene.add(hemisphere);
+      sun = new THREE.DirectionalLight(0xfff1d1, 5.8);
       sun.position.set(-34, 52, 24);
       sun.castShadow = true;
       sun.shadow.mapSize.set(2048, 2048);
@@ -238,7 +244,7 @@
       sun.shadow.camera.far = 180;
       sun.shadow.bias = -.00025;
       scene.add(sun);
-      const fill = new THREE.DirectionalLight(0x78bdff, 1.35);
+      fill = new THREE.DirectionalLight(0x78bdff, 1.35);
       fill.position.set(36, 22, -40);
       scene.add(fill);
     }
@@ -278,6 +284,7 @@
       clearRoot(buildingRoot);
       clearRoot(natureRoot);
       clearRoot(trafficRoot);
+      clearRoot(weatherRoot);
       clearRoot(selectionRoot);
       while (selectionResources.length) selectionResources.pop()?.dispose?.();
       terrainTargets.length = 0;
@@ -297,6 +304,7 @@
       districtAnalysis = { tiles: {}, groups: [], summary: [], effects: {} };
       districtMaterialCache = {};
       if (!city) return;
+      applyEnvironment(city);
       createTerrain();
       const playerColor = new THREE.Color(city.color || "#f5c84c");
       districtAnalysis = City.analyzeDistricts(city);
@@ -307,7 +315,68 @@
         else createBuilding(tile, definition, playerColor);
       });
       createTraffic();
+      createWeatherEffect(city);
       updateSelection();
+    }
+
+    function applyEnvironment(nextCity) {
+      const environment = City.cityEnvironment(nextCity, Number(nextCity?.updatedAt) || Date.now());
+      const phaseVisuals = {
+        dawn: { sky: 0xd8b49c, fog: 0xd9c8bd, hemi: 1.7, sun: 3.9, fill: .9, exposure: 1.05, sunColor: 0xffc58f },
+        day: { sky: 0xaed1e5, fog: 0xc4d9e4, hemi: 2.35, sun: 5.8, fill: 1.35, exposure: 1.24, sunColor: 0xfff1d1 },
+        dusk: { sky: 0xb97069, fog: 0xb99891, hemi: 1.35, sun: 3.2, fill: 1.05, exposure: .98, sunColor: 0xff9f68 },
+        night: { sky: 0x162d43, fog: 0x29445a, hemi: 1.4, sun: 1.1, fill: 1.5, exposure: 1.03, sunColor: 0x9dbaff }
+      };
+      const weatherVisuals = {
+        clear: { tint: 0xffffff, mix: 0, fog: .0045, light: 1 },
+        cloudy: { tint: 0x8194a0, mix: .38, fog: .0065, light: .78 },
+        rain: { tint: 0x536f82, mix: .5, fog: .008, light: .66 },
+        storm: { tint: 0x314b62, mix: .54, fog: .0095, light: .68 },
+        fog: { tint: 0xc8d0d2, mix: .64, fog: .0135, light: .72 },
+        snow: { tint: 0xe8f3f8, mix: .36, fog: .0085, light: .9 }
+      };
+      const phase = phaseVisuals[environment.phase.id] || phaseVisuals.day;
+      const weather = weatherVisuals[environment.weather.id] || weatherVisuals.clear;
+      const sky = new THREE.Color(phase.sky).lerp(new THREE.Color(weather.tint), weather.mix);
+      const fog = new THREE.Color(phase.fog).lerp(new THREE.Color(weather.tint), weather.mix * .72);
+      scene.background.copy(sky);
+      scene.fog.color.copy(fog);
+      scene.fog.density = weather.fog;
+      hemisphere.intensity = phase.hemi * weather.light;
+      sun.intensity = phase.sun * weather.light;
+      sun.color.setHex(phase.sunColor);
+      fill.intensity = phase.fill * Math.max(.68, weather.light);
+      renderer.toneMappingExposure = phase.exposure;
+      const hourAngle = (environment.hour - 6) / 24 * Math.PI * 2;
+      sun.position.set(Math.cos(hourAngle) * 54, Math.max(8, Math.sin(hourAngle) * 58), Math.sin(hourAngle * .72) * 38);
+      environmentVisual = { weatherId: environment.weather.id, sunIntensity: sun.intensity, hemisphereIntensity: hemisphere.intensity };
+    }
+
+    function createWeatherEffect(nextCity) {
+      const environment = City.cityEnvironment(nextCity, Number(nextCity?.updatedAt) || Date.now());
+      if (!["rain", "storm", "snow"].includes(environment.weather.id)) return;
+      const snow = environment.weather.id === "snow";
+      const count = snow ? 360 : environment.weather.id === "storm" ? 620 : 460;
+      const positions = new Float32Array(count * 3);
+      for (let index = 0; index < count; index += 1) {
+        positions[index * 3] = (Math.random() - .5) * 112;
+        positions[index * 3 + 1] = 2 + Math.random() * 34;
+        positions[index * 3 + 2] = (Math.random() - .5) * 112;
+      }
+      const geometry = new THREE.BufferGeometry();
+      geometry.setAttribute("position", new THREE.BufferAttribute(positions, 3));
+      const material = new THREE.PointsMaterial({
+        color: snow ? 0xf4fbff : 0x9bd4ee,
+        size: snow ? .19 : .075,
+        transparent: true,
+        opacity: snow ? .82 : .68,
+        depthWrite: false,
+        blending: snow ? THREE.NormalBlending : THREE.AdditiveBlending
+      });
+      const points = new THREE.Points(geometry, material);
+      weatherRoot.add(points);
+      dynamicResources.push(geometry, material);
+      animated.push({ object: points, type: "weather", positions, geometry, snow, speed: snow ? 1.15 : environment.weather.id === "storm" ? 14 : 9 });
     }
 
     function terrainCenterHeight(terrain, x = -1, z = -1) {
@@ -1462,6 +1531,14 @@
       if (destroyed) return;
       const delta = Math.min(.05, clock.getDelta());
       const elapsed = clock.elapsedTime;
+      if (sun && hemisphere) {
+        sun.intensity = environmentVisual.sunIntensity;
+        hemisphere.intensity = environmentVisual.hemisphereIntensity;
+        if (environmentVisual.weatherId === "storm" && Math.sin(elapsed * 1.37) > .992) {
+          sun.intensity += 3.6;
+          hemisphere.intensity += 1.1;
+        }
+      }
       textures.water.offset.x = elapsed * .004;
       textures.water.offset.y = elapsed * .002;
       if (materials.terrain.userData.shader) materials.terrain.userData.shader.uniforms.terrainTime.value = elapsed;
@@ -1471,6 +1548,14 @@
         else if (item.type === "pulse") item.object.scale.x = item.object.scale.y = 1 + Math.sin(elapsed * 2.2) * .035;
         else if (item.type === "districtPulse") item.object.scale.setScalar(item.baseScale * (1 + Math.sin(elapsed * 2 + item.phase) * .12));
         else if (item.type === "car") updateTrafficCar(item, delta);
+        else if (item.type === "weather") {
+          for (let index = 0; index < item.positions.length; index += 3) {
+            item.positions[index + 1] -= item.speed * delta;
+            if (item.snow) item.positions[index] += Math.sin(elapsed * 1.3 + index) * delta * .08;
+            if (item.positions[index + 1] < -.4) item.positions[index + 1] = 32 + Math.random() * 8;
+          }
+          item.geometry.attributes.position.needsUpdate = true;
+        }
         else if (item.type === "selection") {
           item.object.rotation.z = Math.PI / 4 + elapsed * .65;
           item.material.opacity = .68 + Math.sin(elapsed * 3) * .2;

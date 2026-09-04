@@ -1,6 +1,6 @@
 "use strict";
 
-const CACHE_VERSION = "team-bingo-v1-20260903-city-links-153";
+const CACHE_VERSION = "team-bingo-v1-20260904-city-weather-154";
 const SHELL_CACHE = `${CACHE_VERSION}-shell`;
 const ASSET_CACHE = `${CACHE_VERSION}-assets`;
 const SHELL_FILES = [
@@ -14,10 +14,10 @@ const SHELL_FILES = [
   "./territory-map-3d.js",
   "./territory-mode.js",
   "./territory-mode.css",
-  "./city-system.js?v=20260903-city-links-153",
-  "./city-map-3d.js?v=20260903-city-links-153",
-  "./city-mode.js?v=20260903-city-links-153",
-  "./city-mode.css?v=20260903-city-links-153",
+  "./city-system.js?v=20260904-city-weather-154",
+  "./city-map-3d.js?v=20260904-city-weather-154",
+  "./city-mode.js?v=20260904-city-weather-154",
+  "./city-mode.css?v=20260904-city-weather-154",
   "./tower-system.js?v=20260901-city-tower-balance-141",
   "./tower-mode.js?v=20260901-city-tower-balance-141",
   "./tower-mode.css?v=20260901-city-tower-balance-141",

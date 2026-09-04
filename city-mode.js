@@ -164,13 +164,15 @@
     const city = activeCity();
     if (!city) return;
     const stage = City.cityStage(city.level);
+    const environment = City.cityEnvironment(city, Date.now());
     root.querySelector("[data-city-owner]").textContent = city.ownerName;
     root.querySelector("[data-city-name]").textContent = city.name;
     root.querySelector("[data-city-level]").textContent = `LEVEL ${city.level} ${stage.name}`;
     root.dataset.cityStage = String(city.level);
     root.classList.toggle("is-readonly-city", !canEditActiveCity());
     root.querySelector("[data-city-resources]").innerHTML = [
-      ["資金", `¥ ${formatNumber(city.resources.money)}`, "money"]
+      ["資金", `¥ ${formatNumber(city.resources.money)}`, "money"],
+      [environment.phase.name, environment.weather.name, `weather ${environment.weather.id}`]
     ].map(([label, value, kind]) => `<div class="city-resource ${kind}"><span>${label}</span><strong>${value}</strong></div>`).join("");
   }
 

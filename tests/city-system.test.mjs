@@ -9,7 +9,7 @@ test("creates six persistent player cities with starter infrastructure", () => {
   assert.equal(state.version, 1);
   assert.equal(City.MAP_SCHEMA, 4);
   assert.equal(City.TERRAIN_REVISION, 2);
-  assert.equal(City.FEATURE_REVISION, 9);
+  assert.equal(City.FEATURE_REVISION, 10);
   assert.equal(state.terrainRevision, City.TERRAIN_REVISION);
   assert.equal(state.featureRevision, City.FEATURE_REVISION);
   assert.equal(City.GRID_SIZE, 160);
@@ -400,6 +400,30 @@ test("legacy cities gain empty relation maps without losing their policy", () =>
   const normalized = City.normalizeState(state, 10_100_100);
   assert.deepEqual(normalized.players.jan.relations, {});
   assert.equal(normalized.players.jan.policy.id, "tourism");
+});
+
+test("city day phases follow JST and weather stays shared within each three-hour block", () => {
+  const jstTimestamp = (hour) => Date.UTC(2026, 8, 4, hour - 9, 30);
+  assert.equal(City.cityEnvironment("tofu", jstTimestamp(6)).phase.id, "dawn");
+  assert.equal(City.cityEnvironment("tofu", jstTimestamp(12)).phase.id, "day");
+  assert.equal(City.cityEnvironment("tofu", jstTimestamp(18)).phase.id, "dusk");
+  assert.equal(City.cityEnvironment("tofu", jstTimestamp(22)).phase.id, "night");
+  const first = City.cityEnvironment("eda", Date.UTC(2026, 8, 4, 1, 5));
+  const second = City.cityEnvironment("eda", Date.UTC(2026, 8, 4, 2, 55));
+  assert.equal(first.block, second.block);
+  assert.equal(first.weather.id, second.weather.id);
+  assert.ok(City.CITY_WEATHER[first.weather.id]);
+  assert.ok(first.nextWeatherAt > Date.UTC(2026, 8, 4, 1, 5));
+});
+
+test("weather is reflected in persisted city metrics without adding mutable resources", () => {
+  const state = City.createInitialState(Date.UTC(2026, 8, 4, 2));
+  const city = state.players.lickey;
+  const environment = City.cityEnvironment(city, city.updatedAt);
+  const metrics = City.calculateMetrics(city);
+  assert.equal(metrics.weatherId, environment.weather.id);
+  assert.equal(metrics.dayPhase, environment.phase.id);
+  assert.deepEqual(Object.keys(city.resources), ["money"]);
 });
 
 test("existing cities migrate district features without losing developed plots", () => {

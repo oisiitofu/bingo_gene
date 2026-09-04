@@ -4,7 +4,7 @@
   const VERSION = 1;
   const MAP_SCHEMA = 4;
   const TERRAIN_REVISION = 2;
-  const FEATURE_REVISION = 9;
+  const FEATURE_REVISION = 10;
   const GRID_SIZE = 160;
   const CITY_CENTER = Math.floor(GRID_SIZE / 2);
   const TICK_MINUTES = 10;
@@ -54,6 +54,37 @@
     aid: Object.freeze({ id: "aid", name: "復興支援", short: "支援", description: "資金を届け、都市間の強い信頼を築きます。", sourceMoney: -1200, targetMoney: 1200, relation: 8 })
   });
   const INTERACTION_COOLDOWN_MS = 3 * 60 * 60 * 1000;
+
+  const CITY_WEATHER = Object.freeze({
+    clear: Object.freeze({ id: "clear", name: "晴れ", icon: "SUN", effects: { happiness: 2, tourism: 4 } }),
+    cloudy: Object.freeze({ id: "cloudy", name: "曇り", icon: "CLOUD", effects: {} }),
+    rain: Object.freeze({ id: "rain", name: "雨", icon: "RAIN", effects: { environment: 3, tourism: -3 } }),
+    storm: Object.freeze({ id: "storm", name: "雷雨", icon: "STORM", effects: { safety: -4, tourism: -6, environment: 2 } }),
+    fog: Object.freeze({ id: "fog", name: "霧", icon: "FOG", effects: { tourism: -2 } }),
+    snow: Object.freeze({ id: "snow", name: "雪", icon: "SNOW", effects: { happiness: 2, tourism: 3, powerDemand: 4 } })
+  });
+  const CITY_DAY_PHASES = Object.freeze({
+    dawn: Object.freeze({ id: "dawn", name: "朝", start: 5, end: 7 }),
+    day: Object.freeze({ id: "day", name: "昼", start: 7, end: 17 }),
+    dusk: Object.freeze({ id: "dusk", name: "夕", start: 17, end: 19 }),
+    night: Object.freeze({ id: "night", name: "夜", start: 19, end: 29 })
+  });
+
+  function cityEnvironment(cityOrId, now = Date.now()) {
+    const cityId = typeof cityOrId === "string" ? cityOrId : String(cityOrId?.id || "tofu");
+    const timestamp = Number(now) || Date.now();
+    const jst = new Date(timestamp + 9 * 60 * 60 * 1000);
+    const hour = jst.getUTCHours() + jst.getUTCMinutes() / 60;
+    const phase = hour < 5 ? CITY_DAY_PHASES.night : hour < 7 ? CITY_DAY_PHASES.dawn : hour < 17 ? CITY_DAY_PHASES.day : hour < 19 ? CITY_DAY_PHASES.dusk : CITY_DAY_PHASES.night;
+    const block = Math.floor(timestamp / (3 * 60 * 60 * 1000));
+    const roll = hash2(`${cityId}:weather`, block, 41);
+    const weather = roll < .43 ? CITY_WEATHER.clear
+      : roll < .65 ? CITY_WEATHER.cloudy
+        : roll < .84 ? CITY_WEATHER.rain
+          : roll < .9 ? CITY_WEATHER.storm
+            : roll < .96 ? CITY_WEATHER.fog : CITY_WEATHER.snow;
+    return { phase, weather, hour, block, nextWeatherAt: (block + 1) * 3 * 60 * 60 * 1000 };
+  }
 
   const MISSION_POOLS = Object.freeze([
     Object.freeze([
@@ -720,6 +751,8 @@
     Object.entries(identity?.effects || {}).forEach(([field, value]) => { if (Object.hasOwn(totals, field)) totals[field] += Number(value) || 0; });
     const policy = CITY_POLICIES[city?.policy?.id] || CITY_POLICIES.balanced;
     Object.entries(policy.effects || {}).forEach(([field, value]) => { if (Object.hasOwn(totals, field)) totals[field] += Number(value) || 0; });
+    const climate = cityEnvironment(city, Number(city?.updatedAt) || Date.now());
+    Object.entries(climate.weather.effects || {}).forEach(([field, value]) => { if (Object.hasOwn(totals, field)) totals[field] += Number(value) || 0; });
     const relationScore = Object.values(city?.relations || {}).reduce((sum, relation) => sum + Math.max(0, Number(relation?.score) || 0), 0);
     totals.happiness += Math.min(5, Math.floor(relationScore / 18));
     totals.tourism += Math.min(12, Math.floor(relationScore / 9));
@@ -740,7 +773,7 @@
       efficiency: Math.max(0, Math.min(100, baseTraffic.efficiency + (Number(policy.traffic?.efficiency) || 0)))
     };
     const cityScore = Math.round(population * .55 + happiness * 14 + totals.jobs * 1.8 + totals.tourism * 20 + environment * 8 + Math.min(powerCoverage, waterCoverage) * 6 + Object.keys(city?.tiles || {}).length * 3 + districts.groups.length * 120 + traffic.efficiency * 6 - traffic.congestion * 3);
-    return { ...previous, population, capacity: totals.populationCapacity, happiness, jobs: totals.jobs, safety: Math.min(100, 52 + totals.safety), education: Math.min(100, 45 + totals.education), health: Math.min(100, 52 + totals.health), tourism: totals.tourism, environment, pollution: totals.pollution, powerDemand: totals.powerDemand, powerSupply: totals.powerSupply, waterDemand: totals.waterDemand, waterSupply: totals.waterSupply, employmentRate, powerCoverage, waterCoverage, trafficCongestion: traffic.congestion, transportEfficiency: traffic.efficiency, roadConnectivity: traffic.connectivity, publicTransit: traffic.publicTransit, trafficDemand: traffic.demand, trafficCapacity: traffic.capacity, cityScore, districtCount: districts.groups.length, identityId: identity?.id || "", policyId: policy.id, relationScore: Math.min(500, relationScore), taxPotential: totals.tax, upkeep: totals.upkeep };
+    return { ...previous, population, capacity: totals.populationCapacity, happiness, jobs: totals.jobs, safety: Math.min(100, 52 + totals.safety), education: Math.min(100, 45 + totals.education), health: Math.min(100, 52 + totals.health), tourism: totals.tourism, environment, pollution: totals.pollution, powerDemand: totals.powerDemand, powerSupply: totals.powerSupply, waterDemand: totals.waterDemand, waterSupply: totals.waterSupply, employmentRate, powerCoverage, waterCoverage, trafficCongestion: traffic.congestion, transportEfficiency: traffic.efficiency, roadConnectivity: traffic.connectivity, publicTransit: traffic.publicTransit, trafficDemand: traffic.demand, trafficCapacity: traffic.capacity, cityScore, districtCount: districts.groups.length, identityId: identity?.id || "", policyId: policy.id, weatherId: climate.weather.id, dayPhase: climate.phase.id, relationScore: Math.min(500, relationScore), taxPotential: totals.tax, upkeep: totals.upkeep };
   }
 
   function isRoadDefinition(definition) {
@@ -1232,9 +1265,9 @@
 
   const api = {
     VERSION, MAP_SCHEMA, TERRAIN_REVISION, FEATURE_REVISION, GRID_SIZE, CITY_CENTER, TICK_MINUTES, TICK_MS, AUTO_BUILD_THRESHOLD,
-    PLAYERS, PLAYER_BY_ID, CITY_IDENTITIES, CITY_POLICIES, CITY_INTERACTIONS, INTERACTION_COOLDOWN_MS, MISSION_POOLS, CITIZEN_CASTS, CITY_EVENTS, TERRAIN, CITY_STAGES, DISTRICTS, SIGNATURE_LANDMARKS, BUILDINGS, BUILDING_IDS,
+    PLAYERS, PLAYER_BY_ID, CITY_IDENTITIES, CITY_POLICIES, CITY_INTERACTIONS, INTERACTION_COOLDOWN_MS, CITY_WEATHER, CITY_DAY_PHASES, MISSION_POOLS, CITIZEN_CASTS, CITY_EVENTS, TERRAIN, CITY_STAGES, DISTRICTS, SIGNATURE_LANDMARKS, BUILDINGS, BUILDING_IDS,
     clone, playerKey, playerForName, tileId, parseTileId, neighbors, terrainAt,
-    createInitialState, normalizeState, analyzeDistricts, analyzeTraffic, cityLevel, cityStage, landmarkStatus, calculateMetrics, canBuild, applyCommand, autoDevelopCity, advanceState,
+    createInitialState, normalizeState, analyzeDistricts, analyzeTraffic, cityEnvironment, cityLevel, cityStage, landmarkStatus, calculateMetrics, canBuild, applyCommand, autoDevelopCity, advanceState,
     rewardForPlayer, missionsForMatch, resolveMatchMissions, missionStatus, lifeStatus, cityPulse, processCityEvents, eventStatus, applyMatchReward, standings, isRoadTile
   };
 
