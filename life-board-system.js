@@ -185,7 +185,7 @@
   const BOARD = generateBoard();
 
   function emptyAssets() {
-    return { homes: {}, stocks: {}, equipmentGacha: [], eventHistory: [] };
+    return { schema: 1, homes: {}, stocks: {}, equipmentGacha: [], eventHistory: [] };
   }
 
   function createPlayerState(player, now) {

@@ -60,6 +60,7 @@ test("life state is subscribed online, permitted by rules, and available offline
   assert.match(online, /subscribeLifeBoard\(\)/);
   assert.match(online, /awardLifeBoardOpen\(payload/);
   assert.match(rules, /"life"\s*:\s*\{/);
+  assert.doesNotMatch(rules, /hasChildren\(\['version', 'boardRevision', 'revision', 'players', 'market', 'processedOpens'/);
   assert.match(workerCache, /life-board-system\.js/);
   assert.match(workerCache, /life-mode\.js/);
   assert.match(workerCache, /life-mode\.css/);

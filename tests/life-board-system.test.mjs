@@ -28,6 +28,7 @@ test("creates persistent life records only for the fixed six", () => {
     assert.equal(player.position, 0);
     assert.equal(player.rolls, 0);
     assert.equal(player.job.id, "part-time");
+    assert.equal(player.assets.schema, 1);
   });
   assert.equal(Life.playerForName(" おいしい とうふ ").id, "tofu");
   assert.equal(Life.playerForName("kento").id, "kento");
