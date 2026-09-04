@@ -96,7 +96,7 @@
 
   function makeTrack() {
     const geometry = new THREE.BoxGeometry(1.92, 0.32, 1.92);
-    const material = new THREE.MeshBasicMaterial({ vertexColors: true });
+    const material = new THREE.MeshStandardMaterial({ vertexColors: true, roughness: .62, metalness: .12 });
     tileMesh = new THREE.InstancedMesh(geometry, material, System.BOARD_SIZE);
     const matrix = new THREE.Matrix4();
     const color = new THREE.Color();
@@ -119,7 +119,7 @@
 
     const floor = new THREE.Mesh(
       new THREE.PlaneGeometry(64, 96),
-      new THREE.MeshStandardMaterial({ color: 0x18211d, roughness: 1, metalness: 0 })
+      new THREE.MeshStandardMaterial({ color: 0x202d27, roughness: 1, metalness: 0 })
     );
     floor.rotation.x = -Math.PI / 2;
     floor.position.set(0, -0.18, 43.5);
@@ -133,6 +133,88 @@
       band.rotation.x = -Math.PI / 2;
       band.position.set(0, -0.16, index * 9 + 3.35);
       scene.add(band);
+    });
+    makeRegionScenery();
+  }
+
+  function sceneryMesh(group, geometry, material, position, rotation = null, scale = null) {
+    const item = new THREE.Mesh(geometry, material);
+    item.position.set(position.x, position.y, position.z);
+    if (rotation) item.rotation.set(rotation.x || 0, rotation.y || 0, rotation.z || 0);
+    if (scale) item.scale.set(scale.x || 1, scale.y || 1, scale.z || 1);
+    group.add(item);
+    return item;
+  }
+
+  function makeRegionScenery() {
+    const dark = new THREE.MeshStandardMaterial({ color: 0x151b23, roughness: .72, metalness: .28 });
+    const stone = new THREE.MeshStandardMaterial({ color: 0x84909c, roughness: .82, metalness: .06 });
+    const gold = new THREE.MeshStandardMaterial({ color: 0xe5bc4c, emissive: 0x6b4c09, emissiveIntensity: .42, roughness: .32, metalness: .72 });
+    const green = new THREE.MeshStandardMaterial({ color: 0x3d8754, roughness: .9 });
+    const trunk = new THREE.MeshStandardMaterial({ color: 0x795332, roughness: 1 });
+    System.REGIONS.forEach((region, index) => {
+      const group = new THREE.Group();
+      group.name = `life-region-${region.id}`;
+      const z = index * 9 + 3.4;
+      const side = index % 2 ? 1 : -1;
+      const x = side * 31;
+      const accent = new THREE.MeshStandardMaterial({
+        color: region.color,
+        emissive: region.color,
+        emissiveIntensity: .32,
+        roughness: .4,
+        metalness: .35
+      });
+      const glow = new THREE.MeshBasicMaterial({ color: region.color, transparent: true, opacity: .5 });
+      sceneryMesh(group, new THREE.CylinderGeometry(4.1, 4.5, .48, 20), dark, { x, y: .06, z });
+      sceneryMesh(group, new THREE.BoxGeometry(59, .08, .16), glow, { x: 0, y: .08, z: index * 9 - 1.05 });
+
+      if (region.theme === "town") {
+        [-1.8, 0, 1.8].forEach((offset, itemIndex) => {
+          sceneryMesh(group, new THREE.BoxGeometry(1.5, 1.4 + itemIndex * .25, 1.35), itemIndex === 1 ? accent : stone, { x: x + offset, y: .95 + itemIndex * .12, z });
+          sceneryMesh(group, new THREE.ConeGeometry(1.18, .9, 4), gold, { x: x + offset, y: 2.05 + itemIndex * .25, z }, { y: Math.PI / 4 });
+        });
+      } else if (region.theme === "campus") {
+        sceneryMesh(group, new THREE.BoxGeometry(5.2, .42, .58), accent, { x, y: 3.45, z });
+        [-2.25, 2.25].forEach((offset) => sceneryMesh(group, new THREE.BoxGeometry(.62, 5.8, .62), stone, { x: x + offset, y: 2.45, z }));
+        sceneryMesh(group, new THREE.SphereGeometry(.62, 18, 12), gold, { x, y: 4.15, z });
+      } else if (region.theme === "business" || region.theme === "metro") {
+        [-1.8, 0, 1.7].forEach((offset, itemIndex) => {
+          const height = region.theme === "metro" ? [4.2, 7.1, 5.4][itemIndex] : [3.8, 5.8, 4.6][itemIndex];
+          sceneryMesh(group, new THREE.BoxGeometry(1.45, height, 1.45), itemIndex === 1 ? accent : dark, { x: x + offset, y: height / 2 + .35, z });
+          sceneryMesh(group, new THREE.BoxGeometry(1.05, .1, 1.5), glow, { x: x + offset, y: height * .66, z: z - .73 });
+        });
+      } else if (region.theme === "coast") {
+        sceneryMesh(group, new THREE.CylinderGeometry(3.45, 3.75, .18, 24), new THREE.MeshStandardMaterial({ color: 0x3e9ea9, emissive: 0x164d61, emissiveIntensity: .35, roughness: .24 }), { x, y: .42, z });
+        [-1.5, 1.25].forEach((offset, itemIndex) => {
+          sceneryMesh(group, new THREE.CylinderGeometry(.18, .28, 3.3, 9), trunk, { x: x + offset, y: 2, z: z + (itemIndex ? .5 : -.5) }, { z: offset * .06 });
+          for (let leaf = 0; leaf < 5; leaf += 1) {
+            sceneryMesh(group, new THREE.ConeGeometry(.38, 2.1, 6), green, { x: x + offset, y: 3.65, z: z + (itemIndex ? .5 : -.5) }, { x: Math.PI / 2, y: leaf * Math.PI * .4, z: .4 });
+          }
+        });
+      } else if (region.theme === "mountain") {
+        [-1.9, 0, 1.85].forEach((offset, itemIndex) => sceneryMesh(group, new THREE.ConeGeometry(1.5 + itemIndex * .2, 4.4 + itemIndex * .8, 8), itemIndex === 1 ? accent : stone, { x: x + offset, y: 2.5 + itemIndex * .4, z: z + Math.abs(offset) * .18 }));
+      } else if (region.theme === "technology") {
+        sceneryMesh(group, new THREE.CylinderGeometry(.7, 1.45, 5.8, 12), dark, { x, y: 3.15, z });
+        [1.3, 2.35, 3.45].forEach((height, ringIndex) => sceneryMesh(group, new THREE.TorusGeometry(1.5 + ringIndex * .3, .12, 8, 30), ringIndex === 1 ? gold : accent, { x, y: height, z }, { x: Math.PI / 2, y: ringIndex * .55 }));
+        sceneryMesh(group, new THREE.OctahedronGeometry(.85, 0), accent, { x, y: 6.3, z });
+      } else if (region.theme === "kingdom") {
+        sceneryMesh(group, new THREE.BoxGeometry(4.5, 3.5, 2.1), stone, { x, y: 2.05, z });
+        [-2.2, 2.2].forEach((offset) => {
+          sceneryMesh(group, new THREE.CylinderGeometry(.76, .92, 4.5, 10), stone, { x: x + offset, y: 2.55, z });
+          sceneryMesh(group, new THREE.ConeGeometry(1.15, 1.7, 10), accent, { x: x + offset, y: 5.65, z });
+        });
+        sceneryMesh(group, new THREE.BoxGeometry(1.1, 2.2, .35), dark, { x, y: 1.35, z: z - 1.14 });
+      } else if (region.theme === "space") {
+        sceneryMesh(group, new THREE.SphereGeometry(2.25, 24, 14, 0, Math.PI * 2, 0, Math.PI / 2), new THREE.MeshStandardMaterial({ color: 0xb9d9ef, emissive: 0x385681, emissiveIntensity: .35, transparent: true, opacity: .82, roughness: .18, metalness: .3 }), { x, y: .35, z });
+        sceneryMesh(group, new THREE.TorusGeometry(3.2, .13, 8, 36), accent, { x, y: 2, z }, { x: Math.PI / 2.7, z: .28 });
+        sceneryMesh(group, new THREE.SphereGeometry(.62, 16, 12), gold, { x: x + 3, y: 3.5, z: z - 1.8 });
+      } else {
+        [-2.4, 2.4].forEach((offset) => sceneryMesh(group, new THREE.CylinderGeometry(.45, .65, 6.2, 10), gold, { x: x + offset, y: 3.45, z }));
+        sceneryMesh(group, new THREE.BoxGeometry(5.4, .5, .72), accent, { x, y: 6.3, z });
+        sceneryMesh(group, new THREE.TorusGeometry(1.65, .22, 10, 32), gold, { x, y: 4.7, z }, { y: Math.PI / 2 });
+      }
+      scene.add(group);
     });
   }
 
@@ -220,7 +302,7 @@
     const selected = state.players?.[selectedPlayerId] || Object.values(state.players || {})[0];
     const point = tilePosition((Number(selected?.position) || 0) || 1);
     const target = overview
-      ? { position: new THREE.Vector3(0, 91, 91), look: new THREE.Vector3(0, 0, 43) }
+      ? { position: new THREE.Vector3(8, 91, 91), look: new THREE.Vector3(8, 0, 43) }
       : { position: new THREE.Vector3(point.x, 19, point.z + 16), look: new THREE.Vector3(point.x, 0, point.z) };
     if (immediate) camera.position.copy(target.position);
     else camera.position.lerp(target.position, .08);

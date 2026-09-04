@@ -26,6 +26,10 @@ test("the life board renders 1000 spaces with one instanced mesh and bounded ani
   assert.match(mode, /OVERVIEW/);
   assert.match(mode, /rollAnimations/);
   assert.match(mode, /new THREE\.BoxGeometry\(1\.05, 1\.05, 1\.05\)/);
+  assert.match(mode, /function makeRegionScenery\(\)/);
+  assert.match(mode, /life-region-\$\{region\.id\}/);
+  assert.match(mode, /region\.theme === "space"/);
+  assert.match(mode, /region\.theme === "kingdom"/);
   assert.match(css, /\.life-mode\.open/);
 });
 
