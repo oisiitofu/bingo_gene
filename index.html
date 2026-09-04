@@ -8658,6 +8658,7 @@
   <script src="territory-system.js"></script>
   <script src="city-system.js?v=20260904-city-album-155"></script>
   <script src="tower-system.js?v=20260901-city-tower-balance-141"></script>
+  <script src="life-board-system.js?v=20260904-life-board-1"></script>
   <script src="vendor/three/three.min.js"></script>
   <script src="territory-map-3d.js"></script>
   <script src="territory-mode.js"></script>
@@ -11553,7 +11554,7 @@
       } else {
         if (selected.length >= 2) return;
         selected.push(key);
-        recordPlayerOpen(member, cell.id, current.team);
+        recordPlayerOpen(member, cell.id, current.team, current.index);
         if (side.comebackMoveCells.has(current.index)) recordPlayerComebackMove(member, current.team);
       }
       side.openedBy.set(current.index, selected);
@@ -12029,7 +12030,7 @@
         sub: openerName
       });
       if (!isSpecialCell) {
-        recordPlayerOpen(openerName, cell.id, team);
+        recordPlayerOpen(openerName, cell.id, team, index);
       }
       if (options.advanceOpener !== false) advanceActiveOpener(team);
       const flowMoment = trackStreak(team);
@@ -12148,7 +12149,7 @@
         if (selected.length >= 2) return;
         selected.push(key);
         if (!isSpecialCell) {
-          recordPlayerOpen(member, cell.id, team);
+          recordPlayerOpen(member, cell.id, team, index);
           enqueueMonsterPresentation(advancePlayerMonster(team, member, index));
         }
         if (side.comebackMoveCells.has(index)) recordPlayerComebackMove(member, team);
@@ -15882,7 +15883,18 @@
       state.playerStats.recentMatches = [match, ...(state.playerStats.recentMatches || [])].slice(0, 100);
     }
 
-    function recordPlayerOpen(playerName, characterId, team) {
+    function queueLifeBoardOpen(playerName, characterId, team, cellIndex) {
+      if (state.testMode || !canonicalFixedMemberName(playerName)) return;
+      const matchId = String(state.matchTracker?.id || "");
+      const payload = { matchId, playerName, characterId, team, cellIndex, testMode: false };
+      payload.id = window.TeamBingoLifeBoardSystem?.buildOpenId?.(payload) || "";
+      if (!payload.id || !onlineCoordinator?.awardLifeBoardOpen) return;
+      onlineCoordinator.awardLifeBoardOpen(payload).catch((error) => {
+        console.warn("Life board OPEN sync delayed", error);
+      });
+    }
+
+    function recordPlayerOpen(playerName, characterId, team, cellIndex = -1) {
       if (!characterId) return;
       const fixedName = canonicalFixedMemberName(playerName);
       const stat = getPlayerStat(playerName);
@@ -15893,6 +15905,7 @@
       trackMatchOpen(playerName, characterId, team);
       if (fixedName) recordOpen(characterId, fixedName);
       savePlayerStats();
+      queueLifeBoardOpen(playerName, characterId, team, cellIndex);
     }
 
     function recordPlayerSpecialCell(playerName, characterId, team) {
@@ -17910,6 +17923,7 @@
         applyTerritoryArchive,
         applyCitySnapshot,
         applyTowerSnapshot,
+        applyLifeBoardSnapshot,
         openTerritoryMode,
         openTerritoryWindow,
         openCityMode,
@@ -18373,6 +18387,10 @@
       if (!snapshot) return;
       window.TeamBingoTowerMode?.applySnapshot(snapshot);
       if (isTowerStandalonePage()) openTowerStandalone(snapshot);
+    }
+
+    function applyLifeBoardSnapshot(snapshot) {
+      state.lifeBoardSnapshot = snapshot ? cloneOnlineValue(snapshot) : null;
     }
 
     function configureWorldTournament() {

@@ -88,6 +88,17 @@
           }
         }
       },
+      "life": {
+        "current": {
+          ".write": "auth != null",
+          ".validate": "newData.exists() && newData.child('version').val() === 1 && newData.hasChildren(['version', 'boardRevision', 'revision', 'players', 'market', 'processedOpens', 'globalHistory', 'createdAt', 'updatedAt']) && newData.child('revision').isNumber() && newData.child('updatedAt').isNumber()",
+          "players": {
+            "$playerId": {
+              ".validate": "($playerId === 'tofu' || $playerId === 'eda' || $playerId === 'jan' || $playerId === 'rima' || $playerId === 'kento' || $playerId === 'lickey') && newData.hasChildren(['id', 'name', 'position', 'totalSpaces', 'lap', 'rolls', 'cash', 'debt', 'netWorth', 'job', 'assets', 'updatedAt']) && newData.child('id').val() === $playerId && newData.child('position').isNumber() && newData.child('position').val() >= 0 && newData.child('position').val() < 1000 && newData.child('totalSpaces').isNumber() && newData.child('rolls').isNumber() && newData.child('cash').isNumber() && newData.child('debt').isNumber()"
+            }
+          }
+        }
+      },
       "legacyImports": {
         "$deviceId": {
           ".write": "auth != null && (!data.exists() || data.child('uid').val() === auth.uid)",

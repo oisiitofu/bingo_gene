@@ -35,6 +35,7 @@ const ADMIN_CHARACTER_COUNT = 87;
 const FIXED_RANKING_PLAYER_KEYS = new Set(ADMIN_COUNT_PLAYERS.map((name) => playerKey(name)));
 const CITY_SYSTEM = globalThis.TeamBingoCitySystem || null;
 const TOWER_SYSTEM = globalThis.TeamBingoMonsterTowerSystem || null;
+const LIFE_BOARD_SYSTEM = globalThis.TeamBingoLifeBoardSystem || null;
 
 export const ONLINE_REACTIONS = Object.freeze([
   { id: "clap", label: "拍手", mark: "👏" },
@@ -793,6 +794,7 @@ export class OnlineCoordinator {
     this.territoryArchiveUnsubscribe = null;
     this.cityUnsubscribe = null;
     this.towerUnsubscribe = null;
+    this.lifeBoardUnsubscribe = null;
     this.reactionUnsubscribe = null;
     this.seenReactionIds = new Set();
     this.lastReactionSentAt = 0;
@@ -814,6 +816,8 @@ export class OnlineCoordinator {
     this.towerState = null;
     this.towerInitPromise = null;
     this.towerSettlePromise = null;
+    this.lifeBoardState = null;
+    this.lifeBoardInitPromise = null;
     this.globalProcessedActions = new Set();
     this.lastMasterLobbySyncKey = "";
     this.masterHandoverTimer = 0;
@@ -1066,6 +1070,7 @@ export class OnlineCoordinator {
       this.subscribeTerritoryArchive();
       this.subscribeCity();
       this.subscribeTower();
+      this.subscribeLifeBoard();
       this.startGhostCleanupTimer();
       const restored = await this.restoreSession();
       if (!restored) this.showLobby();
@@ -3204,6 +3209,7 @@ export class OnlineCoordinator {
 
   getCityState() { return clone(this.cityState); }
   getTowerState() { return clone(this.towerState); }
+  getLifeBoardState() { return clone(this.lifeBoardState); }
   getGlobalStats() { return clone(this.globalStatsSnapshot); }
   getPreviousTerritoryState() { return clone(this.previousTerritoryState); }
   getTerritoryArchive() { return clone(this.territoryArchive); }
@@ -3604,6 +3610,55 @@ export class OnlineCoordinator {
       }
       this.ensureTowerState().catch((error) => console.warn("Tower initialization failed", error));
     });
+  }
+
+  subscribeLifeBoard() {
+    if (this.lifeBoardUnsubscribe || !LIFE_BOARD_SYSTEM) return;
+    this.lifeBoardUnsubscribe = this.backend.subscribe(this.path("life/current"), (snapshot) => {
+      this.lifeBoardState = snapshot ? clone(snapshot) : null;
+      if (snapshot) {
+        this.bridge.applyLifeBoardSnapshot?.(snapshot);
+        return;
+      }
+      this.ensureLifeBoardState().catch((error) => console.warn("Life board initialization failed", error));
+    });
+  }
+
+  async ensureLifeBoardState() {
+    if (!LIFE_BOARD_SYSTEM || !this.backend) return null;
+    if (this.lifeBoardInitPromise) return this.lifeBoardInitPromise;
+    const now = this.backend.serverNow();
+    this.lifeBoardInitPromise = this.backend.transaction(this.path("life/current"), (current) => (
+      Number(current?.version) === Number(LIFE_BOARD_SYSTEM.VERSION)
+        ? LIFE_BOARD_SYSTEM.normalizeState(current, now)
+        : LIFE_BOARD_SYSTEM.createInitialState(now)
+    )).then((result) => {
+      this.lifeBoardState = clone(result.value || null);
+      if (this.lifeBoardState) this.bridge.applyLifeBoardSnapshot?.(this.lifeBoardState);
+      return this.lifeBoardState;
+    }).finally(() => { this.lifeBoardInitPromise = null; });
+    return this.lifeBoardInitPromise;
+  }
+
+  async awardLifeBoardOpen(payload = {}) {
+    if (!LIFE_BOARD_SYSTEM || !this.backend) return { ok: false, error: "人生すごろくサーバーへ接続できません。" };
+    const normalized = { ...payload };
+    normalized.id ||= LIFE_BOARD_SYSTEM.buildOpenId(normalized);
+    if (!normalized.id) return { ok: false, error: "人生すごろくのOPEN IDを作成できません。" };
+    let outcome = null;
+    const now = this.backend.serverNow();
+    const result = await this.backend.transaction(this.path("life/current"), (current) => {
+      outcome = LIFE_BOARD_SYSTEM.applyOpenRoll(current, normalized, now);
+      if (outcome.duplicate || outcome.ignored || outcome.testMode) return undefined;
+      return outcome.applied ? outcome.state : undefined;
+    });
+    if (outcome?.duplicate) return { ok: true, duplicate: true };
+    if (outcome?.ignored) return { ok: true, ignored: true };
+    if (outcome?.testMode) return { ok: true, testMode: true };
+    if (!result.committed) return { ok: false, error: outcome?.error || "人生すごろくを進められませんでした。" };
+    this.lifeBoardState = clone(result.value);
+    this.bridge.applyLifeBoardSnapshot?.(this.lifeBoardState);
+    return { ok: true, die: outcome.die, landing: clone(outcome.landing), events: clone(outcome.events) };
   }
 
   async ensureTowerState() {
