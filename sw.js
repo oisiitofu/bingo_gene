@@ -1,6 +1,6 @@
 "use strict";
 
-const CACHE_VERSION = "team-bingo-v1-20260905-life-board-157";
+const CACHE_VERSION = "team-bingo-v1-20260905-life-board-158";
 const SHELL_CACHE = `${CACHE_VERSION}-shell`;
 const ASSET_CACHE = `${CACHE_VERSION}-assets`;
 const SHELL_FILES = [
@@ -20,8 +20,14 @@ const SHELL_FILES = [
   "./city-mode.css?v=20260904-city-album-155",
   "./tower-system.js?v=20260901-city-tower-balance-141",
   "./life-board-system.js?v=20260905-life-board-2",
-  "./life-mode.js?v=20260905-life-board-2",
-  "./life-mode.css?v=20260905-life-board-2",
+  "./life-mode.js?v=20260905-life-board-3",
+  "./life-mode.css?v=20260905-life-board-3",
+  "./images/life/avatars/poses/tofu-roll.png?v=20260905-nonhuman-3",
+  "./images/life/avatars/poses/eda-roll.png?v=20260905-nonhuman-3",
+  "./images/life/avatars/poses/jan-roll.png?v=20260905-nonhuman-3",
+  "./images/life/avatars/poses/rima-roll.png?v=20260905-nonhuman-3",
+  "./images/life/avatars/poses/kento-roll.png?v=20260905-nonhuman-3",
+  "./images/life/avatars/poses/lickey-roll.png?v=20260905-nonhuman-3",
   "./tower-mode.js?v=20260901-city-tower-balance-141",
   "./tower-mode.css?v=20260901-city-tower-balance-141",
   "./world-tournament.js",

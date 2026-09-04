@@ -10,7 +10,8 @@
     monster: 0xdb5b77, equipment: 0xe2b94d, city: 0x4ec3c9, interaction: 0xf17b4f,
     risk: 0xcf3e48, checkpoint: 0xffd84d
   };
-  const AVATAR_URLS = Object.freeze(Object.fromEntries(System.PLAYERS.map((player) => [player.id, `images/life/avatars/${player.id}.png?v=20260905-nonhuman-2`])));
+  const AVATAR_URLS = Object.freeze(Object.fromEntries(System.PLAYERS.map((player) => [player.id, `images/life/avatars/${player.id}.png?v=20260905-nonhuman-3`])));
+  const ROLL_AVATAR_URLS = Object.freeze(Object.fromEntries(System.PLAYERS.map((player) => [player.id, `images/life/avatars/poses/${player.id}-roll.png?v=20260905-nonhuman-3`])));
   let root = null;
   let state = null;
   let scene = null;
@@ -253,7 +254,7 @@
     displayedPositions.set(player.id, rollTileNumber(totalBefore));
     rollAnimations.set(player.id, { startedAt: performance.now(), duration: 1900, die, totalBefore });
     const call = root.querySelector("[data-life-roll-call]");
-    call.innerHTML = `<img src="${AVATAR_URLS[player.id]}" alt="" /><span><small>${escapeHtml(player.name)}</small><b>${die}</b><strong>SPACE</strong></span>`;
+    call.innerHTML = `<img src="${ROLL_AVATAR_URLS[player.id]}" alt="" decoding="async" /><span><small>${escapeHtml(player.name)}</small><b>${die}</b><strong>SPACE</strong></span>`;
     call.style.setProperty("--player-color", System.PLAYER_BY_ID[player.id]?.color || "#f2cc54");
     call.setAttribute("aria-hidden", "false");
     call.classList.add("show");

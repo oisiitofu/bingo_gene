@@ -35,7 +35,12 @@ test("all six life avatars are independent transparent-ready files", () => {
     assert.equal(existsSync(url), true, `${player} avatar missing`);
     assert.ok(statSync(url).size > 500000, `${player} avatar is unexpectedly small`);
     assert.equal(readFileSync(url)[25], 6, `${player} avatar must use RGBA transparency`);
+    const rollUrl = new URL(`../images/life/avatars/poses/${player}-roll.png`, import.meta.url);
+    assert.equal(existsSync(rollUrl), true, `${player} roll pose missing`);
+    assert.ok(statSync(rollUrl).size > 500000, `${player} roll pose is unexpectedly small`);
+    assert.equal(readFileSync(rollUrl)[25], 6, `${player} roll pose must use RGBA transparency`);
   }
+  assert.match(mode, /ROLL_AVATAR_URLS\[player\.id\]/);
 });
 
 test("life history and data controls are available without exposing resets to regular players", () => {
