@@ -1,7 +1,12 @@
 import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 
-import { advanceFrontierWithToken } from "../worker/territory-worker.mjs";
+import {
+  advanceCitiesWithToken,
+  advanceFrontierWithToken,
+  advanceTowerWithToken,
+  settleLifeRewardsWithToken
+} from "../worker/territory-worker.mjs";
 
 const configSource = readFileSync(new URL("../online/firebase-config.js", import.meta.url), "utf8");
 const configValue = (name) => {
@@ -49,12 +54,19 @@ try {
     pinHash: adminPinHash,
     expiresAt
   });
-  const result = await advanceFrontierWithToken({
+  const workerEnv = {
     FIREBASE_DATABASE_URL: databaseUrl,
     FIREBASE_DATABASE_ROOT: databaseRoot,
     FIREBASE_USE_AUTH_QUERY: "true"
-  }, account.idToken, Date.now());
-  console.log(JSON.stringify(result));
+  };
+  const now = Date.now();
+  const [frontier, city, tower, life] = await Promise.all([
+    advanceFrontierWithToken(workerEnv, account.idToken, now),
+    advanceCitiesWithToken(workerEnv, account.idToken, now),
+    advanceTowerWithToken(workerEnv, account.idToken, now),
+    settleLifeRewardsWithToken(workerEnv, account.idToken, now)
+  ]);
+  console.log(JSON.stringify({ frontier, city, tower, life }));
 } finally {
   if (account?.idToken) {
     await databaseRequest("DELETE", `adminSessions/${account.localId}`, account.idToken).catch(() => {});

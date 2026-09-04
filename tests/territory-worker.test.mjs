@@ -3,6 +3,95 @@ import { generateKeyPairSync } from "node:crypto";
 import { gunzipSync } from "node:zlib";
 import test from "node:test";
 
+test("人生すごろく報酬は装備とモンスター熟練度へ一度だけ反映される", async () => {
+  const { applyLifeStatsRewards } = await import("../worker/territory-worker.mjs");
+  const Equipment = globalThis.TeamBingoTerritoryEquipment;
+  const rewards = {
+    equip: { id: "equip", playerId: "jan", type: "equipment", count: 3, status: "pending" },
+    monster: { id: "monster", playerId: "jan", type: "monsterExp", amount: 75, status: "pending" }
+  };
+  const stats = {
+    playerStats: { players: { "ジャン": { name: "ジャン", monsterDex: { "child-ember": 1 } } } }
+  };
+  const first = applyLifeStatsRewards(stats, rewards, 1000);
+  const record = first.state.playerStats.players["ジャン"];
+  const starterCount = Object.values(Equipment.STARTER_ITEMS).reduce((sum, count) => sum + count, 0);
+
+  assert.equal(first.applied, 2);
+  assert.equal(Object.values(record.territoryEquipment).reduce((sum, count) => sum + count, 0), starterCount + 3);
+  assert.equal(record.monsterMastery["child-ember"], 75);
+  assert.equal(record.lifeBoardRewards.equipment, 3);
+  assert.equal(record.lifeBoardRewards.monsterExp, 75);
+
+  const duplicate = applyLifeStatsRewards(first.state, rewards, 2000);
+  assert.equal(duplicate.applied, 0);
+  assert.deepEqual(duplicate.state.playerStats.players["ジャン"], record);
+});
+
+test("人生すごろくの都市投資はCITY共有資金へ一度だけ反映される", async () => {
+  const { applyLifeCityRewards } = await import("../worker/territory-worker.mjs");
+  const City = globalThis.TeamBingoCitySystem;
+  const state = City.createInitialState(1000);
+  const before = state.players.tofu.resources.money;
+  const rewards = {
+    city: { id: "city", playerId: "tofu", type: "cityMoney", amount: 24600, status: "pending" }
+  };
+  const first = applyLifeCityRewards(state, rewards, 2000);
+
+  assert.equal(first.applied, 1);
+  assert.equal(first.state.players.tofu.resources.money, before + 24600);
+  assert.equal(first.state.players.tofu.history.city.amount, 24600);
+  assert.equal(first.state.processedRewards.city, 2000);
+
+  const duplicate = applyLifeCityRewards(first.state, rewards, 3000);
+  assert.equal(duplicate.applied, 0);
+  assert.equal(duplicate.state.players.tofu.resources.money, before + 24600);
+});
+
+test("人生すごろくWorkerは共有報酬を確定してキューを完了にする", async () => {
+  const originalFetch = globalThis.fetch;
+  const Life = globalThis.TeamBingoLifeBoardSystem;
+  const City = globalThis.TeamBingoCitySystem;
+  const life = Life.createInitialState(1000);
+  life.rewardQueue.rewardA = { id: "rewardA", playerId: "eda", type: "monsterExp", amount: 40, status: "pending", createdAt: 1000 };
+  life.rewardQueue.rewardB = { id: "rewardB", playerId: "eda", type: "cityMoney", amount: 18000, status: "pending", createdAt: 1000 };
+  const values = {
+    life,
+    stats: { playerStats: { players: { "えだ": { name: "えだ", monsterDex: { "child-frost": 1 } } } } },
+    city: City.createInitialState(1000)
+  };
+  const writes = [];
+  globalThis.fetch = async (input, init = {}) => {
+    const url = String(input);
+    const key = url.includes("/life/current.json") ? "life" : url.includes("/globalStats.json") ? "stats" : url.includes("/cities/current.json") ? "city" : "";
+    if (!key) throw new Error(`Unexpected request: ${init.method || "GET"} ${url}`);
+    if (init.method === "PUT") {
+      values[key] = JSON.parse(init.body);
+      writes.push({ key, etag: init.headers["if-match"] });
+      return Response.json(values[key]);
+    }
+    return new Response(JSON.stringify(values[key]), { headers: { "content-type": "application/json", etag: `\"${key}\"` } });
+  };
+
+  try {
+    const { settleLifeRewardsWithToken } = await import("../worker/territory-worker.mjs");
+    const result = await settleLifeRewardsWithToken({
+      FIREBASE_DATABASE_URL: "https://database.test",
+      FIREBASE_DATABASE_ROOT: "teamBingoV1"
+    }, "worker-token", 5000);
+
+    assert.deepEqual(result, { ok: true, pending: 2, stats: 1, city: 1, settled: 2 });
+    assert.equal(values.stats.playerStats.players["えだ"].monsterMastery["child-frost"], 40);
+    assert.equal(values.city.players.eda.resources.money, City.AUTO_BUILD_THRESHOLD + 18000);
+    assert.equal(values.life.rewardQueue.rewardA.status, "settled");
+    assert.equal(values.life.rewardQueue.rewardB.status, "settled");
+    assert.deepEqual(writes.map((entry) => entry.key).sort(), ["city", "life", "stats"]);
+    assert.ok(writes.every((entry) => entry.etag));
+  } finally {
+    globalThis.fetch = originalFetch;
+  }
+});
+
 const { privateKey } = generateKeyPairSync("rsa", {
   modulusLength: 2048,
   privateKeyEncoding: { type: "pkcs8", format: "pem" },

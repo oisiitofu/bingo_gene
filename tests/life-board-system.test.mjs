@@ -95,6 +95,10 @@ test("crossing a 100-space boundary grants one checkpoint draw bundle", () => {
   assert.equal(result.events.filter((event) => event.category === "checkpoint").length, 1);
   assert.equal(result.state.players.tofu.assets.equipmentGacha.length, 1);
   assert.equal(result.state.players.tofu.assets.equipmentGacha[0].count, 2);
+  const checkpointReward = Object.values(result.state.rewardQueue).find((reward) => reward.checkpoint === 100);
+  assert.equal(checkpointReward.type, "equipment");
+  assert.equal(checkpointReward.count, 2);
+  assert.equal(checkpointReward.status, "pending");
 });
 
 test("money settlement pays debt first and records new debt when cash runs out", () => {

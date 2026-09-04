@@ -3,11 +3,14 @@ import "../territory-equipment.js";
 import "../territory-system.js";
 import "../city-system.js";
 import "../tower-system.js";
+import "../life-board-system.js";
 
 const Territory = globalThis.TeamBingoTerritorySystem;
 const Equipment = globalThis.TeamBingoTerritoryEquipment;
 const City = globalThis.TeamBingoCitySystem;
 const Tower = globalThis.TeamBingoMonsterTowerSystem;
+const Monster = globalThis.TeamBingoMonsterSystem;
+const Life = globalThis.TeamBingoLifeBoardSystem;
 const TOKEN_URL = "https://oauth2.googleapis.com/token";
 const FIREBASE_SCOPES = [
   "https://www.googleapis.com/auth/firebase.database",
@@ -425,6 +428,169 @@ function trimProcessedRewards(source, limit = 2000) {
   return Object.fromEntries(Object.entries(source || {}).sort(([, a], [, b]) => Number(b) - Number(a)).slice(0, limit));
 }
 
+function lifeRewardEntries(rewards = {}) {
+  return Object.entries(rewards || {}).filter(([id, reward]) => (
+    id && reward?.playerId && Life.PLAYER_BY_ID[reward.playerId] && reward.status !== "settled"
+  ));
+}
+
+export function applyLifeStatsRewards(value, rewards = {}, now = Date.now()) {
+  const next = value && typeof value === "object" ? structuredClone(value) : {};
+  next.playerStats ||= { players: {}, rivalries: {}, recentMatches: [] };
+  next.playerStats.players ||= {};
+  next.lifeRewardsProcessed ||= {};
+  let applied = 0;
+  lifeRewardEntries(rewards).forEach(([id, reward]) => {
+    if (next.lifeRewardsProcessed[id] || !["equipment", "monsterExp"].includes(reward.type)) return;
+    const definition = Life.PLAYER_BY_ID[reward.playerId];
+    const key = Life.playerKey(definition.name);
+    const record = next.playerStats.players[key] || { name: definition.name };
+    record.lifeBoardRewards ||= { equipment: 0, monsterExp: 0, cityMoney: 0 };
+    if (reward.type === "equipment") {
+      const count = Math.max(1, Math.min(40, Math.floor(Number(reward.count) || 1)));
+      Equipment.ensureStarterRecord(record);
+      Equipment.applyRewards(record, Equipment.generateRewards(`life:${id}`, count));
+      record.lifeBoardRewards.equipment = (Number(record.lifeBoardRewards.equipment) || 0) + count;
+    } else {
+      const amount = Math.max(1, Math.floor(Number(reward.amount) || 1));
+      record.monsterMastery ||= {};
+      const unlocked = Object.keys(record.monsterDex || {}).filter((nodeId) => (
+        nodeId !== "egg" && Number(record.monsterDex[nodeId]) > 0 && Monster.NODES[nodeId]
+      ));
+      const targetId = unlocked.length
+        ? unlocked[Life.seededInt(`life:${id}:monster`, 0, unlocked.length - 1)]
+        : "egg";
+      record.monsterMastery[targetId] = Math.max(0, Number(record.monsterMastery[targetId]) || 0) + amount;
+      record.lifeBoardRewards.monsterExp = (Number(record.lifeBoardRewards.monsterExp) || 0) + amount;
+      record.lifeBoardRewards.lastMonsterId = targetId;
+    }
+    record.lifeBoardRewards.updatedAt = Number(now);
+    next.playerStats.players[key] = record;
+    next.lifeRewardsProcessed[id] = Number(now);
+    applied += 1;
+  });
+  next.lifeRewardsProcessed = trimProcessedRewards(next.lifeRewardsProcessed);
+  return { state: next, applied };
+}
+
+export function applyLifeCityRewards(value, rewards = {}, now = Date.now()) {
+  const next = City.normalizeState(value, now);
+  let applied = 0;
+  lifeRewardEntries(rewards).forEach(([id, reward]) => {
+    if (reward.type !== "cityMoney" || next.processedRewards[id]) return;
+    const city = next.players?.[reward.playerId];
+    if (!city) return;
+    const amount = Math.max(1, Math.floor(Number(reward.amount) || 1));
+    city.resources.money = Math.max(0, Number(city.resources.money) || 0) + amount;
+    city.history ||= {};
+    city.history[id] = {
+      id,
+      type: "life-board",
+      title: "六王人生すごろく投資",
+      detail: `人生コースから都市資金 +¥${amount.toLocaleString("ja-JP")}`,
+      amount,
+      createdAt: Number(now)
+    };
+    city.updatedAt = Number(now);
+    next.processedRewards[id] = Number(now);
+    applied += 1;
+  });
+  next.processedRewards = trimProcessedRewards(next.processedRewards, 6000);
+  if (applied) {
+    next.revision = (Number(next.revision) || 0) + 1;
+    next.updatedAt = Number(now);
+  }
+  return { state: next, applied };
+}
+
+async function mergeLifeStatsRewardsWithToken(env, token, rewards, now) {
+  if (!lifeRewardEntries(rewards).some(([, reward]) => ["equipment", "monsterExp"].includes(reward.type))) return 0;
+  const path = rootPath(env, "globalStats");
+  for (let attempt = 0; attempt < 6; attempt += 1) {
+    const current = await readDatabase(env, path, token, true);
+    const result = applyLifeStatsRewards(current.value, rewards, now);
+    if (!result.applied) return 0;
+    const written = await writeDatabase(env, path, result.state, token, current.etag);
+    if (written.committed) return result.applied;
+  }
+  throw new Error("Life stats reward update conflicted repeatedly");
+}
+
+async function mergeLifeCityRewardsWithToken(env, token, rewards, now) {
+  if (!lifeRewardEntries(rewards).some(([, reward]) => reward.type === "cityMoney")) return 0;
+  const path = rootPath(env, "cities/current");
+  for (let attempt = 0; attempt < 6; attempt += 1) {
+    const current = await readDatabase(env, path, token, true);
+    const result = applyLifeCityRewards(current.value, rewards, now);
+    if (!result.applied) return 0;
+    const written = await writeDatabase(env, path, result.state, token, current.etag);
+    if (written.committed) return result.applied;
+  }
+  throw new Error("Life city reward update conflicted repeatedly");
+}
+
+async function markLifeRewardsSettledWithToken(env, token, rewardIds, now) {
+  if (!rewardIds.length) return false;
+  const path = rootPath(env, "life/current");
+  for (let attempt = 0; attempt < 6; attempt += 1) {
+    const current = await readDatabase(env, path, token, true);
+    const next = Life.normalizeState(current.value, now);
+    let changed = false;
+    rewardIds.forEach((id) => {
+      const reward = next.rewardQueue[id];
+      if (!reward || reward.status === "settled") return;
+      reward.status = "settled";
+      reward.settledAt = Number(now);
+      const player = next.players[reward.playerId];
+      (player?.assets?.equipmentGacha || []).forEach((entry) => {
+        if (entry.id === id) entry.status = "awarded";
+      });
+      changed = true;
+    });
+    if (!changed) return false;
+    next.revision += 1;
+    next.updatedAt = Number(now);
+    const written = await writeDatabase(env, path, next, token, current.etag);
+    if (written.committed) return true;
+  }
+  throw new Error("Life reward settlement conflicted repeatedly");
+}
+
+export async function settleLifeRewardsWithToken(env, token, now = Date.now()) {
+  const path = rootPath(env, "life/current");
+  const current = await readDatabase(env, path, token);
+  const state = Life.normalizeState(current.value, now);
+  const entries = lifeRewardEntries(state.rewardQueue);
+  if (!entries.length) return { ok: true, pending: 0, stats: 0, city: 0, settled: 0 };
+  const rewards = Object.fromEntries(entries);
+  const [stats, city] = await Promise.all([
+    mergeLifeStatsRewardsWithToken(env, token, rewards, now),
+    mergeLifeCityRewardsWithToken(env, token, rewards, now)
+  ]);
+  const ids = entries.map(([id]) => id);
+  await markLifeRewardsSettledWithToken(env, token, ids, now);
+  return { ok: true, pending: entries.length, stats, city, settled: ids.length };
+}
+
+export async function settleLifeRewards(env, now = Date.now()) {
+  if (env.FIREBASE_CLIENT_EMAIL && env.FIREBASE_PRIVATE_KEY) {
+    return settleLifeRewardsWithToken(env, await accessToken(env), now);
+  }
+  const account = await firebaseIdentity(env, "accounts:signUp", { returnSecureToken: true });
+  const anonymousEnv = { ...env, FIREBASE_USE_AUTH_QUERY: "true" };
+  const sessionPath = rootPath(env, `adminSessions/${account.localId}`);
+  try {
+    await writeDatabase(anonymousEnv, sessionPath, {
+      pinHash: env.TEAM_BINGO_ADMIN_PIN_HASH || "6440e6a91202aeddb45b070a80533f65a689c37d0cf1842ab2bd962e33377880",
+      expiresAt: Date.now() + 15 * 60 * 1000
+    }, account.idToken);
+    return await settleLifeRewardsWithToken(anonymousEnv, account.idToken, now);
+  } finally {
+    await writeDatabase(anonymousEnv, sessionPath, null, account.idToken).catch(() => {});
+    await firebaseIdentity(env, "accounts:delete", { idToken: account.idToken }).catch(() => {});
+  }
+}
+
 export async function mergeTowerRewardsWithToken(env, token, rewards = {}) {
   const entries = Object.entries(rewards || {}).filter(([id, reward]) => id && reward?.playerName && reward?.mastery);
   if (!entries.length) return { merged: 0 };
@@ -520,6 +686,7 @@ export default {
     context.waitUntil(advanceFrontier(env));
     context.waitUntil(advanceCities(env));
     context.waitUntil(advanceTower(env));
+    context.waitUntil(settleLifeRewards(env));
     context.waitUntil(createDailyBackup(env));
   },
 
@@ -534,6 +701,7 @@ export default {
         cityTickMinutes: City.TICK_MINUTES,
         towerMode: "MONSTER TOWER",
         towerFloors: Tower.MAX_FLOOR,
+        lifeMode: "六王人生すごろく",
         now: Date.now()
       });
     }
@@ -545,8 +713,8 @@ export default {
       const actual = request.headers.get("authorization")?.replace(/^Bearer\s+/i, "") || "";
       if (!expected || actual !== expected) return json({ ok: false, error: "unauthorized" }, 401);
       try {
-        const [frontier, city, tower] = await Promise.all([advanceFrontier(env), advanceCities(env), advanceTower(env)]);
-        return json({ ...frontier, city, tower });
+        const [frontier, city, tower, life] = await Promise.all([advanceFrontier(env), advanceCities(env), advanceTower(env), settleLifeRewards(env)]);
+        return json({ ...frontier, city, tower, life });
       } catch (error) {
         return json({ ok: false, error: String(error?.message || error) }, 500);
       }

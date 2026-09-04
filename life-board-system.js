@@ -540,7 +540,7 @@
     return 8;
   }
 
-  function checkpointEvent(player, space, seed, now) {
+  function checkpointEvent(state, player, space, seed, now) {
     const count = checkpointGachaCount(player);
     const record = {
       id: `gacha-${seed}-${space.number}`,
@@ -551,12 +551,22 @@
     };
     player.assets.equipmentGacha.push(record);
     player.assets.equipmentGacha = player.assets.equipmentGacha.slice(-100);
+    state.rewardQueue[record.id] = {
+      id: record.id,
+      playerId: player.id,
+      type: "equipment",
+      count,
+      checkpoint: space.number,
+      status: "pending",
+      createdAt: Number(now)
+    };
     return {
       type: "checkpoint",
       title: `${REGIONS[space.regionIndex].name} 到達！`,
       detail: `所持金ランクにより装備ガチャを${count}回獲得しました。`,
       amount: 0,
-      equipmentDraws: count
+      equipmentDraws: count,
+      rewardId: record.id
     };
   }
 
@@ -619,7 +629,7 @@
     });
 
     crossedCheckpoints(totalBefore, totalAfter).forEach((space) => {
-      events.push(addEvent(state, player, openId, space, checkpointEvent(player, space, openId, now), now));
+      events.push(addEvent(state, player, openId, space, checkpointEvent(state, player, space, openId, now), now));
     });
     if (!landing.checkpoint) {
       const event = resolveLandingEvent(state, player, landing, `${openId}:${landing.number}`, now);

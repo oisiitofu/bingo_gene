@@ -1,6 +1,6 @@
 # 六王領土戦 Worker
 
-Cloudflare Worker Cron が10分ごとにFirebaseの領土戦を1ターン進めます。ブラウザは読み取り専用です。
+Cloudflare Worker Cron が10分ごとにFirebaseの領土戦、BINGO CITY、MONSTER TOWER、六王人生すごろく報酬を進めます。ブラウザを閉じていても共有処理は継続します。
 
 ## Required secrets
 

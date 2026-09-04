@@ -7,7 +7,10 @@ on:
       - ".github/workflows/six-kings-territory.yml"
       - "monster-system.js"
       - "territory-system.js"
+      - "territory-equipment.js"
+      - "city-system.js"
       - "tower-system.js"
+      - "life-board-system.js"
       - "worker/territory-worker.mjs"
       - "scripts/tick-six-kings.mjs"
       - "firebase-database.rules.json"
@@ -32,5 +35,5 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: "24"
-      - name: Advance 六王領土戦
+      - name: Advance shared game systems
         run: node scripts/tick-six-kings.mjs
