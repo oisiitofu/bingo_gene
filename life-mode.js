@@ -26,6 +26,8 @@
   let lastRollIds = new Map();
   let selectedPlayerId = "tofu";
   let overview = false;
+  let cameraSpace = null;
+  let cameraLook = null;
   let openOptions = {};
   let frame = 0;
   let resizeObserver = null;
@@ -150,7 +152,7 @@
     root.addEventListener("click", (event) => {
       if (event.target.closest("[data-life-close]")) close();
       const player = event.target.closest("[data-life-player]");
-      if (player) { selectedPlayerId = player.dataset.lifePlayer; overview = false; renderUi(); updateCamera(true); }
+      if (player) { selectedPlayerId = player.dataset.lifePlayer; cameraSpace = null; overview = false; renderUi(); updateCamera(true); }
       if (event.target.closest("[data-life-view]")) { overview = !overview; renderUi(); updateCamera(true); }
       if (event.target.closest("[data-life-history]")) showHistory();
       if (event.target.closest("[data-life-admin]")) showAdmin();
@@ -161,6 +163,17 @@
       if (reset) void resetState(reset.dataset.lifeReset);
     });
     root.querySelector("[data-life-import]").addEventListener("change", importState);
+    root.addEventListener("wheel", (event) => {
+      if (event.target.closest(".life-drawer, .life-status, .life-roster")) return;
+      event.preventDefault();
+      const player = state?.players?.[selectedPlayerId];
+      const delta = (event.deltaY || event.deltaX) * (event.deltaMode === 1 ? 16 : event.deltaMode === 2 ? 400 : 1);
+      cameraSpace = Math.max(1, Math.min(System.BOARD_SIZE, (cameraSpace ?? tileNumberForPlayer(player)) + Math.max(-15, Math.min(15, delta * .035))));
+      overview = false;
+      root.classList.remove("life-overview");
+      root.querySelector("[data-life-view]").textContent = "OVERVIEW";
+      root.querySelector("[data-life-view]").classList.remove("active");
+    }, { passive: false });
     return root;
   }
 
@@ -175,6 +188,8 @@
     const geometry = new THREE.BoxGeometry(1.34, 0.28, 1.02);
     const material = new THREE.MeshStandardMaterial({ roughness: .72, metalness: .04 });
     tileMesh = new THREE.InstancedMesh(geometry, material, System.BOARD_SIZE);
+    const inlays = new THREE.InstancedMesh(new THREE.BoxGeometry(1.18, .025, .86), new THREE.MeshStandardMaterial({ color: 0xf2f0e8, roughness: .38, metalness: .12 }), System.BOARD_SIZE);
+    const marks = new THREE.InstancedMesh(new THREE.BoxGeometry(.12, .03, .48), material, System.BOARD_SIZE);
     const matrix = new THREE.Matrix4();
     const color = new THREE.Color();
     const quaternion = new THREE.Quaternion();
@@ -195,10 +210,16 @@
       color.setHex(CATEGORY_COLORS[space.category] || 0x777777);
       color.lerp(new THREE.Color(System.REGIONS[space.regionIndex].color), 0.22);
       tileMesh.setColorAt(index, color);
+      matrix.compose(new THREE.Vector3(point.x, point.y + height + .013, point.z), quaternion, new THREE.Vector3(space.checkpoint ? 1.28 : 1, 1, space.checkpoint ? 1.18 : 1));
+      inlays.setMatrixAt(index, matrix);
+      matrix.compose(new THREE.Vector3(point.x, point.y + height + .04, point.z), quaternion, new THREE.Vector3(1, 1, 1));
+      marks.setMatrixAt(index, matrix);
+      marks.setColorAt(index, color);
     });
     tileMesh.instanceMatrix.needsUpdate = true;
     tileMesh.instanceColor.needsUpdate = true;
     scene.add(tileMesh);
+    scene.add(inlays, marks);
 
     const floor = new THREE.Mesh(
       new THREE.PlaneGeometry(560, 170),
@@ -246,12 +267,28 @@
       sceneryMesh(group, new THREE.BoxGeometry(1.7 * scale, 1.35 * scale, 1.45 * scale), white, { x, y: .68 * scale, z });
       sceneryMesh(group, new THREE.ConeGeometry(1.35 * scale, .9 * scale, 4), accent, { x, y: 1.78 * scale, z }, { y: Math.PI / 4 });
       sceneryMesh(group, new THREE.BoxGeometry(.42 * scale, .72 * scale, .12), dark, { x, y: .36 * scale, z: z - .79 * scale });
+      [-.57, .57].forEach((offset) => {
+        sceneryMesh(group, new THREE.BoxGeometry(.4 * scale, .48 * scale, .1), dark, { x: x + offset * scale, y: .85 * scale, z: z - .76 * scale });
+        sceneryMesh(group, new THREE.BoxGeometry(.025, .48 * scale, .13), white, { x: x + offset * scale, y: .85 * scale, z: z - .78 * scale });
+      });
+      sceneryMesh(group, new THREE.BoxGeometry(1.9 * scale, .16, 1.65 * scale), stone, { x, y: .02, z });
+      sceneryMesh(group, new THREE.BoxGeometry(.23 * scale, .7 * scale, .25 * scale), stone, { x: x + .45 * scale, y: 1.95 * scale, z: z + .25 * scale });
     }
 
     function addCar(group, x, z, scale, accent, rotation) {
-      sceneryMesh(group, new THREE.BoxGeometry(1.7 * scale, .45 * scale, .86 * scale), accent, { x, y: .38 * scale, z }, { y: rotation });
-      sceneryMesh(group, new THREE.BoxGeometry(.82 * scale, .38 * scale, .72 * scale), white, { x, y: .76 * scale, z }, { y: rotation });
-      [-.54, .54].forEach((offset) => sceneryMesh(group, new THREE.CylinderGeometry(.18 * scale, .18 * scale, .96 * scale, 8), dark, { x: x + Math.cos(rotation) * offset * scale, y: .2 * scale, z: z - Math.sin(rotation) * offset * scale }, { z: Math.PI / 2, y: rotation }));
+      const car = new THREE.Group();
+      car.position.set(x, 0, z);
+      car.rotation.y = rotation;
+      car.scale.setScalar(scale);
+      group.add(car);
+      sceneryMesh(car, new THREE.BoxGeometry(1.7, .38, .86), accent, { x: 0, y: .4, z: 0 });
+      sceneryMesh(car, new THREE.BoxGeometry(.8, .34, .7), dark, { x: -.08, y: .74, z: 0 });
+      sceneryMesh(car, new THREE.BoxGeometry(.86, .07, .74), accent, { x: -.08, y: .94, z: 0 });
+      for (const axle of [-.54, .54]) for (const side of [-.45, .45]) {
+        sceneryMesh(car, new THREE.CylinderGeometry(.23, .23, .15, 16), dark, { x: axle, y: .24, z: side }, { x: Math.PI / 2 });
+        sceneryMesh(car, new THREE.CylinderGeometry(.12, .12, .16, 12), stone, { x: axle, y: .24, z: side }, { x: Math.PI / 2 });
+      }
+      for (const side of [-.28, .28]) sceneryMesh(car, new THREE.BoxGeometry(.04, .12, .2), white, { x: .87, y: .48, z: side });
     }
 
     function addLamp(group, x, z, scale, accent) {
@@ -364,6 +401,7 @@
   function makeScene() {
     if (!THREE || renderer) return;
     scene = new THREE.Scene();
+    cameraLook = new THREE.Vector3();
     scene.background = new THREE.Color(0x0c1119);
     scene.fog = new THREE.Fog(0x0c1119, 550, 1200);
     camera = new THREE.PerspectiveCamera(42, 1, 0.1, 900);
@@ -443,13 +481,19 @@
   function updateCamera(immediate = false) {
     if (!camera || !state) return;
     const selected = state.players?.[selectedPlayerId] || Object.values(state.players || {})[0];
-    const point = tilePosition((Number(selected?.position) || 0) || 1);
+    const number = cameraSpace ?? tileNumberForPlayer(selected);
+    const first = tilePosition(Math.floor(number));
+    const second = tilePosition(Math.min(System.BOARD_SIZE, Math.floor(number) + 1));
+    const mix = number % 1;
+    const point = { x: first.x + (second.x - first.x) * mix, y: first.y + (second.y - first.y) * mix, z: first.z + (second.z - first.z) * mix };
     const target = overview
       ? { position: new THREE.Vector3(0, Math.max(400, 430 / camera.aspect), Math.max(250, 270 / camera.aspect)), look: new THREE.Vector3(0, 0, 0) }
       : { position: new THREE.Vector3(point.x, point.y + 18, point.z + 16), look: new THREE.Vector3(point.x, point.y, point.z) };
     if (immediate) camera.position.copy(target.position);
     else camera.position.lerp(target.position, .08);
-    camera.lookAt(target.look);
+    if (immediate) cameraLook.copy(target.look);
+    else cameraLook.lerp(target.look, .08);
+    camera.lookAt(cameraLook);
   }
 
   function animate() {
