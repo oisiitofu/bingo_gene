@@ -16,6 +16,8 @@
 .life-mode.life-tour .life-status,
 .life-mode.life-tour .life-event-log { visibility: hidden; pointer-events: none; }
 .life-mode canvas { position: absolute; inset: 0; width: 100%; height: 100%; }
+.life-mode canvas { cursor: grab; touch-action: none; }
+.life-mode canvas.life-dragging { cursor: grabbing; }
 .life-mode::after {
   content: "";
   position: absolute;
@@ -69,7 +71,7 @@
 .life-player-card {
   position: relative;
   display: grid;
-  grid-template-columns: 42px 1fr auto;
+  grid-template-columns: 42px minmax(0,1fr);
   align-items: center;
   min-height: 56px;
   padding: 6px 8px;
@@ -88,6 +90,11 @@
 .life-player-card b { overflow: hidden; font-size: 11px; text-overflow: ellipsis; }
 .life-player-card small { color: #9da8b9; font-size: 8px; }
 .life-player-card span { color: #ffe47e; font-size: 10px; text-align: right; }
+.life-player-info { min-width: 0; }
+.life-player-info > small { display: block; }
+.life-player-cash { display: flex; flex-wrap: wrap; align-items: baseline; gap: 4px 8px; margin-top: 4px; }
+.life-player-cash strong { font-size: 12px; color: #ffe47e; overflow-wrap: anywhere; }
+.life-player-position { margin-top: 3px; color: #bdc8d6; font-size: 9px; }
 .life-status {
   position: absolute;
   z-index: 2;
@@ -183,6 +190,8 @@
   .life-player-card img { width: 34px; height: 34px; }
   .life-player-card small, .life-player-card span { display: none; }
   .life-player-card b { font-size: 7px; }
+  .life-player-info > small, .life-player-cash { display: none; }
+  .life-player-position { font-size: 7px; overflow-wrap: anywhere; }
   .life-status { top: 166px; right: 8px; width: 210px; padding: 8px; }
   .life-status-head img { width: 45px; height: 52px; }
   .life-market { display: none; }

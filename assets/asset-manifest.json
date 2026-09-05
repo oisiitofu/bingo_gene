@@ -1,11 +1,11 @@
 {
   "version": 1,
-  "generatedAt": "2026-09-04T17:15:24.409Z",
+  "generatedAt": "2026-09-05T23:56:44.525Z",
   "totals": {
-    "all": 995,
-    "images": 832,
+    "all": 996,
+    "images": 833,
     "audio": 163,
-    "bytes": 676474114
+    "bytes": 678747704
   },
   "assets": [
     {
@@ -1645,6 +1645,12 @@
       "type": "image",
       "category": "images/life/avatars",
       "bytes": 1494169
+    },
+    {
+      "path": "images/life/tile-porcelain-v1.png",
+      "type": "image",
+      "category": "images/life",
+      "bytes": 2273590
     },
     {
       "path": "images/monster-battle/arena.png",

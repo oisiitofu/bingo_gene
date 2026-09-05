@@ -28,6 +28,8 @@
   let overview = false;
   let cameraSpace = null;
   let cameraRegion = null;
+  let freeCamera = null;
+  let drag = null;
   let cameraLook = null;
   let waterTexture = null;
   let openOptions = {};
@@ -133,7 +135,7 @@
     document.body.insertAdjacentHTML("beforeend", `
       <section class="life-mode" id="lifeMode" aria-hidden="true">
         <div class="life-head">
-          <div class="life-title"><small>1000 SPACE LIFE BOARD</small><strong>六王人生すごろく</strong></div>
+          <div class="life-title"><strong>六王人生すごろく</strong></div>
           <div class="life-head-actions">
             <select class="life-simple-btn life-route-select" data-life-route aria-label="エリアへ移動">${ROUTE_NAMES.map((name,index) => `<option value="${index}">${index+1}. ${name}</option>`).join("")}</select>
             <button type="button" class="life-simple-btn" data-life-history>HISTORY</button>
@@ -157,8 +159,8 @@
     root.addEventListener("click", (event) => {
       if (event.target.closest("[data-life-close]")) close();
       const player = event.target.closest("[data-life-player]");
-      if (player) { selectedPlayerId = player.dataset.lifePlayer; cameraSpace = null; cameraRegion = null; overview = false; renderUi(); updateCamera(true); }
-      if (event.target.closest("[data-life-view]")) { overview = !overview; if (!overview) { cameraRegion = null; cameraSpace = null; } renderUi(); updateCamera(true); }
+      if (player) { selectedPlayerId = player.dataset.lifePlayer; cameraSpace = null; cameraRegion = null; freeCamera = null; overview = false; renderUi(); updateCamera(true); }
+      if (event.target.closest("[data-life-view]")) { freeCamera = null; overview = !overview; if (!overview) { cameraRegion = null; cameraSpace = null; } renderUi(); updateCamera(true); }
       if (event.target.closest("[data-life-history]")) showHistory();
       if (event.target.closest("[data-life-admin]")) showAdmin();
       if (event.target.closest("[data-life-drawer-close]")) closeDrawer();
@@ -170,14 +172,17 @@
     root.querySelector("[data-life-import]").addEventListener("change", importState);
     root.querySelector("[data-life-route]").addEventListener("change", (event) => {
       cameraSpace = Number(event.target.value) * System.REGION_SIZE + 25;
+      freeCamera = null;
       cameraRegion = Number(event.target.value);
       overview = false;
       renderUi();
       updateCamera(true);
     });
     root.addEventListener("wheel", (event) => {
+      if (drag) { event.preventDefault(); return; }
       if (event.target.closest(".life-drawer, .life-status, .life-roster, .life-head")) return;
       event.preventDefault();
+      freeCamera = null;
       const player = state?.players?.[selectedPlayerId];
       const delta = (event.deltaY || event.deltaX) * (event.deltaMode === 1 ? 16 : event.deltaMode === 2 ? 400 : 1);
       cameraSpace = Math.max(1, Math.min(System.BOARD_SIZE, (cameraSpace ?? tileNumberForPlayer(player)) + Math.max(-15, Math.min(15, delta * .035))));
@@ -202,8 +207,13 @@
     const geometry = new THREE.BoxGeometry(1.34, 0.28, 1.02);
     const material = new THREE.MeshStandardMaterial({ roughness: .72, metalness: .04 });
     tileMesh = new THREE.InstancedMesh(geometry, material, System.BOARD_SIZE);
-    const inlays = new THREE.InstancedMesh(new THREE.BoxGeometry(1.18, .025, .86), new THREE.MeshStandardMaterial({ color: 0xf2f0e8, roughness: .38, metalness: .12 }), System.BOARD_SIZE);
-    const marks = new THREE.InstancedMesh(new THREE.BoxGeometry(.12, .03, .48), material, System.BOARD_SIZE);
+    const tileTexture = new THREE.TextureLoader().load("images/life/tile-porcelain-v1.png");
+    tileTexture.colorSpace = THREE.SRGBColorSpace || "srgb";
+    tileTexture.anisotropy = Math.min(8,renderer.capabilities.getMaxAnisotropy());
+    const topGeometry = new THREE.PlaneGeometry(1.24, .94);
+    topGeometry.rotateX(-Math.PI/2);
+    topGeometry.rotateY(Math.PI);
+    const inlays = new THREE.InstancedMesh(topGeometry, new THREE.MeshStandardMaterial({ map: tileTexture, roughness: .58, metalness: .08 }), System.BOARD_SIZE);
     const matrix = new THREE.Matrix4();
     const color = new THREE.Color();
     const quaternion = new THREE.Quaternion();
@@ -226,14 +236,11 @@
       tileMesh.setColorAt(index, color);
       matrix.compose(new THREE.Vector3(point.x, point.y + height + .013, point.z), quaternion, new THREE.Vector3(space.checkpoint ? 1.28 : 1, 1, space.checkpoint ? 1.18 : 1));
       inlays.setMatrixAt(index, matrix);
-      matrix.compose(new THREE.Vector3(point.x, point.y + height + .04, point.z), quaternion, new THREE.Vector3(1, 1, 1));
-      marks.setMatrixAt(index, matrix);
-      marks.setColorAt(index, color);
     });
     tileMesh.instanceMatrix.needsUpdate = true;
     tileMesh.instanceColor.needsUpdate = true;
     scene.add(tileMesh);
-    scene.add(inlays, marks);
+    scene.add(inlays);
 
     const groundTexture = new THREE.TextureLoader().load("images/territory/textures/terrain-ground-v2.png");
     groundTexture.wrapS = groundTexture.wrapT = THREE.RepeatWrapping;
@@ -493,6 +500,7 @@
     renderer.outputColorSpace = THREE.SRGBColorSpace || "srgb";
     renderer.shadowMap.enabled = false;
     root.prepend(renderer.domElement);
+    bindCameraDrag();
     scene.add(new THREE.HemisphereLight(0xe9f4ff, 0x26301f, 2.4));
     const key = new THREE.DirectionalLight(0xffefcf, 2.1);
     key.position.set(-18, 34, 12);
@@ -502,6 +510,55 @@
     resizeObserver = new ResizeObserver(resize);
     resizeObserver.observe(root);
     resize();
+  }
+
+  function bindCameraDrag() {
+    const canvas = renderer.domElement;
+    const ray = new THREE.Raycaster();
+    const plane = new THREE.Plane();
+    const pointer = new THREE.Vector2();
+    const hit = new THREE.Vector3();
+    const groundPoint = (event) => {
+      const bounds = canvas.getBoundingClientRect();
+      pointer.set((event.clientX-bounds.left)/bounds.width*2-1,1-(event.clientY-bounds.top)/bounds.height*2);
+      ray.setFromCamera(pointer,camera);
+      return ray.ray.intersectPlane(plane,hit);
+    };
+    canvas.addEventListener("pointerdown", (event) => {
+      if (event.button !== 0 || drag) return;
+      plane.set(new THREE.Vector3(0,1,0),-cameraLook.y);
+      const point = groundPoint(event);
+      if (!point) return;
+      drag = {id:event.pointerId,x:event.clientX,y:event.clientY,anchor:point.clone(),moved:false};
+      canvas.setPointerCapture(event.pointerId);
+    });
+    canvas.addEventListener("pointermove", (event) => {
+      if (!drag || drag.id !== event.pointerId) return;
+      if (!drag.moved && Math.hypot(event.clientX-drag.x,event.clientY-drag.y)<4) return;
+      const point = groundPoint(event);
+      if (!point) return;
+      if (!freeCamera || !drag.moved) freeCamera = {position:camera.position.clone(),look:cameraLook.clone()};
+      drag.moved = true;
+      canvas.classList.add("life-dragging");
+      const dx = Math.max(-220,Math.min(220,freeCamera.look.x+drag.anchor.x-point.x))-freeCamera.look.x;
+      const dz = Math.max(-135,Math.min(135,freeCamera.look.z+drag.anchor.z-point.z))-freeCamera.look.z;
+      freeCamera.position.x += dx; freeCamera.look.x += dx;
+      freeCamera.position.z += dz; freeCamera.look.z += dz;
+      camera.position.copy(freeCamera.position);
+      cameraLook.copy(freeCamera.look);
+      camera.lookAt(cameraLook);
+      camera.updateMatrixWorld();
+      event.preventDefault();
+    });
+    const end = (event) => {
+      if (!drag || drag.id !== event.pointerId) return;
+      drag = null;
+      canvas.classList.remove("life-dragging");
+      if (canvas.hasPointerCapture(event.pointerId)) canvas.releasePointerCapture(event.pointerId);
+    };
+    canvas.addEventListener("pointerup",end);
+    canvas.addEventListener("pointercancel",end);
+    canvas.addEventListener("lostpointercapture",end);
   }
 
   function createPlayerSprites() {
@@ -569,18 +626,18 @@
     const second = tilePosition(Math.min(System.BOARD_SIZE, Math.floor(number) + 1));
     const mix = number % 1;
     const point = { x: first.x + (second.x - first.x) * mix, y: first.y + (second.y - first.y) * mix, z: first.z + (second.z - first.z) * mix };
-    const target = overview
+    const target = freeCamera || (overview
       ? { position: new THREE.Vector3(0, Math.max(290, 390 / camera.aspect), Math.max(155, 185 / camera.aspect)), look: new THREE.Vector3(0, 0, 0) }
       : cameraRegion !== null
       ? {position:new THREE.Vector3(TRACK_REGION_CENTERS[cameraRegion].x,Math.max(105,110/camera.aspect),TRACK_REGION_CENTERS[cameraRegion].z+65),look:new THREE.Vector3(TRACK_REGION_CENTERS[cameraRegion].x,0,TRACK_REGION_CENTERS[cameraRegion].z)}
-      : { position: new THREE.Vector3(point.x, point.y + 18, point.z + 16), look: new THREE.Vector3(point.x, point.y, point.z) };
+      : { position: new THREE.Vector3(point.x, point.y + 18, point.z + 16), look: new THREE.Vector3(point.x, point.y, point.z) });
     if (immediate) camera.position.copy(target.position);
     else camera.position.lerp(target.position, .08);
     if (immediate) cameraLook.copy(target.look);
     else cameraLook.lerp(target.look, .08);
     camera.lookAt(cameraLook);
     const regionIndex = Math.min(9,Math.floor((number-1)/System.REGION_SIZE));
-    const label = `${regionIndex+1} / ${ROUTE_NAMES[regionIndex]} / ${Math.round(number)} - 1000`;
+    const label = freeCamera ? "マップ探索中" : `${regionIndex+1} / ${ROUTE_NAMES[regionIndex]} / ${Math.round(number)} - 1000`;
     const chip = root.querySelector("[data-life-region]");
     if (chip.textContent !== label) chip.textContent = label;
     const select = root.querySelector("[data-life-route]");
@@ -670,7 +727,7 @@
     roster.innerHTML = System.PLAYERS.map((definition) => {
       const player = state.players?.[definition.id];
       return `<button type="button" class="life-player-card${definition.id === selectedPlayerId ? " active" : ""}" data-life-player="${definition.id}" style="--player-color:${definition.color}">
-        <img src="${AVATAR_URLS[definition.id]}" alt="" /><span><b>${escapeHtml(definition.name)}</b><small>${escapeHtml(player?.job?.name || "-")}</small></span><span>${money(player?.netWorth)}<small>${Number(player?.position) || 0} / 1000</small></span>
+        <img src="${AVATAR_URLS[definition.id]}" alt="" /><div class="life-player-info"><b>${escapeHtml(definition.name)}</b><small>${escapeHtml(player?.job?.name || "-")}</small><div class="life-player-cash"><small>所持金</small><strong>${money(player?.cash)}</strong></div><div class="life-player-position">現在位置 ${Number(player?.position) || 0} / 1000 マス</div></div>
       </button>`;
     }).join("");
     const player = state.players?.[selectedPlayerId] || state.players?.tofu;
@@ -827,6 +884,9 @@
     root.setAttribute("aria-hidden", "true");
     if (frame) cancelAnimationFrame(frame);
     frame = 0;
+    if (drag && renderer?.domElement.hasPointerCapture(drag.id)) renderer.domElement.releasePointerCapture(drag.id);
+    drag = null;
+    renderer?.domElement.classList.remove("life-dragging");
     rollAnimations.clear();
     diceMeshes.forEach((mesh) => { mesh.visible = false; });
     root.querySelector("[data-life-roll-call]")?.classList.remove("show");
