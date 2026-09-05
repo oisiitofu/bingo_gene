@@ -18,7 +18,7 @@ test("六王人生すごろく is reachable from setup and match screens in a st
   assert.match(html, /searchParams\.set\("life", "1"\)/);
   assert.match(html, /classList\.add\("life-standalone"\)/);
   assert.match(html, /src="life-board-system\.js\?v=\d+-life-board-\d+"/);
-  assert.match(html, /src="life-mode\.js\?v=\d+-life-board-\d+"/);
+  assert.match(html, /src="life-mode\.js\?v=\d+-life-(?:board|world)-\d+"/);
   assert.match(html, /href="life-mode\.css\?v=\d+-life-board-\d+"/);
 });
 
@@ -30,6 +30,16 @@ test("the life board renders 1000 spaces with one instanced mesh and bounded ani
   assert.match(mode, /rollAnimations/);
   assert.match(mode, /new THREE\.BoxGeometry\(1\.05, 1\.05, 1\.05\)/);
   assert.match(mode, /function makeRegionScenery\(\)/);
+  assert.match(mode, /const TRACK_REGION_CENTERS = Object\.freeze/);
+  assert.match(mode, /function buildTrackPoints\(\)/);
+  assert.match(mode, /function resampleTrackSegment\(samples, count\)/);
+  assert.match(mode, /new THREE\.TubeGeometry\(roadCurve, System\.BOARD_SIZE/);
+  assert.match(mode, /new THREE\.PlaneGeometry\(560, 170\)/);
+  assert.match(mode, /function addHouse\(/);
+  assert.match(mode, /function addCar\(/);
+  assert.match(mode, /function addCoin\(/);
+  assert.doesNotMatch(mode, /const row = Math\.floor\(index \/ 25\)/);
+  assert.match(mode, /id === selectedPlayerId \? 1\.95 : 1\.55/);
   assert.match(mode, /life-region-\$\{region\.id\}/);
   assert.match(mode, /region\.theme === "space"/);
   assert.match(mode, /region\.theme === "kingdom"/);

@@ -10,6 +10,8 @@
   font-family: "Arial Black", "Yu Gothic", sans-serif;
 }
 .life-mode.open { display: block; }
+.life-mode.life-overview .life-roster,
+.life-mode.life-overview .life-status { visibility: hidden; pointer-events: none; }
 .life-mode canvas { position: absolute; inset: 0; width: 100%; height: 100%; }
 .life-mode::after {
   content: "";

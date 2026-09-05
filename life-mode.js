@@ -29,6 +29,79 @@
   let openOptions = {};
   let frame = 0;
   let resizeObserver = null;
+  const TRACK_REGION_CENTERS = Object.freeze([
+    { x: -225, z: -12 }, { x: -175, z: -34 }, { x: -125, z: 8 }, { x: -75, z: -29 }, { x: -25, z: 2 },
+    { x: 25, z: 31 }, { x: 75, z: -8 }, { x: 125, z: 28 }, { x: 175, z: -23 }, { x: 225, z: 10 }
+  ]);
+
+  function resampleTrackSegment(samples, count) {
+    const lengths = [0];
+    for (let index = 1; index < samples.length; index += 1) {
+      const previous = samples[index - 1];
+      const current = samples[index];
+      lengths.push(lengths[index - 1] + Math.hypot(current.x - previous.x, current.y - previous.y, current.z - previous.z));
+    }
+    const total = lengths[lengths.length - 1];
+    const result = [];
+    let cursor = 1;
+    for (let index = 0; index < count; index += 1) {
+      const target = total * ((index + .5) / count);
+      while (cursor < lengths.length - 1 && lengths[cursor] < target) cursor += 1;
+      const previousLength = lengths[cursor - 1];
+      const interval = Math.max(.0001, lengths[cursor] - previousLength);
+      const mix = (target - previousLength) / interval;
+      const previous = samples[cursor - 1];
+      const current = samples[cursor];
+      result.push({
+        x: previous.x + (current.x - previous.x) * mix,
+        y: previous.y + (current.y - previous.y) * mix,
+        z: previous.z + (current.z - previous.z) * mix
+      });
+    }
+    return result;
+  }
+
+  function buildTrackPoints() {
+    const points = [];
+    TRACK_REGION_CENTERS.forEach((center, regionIndex) => {
+      const previousCenter = TRACK_REGION_CENTERS[regionIndex - 1] || {
+        x: center.x - (TRACK_REGION_CENTERS[1].x - center.x),
+        z: center.z - (TRACK_REGION_CENTERS[1].z - center.z)
+      };
+      const nextCenter = TRACK_REGION_CENTERS[regionIndex + 1] || {
+        x: center.x + (center.x - TRACK_REGION_CENTERS[regionIndex - 1].x),
+        z: center.z + (center.z - TRACK_REGION_CENTERS[regionIndex - 1].z)
+      };
+      const start = { x: (previousCenter.x + center.x) / 2, z: (previousCenter.z + center.z) / 2 };
+      const end = { x: (center.x + nextCenter.x) / 2, z: (center.z + nextCenter.z) / 2 };
+      const dx = end.x - start.x;
+      const dz = end.z - start.z;
+      const distance = Math.max(1, Math.hypot(dx, dz));
+      const normalX = -dz / distance;
+      const normalZ = dx / distance;
+      const waves = 2 + (regionIndex % 3);
+      const amplitude = waves === 2 ? 21 : (waves === 3 ? 15 : 11);
+      const samples = [];
+      for (let step = 0; step <= 800; step += 1) {
+        const t = step / 800;
+        const envelope = Math.sin(Math.PI * t);
+        const wave = envelope * (
+          Math.sin(t * Math.PI * 2 * waves + regionIndex * .72) * amplitude +
+          Math.cos(t * Math.PI) * (regionIndex % 2 ? 5 : -5)
+        );
+        const hill = envelope * ([0, .25, .45, .2, .7, 2.15, .35, .65, .3, 1.1][regionIndex] || 0);
+        samples.push({
+          x: start.x + dx * t + normalX * wave,
+          y: hill + Math.sin(t * Math.PI * 4 + regionIndex) * .08,
+          z: start.z + dz * t + normalZ * wave
+        });
+      }
+      points.push(...resampleTrackSegment(samples, System.REGION_SIZE));
+    });
+    return Object.freeze(points);
+  }
+
+  const TRACK_POINTS = buildTrackPoints();
 
   function money(value) {
     const amount = Number(value) || 0;
@@ -41,10 +114,7 @@
 
   function tilePosition(number) {
     const index = Math.max(0, Math.min(System.BOARD_SIZE - 1, Number(number) - 1));
-    const row = Math.floor(index / 25);
-    const rawColumn = index % 25;
-    const column = row % 2 ? 24 - rawColumn : rawColumn;
-    return { x: (column - 12) * 2.25, y: 0, z: row * 2.25 };
+    return TRACK_POINTS[index];
   }
 
   function tileNumberForPlayer(player) {
@@ -95,18 +165,31 @@
   }
 
   function makeTrack() {
-    const geometry = new THREE.BoxGeometry(1.92, 0.32, 1.92);
-    const material = new THREE.MeshStandardMaterial({ vertexColors: true, roughness: .62, metalness: .12 });
+    const roadCurve = new THREE.CatmullRomCurve3(TRACK_POINTS.map((point) => new THREE.Vector3(point.x, point.y - .78, point.z)));
+    const road = new THREE.Mesh(
+      new THREE.TubeGeometry(roadCurve, System.BOARD_SIZE, .82, 4, false),
+      new THREE.MeshStandardMaterial({ color: 0x222933, roughness: .8, metalness: .12 })
+    );
+    scene.add(road);
+
+    const geometry = new THREE.BoxGeometry(1.34, 0.28, 1.02);
+    const material = new THREE.MeshStandardMaterial({ roughness: .72, metalness: .04 });
     tileMesh = new THREE.InstancedMesh(geometry, material, System.BOARD_SIZE);
     const matrix = new THREE.Matrix4();
     const color = new THREE.Color();
+    const quaternion = new THREE.Quaternion();
+    const up = new THREE.Vector3(0, 1, 0);
     System.BOARD.forEach((space, index) => {
       const point = tilePosition(space.number);
-      const height = space.checkpoint ? 0.82 : 0.32;
+      const before = tilePosition(Math.max(1, space.number - 1));
+      const after = tilePosition(Math.min(System.BOARD_SIZE, space.number + 1));
+      const yaw = Math.atan2(after.x - before.x, after.z - before.z);
+      quaternion.setFromAxisAngle(up, yaw);
+      const height = space.checkpoint ? 0.72 : 0.28;
       matrix.compose(
-        new THREE.Vector3(point.x, height / 2, point.z),
-        new THREE.Quaternion(),
-        new THREE.Vector3(1, height / 0.32, 1)
+        new THREE.Vector3(point.x, point.y + height / 2, point.z),
+        quaternion,
+        new THREE.Vector3(space.checkpoint ? 1.28 : 1, height / 0.28, space.checkpoint ? 1.18 : 1)
       );
       tileMesh.setMatrixAt(index, matrix);
       color.setHex(CATEGORY_COLORS[space.category] || 0x777777);
@@ -118,20 +201,20 @@
     scene.add(tileMesh);
 
     const floor = new THREE.Mesh(
-      new THREE.PlaneGeometry(64, 96),
-      new THREE.MeshStandardMaterial({ color: 0x202d27, roughness: 1, metalness: 0 })
+      new THREE.PlaneGeometry(560, 170),
+      new THREE.MeshStandardMaterial({ color: 0x26352d, roughness: 1, metalness: 0 })
     );
     floor.rotation.x = -Math.PI / 2;
-    floor.position.set(0, -0.18, 43.5);
+    floor.position.set(0, -0.34, 0);
     scene.add(floor);
 
     System.REGIONS.forEach((region, index) => {
       const band = new THREE.Mesh(
-        new THREE.PlaneGeometry(61, 8.6),
-        new THREE.MeshBasicMaterial({ color: region.color, transparent: true, opacity: 0.075, side: THREE.DoubleSide })
+        new THREE.CircleGeometry(32, 36),
+        new THREE.MeshBasicMaterial({ color: region.color, transparent: true, opacity: 0.065, side: THREE.DoubleSide })
       );
       band.rotation.x = -Math.PI / 2;
-      band.position.set(0, -0.16, index * 9 + 3.35);
+      band.position.set(TRACK_REGION_CENTERS[index].x, -0.3, TRACK_REGION_CENTERS[index].z);
       scene.add(band);
     });
     makeRegionScenery();
@@ -152,12 +235,42 @@
     const gold = new THREE.MeshStandardMaterial({ color: 0xe5bc4c, emissive: 0x6b4c09, emissiveIntensity: .42, roughness: .32, metalness: .72 });
     const green = new THREE.MeshStandardMaterial({ color: 0x3d8754, roughness: .9 });
     const trunk = new THREE.MeshStandardMaterial({ color: 0x795332, roughness: 1 });
+    const white = new THREE.MeshStandardMaterial({ color: 0xe9edf1, roughness: .64, metalness: .08 });
+
+    function addTree(group, x, z, scale = 1) {
+      sceneryMesh(group, new THREE.CylinderGeometry(.16 * scale, .24 * scale, 1.45 * scale, 7), trunk, { x, y: .72 * scale, z });
+      sceneryMesh(group, new THREE.ConeGeometry(.72 * scale, 1.85 * scale, 8), green, { x, y: 1.9 * scale, z });
+    }
+
+    function addHouse(group, x, z, scale, accent) {
+      sceneryMesh(group, new THREE.BoxGeometry(1.7 * scale, 1.35 * scale, 1.45 * scale), white, { x, y: .68 * scale, z });
+      sceneryMesh(group, new THREE.ConeGeometry(1.35 * scale, .9 * scale, 4), accent, { x, y: 1.78 * scale, z }, { y: Math.PI / 4 });
+      sceneryMesh(group, new THREE.BoxGeometry(.42 * scale, .72 * scale, .12), dark, { x, y: .36 * scale, z: z - .79 * scale });
+    }
+
+    function addCar(group, x, z, scale, accent, rotation) {
+      sceneryMesh(group, new THREE.BoxGeometry(1.7 * scale, .45 * scale, .86 * scale), accent, { x, y: .38 * scale, z }, { y: rotation });
+      sceneryMesh(group, new THREE.BoxGeometry(.82 * scale, .38 * scale, .72 * scale), white, { x, y: .76 * scale, z }, { y: rotation });
+      [-.54, .54].forEach((offset) => sceneryMesh(group, new THREE.CylinderGeometry(.18 * scale, .18 * scale, .96 * scale, 8), dark, { x: x + Math.cos(rotation) * offset * scale, y: .2 * scale, z: z - Math.sin(rotation) * offset * scale }, { z: Math.PI / 2, y: rotation }));
+    }
+
+    function addLamp(group, x, z, scale, accent) {
+      sceneryMesh(group, new THREE.CylinderGeometry(.08 * scale, .12 * scale, 2.1 * scale, 8), dark, { x, y: 1.05 * scale, z });
+      sceneryMesh(group, new THREE.SphereGeometry(.24 * scale, 10, 8), accent, { x, y: 2.2 * scale, z });
+    }
+
+    function addCoin(group, x, z, scale) {
+      sceneryMesh(group, new THREE.CylinderGeometry(.55 * scale, .55 * scale, .14 * scale, 18), gold, { x, y: 1.05 * scale, z }, { x: Math.PI / 2 });
+      sceneryMesh(group, new THREE.CylinderGeometry(.06 * scale, .09 * scale, 1.3 * scale, 7), dark, { x, y: .4 * scale, z });
+    }
+
     System.REGIONS.forEach((region, index) => {
       const group = new THREE.Group();
       group.name = `life-region-${region.id}`;
-      const z = index * 9 + 3.4;
+      const center = TRACK_REGION_CENTERS[index];
+      const z = center.z;
       const side = index % 2 ? 1 : -1;
-      const x = side * 31;
+      const x = center.x + side * 25;
       const accent = new THREE.MeshStandardMaterial({
         color: region.color,
         emissive: region.color,
@@ -167,7 +280,37 @@
       });
       const glow = new THREE.MeshBasicMaterial({ color: region.color, transparent: true, opacity: .5 });
       sceneryMesh(group, new THREE.CylinderGeometry(4.1, 4.5, .48, 20), dark, { x, y: .06, z });
-      sceneryMesh(group, new THREE.BoxGeometry(59, .08, .16), glow, { x: 0, y: .08, z: index * 9 - 1.05 });
+      sceneryMesh(group, new THREE.TorusGeometry(28, .09, 5, 64), glow, { x: center.x, y: .02, z }, { x: Math.PI / 2 });
+
+      for (let propIndex = 0; propIndex < 10; propIndex += 1) {
+        const angle = (Math.PI * 2 * propIndex) / 10 + index * .41;
+        const radius = 25 + ((propIndex * 7 + index * 3) % 7);
+        const propX = center.x + Math.cos(angle) * radius;
+        const propZ = center.z + Math.sin(angle) * radius;
+        const scale = .72 + ((propIndex + index) % 4) * .1;
+        const kind = (propIndex + index * 2) % 5;
+        if (kind === 0) addTree(group, propX, propZ, scale);
+        else if (kind === 1) addHouse(group, propX, propZ, scale, accent);
+        else if (kind === 2) addCar(group, propX, propZ, scale, accent, angle + Math.PI / 2);
+        else if (kind === 3) addLamp(group, propX, propZ, scale, accent);
+        else addCoin(group, propX, propZ, scale);
+      }
+
+      for (let step = 4; step < 100; step += 8) {
+        const pointIndex = index * 100 + step;
+        const point = TRACK_POINTS[pointIndex];
+        const next = TRACK_POINTS[pointIndex + 1] || point;
+        const angle = Math.atan2(next.z - point.z, next.x - point.x) + Math.PI / 2;
+        const direction = step % 16 < 8 ? 1 : -1;
+        const propX = point.x + Math.cos(angle) * direction * 4.5;
+        const propZ = point.z + Math.sin(angle) * direction * 4.5;
+        if (TRACK_POINTS.some((tile) => Math.hypot(tile.x - propX, tile.z - propZ) < 2.8)) continue;
+        const kind = (Math.floor(step / 8) + index) % 4;
+        if (kind === 0) addHouse(group, propX, propZ, .9, accent);
+        else if (kind === 1) addTree(group, propX, propZ, 1.1);
+        else if (kind === 2) addCar(group, propX, propZ, .85, accent, -angle);
+        else addLamp(group, propX, propZ, 1, gold);
+      }
 
       if (region.theme === "town") {
         [-1.8, 0, 1.8].forEach((offset, itemIndex) => {
@@ -222,8 +365,8 @@
     if (!THREE || renderer) return;
     scene = new THREE.Scene();
     scene.background = new THREE.Color(0x0c1119);
-    scene.fog = new THREE.Fog(0x0c1119, 105, 260);
-    camera = new THREE.PerspectiveCamera(42, 1, 0.1, 250);
+    scene.fog = new THREE.Fog(0x0c1119, 550, 1200);
+    camera = new THREE.PerspectiveCamera(42, 1, 0.1, 900);
     renderer = new THREE.WebGLRenderer({ antialias: true, alpha: false, powerPreference: "high-performance" });
     renderer.setPixelRatio(Math.min(global.devicePixelRatio || 1, 1.5));
     renderer.outputColorSpace = THREE.SRGBColorSpace || "srgb";
@@ -255,7 +398,7 @@
         texture.colorSpace = THREE.SRGBColorSpace || "srgb";
         const material = new THREE.SpriteMaterial({ map: texture, transparent: true, depthTest: false, depthWrite: false });
         const sprite = new THREE.Sprite(material);
-        sprite.scale.set(4.8, 4.8, 1);
+        sprite.scale.set(2.15, 2.15, 1);
         sprite.renderOrder = 10;
         scene.add(sprite);
         playerSprites.set(player.id, sprite);
@@ -280,9 +423,9 @@
         const sprite = playerSprites.get(id);
         if (!sprite) return;
         const angle = (Math.PI * 2 * index) / ids.length;
-        const spread = ids.length > 1 ? 2.35 : 0;
-        sprite.position.set(point.x + Math.cos(angle) * spread, 2.7, point.z + Math.sin(angle) * spread);
-        const size = ids.length > 2 ? (id === selectedPlayerId ? 4.25 : 3.45) : (id === selectedPlayerId ? 5.4 : 4.5);
+        const spread = ids.length > 1 ? 1.45 : 0;
+        sprite.position.set(point.x + Math.cos(angle) * spread, point.y + 1.45, point.z + Math.sin(angle) * spread);
+        const size = ids.length > 2 ? (id === selectedPlayerId ? 1.95 : 1.55) : (id === selectedPlayerId ? 2.55 : 2.15);
         sprite.scale.set(size, size, 1);
       });
     });
@@ -302,8 +445,8 @@
     const selected = state.players?.[selectedPlayerId] || Object.values(state.players || {})[0];
     const point = tilePosition((Number(selected?.position) || 0) || 1);
     const target = overview
-      ? { position: new THREE.Vector3(8, 91, 91), look: new THREE.Vector3(8, 0, 43) }
-      : { position: new THREE.Vector3(point.x, 19, point.z + 16), look: new THREE.Vector3(point.x, 0, point.z) };
+      ? { position: new THREE.Vector3(0, Math.max(400, 430 / camera.aspect), Math.max(250, 270 / camera.aspect)), look: new THREE.Vector3(0, 0, 0) }
+      : { position: new THREE.Vector3(point.x, point.y + 18, point.z + 16), look: new THREE.Vector3(point.x, point.y, point.z) };
     if (immediate) camera.position.copy(target.position);
     else camera.position.lerp(target.position, .08);
     camera.lookAt(target.look);
@@ -314,7 +457,9 @@
     const time = performance.now() * .001;
     playerSprites.forEach((sprite, id) => {
       if (rollAnimations.has(id)) return;
-      sprite.position.y = 2.7 + Math.sin(time * 2.4 + System.hash32(id)) * .1;
+      const player = state.players?.[id];
+      const point = tilePosition(displayedPositions.get(id) || tileNumberForPlayer(player));
+      sprite.position.y = point.y + 1.45 + Math.sin(time * 2.4 + System.hash32(id)) * .06;
     });
     updateRollAnimations(performance.now());
     updateCamera(false);
@@ -358,13 +503,13 @@
       if (sprite) {
         sprite.position.set(
           from.x + (to.x - from.x) * fraction,
-          2.7 + Math.sin(fraction * Math.PI) * 1.35,
+          from.y + (to.y - from.y) * fraction + 1.45 + Math.sin(fraction * Math.PI) * .8,
           from.z + (to.z - from.z) * fraction
         );
       }
       if (dieMesh) {
         dieMesh.visible = progress < rollPart;
-        dieMesh.position.set(from.x, 3.8 + Math.sin(progress * Math.PI / rollPart) * 2.2, from.z);
+        dieMesh.position.set(from.x, from.y + 2.6 + Math.sin(progress * Math.PI / rollPart) * 1.6, from.z);
         dieMesh.rotation.set(progress * 19, progress * 27, progress * 15);
       }
       if (progress < 1) return;
@@ -414,6 +559,7 @@
       ? `<small>${escapeHtml(event.category.toUpperCase())} / SPACE ${event.space}</small><b>${escapeHtml(event.title)}</b><p>${escapeHtml(event.detail)}${event.amount ? `　${event.amount > 0 ? "+" : ""}${money(event.amount)}` : ""}</p>`
       : `<small>LIFE LOG</small><b>次のOPENを待機中</b><p>六王の人生コースは、ここから始まります。</p>`;
     root.querySelector("[data-life-view]").textContent = overview ? "FOLLOW" : "OVERVIEW";
+    root.classList.toggle("life-overview", overview);
     root.querySelector("[data-life-view]").classList.toggle("active", overview);
     updatePlayerSprites();
   }
