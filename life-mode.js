@@ -27,14 +27,31 @@
   let selectedPlayerId = "tofu";
   let overview = false;
   let cameraSpace = null;
+  let cameraRegion = null;
   let cameraLook = null;
+  let waterTexture = null;
   let openOptions = {};
   let frame = 0;
   let resizeObserver = null;
   const TRACK_REGION_CENTERS = Object.freeze([
-    { x: -225, z: -12 }, { x: -175, z: -34 }, { x: -125, z: 8 }, { x: -75, z: -29 }, { x: -25, z: 2 },
-    { x: 25, z: 31 }, { x: 75, z: -8 }, { x: 125, z: 28 }, { x: 175, z: -23 }, { x: 225, z: 10 }
+    { x: -160, z: -50 }, { x: -80, z: -50 }, { x: 0, z: -50 }, { x: 80, z: -50 }, { x: 160, z: -50 },
+    { x: 160, z: 50 }, { x: 80, z: 50 }, { x: 0, z: 50 }, { x: -80, z: 50 }, { x: -160, z: 50 }
   ]);
+  // Authored routes: street blocks, lake, city steps, overpass, piers,
+  // mountain switchbacks, spiral ramp, castle walls, orbit, ceremonial approach.
+  const ROUTE_KNOTS = [
+    [[-32,0],[-26,0],[-26,-24],[-7,-24],[-7,17],[12,17],[12,-13],[29,-13],[29,0],[36,0]],
+    [[-36,0],[-25,-6],[-18,-26],[5,-31],[25,-19],[28,5],[13,25],[-9,27],[-21,14],[-8,6],[12,8],[35,0]],
+    [[-36,0],[-26,0],[-26,28],[-10,28],[-10,-25],[8,-25],[8,22],[26,22],[26,-8],[36,0]],
+    [[-36,0],[-24,-24,0],[-7,-23,0],[16,20,7],[28,22,7],[31,0,5],[18,-23,0],[2,-23,0],[-21,22,0],[-10,30,0],[16,30,0],[36,0]],
+    [[-36,0],[-26,-18,1],[-8,-18,1],[-8,14,1],[12,14,1],[12,-28,1],[29,-28,1],[29,30,1],[5,30,1],[0,43,0]],
+    [[0,-43,0],[-26,-30,2],[26,-17,4],[-26,-4,6],[26,9,8],[-22,22,10],[-25,33,9],[5,33,6],[5,21,3],[-36,0,0]],
+    [[36,0],[28,-25,0],[-25,-25,1],[-25,25,3],[22,25,5],[22,-13,7],[-12,-13,9],[-12,12,10],[8,12,10],[8,0,9],[-36,0,0]],
+    [[36,0],[30,-30],[-30,-30],[-30,30],[20,30],[20,-16],[-15,-16],[-15,15],[5,15],[5,0],[-36,0]],
+    [[36,0],[25,-22,2],[0,-30,4],[-26,-22,6],[-30,6,8],[-13,26,10],[14,23,10],[24,4,10],[8,-12,9],[-9,-10,7],[-12,6,5],[-36,0]],
+    [[36,0],[27,-27],[9,-27],[9,-8],[-9,-8],[-9,-27],[-28,-27],[-28,17],[-12,30],[9,30],[24,17],[10,9],[0,17],[-18,12],[-26,0]]
+  ];
+  const ROUTE_NAMES = ["街角ブロック通り", "湖畔の回廊", "摩天楼アベニュー", "スカイクロス", "南海の桟橋", "天空のつづら坂", "スパイラルラボ", "城壁の迷路", "星めぐり軌道", "六王の凱旋路"];
 
   function resampleTrackSegment(samples, count) {
     const lengths = [0];
@@ -66,38 +83,25 @@
   function buildTrackPoints() {
     const points = [];
     TRACK_REGION_CENTERS.forEach((center, regionIndex) => {
-      const previousCenter = TRACK_REGION_CENTERS[regionIndex - 1] || {
-        x: center.x - (TRACK_REGION_CENTERS[1].x - center.x),
-        z: center.z - (TRACK_REGION_CENTERS[1].z - center.z)
-      };
-      const nextCenter = TRACK_REGION_CENTERS[regionIndex + 1] || {
-        x: center.x + (center.x - TRACK_REGION_CENTERS[regionIndex - 1].x),
-        z: center.z + (center.z - TRACK_REGION_CENTERS[regionIndex - 1].z)
-      };
-      const start = { x: (previousCenter.x + center.x) / 2, z: (previousCenter.z + center.z) / 2 };
-      const end = { x: (center.x + nextCenter.x) / 2, z: (center.z + nextCenter.z) / 2 };
-      const dx = end.x - start.x;
-      const dz = end.z - start.z;
-      const distance = Math.max(1, Math.hypot(dx, dz));
-      const normalX = -dz / distance;
-      const normalZ = dx / distance;
-      const waves = 2 + (regionIndex % 3);
-      const amplitude = waves === 2 ? 21 : (waves === 3 ? 15 : 11);
-      const samples = [];
-      for (let step = 0; step <= 800; step += 1) {
-        const t = step / 800;
-        const envelope = Math.sin(Math.PI * t);
-        const wave = envelope * (
-          Math.sin(t * Math.PI * 2 * waves + regionIndex * .72) * amplitude +
-          Math.cos(t * Math.PI) * (regionIndex % 2 ? 5 : -5)
-        );
-        const hill = envelope * ([0, .25, .45, .2, .7, 2.15, .35, .65, .3, 1.1][regionIndex] || 0);
-        samples.push({
-          x: start.x + dx * t + normalX * wave,
-          y: hill + Math.sin(t * Math.PI * 4 + regionIndex) * .08,
-          z: start.z + dz * t + normalZ * wave
-        });
+      const knots = ROUTE_KNOTS[regionIndex].map(([x,z,y = 0]) => ({x: center.x + x, y, z: center.z + z}));
+      const previous = TRACK_REGION_CENTERS[regionIndex - 1];
+      const next = TRACK_REGION_CENTERS[regionIndex + 1];
+      if (previous) knots.unshift({x: (previous.x + center.x) / 2, y: 0, z: (previous.z + center.z) / 2});
+      if (next) knots.push({x: (next.x + center.x) / 2, y: 0, z: (next.z + center.z) / 2});
+      const samples = [knots[0]];
+      const blend = (a,b,t) => ({x:a.x+(b.x-a.x)*t, y:a.y+(b.y-a.y)*t, z:a.z+(b.z-a.z)*t});
+      for (let index = 1; index < knots.length - 1; index += 1) {
+        const corner = knots[index];
+        const rounding = [0,2,5,7,9].includes(regionIndex) ? .09 : .3;
+        const entry = blend(corner, knots[index-1], rounding);
+        const exit = blend(corner, knots[index+1], rounding);
+        samples.push(entry);
+        for (let step = 1; step <= 16; step += 1) {
+          const t = step / 16;
+          samples.push(blend(blend(entry,corner,t),blend(corner,exit,t),t));
+        }
       }
+      samples.push(knots[knots.length-1]);
       points.push(...resampleTrackSegment(samples, System.REGION_SIZE));
     });
     return Object.freeze(points);
@@ -131,6 +135,7 @@
         <div class="life-head">
           <div class="life-title"><small>1000 SPACE LIFE BOARD</small><strong>六王人生すごろく</strong></div>
           <div class="life-head-actions">
+            <select class="life-simple-btn life-route-select" data-life-route aria-label="エリアへ移動">${ROUTE_NAMES.map((name,index) => `<option value="${index}">${index+1}. ${name}</option>`).join("")}</select>
             <button type="button" class="life-simple-btn" data-life-history>HISTORY</button>
             <button type="button" class="life-simple-btn" data-life-admin hidden>DATA</button>
             <button type="button" class="life-simple-btn" data-life-view>OVERVIEW</button>
@@ -152,8 +157,8 @@
     root.addEventListener("click", (event) => {
       if (event.target.closest("[data-life-close]")) close();
       const player = event.target.closest("[data-life-player]");
-      if (player) { selectedPlayerId = player.dataset.lifePlayer; cameraSpace = null; overview = false; renderUi(); updateCamera(true); }
-      if (event.target.closest("[data-life-view]")) { overview = !overview; renderUi(); updateCamera(true); }
+      if (player) { selectedPlayerId = player.dataset.lifePlayer; cameraSpace = null; cameraRegion = null; overview = false; renderUi(); updateCamera(true); }
+      if (event.target.closest("[data-life-view]")) { overview = !overview; if (!overview) { cameraRegion = null; cameraSpace = null; } renderUi(); updateCamera(true); }
       if (event.target.closest("[data-life-history]")) showHistory();
       if (event.target.closest("[data-life-admin]")) showAdmin();
       if (event.target.closest("[data-life-drawer-close]")) closeDrawer();
@@ -163,14 +168,23 @@
       if (reset) void resetState(reset.dataset.lifeReset);
     });
     root.querySelector("[data-life-import]").addEventListener("change", importState);
+    root.querySelector("[data-life-route]").addEventListener("change", (event) => {
+      cameraSpace = Number(event.target.value) * System.REGION_SIZE + 25;
+      cameraRegion = Number(event.target.value);
+      overview = false;
+      renderUi();
+      updateCamera(true);
+    });
     root.addEventListener("wheel", (event) => {
-      if (event.target.closest(".life-drawer, .life-status, .life-roster")) return;
+      if (event.target.closest(".life-drawer, .life-status, .life-roster, .life-head")) return;
       event.preventDefault();
       const player = state?.players?.[selectedPlayerId];
       const delta = (event.deltaY || event.deltaX) * (event.deltaMode === 1 ? 16 : event.deltaMode === 2 ? 400 : 1);
       cameraSpace = Math.max(1, Math.min(System.BOARD_SIZE, (cameraSpace ?? tileNumberForPlayer(player)) + Math.max(-15, Math.min(15, delta * .035))));
+      cameraRegion = null;
       overview = false;
       root.classList.remove("life-overview");
+      root.classList.remove("life-tour");
       root.querySelector("[data-life-view]").textContent = "OVERVIEW";
       root.querySelector("[data-life-view]").classList.remove("active");
     }, { passive: false });
@@ -221,23 +235,41 @@
     scene.add(tileMesh);
     scene.add(inlays, marks);
 
-    const floor = new THREE.Mesh(
-      new THREE.PlaneGeometry(560, 170),
-      new THREE.MeshStandardMaterial({ color: 0x26352d, roughness: 1, metalness: 0 })
+    const groundTexture = new THREE.TextureLoader().load("images/territory/textures/terrain-ground-v2.png");
+    groundTexture.wrapS = groundTexture.wrapT = THREE.RepeatWrapping;
+    groundTexture.repeat.set(20, 12);
+    groundTexture.colorSpace = THREE.SRGBColorSpace || "srgb";
+    const groundGeometry = new THREE.PlaneGeometry(440, 260, 110, 65);
+    const positions = groundGeometry.attributes.position;
+    const groundColors = [];
+    const palette = [0x83a569,0x80b58d,0x9eaaa6,0x839697,0xecdab0,0xaaa18a,0x8aa5a6,0x99a66e,0x77869e,0xd0bd88];
+    for (let i = 0; i < positions.count; i += 1) {
+      const x = positions.getX(i), z = -positions.getY(i);
+      let nearest = 0, distance = Infinity;
+      TRACK_REGION_CENTERS.forEach((center,index) => {
+        const d = Math.hypot(x-center.x,z-center.z);
+        if (d < distance) { distance = d; nearest = index; }
+      });
+      const tint = new THREE.Color(0,0,0);
+      let totalWeight = 0;
+      TRACK_REGION_CENTERS.forEach((center,index) => {
+        const weight = Math.exp(-Math.pow(Math.hypot(x-center.x,z-center.z)/35,2));
+        tint.add(new THREE.Color(palette[index]).multiplyScalar(weight));
+        totalWeight += weight;
+      });
+      if (totalWeight > .00001) tint.multiplyScalar(1/totalWeight);
+      else tint.setHex(palette[nearest]);
+      tint.multiplyScalar(.88 + .12 * Math.sin(x*.31)*Math.cos(z*.28));
+      groundColors.push(tint.r,tint.g,tint.b);
+      positions.setZ(i, -.55 + Math.sin(x*.13)*Math.cos(z*.17)*.08);
+    }
+    groundGeometry.setAttribute("color",new THREE.Float32BufferAttribute(groundColors,3));
+    groundGeometry.computeVertexNormals();
+    const floor = new THREE.Mesh(groundGeometry,
+      new THREE.MeshStandardMaterial({ map: groundTexture, vertexColors: true, roughness: 1 })
     );
     floor.rotation.x = -Math.PI / 2;
-    floor.position.set(0, -0.34, 0);
     scene.add(floor);
-
-    System.REGIONS.forEach((region, index) => {
-      const band = new THREE.Mesh(
-        new THREE.CircleGeometry(32, 36),
-        new THREE.MeshBasicMaterial({ color: region.color, transparent: true, opacity: 0.065, side: THREE.DoubleSide })
-      );
-      band.rotation.x = -Math.PI / 2;
-      band.position.set(TRACK_REGION_CENTERS[index].x, -0.3, TRACK_REGION_CENTERS[index].z);
-      scene.add(band);
-    });
     makeRegionScenery();
   }
 
@@ -251,6 +283,10 @@
   }
 
   function makeRegionScenery() {
+    waterTexture = new THREE.TextureLoader().load("images/city/textures/terrain-water.png");
+    waterTexture.wrapS = waterTexture.wrapT = THREE.RepeatWrapping;
+    waterTexture.repeat.set(4,4);
+    waterTexture.colorSpace = THREE.SRGBColorSpace || "srgb";
     const dark = new THREE.MeshStandardMaterial({ color: 0x151b23, roughness: .72, metalness: .28 });
     const stone = new THREE.MeshStandardMaterial({ color: 0x84909c, roughness: .82, metalness: .06 });
     const gold = new THREE.MeshStandardMaterial({ color: 0xe5bc4c, emissive: 0x6b4c09, emissiveIntensity: .42, roughness: .32, metalness: .72 });
@@ -260,7 +296,7 @@
 
     function addTree(group, x, z, scale = 1) {
       sceneryMesh(group, new THREE.CylinderGeometry(.16 * scale, .24 * scale, 1.45 * scale, 7), trunk, { x, y: .72 * scale, z });
-      sceneryMesh(group, new THREE.ConeGeometry(.72 * scale, 1.85 * scale, 8), green, { x, y: 1.9 * scale, z });
+      for (let leaf=0;leaf<3;leaf++) sceneryMesh(group, new THREE.IcosahedronGeometry(.75 * scale, 1), green, { x:x+Math.sin(leaf*2.1)*.36*scale, y: (1.5+leaf*.3)*scale, z:z+Math.cos(leaf*2.1)*.3*scale });
     }
 
     function addHouse(group, x, z, scale, accent) {
@@ -305,9 +341,8 @@
       const group = new THREE.Group();
       group.name = `life-region-${region.id}`;
       const center = TRACK_REGION_CENTERS[index];
-      const z = center.z;
-      const side = index % 2 ? 1 : -1;
-      const x = center.x + side * 25;
+      const z = index===9 ? TRACK_POINTS[999].z : center.z + (index === 0 ? 7 : index === 5 ? 8 : 0);
+      const x = index===9 ? TRACK_POINTS[999].x : center.x + (index === 0 ? -18 : 0);
       const accent = new THREE.MeshStandardMaterial({
         color: region.color,
         emissive: region.color,
@@ -316,21 +351,68 @@
         metalness: .35
       });
       const glow = new THREE.MeshBasicMaterial({ color: region.color, transparent: true, opacity: .5 });
-      sceneryMesh(group, new THREE.CylinderGeometry(4.1, 4.5, .48, 20), dark, { x, y: .06, z });
-      sceneryMesh(group, new THREE.TorusGeometry(28, .09, 5, 64), glow, { x: center.x, y: .02, z }, { x: Math.PI / 2 });
+      const water = new THREE.MeshStandardMaterial({map:waterTexture,color:0x99e5eb, roughness:.3, metalness:.15});
+      if (index === 1 || index === 4) {
+        const lake = sceneryMesh(group,new THREE.CircleGeometry(index === 1 ? 16 : 33,64),water,{x:center.x,y:-.28,z:center.z},{x:-Math.PI/2},{x:index===1?1:1.1,y:index===1?.85:1.3,z:1});
+        lake.name = "life-water";
+        for (let wave=0;wave<12;wave++) sceneryMesh(group,new THREE.BoxGeometry(2+wave%4,.015,.07),white,{x:center.x+Math.sin(wave*4)*12,y:-.25,z:center.z+Math.cos(wave*3)*10});
+      }
+      if ([3,4,5,6,8].includes(index)) {
+        for (let step=1;step<100;step+=3) {
+          const point=TRACK_POINTS[index*100+step];
+          if (point.y < .7) continue;
+          sceneryMesh(group,new THREE.CylinderGeometry(.22,.4,point.y+.3,8),stone,{x:point.x,y:(point.y-.3)/2,z:point.z});
+        }
+      }
+      if (index===4) {
+        for (let boat=0;boat<3;boat++) {
+          const bx=center.x-19+boat*17, bz=center.z+23-boat*13;
+          sceneryMesh(group,new THREE.SphereGeometry(1.4,16,8),white,{x:bx,y:-.1,z:bz},null,{x:1.9,y:.3,z:.65});
+          sceneryMesh(group,new THREE.CylinderGeometry(.06,.06,3,8),trunk,{x:bx,y:1.4,z:bz});
+          sceneryMesh(group,new THREE.ConeGeometry(1.2,2.2,3),white,{x:bx+.5,y:1.8,z:bz},{y:Math.PI/2},{x:1,y:1,z:.08});
+        }
+        for(let step=2;step<100;step+=2) {
+          const p=TRACK_POINTS[index*100+step], q=TRACK_POINTS[index*100+step+1]||p;
+          const yaw=Math.atan2(q.x-p.x,q.z-p.z);
+          sceneryMesh(group,new THREE.BoxGeometry(2.1,.16,1.8),trunk,{x:p.x,y:p.y-.18,z:p.z},{y:yaw});
+        }
+      }
+      if (index === 5) {
+        for(let peak=0;peak<7;peak++) {
+          const px=center.x-25+peak*8, pz=center.z+40+(peak%2)*8;
+          const height=9+(peak%3)*4;
+          sceneryMesh(group,new THREE.ConeGeometry(8,height,9),stone,{x:px,y:height/2-.5,z:pz});
+          sceneryMesh(group,new THREE.ConeGeometry(2.5,height*.32,9),white,{x:px,y:height*.84-.5,z:pz});
+        }
+      }
+      if (index === 7) {
+        for (const side of [-1,1]) {
+          sceneryMesh(group,new THREE.BoxGeometry(44,2.2,.8),stone,{x:center.x,y:1,z:center.z+side*21});
+          for(let merlon=0;merlon<16;merlon++) sceneryMesh(group,new THREE.BoxGeometry(1.1,.6,1),stone,{x:center.x-21+merlon*2.8,y:2.3,z:center.z+side*21});
+        }
+      }
+      if (index === 8) {
+        sceneryMesh(group,new THREE.CircleGeometry(34,64),dark,{x:center.x,y:-.29,z:center.z},{x:-Math.PI/2});
+        for (let star=0;star<55;star++) {
+          const angle=star*2.399, radius=5+Math.sqrt(star/55)*28;
+          sceneryMesh(group,new THREE.OctahedronGeometry(.09+(star%3)*.05),white,{x:center.x+Math.cos(angle)*radius,y:-.2,z:center.z+Math.sin(angle)*radius});
+        }
+      }
 
-      for (let propIndex = 0; propIndex < 10; propIndex += 1) {
-        const angle = (Math.PI * 2 * propIndex) / 10 + index * .41;
-        const radius = 25 + ((propIndex * 7 + index * 3) % 7);
-        const propX = center.x + Math.cos(angle) * radius;
-        const propZ = center.z + Math.sin(angle) * radius;
-        const scale = .72 + ((propIndex + index) % 4) * .1;
-        const kind = (propIndex + index * 2) % 5;
-        if (kind === 0) addTree(group, propX, propZ, scale);
-        else if (kind === 1) addHouse(group, propX, propZ, scale, accent);
-        else if (kind === 2) addCar(group, propX, propZ, scale, accent, angle + Math.PI / 2);
-        else if (kind === 3) addLamp(group, propX, propZ, scale, accent);
-        else addCoin(group, propX, propZ, scale);
+      for (let propIndex = 0; propIndex < 36; propIndex += 1) {
+        const urban=[2,3,6].includes(index);
+        const propX = center.x - 32 + (propIndex%6)*12 + (urban?0:Math.sin(propIndex*7.3)*3);
+        const propZ = center.z - 34 + Math.floor(propIndex/6)*13 + (urban?0:Math.cos(propIndex*4.7)*3);
+        if (TRACK_POINTS.some((tile) => Math.hypot(tile.x-propX,tile.z-propZ)<4)) continue;
+        if ([4,8].includes(index)) continue;
+        if (index===1 && Math.hypot(propX-center.x,propZ-center.z)<20) continue;
+        const scale = 1.1 + (propIndex%3)*.25;
+        if ([2,3,6].includes(index)) {
+          const height=2.5+(propIndex*7%9);
+          sceneryMesh(group,new THREE.BoxGeometry(2.6,height,2.8),propIndex%2?stone:dark,{x:propX,y:height/2,z:propZ});
+          for(let level=1;level<height;level+=1.1) sceneryMesh(group,new THREE.BoxGeometry(2.3,.28,2.85),accent,{x:propX,y:level,z:propZ});
+        } else if (propIndex%3===0 && index!==5) addHouse(group,propX,propZ,scale,accent);
+        else addTree(group,propX,propZ,scale);
       }
 
       for (let step = 4; step < 100; step += 8) {
@@ -343,8 +425,9 @@
         const propZ = point.z + Math.sin(angle) * direction * 4.5;
         if (TRACK_POINTS.some((tile) => Math.hypot(tile.x - propX, tile.z - propZ) < 2.8)) continue;
         const kind = (Math.floor(step / 8) + index) % 4;
-        if (kind === 0) addHouse(group, propX, propZ, .9, accent);
-        else if (kind === 1) addTree(group, propX, propZ, 1.1);
+        if ([4,8].includes(index)) continue;
+        if (kind === 0 && index!==5) addHouse(group, propX, propZ, .9, accent);
+        else if (kind === 1 || index===5) addTree(group, propX, propZ, 1.1);
         else if (kind === 2) addCar(group, propX, propZ, .85, accent, -angle);
         else addLamp(group, propX, propZ, 1, gold);
       }
@@ -487,18 +570,27 @@
     const mix = number % 1;
     const point = { x: first.x + (second.x - first.x) * mix, y: first.y + (second.y - first.y) * mix, z: first.z + (second.z - first.z) * mix };
     const target = overview
-      ? { position: new THREE.Vector3(0, Math.max(400, 430 / camera.aspect), Math.max(250, 270 / camera.aspect)), look: new THREE.Vector3(0, 0, 0) }
+      ? { position: new THREE.Vector3(0, Math.max(290, 390 / camera.aspect), Math.max(155, 185 / camera.aspect)), look: new THREE.Vector3(0, 0, 0) }
+      : cameraRegion !== null
+      ? {position:new THREE.Vector3(TRACK_REGION_CENTERS[cameraRegion].x,Math.max(105,110/camera.aspect),TRACK_REGION_CENTERS[cameraRegion].z+65),look:new THREE.Vector3(TRACK_REGION_CENTERS[cameraRegion].x,0,TRACK_REGION_CENTERS[cameraRegion].z)}
       : { position: new THREE.Vector3(point.x, point.y + 18, point.z + 16), look: new THREE.Vector3(point.x, point.y, point.z) };
     if (immediate) camera.position.copy(target.position);
     else camera.position.lerp(target.position, .08);
     if (immediate) cameraLook.copy(target.look);
     else cameraLook.lerp(target.look, .08);
     camera.lookAt(cameraLook);
+    const regionIndex = Math.min(9,Math.floor((number-1)/System.REGION_SIZE));
+    const label = `${regionIndex+1} / ${ROUTE_NAMES[regionIndex]} / ${Math.round(number)} - 1000`;
+    const chip = root.querySelector("[data-life-region]");
+    if (chip.textContent !== label) chip.textContent = label;
+    const select = root.querySelector("[data-life-route]");
+    if (select.value !== String(regionIndex)) select.value = String(regionIndex);
   }
 
   function animate() {
     if (!root?.classList.contains("open") || !renderer) { frame = 0; return; }
     const time = performance.now() * .001;
+    if (waterTexture) waterTexture.offset.set(time*.003,time*.001);
     playerSprites.forEach((sprite, id) => {
       if (rollAnimations.has(id)) return;
       const player = state.players?.[id];
@@ -604,6 +696,7 @@
       : `<small>LIFE LOG</small><b>次のOPENを待機中</b><p>六王の人生コースは、ここから始まります。</p>`;
     root.querySelector("[data-life-view]").textContent = overview ? "FOLLOW" : "OVERVIEW";
     root.classList.toggle("life-overview", overview);
+    root.classList.toggle("life-tour", cameraRegion !== null);
     root.querySelector("[data-life-view]").classList.toggle("active", overview);
     updatePlayerSprites();
   }

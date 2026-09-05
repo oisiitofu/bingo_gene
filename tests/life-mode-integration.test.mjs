@@ -1,6 +1,7 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 import { existsSync, readFileSync, statSync } from "node:fs";
+import vm from "node:vm";
 
 const html = readFileSync(new URL("../index.html", import.meta.url), "utf8");
 const mode = readFileSync(new URL("../life-mode.js", import.meta.url), "utf8");
@@ -34,7 +35,7 @@ test("the life board renders 1000 spaces with one instanced mesh and bounded ani
   assert.match(mode, /function buildTrackPoints\(\)/);
   assert.match(mode, /function resampleTrackSegment\(samples, count\)/);
   assert.match(mode, /new THREE\.TubeGeometry\(roadCurve, System\.BOARD_SIZE/);
-  assert.match(mode, /new THREE\.PlaneGeometry\(560, 170\)/);
+  assert.match(mode, /new THREE\.PlaneGeometry\(440, 260, 110, 65\)/);
   assert.match(mode, /function addHouse\(/);
   assert.match(mode, /function addCar\(/);
   assert.match(mode, /function addCoin\(/);
@@ -44,6 +45,25 @@ test("the life board renders 1000 spaces with one instanced mesh and bounded ani
   assert.match(mode, /region\.theme === "space"/);
   assert.match(mode, /region\.theme === "kingdom"/);
   assert.match(css, /\.life-mode\.open/);
+});
+
+test("authored routes preserve 1000 connected spaces including all ten region boundaries", () => {
+  const context = { System: { REGION_SIZE: 100 } };
+  vm.createContext(context);
+  const start = mode.indexOf("  const TRACK_REGION_CENTERS");
+  const end = mode.indexOf("  function money(");
+  vm.runInContext(mode.slice(start,end)+"; globalThis.points = TRACK_POINTS;",context);
+  const points = context.points;
+  assert.equal(points.length,1000);
+  for (let index=0;index<points.length;index++) {
+    const p=points[index];
+    assert.ok([p.x,p.y,p.z].every(Number.isFinite));
+    if (!index) continue;
+    const a=points[index-1];
+    const gap=Math.hypot(p.x-a.x,p.y-a.y,p.z-a.z);
+    assert.ok(gap>0.15 && gap<4,`Disconnected or stacked spaces at ${index}: ${gap}`);
+  }
+  assert.ok(Math.max(...points.map(p=>p.y))>=9,"elevated paths must retain their height");
 });
 
 test("all six life avatars are independent transparent-ready files", () => {
