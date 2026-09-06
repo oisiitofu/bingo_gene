@@ -66,6 +66,33 @@ test("authored routes preserve 1000 connected spaces including all ten region bo
   assert.ok(Math.max(...points.map(p=>p.y))>=9,"elevated paths must retain their height");
 });
 
+test("wheel zooms without moving the route or cancelling a dragged camera", () => {
+  const start=mode.indexOf('    root.addEventListener("wheel",');
+  const end=mode.indexOf('    return root;',start);
+  let handler;
+  const camera={zoom:1,updates:0,updateProjectionMatrix(){this.updates++;}};
+  const context={root:{addEventListener(type,callback){handler=callback;}},camera,drag:null};
+  vm.runInNewContext(mode.slice(start,end),context);
+  const event={deltaY:100,deltaMode:0,target:{closest(){return false;}},preventDefault(){}};
+  handler(event);
+  assert.ok(camera.zoom<1);
+  handler({...event,deltaY:-100});
+  assert.ok(Math.abs(camera.zoom-1)<1e-10);
+  for(let i=0;i<100;i++)handler({...event,deltaY:-1000});
+  assert.equal(camera.zoom,5);
+  for(let i=0;i<100;i++)handler({...event,deltaY:1000});
+  assert.equal(camera.zoom,.25);
+  context.drag={};
+  handler({...event,deltaY:-100});
+  assert.equal(camera.zoom,.25);
+  context.drag=null;
+  handler({...event,target:{closest(){return true;}}});
+  assert.equal(camera.zoom,.25);
+  assert.doesNotMatch(mode.slice(start,end), /cameraSpace\s*=|freeCamera\s*=/);
+  assert.match(mode,/const label = ROUTE_NAMES\[regionIndex\]/);
+  assert.doesNotMatch(mode,/BoxGeometry\(2\.1,\.16,1\.8\)/);
+});
+
 test("all six life avatars are independent transparent-ready files", () => {
   for (const player of ["tofu", "eda", "jan", "rima", "kento", "lickey"]) {
     const url = new URL(`../images/life/avatars/${player}.png`, import.meta.url);

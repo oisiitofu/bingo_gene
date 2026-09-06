@@ -199,16 +199,10 @@
       if (drag) { event.preventDefault(); return; }
       if (event.target.closest(".life-drawer, .life-status, .life-roster, .life-head, .life-space-detail")) return;
       event.preventDefault();
-      freeCamera = null;
-      const player = state?.players?.[selectedPlayerId];
+      if (!camera) return;
       const delta = (event.deltaY || event.deltaX) * (event.deltaMode === 1 ? 16 : event.deltaMode === 2 ? 400 : 1);
-      cameraSpace = Math.max(1, Math.min(System.BOARD_SIZE, (cameraSpace ?? tileNumberForPlayer(player)) + Math.max(-15, Math.min(15, delta * .035))));
-      cameraRegion = null;
-      overview = false;
-      root.classList.remove("life-overview");
-      root.classList.remove("life-tour");
-      root.querySelector("[data-life-view]").textContent = "OVERVIEW";
-      root.querySelector("[data-life-view]").classList.remove("active");
+      camera.zoom = Math.max(.25, Math.min(5, camera.zoom * Math.exp(-Math.max(-250, Math.min(250, delta)) * .002)));
+      camera.updateProjectionMatrix();
     }, { passive: false });
     return root;
   }
@@ -768,11 +762,7 @@
           sceneryMesh(group,new THREE.CylinderGeometry(.06,.06,3,8),trunk,{x:bx,y:1.4,z:bz});
           sceneryMesh(group,new THREE.ConeGeometry(1.2,2.2,3),white,{x:bx+.5,y:1.8,z:bz},{y:Math.PI/2},{x:1,y:1,z:.08});
         }
-        for(let step=2;step<100;step+=2) {
-          const p=TRACK_POINTS[index*100+step], q=TRACK_POINTS[index*100+step+1]||p;
-          const yaw=Math.atan2(q.x-p.x,q.z-p.z);
-          sceneryMesh(group,new THREE.BoxGeometry(2.1,.16,1.8),trunk,{x:p.x,y:p.y-.18,z:p.z},{y:yaw});
-        }
+        // The wooden road ribbon is the pier deck; a second coplanar deck causes flicker.
       }
       if (index === 5) {
         for(let peak=0;peak<7;peak++) {
@@ -1067,7 +1057,7 @@
     else cameraLook.lerp(target.look, .08);
     camera.lookAt(cameraLook);
     const regionIndex = Math.min(9,Math.floor((number-1)/System.REGION_SIZE));
-    const label = freeCamera ? "マップ探索中" : `${regionIndex+1} / ${ROUTE_NAMES[regionIndex]} / ${Math.round(number)} - 1000`;
+    const label = ROUTE_NAMES[regionIndex];
     const chip = root.querySelector("[data-life-region]");
     if (chip.textContent !== label) chip.textContent = label;
     const select = root.querySelector("[data-life-route]");
