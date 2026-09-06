@@ -814,6 +814,11 @@
     historyMap3D?.setActive(false);
     window.clearInterval(countdownTimer);
     countdownTimer = 0;
+    map3D?.destroy();
+    historyMap3D?.destroy();
+    map3D = historyMap3D = null;
+    root.remove();
+    root = null;
     onClose();
   }
 

@@ -1,6 +1,6 @@
 "use strict";
 
-const CACHE_VERSION = "team-bingo-v1-20260906-life-world-175";
+const CACHE_VERSION = "team-bingo-v1-20260906-mode-lifecycle-176";
 const SHELL_CACHE = `${CACHE_VERSION}-shell`;
 const ASSET_CACHE = `${CACHE_VERSION}-assets`;
 const SHELL_FILES = [
@@ -11,16 +11,16 @@ const SHELL_FILES = [
   "./territory-equipment.js?v=20260901-city-tower-balance-141",
   "./territory-system.js",
   "./vendor/three/three.min.js",
-  "./territory-map-3d.js",
-  "./territory-mode.js",
+  "./territory-map-3d.js?v=20260906-mode-lifecycle-1",
+  "./territory-mode.js?v=20260906-mode-lifecycle-1",
   "./territory-mode.css",
   "./city-system.js?v=20260904-city-album-155",
-  "./city-map-3d.js?v=20260904-city-album-155",
+  "./city-map-3d.js?v=20260906-mode-lifecycle-1",
   "./city-mode.js?v=20260904-city-album-155",
   "./city-mode.css?v=20260904-city-album-155",
   "./tower-system.js?v=20260901-city-tower-balance-141",
   "./life-board-system.js?v=20260906-life-board-6",
-  "./life-mode.js?v=20260906-life-world-17",
+  "./life-mode.js?v=20260906-life-world-18",
   "./life-mode.css?v=20260906-life-board-10",
   "./images/life/avatars/poses/tofu-roll.png?v=20260905-nonhuman-3",
   "./images/life/avatars/poses/eda-roll.png?v=20260905-nonhuman-3",
@@ -28,7 +28,7 @@ const SHELL_FILES = [
   "./images/life/avatars/poses/rima-roll.png?v=20260905-nonhuman-3",
   "./images/life/avatars/poses/kento-roll.png?v=20260905-nonhuman-3",
   "./images/life/avatars/poses/lickey-roll.png?v=20260905-nonhuman-3",
-  "./tower-mode.js?v=20260901-city-tower-balance-141",
+  "./tower-mode.js?v=20260906-mode-lifecycle-1",
   "./tower-mode.css?v=20260901-city-tower-balance-141",
   "./world-tournament.js",
   "./world-tournament.css",

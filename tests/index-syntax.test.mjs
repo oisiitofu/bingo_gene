@@ -210,8 +210,8 @@ test("六王領土戦のクライアント、Worker、Firebaseルールが公開
   assert.match(html, /src="territory-system\.js"/);
   assert.match(html, /src="territory-equipment\.js\?v=20260901-city-tower-balance-141"/);
   assert.match(html, /src="vendor\/three\/three\.min\.js"/);
-  assert.match(html, /src="territory-map-3d\.js"/);
-  assert.match(html, /src="territory-mode\.js"/);
+  assert.match(html, /src="territory-map-3d\.js\?v=20260906-mode-lifecycle-1"/);
+  assert.match(html, /src="territory-mode\.js\?v=20260906-mode-lifecycle-1"/);
   assert.match(html, /href="territory-mode\.css"/);
   assert.match(html, /href="monster-page\.css"/);
   assert.match(serviceWorker, /\.\/territory-system\.js/);
@@ -344,7 +344,7 @@ test("BINGO CITY is connected to the shared client, worker tick, rules, and offl
   assert.match(cityMap, /TERRAIN_RENDER_PROFILES/);
   assert.doesNotMatch(cityMap, /InstancedMesh\(shared\.terrain|BoxGeometry\(TILE \* \.96/);
   assert.match(html, /src="city-system\.js\?v=20260904-city-album-155"/);
-  assert.match(html, /src="city-map-3d\.js\?v=20260904-city-album-155"/);
+  assert.match(html, /src="city-map-3d\.js\?v=20260906-mode-lifecycle-1"/);
   assert.match(html, /src="city-mode\.js\?v=20260904-city-album-155"/);
   assert.match(html, /searchParams\.set\("city", "1"\)/);
   assert.match(html, /function cityPlayerIdForMember/);
@@ -407,7 +407,7 @@ test("MONSTER TOWER is connected to realtime client, worker, rules, and 100 isol
   assert.match(html, /id="towerModeButton"/);
   assert.match(html, /id="playTowerModeButton"/);
   assert.match(html, /src="tower-system\.js\?v=20260901-city-tower-balance-141"/);
-  assert.match(html, /src="tower-mode\.js\?v=20260901-city-tower-balance-141"/);
+  assert.match(html, /src="tower-mode\.js\?v=20260906-mode-lifecycle-1"/);
   assert.match(html, /function openTowerWindow\(\)/);
   assert.match(html, /searchParams\.set\("tower", "1"\)/);
   assert.match(html, /id="playTowerModeButton" aria-label="MONSTER TOWER" href="\?tower=1" target="_blank" rel="noopener">TOWER</);

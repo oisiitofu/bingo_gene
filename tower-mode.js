@@ -226,7 +226,7 @@
   function applySnapshot(snapshot) {
     if (!snapshot || !Tower()) return;
     state = Tower().normalizeState(snapshot, repository?.getGlobalStats?.()?.playerStats, Date.now());
-    render();
+    if (root?.classList.contains("is-open")) render();
   }
 
   function open(options = {}) {
@@ -240,6 +240,7 @@
     clearInterval(timer);
     animationTimers.forEach(clearTimeout);
     animationTimers = [];
+    render();
     timer = setInterval(updateCountdown, 1000);
     repository?.settleTower?.();
   }
@@ -249,6 +250,10 @@
     document.body.classList.remove("monster-tower-open");
     clearInterval(timer);
     timer = 0;
+    animationTimers.forEach(clearTimeout);
+    animationTimers = [];
+    root?.remove();
+    root = null;
     const callback = closeHandler;
     closeHandler = null;
     callback?.();

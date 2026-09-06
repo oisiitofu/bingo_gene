@@ -95,7 +95,7 @@
     frame = global.requestAnimationFrame(animate);
 
     function loadTexture(path, repeat = [1, 1]) {
-      const texture = new THREE.TextureLoader().load(path, () => renderer.render(scene, camera));
+      const texture = new THREE.TextureLoader().load(path, () => { if (!destroyed) renderer.render(scene, camera); });
       texture.wrapS = texture.wrapT = THREE.RepeatWrapping;
       texture.repeat.set(repeat[0], repeat[1]);
       texture.anisotropy = Math.min(12, renderer.capabilities.getMaxAnisotropy());
@@ -1586,6 +1586,7 @@
     }
 
     function destroy() {
+      if (destroyed) return;
       destroyed = true;
       global.cancelAnimationFrame(frame);
       global.removeEventListener("resize", resize);
@@ -1594,6 +1595,7 @@
       Object.values(materials).forEach((resource) => resource.dispose?.());
       Object.values(textures).forEach((resource) => resource.dispose?.());
       renderer.dispose();
+      renderer.forceContextLoss();
       renderer.domElement.remove();
     }
 

@@ -1024,6 +1024,7 @@
   }
 
   function createPlayerSprites() {
+    const ownerScene = scene;
     const loader = new THREE.TextureLoader();
     System.PLAYERS.forEach((player) => {
       const die = new THREE.Mesh(
@@ -1035,6 +1036,7 @@
       scene.add(die);
       diceMeshes.set(player.id, die);
       loader.load(AVATAR_URLS[player.id], (texture) => {
+        if (scene !== ownerScene) { texture.dispose(); return; }
         texture.colorSpace = THREE.SRGBColorSpace || "srgb";
         const material = new THREE.SpriteMaterial({ map: texture, transparent: true, depthTest: false, depthWrite: false });
         const sprite = new THREE.Sprite(material);
@@ -1320,8 +1322,10 @@
     }) : [];
     state = next;
     System.PLAYERS.forEach((definition) => lastRollIds.set(definition.id, String(next.players?.[definition.id]?.lastRoll?.id || "")));
-    renderUi();
-    changed.forEach((definition) => startRollAnimation(next.players[definition.id]));
+    if (root?.classList.contains("open")) {
+      renderUi();
+      changed.forEach((definition) => startRollAnimation(next.players[definition.id]));
+    }
   }
 
   function open(options = {}) {
@@ -1353,7 +1357,32 @@
     rollAnimations.clear();
     diceMeshes.forEach((mesh) => { mesh.visible = false; });
     root.querySelector("[data-life-roll-call]")?.classList.remove("show");
-    root._lifeOnClose?.();
+    resizeObserver?.disconnect();
+    resizeObserver = null;
+    const resources = new Set();
+    scene?.traverse(object => {
+      if (object.geometry) resources.add(object.geometry);
+      for (const material of [object.material].flat().filter(Boolean)) {
+        resources.add(material);
+        Object.values(material).forEach(value => { if (value?.isTexture) resources.add(value); });
+      }
+    });
+    resources.forEach(resource => resource.dispose());
+    scene?.clear();
+    renderer?.dispose();
+    renderer?.forceContextLoss();
+    renderer?.domElement.remove();
+    renderer = scene = camera = cameraLook = waterTexture = tileMesh = null;
+    freeCamera = null;
+    playerSprites.clear();
+    diceMeshes.clear();
+    displayedPositions.clear();
+    closeDrawer();
+    for (const selector of ["[data-life-drawer-body]", "[data-life-space]", "[data-life-roster]", "[data-life-status]", "[data-life-event]"]) root.querySelector(selector)?.replaceChildren();
+    const callback = root._lifeOnClose;
+    root._lifeOnClose = null;
+    openOptions = {};
+    callback?.();
   }
 
   global.TeamBingoLifeMode = { open, close, applySnapshot, isOpen: () => root?.classList.contains("open") === true };

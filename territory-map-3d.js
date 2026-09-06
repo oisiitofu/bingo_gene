@@ -45,6 +45,7 @@
 
   function create(container, options = {}) {
     let active = false;
+    let destroyed = false;
     let animationFrame = 0;
     let state = null;
     let selectedTileId = "0,0";
@@ -1099,6 +1100,7 @@
     }
 
     function resize() {
+      if (destroyed) return;
       const width = Math.max(1, container.clientWidth);
       const height = Math.max(1, container.clientHeight);
       renderer.setSize(width, height, false);
@@ -1109,6 +1111,7 @@
     }
 
     function renderOnce() {
+      if (destroyed) return;
       if (!container.clientWidth || !container.clientHeight) return;
       cameraPosition();
       renderer.render(scene, camera);
@@ -1151,6 +1154,7 @@
     }
 
     function setActive(nextActive) {
+      if (destroyed) return;
       const shouldRun = Boolean(nextActive);
       if (shouldRun === active) {
         if (active) resize();
@@ -1293,8 +1297,34 @@
       renderOnce();
     });
 
+    function destroy() {
+      if (destroyed) return;
+      setActive(false);
+      destroyed = true;
+      resizeObserver.disconnect();
+      const resources = new Set();
+      const collect = value => {
+        if (!value || typeof value !== "object" || resources.has(value)) return;
+        resources.add(value);
+        if (value.isTexture || value.isBufferGeometry) return;
+        if (Array.isArray(value) || value.isMaterial || Object.getPrototypeOf(value) === Object.prototype) Object.values(value).forEach(collect);
+      };
+      scene.traverse(object => { collect(object.geometry); collect(object.material); object.shadow?.dispose(); });
+      collect(shared);
+      resources.forEach(resource => { if (typeof resource.dispose === "function") resource.dispose(); });
+      scene.clear();
+      clickTargets.length = animatedObjects.length = 0;
+      tileMeshes.clear();
+      renderer.dispose();
+      renderer.forceContextLoss();
+      renderer.domElement.remove();
+      controls.remove();
+      tooltip.remove();
+    }
+
     resize();
     return Object.freeze({
+      destroy,
       update,
       resize,
       setActive,
