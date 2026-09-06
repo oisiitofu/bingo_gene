@@ -11,6 +11,21 @@
     tower: 0x8f72e8, interaction: 0xf17b4f,
     risk: 0xcf3e48, checkpoint: 0xffd84d
   };
+  const SPACE_EFFECTS = {
+    money: ["人生イベント", "ボーナス・出費・税金など、暮らしの出来事で所持金が増減します。内容と金額は止まったときに決まります。"],
+    job: ["仕事", "新しい職業からスカウトが届きます。現在の仕事やプレイヤーの方針に応じて、自動で転職するか判断します。"],
+    property: ["不動産", "物件の購入や、所有物件からの臨時収入が発生します。資金が足りない場合は内見費用がかかります。"],
+    stock: ["株式", "株価・所持金・投資方針に応じて株を自動で売買します。今回は売買せず見送ることもあります。"],
+    monster: ["モンスター育成", "手持ちモンスターへの経験値を30～120獲得します。連携報酬として処理されます。"],
+    equipment: ["装備", "装備ガチャを1回獲得します。連携報酬として処理されます。"],
+    city: ["都市支援", "BINGO CITYの都市資金を3,000～12,000円獲得します。すごろくの所持金とは別の報酬です。"],
+    territory: ["領土戦支援", "負傷したモンスターの待機時間を30～120分短縮し、守備隊を回復する連携報酬を獲得します。"],
+    tower: ["塔の休息", "TOWERの休養時間を30～120分短縮し、登頂部隊を回復する連携報酬を獲得します。"],
+    interaction: ["プレイヤー交流", "他のプレイヤーと40,000～180,000円のやり取りが発生します。受け取るか支払うかはランダムです。"],
+    risk: ["大勝負", "120,000～600,000円を賭けて勝負します。勝つと賭け金の1.4倍を獲得し、負けると賭け金を失います。"],
+    checkpoint: ["チェックポイント", "100マスごとの通過報酬です。所持金から借金を引いた金額に応じて、装備ガチャを1～8回獲得します。報酬獲得で所持金は消費しません。"]
+  };
+  const tileArt = (category) => `images/life/tiles/${category}.png`;
   const AVATAR_URLS = Object.freeze(Object.fromEntries(System.PLAYERS.map((player) => [player.id, `images/life/avatars/${player.id}.png?v=20260905-nonhuman-3`])));
   const ROLL_AVATAR_URLS = Object.freeze(Object.fromEntries(System.PLAYERS.map((player) => [player.id, `images/life/avatars/poses/${player.id}-roll.png?v=20260905-nonhuman-3`])));
   let root = null;
@@ -148,6 +163,7 @@
         <div class="life-roster" data-life-roster></div>
         <aside class="life-status" data-life-status></aside>
         <div class="life-event-log" data-life-event></div>
+        <aside class="life-space-detail" data-life-space hidden aria-label="マスの効果" aria-live="polite"></aside>
         <section class="life-drawer" data-life-drawer aria-hidden="true">
           <header><div><small data-life-drawer-kicker>LIFE ARCHIVE</small><h2 data-life-drawer-title>六王人生記録</h2></div><button type="button" class="life-simple-btn" data-life-drawer-close>CLOSE</button></header>
           <div data-life-drawer-body></div>
@@ -158,6 +174,7 @@
     root = document.getElementById("lifeMode");
     root.addEventListener("click", (event) => {
       if (event.target.closest("[data-life-close]")) close();
+      if (event.target.closest("[data-life-space-close]")) root.querySelector("[data-life-space]").hidden = true;
       const player = event.target.closest("[data-life-player]");
       if (player) { selectedPlayerId = player.dataset.lifePlayer; cameraSpace = null; cameraRegion = null; freeCamera = null; overview = false; renderUi(); updateCamera(true); }
       if (event.target.closest("[data-life-view]")) { freeCamera = null; overview = !overview; if (!overview) { cameraRegion = null; cameraSpace = null; } renderUi(); updateCamera(true); }
@@ -180,7 +197,7 @@
     });
     root.addEventListener("wheel", (event) => {
       if (drag) { event.preventDefault(); return; }
-      if (event.target.closest(".life-drawer, .life-status, .life-roster, .life-head")) return;
+      if (event.target.closest(".life-drawer, .life-status, .life-roster, .life-head, .life-space-detail")) return;
       event.preventDefault();
       freeCamera = null;
       const player = state?.players?.[selectedPlayerId];
@@ -207,13 +224,19 @@
     const geometry = new THREE.BoxGeometry(1.34, 0.28, 1.02);
     const material = new THREE.MeshStandardMaterial({ roughness: .72, metalness: .04 });
     tileMesh = new THREE.InstancedMesh(geometry, material, System.BOARD_SIZE);
-    const tileTexture = new THREE.TextureLoader().load("images/life/tile-porcelain-v1.png");
-    tileTexture.colorSpace = THREE.SRGBColorSpace || "srgb";
-    tileTexture.anisotropy = Math.min(8,renderer.capabilities.getMaxAnisotropy());
     const topGeometry = new THREE.PlaneGeometry(1.24, .94);
     topGeometry.rotateX(-Math.PI/2);
     topGeometry.rotateY(Math.PI);
-    const inlays = new THREE.InstancedMesh(topGeometry, new THREE.MeshStandardMaterial({ map: tileTexture, roughness: .58, metalness: .08 }), System.BOARD_SIZE);
+    const surfaces = {};
+    Object.keys(SPACE_EFFECTS).forEach((category) => {
+      const texture = new THREE.TextureLoader().load(tileArt(category));
+      texture.colorSpace = THREE.SRGBColorSpace || "srgb";
+      texture.anisotropy = Math.min(8,renderer.capabilities.getMaxAnisotropy());
+      const count = System.BOARD.filter(space=>space.category===category).length;
+      const mesh = new THREE.InstancedMesh(topGeometry,new THREE.MeshStandardMaterial({map:texture,roughness:.58,metalness:.08}),count);
+      surfaces[category] = {mesh,next:0};
+      scene.add(mesh);
+    });
     const matrix = new THREE.Matrix4();
     const color = new THREE.Color();
     const quaternion = new THREE.Quaternion();
@@ -235,12 +258,12 @@
       color.lerp(new THREE.Color(System.REGIONS[space.regionIndex].color), 0.22);
       tileMesh.setColorAt(index, color);
       matrix.compose(new THREE.Vector3(point.x, point.y + height + .013, point.z), quaternion, new THREE.Vector3(space.checkpoint ? 1.28 : 1, 1, space.checkpoint ? 1.18 : 1));
-      inlays.setMatrixAt(index, matrix);
+      const surface = surfaces[space.category];
+      surface.mesh.setMatrixAt(surface.next++, matrix);
     });
     tileMesh.instanceMatrix.needsUpdate = true;
     tileMesh.instanceColor.needsUpdate = true;
     scene.add(tileMesh);
-    scene.add(inlays);
 
     const groundTexture = new THREE.TextureLoader().load("images/territory/textures/terrain-ground-v2.png");
     groundTexture.wrapS = groundTexture.wrapT = THREE.RepeatWrapping;
@@ -552,6 +575,11 @@
     });
     const end = (event) => {
       if (!drag || drag.id !== event.pointerId) return;
+      if (!drag.moved && event.type === "pointerup") {
+        groundPoint(event);
+        const match = ray.intersectObject(tileMesh,false)[0];
+        if (match && Number.isInteger(match.instanceId)) showSpaceDetail(System.BOARD[match.instanceId]);
+      }
       drag = null;
       canvas.classList.remove("life-dragging");
       if (canvas.hasPointerCapture(event.pointerId)) canvas.releasePointerCapture(event.pointerId);
@@ -559,6 +587,14 @@
     canvas.addEventListener("pointerup",end);
     canvas.addEventListener("pointercancel",end);
     canvas.addEventListener("lostpointercapture",end);
+  }
+
+  function showSpaceDetail(space) {
+    if (!space) return;
+    const [name,description] = SPACE_EFFECTS[space.category];
+    const panel = root.querySelector("[data-life-space]");
+    panel.innerHTML = `<header><small>マス ${space.number} / ${escapeHtml(System.REGIONS[space.regionIndex].name)}</small><button type="button" class="life-simple-btn" data-life-space-close>CLOSE</button></header><div><img src="${tileArt(space.category)}" alt="${escapeHtml(name)}" /><section><small>${escapeHtml(name)}</small><h2>${escapeHtml(space.title)}</h2><p>${escapeHtml(description)}</p></section></div>`;
+    panel.hidden = false;
   }
 
   function createPlayerSprites() {
@@ -886,6 +922,7 @@
     frame = 0;
     if (drag && renderer?.domElement.hasPointerCapture(drag.id)) renderer.domElement.releasePointerCapture(drag.id);
     drag = null;
+    root.querySelector("[data-life-space]").hidden = true;
     renderer?.domElement.classList.remove("life-dragging");
     rollAnimations.clear();
     diceMeshes.forEach((mesh) => { mesh.visible = false; });

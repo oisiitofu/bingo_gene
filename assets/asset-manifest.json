@@ -1,11 +1,11 @@
 {
   "version": 1,
-  "generatedAt": "2026-09-05T23:56:44.525Z",
+  "generatedAt": "2026-09-06T00:05:51.554Z",
   "totals": {
-    "all": 996,
-    "images": 833,
+    "all": 1008,
+    "images": 845,
     "audio": 163,
-    "bytes": 678747704
+    "bytes": 713360179
   },
   "assets": [
     {
@@ -1651,6 +1651,78 @@
       "type": "image",
       "category": "images/life",
       "bytes": 2273590
+    },
+    {
+      "path": "images/life/tiles/checkpoint.png",
+      "type": "image",
+      "category": "images/life/tiles",
+      "bytes": 2904013
+    },
+    {
+      "path": "images/life/tiles/city.png",
+      "type": "image",
+      "category": "images/life/tiles",
+      "bytes": 2817513
+    },
+    {
+      "path": "images/life/tiles/equipment.png",
+      "type": "image",
+      "category": "images/life/tiles",
+      "bytes": 2886881
+    },
+    {
+      "path": "images/life/tiles/interaction.png",
+      "type": "image",
+      "category": "images/life/tiles",
+      "bytes": 2754980
+    },
+    {
+      "path": "images/life/tiles/job.png",
+      "type": "image",
+      "category": "images/life/tiles",
+      "bytes": 2964915
+    },
+    {
+      "path": "images/life/tiles/money.png",
+      "type": "image",
+      "category": "images/life/tiles",
+      "bytes": 3063155
+    },
+    {
+      "path": "images/life/tiles/monster.png",
+      "type": "image",
+      "category": "images/life/tiles",
+      "bytes": 2574460
+    },
+    {
+      "path": "images/life/tiles/property.png",
+      "type": "image",
+      "category": "images/life/tiles",
+      "bytes": 3220071
+    },
+    {
+      "path": "images/life/tiles/risk.png",
+      "type": "image",
+      "category": "images/life/tiles",
+      "bytes": 2949797
+    },
+    {
+      "path": "images/life/tiles/stock.png",
+      "type": "image",
+      "category": "images/life/tiles",
+      "bytes": 2648024
+    },
+    {
+      "path": "images/life/tiles/territory.png",
+      "type": "image",
+      "category": "images/life/tiles",
+      "bytes": 2917886
+    },
+    {
+      "path": "images/life/tiles/tower.png",
+      "type": "image",
+      "category": "images/life/tiles",
+      "bytes": 2910780
     },
     {
       "path": "images/monster-battle/arena.png",
