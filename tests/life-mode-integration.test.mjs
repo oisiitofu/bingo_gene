@@ -93,6 +93,19 @@ test("wheel zooms without moving the route or cancelling a dragged camera", () =
   assert.doesNotMatch(mode,/BoxGeometry\(2\.1,\.16,1\.8\)/);
 });
 
+test("regional terrain has ten distinct materials and no artificial white water stripes", () => {
+  const start=mode.indexOf("  function makeRegionFloors()");
+  const end=mode.indexOf("  function makeTileBodyGeometry()",start);
+  const terrain=mode.slice(start,end);
+  const paths=[...terrain.matchAll(/\["(images\/[^\"]+\.png)"/g)].map(match=>match[1]);
+  assert.equal(new Set(paths).size,10);
+  for(const path of paths)assert.ok(existsSync(new URL(`../${path}`,import.meta.url)),path);
+  assert.match(terrain,/depthWrite:false/);
+  assert.match(terrain,/terrainOpacity/);
+  assert.doesNotMatch(mode,/wave<12|BoxGeometry\(2\+wave/);
+  assert.doesNotMatch(mode,/CircleGeometry\(34,64\),dark/);
+});
+
 test("all six life avatars are independent transparent-ready files", () => {
   for (const player of ["tofu", "eda", "jan", "rima", "kento", "lickey"]) {
     const url = new URL(`../images/life/avatars/${player}.png`, import.meta.url);

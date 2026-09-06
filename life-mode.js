@@ -299,7 +299,58 @@
     );
     floor.rotation.x = -Math.PI / 2;
     scene.add(floor);
+    makeRegionFloors();
     makeRegionScenery();
+  }
+
+  function makeRegionFloors() {
+    const surfaces = [
+      ["images/life/scenery/paving.png",0xf0e3d2,7],
+      ["images/city/textures/ground-grass-soil.png",0xb9d8a0,8],
+      ["images/life/roads/business.png",0xd7ddd9,8],
+      ["images/city/textures/road-asphalt.png",0xb5c0c9,9],
+      ["images/life/terrain/sand.png",0xffecc7,7],
+      ["images/life/terrain/alpine.png",0xc6c9b9,7],
+      ["images/life/scenery/ceramic.png",0xc4e5e7,10],
+      ["images/life/roads/kingdom.png",0xe0ceb2,8],
+      ["images/life/terrain/lunar.png",0xcbd3e3,7],
+      ["images/life/terrain/plaza.png",0xf3eee1,7]
+    ];
+    TRACK_REGION_CENTERS.forEach((center,index) => {
+      const [path,color,repeat]=surfaces[index];
+      const texture=new THREE.TextureLoader().load(path);
+      texture.colorSpace=THREE.SRGBColorSpace||"srgb";
+      texture.wrapS=texture.wrapT=THREE.RepeatWrapping;
+      texture.repeat.set(repeat,repeat*1.4);
+      texture.anisotropy=Math.min(8,renderer.capabilities.getMaxAnisotropy());
+      const geometry=new THREE.PlaneGeometry(100,150,50,75);
+      const positions=geometry.attributes.position;
+      const alpha=[];
+      for(let vertex=0;vertex<positions.count;vertex++) {
+        const px=positions.getX(vertex),pz=-positions.getY(vertex);
+        const x=center.x+px,z=center.z+pz;
+        const border=Math.min(50-Math.abs(px),75-Math.abs(pz));
+        const blend=Math.max(0,Math.min(1,(border-2+Math.sin(x*.17)*Math.sin(z*.13)*2)/18));
+        alpha.push(blend*blend*(3-2*blend));
+        positions.setZ(vertex,-.43+Math.sin(x*.13)*Math.cos(z*.17)*.08);
+      }
+      geometry.setAttribute("terrainOpacity",new THREE.Float32BufferAttribute(alpha,1));
+      geometry.computeVertexNormals();
+      const material=new THREE.MeshStandardMaterial({map:texture,color,roughness:.94,transparent:true,depthWrite:false});
+      // Feather regional materials over the shared terrain without coplanar depth writes.
+      material.onBeforeCompile=shader=>{
+        shader.vertexShader="attribute float terrainOpacity; varying float vTerrainOpacity;\n"+shader.vertexShader;
+        shader.vertexShader=shader.vertexShader.replace("#include <begin_vertex>","#include <begin_vertex>\nvTerrainOpacity=terrainOpacity;");
+        shader.fragmentShader="varying float vTerrainOpacity;\n"+shader.fragmentShader;
+        shader.fragmentShader=shader.fragmentShader.replace("#include <color_fragment>","#include <color_fragment>\ndiffuseColor.a *= vTerrainOpacity;");
+      };
+      const mesh=new THREE.Mesh(geometry,material);
+      mesh.name=`life-floor-${System.REGIONS[index].theme}`;
+      mesh.rotation.x=-Math.PI/2;
+      mesh.position.set(center.x,0,center.z);
+      mesh.renderOrder=index;
+      scene.add(mesh);
+    });
   }
 
   function makeTileBodyGeometry() {
@@ -746,7 +797,6 @@
       if (index === 1 || index === 4) {
         const lake = sceneryMesh(group,new THREE.CircleGeometry(index === 1 ? 16 : 33,64),water,{x:center.x,y:-.28,z:center.z},{x:-Math.PI/2},{x:index===1?1:1.1,y:index===1?.85:1.3,z:1});
         lake.name = "life-water";
-        for (let wave=0;wave<12;wave++) sceneryMesh(group,new THREE.BoxGeometry(2+wave%4,.015,.07),white,{x:center.x+Math.sin(wave*4)*12,y:-.25,z:center.z+Math.cos(wave*3)*10});
       }
       if ([3,4,5,6,8].includes(index)) {
         for (let step=1;step<100;step+=3) {
@@ -786,14 +836,6 @@
           for(let merlon=0;merlon<16;merlon++) sceneryMesh(group,new THREE.BoxGeometry(1.1,.6,1),stone,{x:center.x-21+merlon*2.8,y:2.3,z:center.z+side*21});
         }
       }
-      if (index === 8) {
-        sceneryMesh(group,new THREE.CircleGeometry(34,64),dark,{x:center.x,y:-.29,z:center.z},{x:-Math.PI/2});
-        for (let star=0;star<55;star++) {
-          const angle=star*2.399, radius=5+Math.sqrt(star/55)*28;
-          sceneryMesh(group,new THREE.OctahedronGeometry(.09+(star%3)*.05),white,{x:center.x+Math.cos(angle)*radius,y:-.2,z:center.z+Math.sin(angle)*radius});
-        }
-      }
-
       for (let propIndex = 0; propIndex < 36; propIndex += 1) {
         const urban=[2,3,6].includes(index);
         const propX = center.x - 32 + (propIndex%6)*12 + (urban?0:Math.sin(propIndex*7.3)*3);

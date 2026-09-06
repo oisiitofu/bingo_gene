@@ -1,11 +1,11 @@
 {
   "version": 1,
-  "generatedAt": "2026-09-06T10:58:03.822Z",
+  "generatedAt": "2026-09-06T11:11:44.052Z",
   "totals": {
-    "all": 1030,
-    "images": 867,
+    "all": 1034,
+    "images": 871,
     "audio": 163,
-    "bytes": 777228779
+    "bytes": 791286112
   },
   "assets": [
     {
@@ -1771,6 +1771,30 @@
       "type": "image",
       "category": "images/life/scenery",
       "bytes": 2629639
+    },
+    {
+      "path": "images/life/terrain/alpine.png",
+      "type": "image",
+      "category": "images/life/terrain",
+      "bytes": 3726104
+    },
+    {
+      "path": "images/life/terrain/lunar.png",
+      "type": "image",
+      "category": "images/life/terrain",
+      "bytes": 3657993
+    },
+    {
+      "path": "images/life/terrain/plaza.png",
+      "type": "image",
+      "category": "images/life/terrain",
+      "bytes": 2912237
+    },
+    {
+      "path": "images/life/terrain/sand.png",
+      "type": "image",
+      "category": "images/life/terrain",
+      "bytes": 3760999
     },
     {
       "path": "images/life/tile-porcelain-v1.png",
