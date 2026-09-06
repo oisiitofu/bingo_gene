@@ -1,11 +1,11 @@
 {
   "version": 1,
-  "generatedAt": "2026-09-06T05:39:54.775Z",
+  "generatedAt": "2026-09-06T06:24:29.734Z",
   "totals": {
-    "all": 1025,
-    "images": 862,
+    "all": 1028,
+    "images": 865,
     "audio": 163,
-    "bytes": 763100772
+    "bytes": 770906119
   },
   "assets": [
     {
@@ -1713,6 +1713,18 @@
       "bytes": 3618926
     },
     {
+      "path": "images/life/scenery/brick.png",
+      "type": "image",
+      "category": "images/life/scenery",
+      "bytes": 3289533
+    },
+    {
+      "path": "images/life/scenery/ceramic.png",
+      "type": "image",
+      "category": "images/life/scenery",
+      "bytes": 1886175
+    },
+    {
       "path": "images/life/scenery/foliage.png",
       "type": "image",
       "category": "images/life/scenery",
@@ -1741,6 +1753,12 @@
       "type": "image",
       "category": "images/life/scenery",
       "bytes": 3034661
+    },
+    {
+      "path": "images/life/scenery/timber.png",
+      "type": "image",
+      "category": "images/life/scenery",
+      "bytes": 2629639
     },
     {
       "path": "images/life/tile-porcelain-v1.png",

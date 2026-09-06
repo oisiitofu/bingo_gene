@@ -503,6 +503,120 @@
       sceneryMesh(group, new THREE.CylinderGeometry(.06 * scale, .09 * scale, 1.3 * scale, 7), dark, { x, y: .4 * scale, z });
     }
 
+    const brick = materialFrom("brick", 0xf2d5c6);
+    const timber = materialFrom("timber", 0xe2d2b9);
+    const ceramic = materialFrom("ceramic", 0xd9eef0, .42, .25);
+    const redPaint = new THREE.MeshStandardMaterial({color:0xbc3943,roughness:.65});
+    const rockMap = new THREE.TextureLoader().load("images/city/textures/terrain-mountain-rock.png");
+    rockMap.colorSpace = THREE.SRGBColorSpace || "srgb";
+    const mountainRock = new THREE.MeshStandardMaterial({map:rockMap,color:0xa8aaa9,roughness:1});
+
+    function addRegionalProp(group, theme, x, z, variant, accent) {
+      const prop = new THREE.Group();
+      prop.position.set(x, 0, z);
+      group.add(prop);
+      const box = (w,h,d,mat,px,py,pz) => sceneryMesh(prop,new THREE.BoxGeometry(w,h,d),mat,{x:px,y:py,z:pz});
+      const cylinder = (rt,rb,h,mat,px,py,pz) => sceneryMesh(prop,new THREE.CylinderGeometry(rt,rb,h,24),mat,{x:px,y:py,z:pz});
+      const cone = (r,h,mat,py) => sceneryMesh(prop,new THREE.ConeGeometry(r,h,32),mat,{x:0,y:py,z:0});
+      if (theme === "town") {
+        addHouse(prop,0,0,1.35,accent);
+        box(2.8,.16,1.1,redPaint,0,1.6,1.4);
+        for(let i=0;i<5;i++)box(.24,.17,1.12,white,-1.05+i*.52,1.61,1.4);
+        for(const side of [-1,1]) {
+          box(.1,1.5,.1,white,side*1.3,.75,1.9);
+          box(.7,.5,.6,timber,side*1.05,.25,2.15);
+          for(let fruit=0;fruit<4;fruit++)sceneryMesh(prop,new THREE.SphereGeometry(.13,8,6),side===1?gold:green,{x:side*1.05+(fruit%2)*.22-.1,y:.56,z:2.05+Math.floor(fruit/2)*.2});
+        }
+      } else if (theme === "campus") {
+        box(5.5,3.7,2.8,brick,0,1.85,0);
+        box(5.8,.2,3.1,stone,0,3.75,0);
+        for(const floor of [1,2.6])for(const wx of [-2,-1,1,2])addWindow(prop,wx,floor,1.45);
+        box(.85,1.7,.12,dark,0,.85,1.44);
+        box(1.8,1.8,1.8,brick,0,4.4,0);
+        cone(1.55,1.4,slate,6);
+        sceneryMesh(prop,new THREE.CylinderGeometry(.6,.6,.08,32),white,{x:0,y:4.8,z:.94},{x:Math.PI/2});
+        box(.05,.42,.1,dark,0,4.93,1);
+        box(.31,.05,.1,dark,.14,4.8,1);
+      } else if (theme === "business") {
+        box(4.9,2.6,3,stone,0,1.3,0);
+        box(5.5,.3,3.5,white,0,2.8,0);
+        for(const px of [-1.9,-.65,.65,1.9])cylinder(.16,.21,2.5,white,px,1.25,1.85);
+        const pediment=new THREE.Shape();pediment.moveTo(-2.8,0);pediment.lineTo(0,1.2);pediment.lineTo(2.8,0);pediment.closePath();
+        sceneryMesh(prop,new THREE.ExtrudeGeometry(pediment,{depth:.3,bevelEnabled:false}),stone,{x:0,y:2.95,z:1.65});
+        box(1.3,1.9,.12,windowGlass,0,.95,1.54);
+        for(const px of [-1.7,1.7])addWindow(prop,px,1.5,1.55);
+      } else if (theme === "metro") {
+        addOffice(prop,0,0,8+variant%3*2,3.8);
+        box(2.7,1.7,.22,dark,0,4.4,2);
+        for(let i=0;i<4;i++)box(.3,.9+i*.13,.04,i%2?gold:accent,-.8+i*.55,4.4,2.14);
+        box(4.1,.2,1.3,ceramic,0,1.8,2.2);
+      } else if (theme === "coast") {
+        cylinder(1.2,1.5,.35,stone,0,.17,0);
+        cylinder(.7,1.05,5.5,white,0,2.9,0);
+        for(const y of [1.5,3.5])cylinder(.97-y*.04,1.01-y*.04,.55,redPaint,0,y,0);
+        cylinder(1.22,1.22,.18,stone,0,5.8,0);
+        cylinder(.73,.73,1.1,windowGlass,0,6.4,0);
+        for(let i=0;i<8;i++){const a=i*Math.PI/4;box(.07,1.2,.07,white,Math.sin(a)*.73,6.4,Math.cos(a)*.73);}
+        cone(1.13,.85,redPaint,7.35);
+        sceneryMesh(prop,new THREE.TorusGeometry(1.14,.04,6,32),white,{x:0,y:6.2,z:0},{x:Math.PI/2});
+      } else if (theme === "mountain") {
+        if(variant%3) {
+          cylinder(.18,.4,4.6,trunk,0,2.3,0);
+          for(let tier=0;tier<4;tier++)cone(1.9-tier*.36,2.4,green,2+tier*.9);
+        } else {
+          box(3.3,2.4,2.7,timber,0,1.2,0);
+          const roof=new THREE.Shape();roof.moveTo(-2,0);roof.lineTo(0,1.8);roof.lineTo(2,0);roof.closePath();
+          sceneryMesh(prop,new THREE.ExtrudeGeometry(roof,{depth:3.3,bevelEnabled:false}),slate,{x:0,y:2.4,z:-1.65});
+          for(const px of [-.95,.95])addWindow(prop,px,1.5,1.4);
+          box(.75,1.5,.12,timber,0,.75,1.4);
+          box(3.8,.15,1,stone,0,.25,1.7);
+        }
+      } else if (theme === "technology") {
+        cylinder(2.4,2.6,2.7,ceramic,0,1.35,0);
+        cylinder(2.43,2.43,.55,windowGlass,0,1.9,0);
+        sceneryMesh(prop,new THREE.SphereGeometry(2.4,32,16,0,Math.PI*2,0,Math.PI/2),ceramic,{x:0,y:2.7,z:0});
+        for(const side of [-1,1]) {
+          box(2.4,.12,1.6,facade,side*3.7,1.4,0);
+          cylinder(.08,.13,1.4,stone,side*3.7,.7,0);
+          for(let line=0;line<5;line++)box(.025,.025,1.6,white,side*3.7-1+line*.5,1.48,0);
+        }
+        cylinder(.08,.12,2,white,0,5,0);
+      } else if (theme === "kingdom") {
+        box(3,2.8,2.6,stone,0,1.4,0);
+        box(3.3,.3,2.9,stone,0,2.9,0);
+        for(const px of [-1.3,0,1.3])for(const pz of [-1.2,1.2])box(.55,.7,.5,stone,px,3.3,pz);
+        box(.8,1.8,.1,timber,0,.9,1.35);
+        cylinder(.05,.05,3,white,0,4.5,0);
+        box(1.3,.85,.07,accent,.65,5.45,0);
+      } else if (theme === "space") {
+        if(variant%2) {
+          cylinder(2,2.2,.4,ceramic,0,.2,0);
+          sceneryMesh(prop,new THREE.SphereGeometry(2,32,16,0,Math.PI*2,0,Math.PI/2),facade,{x:0,y:.4,z:0});
+          box(1.3,1.1,2.3,ceramic,0,.55,2);
+          cylinder(.08,.13,3,white,2.8,1.5,0);
+          sceneryMesh(prop,new THREE.SphereGeometry(1.2,24,12,0,Math.PI*2,0,.9),ceramic,{x:2.8,y:3,z:0},{z:.7});
+          return;
+        }
+        cylinder(2,2,.3,stone,0,.15,0);
+        cylinder(.7,.8,4.8,ceramic,0,2.65,0);
+        cone(.7,1.65,white,5.85);
+        cylinder(.8,.8,.4,accent,0,3.8,0);
+        for(const side of [-1,1]) {
+          cylinder(.35,.45,2.6,ceramic,side*.98,1.6,0);
+          sceneryMesh(prop,new THREE.ConeGeometry(.36,.75,24),white,{x:side*.98,y:3.25,z:0});
+          cylinder(.18,.3,.4,dark,side*.98,.35,0);
+        }
+      } else {
+        cylinder(2.6,2.8,.35,stone,0,.17,0);
+        cylinder(2.2,2.3,.6,white,0,.5,0);
+        cylinder(1.9,1.9,.08,windowGlass,0,.84,0);
+        cylinder(.22,.5,2.5,stone,0,1.8,0);
+        cylinder(1.05,1.15,.3,white,0,2.7,0);
+        sceneryMesh(prop,new THREE.SphereGeometry(.45,20,12),gold,{x:0,y:3.2,z:0});
+        for(let i=0;i<6;i++){const a=i*Math.PI/3;box(.14,1.5,.14,gold,Math.sin(a)*3,.75,Math.cos(a)*3);box(.8,.5,.1,accent,Math.sin(a)*3,1.6,Math.cos(a)*3);}
+      }
+    }
+
     System.REGIONS.forEach((region, index) => {
       const group = new THREE.Group();
       group.name = `life-region-${region.id}`;
@@ -547,8 +661,16 @@
         for(let peak=0;peak<7;peak++) {
           const px=center.x-25+peak*8, pz=center.z+40+(peak%2)*8;
           const height=9+(peak%3)*4;
-          sceneryMesh(group,new THREE.ConeGeometry(8,height,9),stone,{x:px,y:height/2-.5,z:pz});
-          sceneryMesh(group,new THREE.ConeGeometry(2.5,height*.32,9),white,{x:px,y:height*.84-.5,z:pz});
+          const mountain = new THREE.ConeGeometry(8,height,32,8);
+          const positions = mountain.attributes.position;
+          for(let vertex=0;vertex<positions.count;vertex++) {
+            const vx=positions.getX(vertex),vy=positions.getY(vertex),vz=positions.getZ(vertex);
+            const ridge=1+.16*Math.sin(Math.atan2(vz,vx)*7+peak)+.06*Math.sin(vy*2);
+            positions.setXYZ(vertex,vx*ridge,vy,vz*ridge);
+          }
+          mountain.computeVertexNormals();
+          sceneryMesh(group,mountain,mountainRock,{x:px,y:height/2-.5,z:pz});
+          sceneryMesh(group,new THREE.ConeGeometry(2.5,height*.32,24),white,{x:px,y:height*.84-.5,z:pz});
         }
       }
       if (index === 7) {
@@ -570,10 +692,12 @@
         const propX = center.x - 32 + (propIndex%6)*12 + (urban?0:Math.sin(propIndex*7.3)*3);
         const propZ = center.z - 34 + Math.floor(propIndex/6)*13 + (urban?0:Math.cos(propIndex*4.7)*3);
         if (TRACK_POINTS.some((tile) => Math.hypot(tile.x-propX,tile.z-propZ)<4)) continue;
-        if ([4,8].includes(index)) continue;
+        if (index===4 && Math.hypot(propX-center.x,propZ-center.z)<37) continue;
         if (index===1 && Math.hypot(propX-center.x,propZ-center.z)<20) continue;
         const scale = 1.1 + (propIndex%3)*.25;
-        if ([2,3,6].includes(index)) {
+        if (index===5 || index===6 || index===8 || propIndex%3===0) {
+          addRegionalProp(group,region.theme,propX,propZ,propIndex,accent);
+        } else if ([2,3].includes(index)) {
           const height=2.5+(propIndex*7%9);
           addOffice(group,propX,propZ,height);
         } else if (propIndex%3===0 && index!==5) addHouse(group,propX,propZ,scale,accent);
@@ -591,8 +715,8 @@
         if (TRACK_POINTS.some((tile) => Math.hypot(tile.x - propX, tile.z - propZ) < 2.8)) continue;
         const kind = (Math.floor(step / 8) + index) % 4;
         if ([4,8].includes(index)) continue;
-        if (kind === 0 && index!==5) addHouse(group, propX, propZ, .9, accent);
-        else if (kind === 1 || index===5) addTree(group, propX, propZ, 1.1);
+        if (kind === 0 || index===5) addRegionalProp(group,region.theme,propX,propZ,step,accent);
+        else if (kind === 1) addTree(group, propX, propZ, 1.1);
         else if (kind === 2) addCar(group, propX, propZ, .85, accent, -angle);
         else addLamp(group, propX, propZ, 1, gold);
       }
@@ -619,7 +743,7 @@
           }
         });
       } else if (region.theme === "mountain") {
-        [-1.9, 0, 1.85].forEach((offset, itemIndex) => sceneryMesh(group, new THREE.ConeGeometry(1.5 + itemIndex * .2, 4.4 + itemIndex * .8, 8), itemIndex === 1 ? accent : stone, { x: x + offset, y: 2.5 + itemIndex * .4, z: z + Math.abs(offset) * .18 }));
+        [-1.9, 0, 1.85].forEach((offset, itemIndex) => sceneryMesh(group, new THREE.ConeGeometry(1.5 + itemIndex * .2, 4.4 + itemIndex * .8, 24), mountainRock, { x: x + offset, y: 2.5 + itemIndex * .4, z: z + Math.abs(offset) * .18 }));
       } else if (region.theme === "technology") {
         sceneryMesh(group, new THREE.CylinderGeometry(.7, 1.45, 5.8, 12), dark, { x, y: 3.15, z });
         [1.3, 2.35, 3.45].forEach((height, ringIndex) => sceneryMesh(group, new THREE.TorusGeometry(1.5 + ringIndex * .3, .12, 8, 30), ringIndex === 1 ? gold : accent, { x, y: height, z }, { x: Math.PI / 2, y: ringIndex * .55 }));
