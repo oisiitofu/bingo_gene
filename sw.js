@@ -1,6 +1,6 @@
 "use strict";
 
-const CACHE_VERSION = "team-bingo-v1-20260906-life-world-168";
+const CACHE_VERSION = "team-bingo-v1-20260906-life-world-169";
 const SHELL_CACHE = `${CACHE_VERSION}-shell`;
 const ASSET_CACHE = `${CACHE_VERSION}-assets`;
 const SHELL_FILES = [
@@ -20,7 +20,7 @@ const SHELL_FILES = [
   "./city-mode.css?v=20260904-city-album-155",
   "./tower-system.js?v=20260901-city-tower-balance-141",
   "./life-board-system.js?v=20260905-life-board-5",
-  "./life-mode.js?v=20260906-life-world-10",
+  "./life-mode.js?v=20260906-life-world-11",
   "./life-mode.css?v=20260906-life-board-10",
   "./images/life/avatars/poses/tofu-roll.png?v=20260905-nonhuman-3",
   "./images/life/avatars/poses/eda-roll.png?v=20260905-nonhuman-3",

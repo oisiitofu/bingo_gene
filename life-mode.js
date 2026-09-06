@@ -221,8 +221,11 @@
     );
     scene.add(road);
 
-    const geometry = new THREE.BoxGeometry(1.34, 0.28, 1.02);
-    const material = new THREE.MeshStandardMaterial({ roughness: .72, metalness: .04 });
+    const geometry = makeTileBodyGeometry();
+    const edgeTexture = new THREE.TextureLoader().load("images/life/tile-silver-edge-v1.png");
+    edgeTexture.colorSpace = THREE.SRGBColorSpace || "srgb";
+    edgeTexture.anisotropy = Math.min(8,renderer.capabilities.getMaxAnisotropy());
+    const material = new THREE.MeshStandardMaterial({ map: edgeTexture, color: 0xd0d2d4, roughness: .46, metalness: .48 });
     tileMesh = new THREE.InstancedMesh(geometry, material, System.BOARD_SIZE);
     const topGeometry = new THREE.PlaneGeometry(1.24, .94);
     topGeometry.rotateX(-Math.PI/2);
@@ -238,7 +241,6 @@
       scene.add(mesh);
     });
     const matrix = new THREE.Matrix4();
-    const color = new THREE.Color();
     const quaternion = new THREE.Quaternion();
     const up = new THREE.Vector3(0, 1, 0);
     System.BOARD.forEach((space, index) => {
@@ -247,22 +249,18 @@
       const after = tilePosition(Math.min(System.BOARD_SIZE, space.number + 1));
       const yaw = Math.atan2(after.x - before.x, after.z - before.z);
       quaternion.setFromAxisAngle(up, yaw);
-      const height = space.checkpoint ? 0.72 : 0.28;
+      const height = space.checkpoint ? 0.38 : 0.24;
       matrix.compose(
-        new THREE.Vector3(point.x, point.y + height / 2, point.z),
+        new THREE.Vector3(point.x, point.y, point.z),
         quaternion,
-        new THREE.Vector3(space.checkpoint ? 1.28 : 1, height / 0.28, space.checkpoint ? 1.18 : 1)
+        new THREE.Vector3(space.checkpoint ? 1.28 : 1, height / 0.24, space.checkpoint ? 1.18 : 1)
       );
       tileMesh.setMatrixAt(index, matrix);
-      color.setHex(CATEGORY_COLORS[space.category] || 0x777777);
-      color.lerp(new THREE.Color(System.REGIONS[space.regionIndex].color), 0.22);
-      tileMesh.setColorAt(index, color);
-      matrix.compose(new THREE.Vector3(point.x, point.y + height + .013, point.z), quaternion, new THREE.Vector3(space.checkpoint ? 1.28 : 1, 1, space.checkpoint ? 1.18 : 1));
+      matrix.compose(new THREE.Vector3(point.x, point.y + height + .002, point.z), quaternion, new THREE.Vector3(space.checkpoint ? 1.28 : 1, 1, space.checkpoint ? 1.18 : 1));
       const surface = surfaces[space.category];
       surface.mesh.setMatrixAt(surface.next++, matrix);
     });
     tileMesh.instanceMatrix.needsUpdate = true;
-    tileMesh.instanceColor.needsUpdate = true;
     scene.add(tileMesh);
 
     const groundTexture = new THREE.TextureLoader().load("images/territory/textures/terrain-ground-v2.png");
@@ -301,6 +299,28 @@
     floor.rotation.x = -Math.PI / 2;
     scene.add(floor);
     makeRegionScenery();
+  }
+
+  function makeTileBodyGeometry() {
+    // Matching top footprint and bevel rings keep the printed silver rim flush.
+    const rings = [[1.24,.94,0],[1.34,1.04,.035],[1.34,1.04,.205],[1.24,.94,.24]];
+    const corners = rings.map(([w,d,y])=>[[-w/2,y,-d/2],[-w/2,y,d/2],[w/2,y,d/2],[w/2,y,-d/2]]);
+    const positions=[],uvs=[];
+    const quad=(vertices,uv)=>{
+      for(const index of [0,1,2,0,2,3]) {positions.push(...vertices[index]);uvs.push(...uv[index]);}
+    };
+    for(let band=0;band<3;band++) for(let side=0;side<4;side++) {
+      const next=(side+1)%4;
+      quad([corners[band][side],corners[band][next],corners[band+1][next],corners[band+1][side]],
+        [[0,rings[band][2]/.24],[1,rings[band][2]/.24],[1,rings[band+1][2]/.24],[0,rings[band+1][2]/.24]]);
+    }
+    quad(corners[3],[[0,0],[0,1],[1,1],[1,0]]);
+    quad([...corners[0]].reverse(),[[0,0],[0,1],[1,1],[1,0]]);
+    const geometry=new THREE.BufferGeometry();
+    geometry.setAttribute("position",new THREE.Float32BufferAttribute(positions,3));
+    geometry.setAttribute("uv",new THREE.Float32BufferAttribute(uvs,2));
+    geometry.computeVertexNormals();
+    return geometry;
   }
 
   function sceneryMesh(group, geometry, material, position, rotation = null, scale = null) {

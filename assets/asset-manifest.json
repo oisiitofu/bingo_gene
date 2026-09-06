@@ -1,11 +1,11 @@
 {
   "version": 1,
-  "generatedAt": "2026-09-06T00:05:51.554Z",
+  "generatedAt": "2026-09-06T00:12:26.292Z",
   "totals": {
-    "all": 1008,
-    "images": 845,
+    "all": 1009,
+    "images": 846,
     "audio": 163,
-    "bytes": 713360179
+    "bytes": 715399350
   },
   "assets": [
     {
@@ -1651,6 +1651,12 @@
       "type": "image",
       "category": "images/life",
       "bytes": 2273590
+    },
+    {
+      "path": "images/life/tile-silver-edge-v1.png",
+      "type": "image",
+      "category": "images/life",
+      "bytes": 2039171
     },
     {
       "path": "images/life/tiles/checkpoint.png",
