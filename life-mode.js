@@ -214,12 +214,17 @@
   }
 
   function makeTrack() {
-    const roadCurve = new THREE.CatmullRomCurve3(TRACK_POINTS.map((point) => new THREE.Vector3(point.x, point.y - .78, point.z)));
-    const road = new THREE.Mesh(
-      new THREE.TubeGeometry(roadCurve, System.BOARD_SIZE, .82, 4, false),
-      new THREE.MeshStandardMaterial({ color: 0x222933, roughness: .8, metalness: .12 })
-    );
-    scene.add(road);
+    System.REGIONS.forEach((region,index)=>{
+      const points=TRACK_POINTS.slice(index*100,index*100+100);
+      const midpoint=(a,b)=>({x:(a.x+b.x)/2,y:(a.y+b.y)/2,z:(a.z+b.z)/2});
+      if(index>0)points.unshift(midpoint(TRACK_POINTS[index*100-1],points[0]));
+      if(index<9)points.push(midpoint(points[points.length-1],TRACK_POINTS[index*100+100]));
+      const texture=new THREE.TextureLoader().load(`images/life/roads/${region.theme}.png`);
+      texture.colorSpace=THREE.SRGBColorSpace||"srgb";
+      texture.wrapS=texture.wrapT=THREE.RepeatWrapping;
+      texture.anisotropy=Math.min(8,renderer.capabilities.getMaxAnisotropy());
+      scene.add(new THREE.Mesh(makeRoadGeometry(points),new THREE.MeshStandardMaterial({map:texture,roughness:.86,metalness:.03,side:THREE.DoubleSide})));
+    });
 
     const geometry = makeTileBodyGeometry();
     const edgeTexture = new THREE.TextureLoader().load("images/life/tile-silver-edge-v1.png");
@@ -256,11 +261,13 @@
         new THREE.Vector3(space.checkpoint ? 1.28 : 1, height / 0.24, space.checkpoint ? 1.18 : 1)
       );
       tileMesh.setMatrixAt(index, matrix);
+      tileMesh.setColorAt(index,new THREE.Color(CATEGORY_COLORS[space.category]).lerp(new THREE.Color(0xffffff),.22));
       matrix.compose(new THREE.Vector3(point.x, point.y + height + .002, point.z), quaternion, new THREE.Vector3(space.checkpoint ? 1.28 : 1, 1, space.checkpoint ? 1.18 : 1));
       const surface = surfaces[space.category];
       surface.mesh.setMatrixAt(surface.next++, matrix);
     });
     tileMesh.instanceMatrix.needsUpdate = true;
+    tileMesh.instanceColor.needsUpdate = true;
     scene.add(tileMesh);
 
     const groundTexture = new THREE.TextureLoader().load("images/territory/textures/terrain-ground-v2.png");
@@ -319,6 +326,31 @@
     const geometry=new THREE.BufferGeometry();
     geometry.setAttribute("position",new THREE.Float32BufferAttribute(positions,3));
     geometry.setAttribute("uv",new THREE.Float32BufferAttribute(uvs,2));
+    geometry.computeVertexNormals();
+    return geometry;
+  }
+
+  function makeRoadGeometry(points) {
+    const vertices=[],uvs=[],indices=[];
+    let distance=0;
+    points.forEach((point,index)=>{
+      const before=points[Math.max(0,index-1)],after=points[Math.min(points.length-1,index+1)];
+      const length=Math.hypot(after.x-before.x,after.z-before.z)||1;
+      const nx=-(after.z-before.z)/length,nz=(after.x-before.x)/length;
+      if(index) distance+=Math.hypot(point.x-before.x,point.y-before.y,point.z-before.z);
+      for(const [side,height,u] of [[-1,-.38,0],[-1,-.10,.1],[1,-.10,.9],[1,-.38,1]]) {
+        vertices.push(point.x+nx*side*1.04,point.y+height,point.z+nz*side*1.04);
+        uvs.push(u,distance/3);
+      }
+      if(index) for(let strip=0;strip<3;strip++) {
+        const a=(index-1)*4+strip,b=index*4+strip;
+        indices.push(a,b,b+1,a,b+1,a+1);
+      }
+    });
+    const geometry=new THREE.BufferGeometry();
+    geometry.setAttribute("position",new THREE.Float32BufferAttribute(vertices,3));
+    geometry.setAttribute("uv",new THREE.Float32BufferAttribute(uvs,2));
+    geometry.setIndex(indices);
     geometry.computeVertexNormals();
     return geometry;
   }
@@ -612,8 +644,20 @@
   function showSpaceDetail(space) {
     if (!space) return;
     const [name,description] = SPACE_EFFECTS[space.category];
+    const multiplier=System.regionMultiplier(space);
+    const range=(min,max,unit=1)=>`${(Math.round(min*multiplier)*unit).toLocaleString("ja-JP")}～${(Math.round(max*multiplier)*unit).toLocaleString("ja-JP")}`;
+    const details={
+      monster:`手持ちモンスターへの経験値を${range(30,120)}獲得します。`,
+      equipment:`装備ガチャを${Math.ceil(multiplier)}回獲得します。`,
+      city:`BINGO CITYの都市資金を${range(30,120,100)}円獲得します。すごろくの所持金とは別の報酬です。`,
+      territory:`負傷待機を${range(30,120)}分短縮し、守備隊を回復する連携報酬を獲得します。`,
+      tower:`休養時間を${range(30,120)}分短縮し、登頂部隊を回復する連携報酬を獲得します。`,
+      interaction:`他のプレイヤーと${range(40000,180000)}円をやり取りします。受け取るか支払うかはランダムです。`,
+      risk:`${range(120000,600000)}円を賭けます。勝つと賭け金の1.4倍を獲得し、負けると賭け金を失います。`,
+      checkpoint:`100マスごとの通過報酬です。所持金から借金を引いた金額に応じて装備ガチャを${Math.ceil(multiplier)}～${Math.ceil(8*multiplier)}回獲得します。所持金は消費しません。`
+    };
     const panel = root.querySelector("[data-life-space]");
-    panel.innerHTML = `<header><small>マス ${space.number} / ${escapeHtml(System.REGIONS[space.regionIndex].name)}</small><button type="button" class="life-simple-btn" data-life-space-close>CLOSE</button></header><div><img src="${tileArt(space.category)}" alt="${escapeHtml(name)}" /><section><small>${escapeHtml(name)}</small><h2>${escapeHtml(space.title)}</h2><p>${escapeHtml(description)}</p></section></div>`;
+    panel.innerHTML = `<header><small>マス ${space.number} / ${escapeHtml(System.REGIONS[space.regionIndex].name)}</small><button type="button" class="life-simple-btn" data-life-space-close>CLOSE</button></header><div><img src="${tileArt(space.category)}" alt="${escapeHtml(name)}" /><section><small>${escapeHtml(name)} / エリア倍率 ×${multiplier}</small><h2>${escapeHtml(space.title)}</h2><p>${escapeHtml(details[space.category]||description)}</p></section></div>`;
     panel.hidden = false;
   }
 

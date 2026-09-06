@@ -4,6 +4,47 @@ import assert from "node:assert/strict";
 await import("../life-board-system.js");
 const Life = globalThis.TeamBingoLifeBoardSystem;
 
+test("area multiplier grows from 1 to 3.25 and boosts signed money events without changing accounting",()=>{
+  assert.deepEqual(Array.from({length:10},(_,regionIndex)=>Life.regionMultiplier({regionIndex})),[1,1.25,1.5,1.75,2,2.25,2.5,2.75,3,3.25]);
+  const space=Life.BOARD.find(s=>s.regionIndex===9&&s.category==='money'&&s.number%25>6);
+  const signs=new Set();
+  for(let i=0;i<30;i++) {
+    const id=`area-money-${i}`, seed=`${id}:${space.number}`;
+    const initial=Life.createInitialState(1000), player=initial.players.tofu;
+    player.totalSpaces=space.number-Life.seededInt(`${id}:tofu:die`,1,6); player.position=player.totalSpaces;
+    player.cash=1e9;
+    const definition=Life.MONEY_EVENTS[Life.seededInt(`${seed}:event`,0,Life.MONEY_EVENTS.length-1)];
+    const expected=Math.round(Life.seededInt(`${seed}:amount`,definition.min,definition.max)*3.25);
+    const result=Life.applyOpenRoll(initial,{id,playerName:'おいしいとうふ'},1001);
+    assert.equal(result.events.at(-1).amount,expected);
+    assert.equal(result.state.players.tofu.cash,1e9+expected);
+    signs.add(Math.sign(expected));
+    assert.equal(Life.applyOpenRoll(result.state,{id,playerName:'おいしいとうふ'},1002).applied,false);
+  }
+  assert.deepEqual([...signs].sort(),[-1,1]);
+});
+
+test("late-area integration payouts and checkpoint queue retain their multiplied quantities",()=>{
+  for(const category of ['equipment','monster','city']) {
+    const space=Life.BOARD.find(s=>s.regionIndex===9&&s.category===category&&s.number%100>6);
+    const id=`area-${category}`, initial=Life.createInitialState(2000);
+    initial.players.tofu.totalSpaces=space.number-Life.seededInt(`${id}:tofu:die`,1,6);
+    initial.players.tofu.position=initial.players.tofu.totalSpaces;
+    const result=Life.applyOpenRoll(initial,{id,playerName:'おいしいとうふ'},2001);
+    const event=result.events.find(e=>e.category===category);
+    const reward=Object.values(result.state.rewardQueue).find(r=>!r.checkpoint);
+    assert.ok(event);
+    if(category==='equipment')assert.equal(reward.count,4);
+    else {
+      const amount=Math.round(Life.seededInt(`${id}:${space.number}:integration`,30,120)*3.25);
+      assert.equal(reward.amount,category==='city'?amount*100:amount);
+    }
+  }
+  const initial=Life.createInitialState(3000);initial.players.tofu.totalSpaces=999;initial.players.tofu.position=999;
+  const result=Life.applyOpenRoll(initial,{id:'last-checkpoint',playerName:'おいしいとうふ'},3001);
+  assert.equal(Object.values(result.state.rewardQueue).find(r=>r.checkpoint===1000).count,7);
+});
+
 test("builds one deterministic 1000-space board with exact category totals", () => {
   assert.equal(Life.BOARD.length, 1000);
   assert.deepEqual(Life.generateBoard(), Life.generateBoard());

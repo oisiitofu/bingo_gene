@@ -34,7 +34,7 @@ test("the life board renders 1000 spaces with one instanced mesh and bounded ani
   assert.match(mode, /const TRACK_REGION_CENTERS = Object\.freeze/);
   assert.match(mode, /function buildTrackPoints\(\)/);
   assert.match(mode, /function resampleTrackSegment\(samples, count\)/);
-  assert.match(mode, /new THREE\.TubeGeometry\(roadCurve, System\.BOARD_SIZE/);
+  assert.match(mode, /function makeRoadGeometry\(points\)/);
   assert.match(mode, /new THREE\.PlaneGeometry\(440, 260, 110, 65\)/);
   assert.match(mode, /function addHouse\(/);
   assert.match(mode, /function addCar\(/);

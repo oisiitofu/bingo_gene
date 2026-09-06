@@ -1,11 +1,11 @@
 {
   "version": 1,
-  "generatedAt": "2026-09-06T00:12:26.292Z",
+  "generatedAt": "2026-09-06T05:22:42.683Z",
   "totals": {
-    "all": 1009,
-    "images": 846,
+    "all": 1019,
+    "images": 856,
     "audio": 163,
-    "bytes": 715399350
+    "bytes": 745890225
   },
   "assets": [
     {
@@ -1645,6 +1645,66 @@
       "type": "image",
       "category": "images/life/avatars",
       "bytes": 1494169
+    },
+    {
+      "path": "images/life/roads/business.png",
+      "type": "image",
+      "category": "images/life/roads",
+      "bytes": 3617206
+    },
+    {
+      "path": "images/life/roads/campus.png",
+      "type": "image",
+      "category": "images/life/roads",
+      "bytes": 3088618
+    },
+    {
+      "path": "images/life/roads/coast.png",
+      "type": "image",
+      "category": "images/life/roads",
+      "bytes": 3198010
+    },
+    {
+      "path": "images/life/roads/finale.png",
+      "type": "image",
+      "category": "images/life/roads",
+      "bytes": 1965642
+    },
+    {
+      "path": "images/life/roads/kingdom.png",
+      "type": "image",
+      "category": "images/life/roads",
+      "bytes": 3509331
+    },
+    {
+      "path": "images/life/roads/metro.png",
+      "type": "image",
+      "category": "images/life/roads",
+      "bytes": 3531667
+    },
+    {
+      "path": "images/life/roads/mountain.png",
+      "type": "image",
+      "category": "images/life/roads",
+      "bytes": 3394013
+    },
+    {
+      "path": "images/life/roads/space.png",
+      "type": "image",
+      "category": "images/life/roads",
+      "bytes": 2338423
+    },
+    {
+      "path": "images/life/roads/technology.png",
+      "type": "image",
+      "category": "images/life/roads",
+      "bytes": 2418971
+    },
+    {
+      "path": "images/life/roads/town.png",
+      "type": "image",
+      "category": "images/life/roads",
+      "bytes": 3428994
     },
     {
       "path": "images/life/tile-porcelain-v1.png",

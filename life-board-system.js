@@ -345,12 +345,17 @@
     return delta;
   }
 
-  function moneyEvent(player, seed) {
+  function regionMultiplier(space) {
+    return 1 + Math.max(0,Math.min(9,Math.floor(Number(space?.regionIndex)||0))) * .25;
+  }
+
+  function moneyEvent(player, seed, space) {
     const definition = MONEY_EVENTS[seededInt(`${seed}:event`, 0, MONEY_EVENTS.length - 1)];
     const low = Math.min(definition.min, definition.max);
     const high = Math.max(definition.min, definition.max);
     let amount = seededInt(`${seed}:amount`, low, high);
     if (PLAYER_BY_ID[player.id]?.specialty === "chance") amount = Math.round(amount * 1.15);
+    amount = Math.round(amount * regionMultiplier(space));
     applyMoney(player, amount);
     return { type: "money", title: definition.title, detail: definition.detail, amount };
   }
@@ -370,7 +375,7 @@
       || PLAYER_BY_ID[player.id]?.strategy === "chaos"
       || seededUnit(`${seed}:accept`) < 0.22;
     if (accepts) player.job = clone(offer);
-    const signingBonus = accepts && offer.rank > previous.rank ? offer.rank * 25000 : 0;
+    const signingBonus = accepts && offer.rank > previous.rank ? Math.round(offer.rank * 25000 * regionMultiplier(space)) : 0;
     if (signingBonus) applyMoney(player, signingBonus);
     return {
       type: "job",
@@ -386,7 +391,7 @@
   function propertyDefinition(space, seed) {
     const tier = space.regionIndex + 1;
     const variation = seededInt(`${seed}:property`, 0, 3);
-    const cost = Math.round((180000 + tier * 125000 + variation * 60000) / 10000) * 10000;
+    const cost = Math.round((180000 + tier * 125000 + variation * 60000) * regionMultiplier(space) / 10000) * 10000;
     return {
       id: `property-${space.number}-${variation}`,
       name: PROPERTY_NAMES[space.regionIndex],
@@ -402,7 +407,7 @@
     const property = propertyDefinition(space, seed);
     const existing = player.assets.homes[property.id];
     if (existing) {
-      const income = Math.round(existing.value * (0.05 + seededUnit(`${seed}:rent`) * 0.08));
+      const income = Math.round(existing.value * (0.05 + seededUnit(`${seed}:rent`) * 0.08) * regionMultiplier(space));
       applyMoney(player, income);
       return { type: "property", title: `${existing.name}から臨時収入`, detail: `不動産収益として¥${income.toLocaleString("ja-JP")}を受け取りました。`, amount: income, propertyId: existing.id };
     }
@@ -413,7 +418,7 @@
       player.assets.homes[property.id] = property;
       return { type: "property", title: `${property.name}を購入！`, detail: `¥${property.purchasePrice.toLocaleString("ja-JP")}で新しい資産を手に入れました。`, amount: -property.purchasePrice, propertyId: property.id };
     }
-    const viewingCost = Math.min(30000, Math.max(5000, Math.round(property.purchasePrice * 0.02)));
+    const viewingCost = Math.round(Math.min(30000, Math.max(5000, Math.round(property.purchasePrice / regionMultiplier(space) * 0.02))) * regionMultiplier(space));
     applyMoney(player, -viewingCost);
     return { type: "property", title: `${property.name}を内見`, detail: `購入には届かず、諸費用¥${viewingCost.toLocaleString("ja-JP")}だけ支払いました。`, amount: -viewingCost, propertyId: property.id };
   }
@@ -437,9 +442,9 @@
     const holding = player.assets.stocks[stock.id] || { id: stock.id, name: stock.name, shares: 0, invested: 0 };
     const strategy = PLAYER_BY_ID[player.id]?.strategy;
     const budgetRates = { steady: 0.08, aggressive: 0.25, chaos: 0.35, balanced: 0.14, growth: 0.2, wealth: 0.18 };
-    const budget = Math.max(0, Math.floor(player.cash * (budgetRates[strategy] || 0.12)));
+    const budget = Math.max(0, Math.floor(player.cash * Math.min(.8,(budgetRates[strategy] || 0.12) * regionMultiplier(space))));
     if (stock.change < -0.045 && holding.shares > 0 && strategy !== "aggressive") {
-      const shares = Math.max(1, Math.ceil(holding.shares / 2));
+      const shares = Math.min(holding.shares,Math.max(1, Math.ceil(holding.shares / 2 * regionMultiplier(space))));
       const income = shares * stock.price;
       holding.shares -= shares;
       applyMoney(player, income);
@@ -460,10 +465,11 @@
   }
 
   function integrationEvent(state, player, space, seed, now) {
-    const amount = seededInt(`${seed}:integration`, 30, 120);
+    const amount = Math.round(seededInt(`${seed}:integration`, 30, 120) * regionMultiplier(space));
+    const equipmentCount = Math.ceil(regionMultiplier(space));
     const mapping = {
       monster: { key: "monsterExp", title: "モンスター特訓成功", detail: `手持ちモンスターへ経験値${amount}を予約しました。` },
-      equipment: { key: "equipment", title: "装備ガチャ券発見", detail: "装備ガチャを1回獲得しました。" },
+      equipment: { key: "equipment", title: "装備ガチャ券発見", detail: `装備ガチャを${equipmentCount}回獲得しました。` },
       city: { key: "cityMoney", title: "BINGO CITYへ投資", detail: `都市資金へ¥${(amount * 100).toLocaleString("ja-JP")}を送りました。` },
       territory: { key: "territoryRecovery", title: "領土戦へ補給隊到着", detail: `負傷待機を${amount}分短縮し、守備隊を回復します。` },
       tower: { key: "towerRestMinutes", title: "TOWERへ休息の加護", detail: `休養時間を${amount}分短縮し、登頂部隊を回復します。` }
@@ -471,8 +477,8 @@
     const definition = mapping[space.category];
     const rewardId = `life-reward:${player.id}:${seed}:${space.number}`;
     if (space.category === "equipment") {
-      state.rewardQueue[rewardId] = { id: rewardId, playerId: player.id, type: "equipment", count: 1, createdAt: Number(now) };
-      player.assets.equipmentGacha.push({ id: rewardId, checkpoint: 0, count: 1, status: "pending", createdAt: Number(now) });
+      state.rewardQueue[rewardId] = { id: rewardId, playerId: player.id, type: "equipment", count: equipmentCount, createdAt: Number(now) };
+      player.assets.equipmentGacha.push({ id: rewardId, checkpoint: 0, count: equipmentCount, status: "pending", createdAt: Number(now) });
     } else {
       const value = space.category === "city" ? amount * 100 : amount;
       player.integrationRewards[definition.key] += value;
@@ -481,11 +487,11 @@
     return { type: space.category, title: definition.title, detail: definition.detail, amount: 0, rewardId };
   }
 
-  function interactionEvent(state, player, seed) {
+  function interactionEvent(state, player, seed, space) {
     const targets = PLAYERS.filter((candidate) => candidate.id !== player.id);
     const targetDefinition = targets[seededInt(`${seed}:target`, 0, targets.length - 1)];
     const target = state.players[targetDefinition.id];
-    const amount = seededInt(`${seed}:gift`, 40000, 180000);
+    const amount = Math.round(seededInt(`${seed}:gift`, 40000, 180000) * regionMultiplier(space));
     const win = seededUnit(`${seed}:direction`) >= 0.5;
     if (win) {
       applyMoney(target, -amount);
@@ -504,8 +510,8 @@
     };
   }
 
-  function riskEvent(player, seed) {
-    const stake = seededInt(`${seed}:stake`, 120000, 600000);
+  function riskEvent(player, seed, space) {
+    const stake = Math.round(seededInt(`${seed}:stake`, 120000, 600000) * regionMultiplier(space));
     const chance = PLAYER_BY_ID[player.id]?.specialty === "chance" ? 0.58 : 0.46;
     const won = seededUnit(`${seed}:result`) < chance;
     const amount = won ? Math.round(stake * 1.4) : -stake;
@@ -537,13 +543,13 @@
   }
 
   function resolveLandingEvent(state, player, space, seed, now) {
-    if (space.category === "money") return moneyEvent(player, seed);
+    if (space.category === "money") return moneyEvent(player, seed, space);
     if (space.category === "job") return jobEvent(player, space, seed);
     if (space.category === "property") return propertyEvent(player, space, seed);
     if (space.category === "stock") return stockEvent(state, player, space, seed, now);
     if (["monster", "equipment", "city", "territory", "tower"].includes(space.category)) return integrationEvent(state, player, space, seed, now);
-    if (space.category === "interaction") return interactionEvent(state, player, seed);
-    if (space.category === "risk") return riskEvent(player, seed);
+    if (space.category === "interaction") return interactionEvent(state, player, seed, space);
+    if (space.category === "risk") return riskEvent(player, seed, space);
     return placeholderEvent(player, space, seed);
   }
 
@@ -552,7 +558,8 @@
     if (crossed <= 0) return [];
     const events = [];
     for (let index = 0; index < crossed; index += 1) {
-      const salary = Math.max(0, Number(player.job?.salary) || 0);
+      const paydayNumber = (Math.floor(totalBefore/25)+1+index)*25;
+      const salary = Math.round(Math.max(0, Number(player.job?.salary) || 0) * regionMultiplier(BOARD[(paydayNumber-1)%BOARD_SIZE]));
       player.paydays += 1;
       if (salary) applyMoney(player, salary);
       events.push({
@@ -621,7 +628,7 @@
   }
 
   function checkpointEvent(state, player, space, seed, now) {
-    const count = checkpointGachaCount(player);
+    const count = Math.ceil(checkpointGachaCount(player) * regionMultiplier(space));
     const record = {
       id: `gacha-${seed}-${space.number}`,
       checkpoint: space.number,
@@ -762,7 +769,7 @@
     VERSION, BOARD_SIZE, REGION_SIZE, MAX_HISTORY, MAX_PROCESSED_OPENS, STARTING_CASH, SERVER_TICK_MS,
     PLAYERS, PLAYER_BY_ID, REGIONS, CATEGORY_COUNTS, STOCKS, JOBS, PROPERTY_NAMES, MONEY_EVENTS, BOARD,
     clone, playerKey, playerForName, hash32, seededUnit, seededInt, deterministicShuffle,
-    generateBoard, boardCategoryCounts, createInitialState, normalizeState, checkpointGachaCount,
+    generateBoard, boardCategoryCounts, createInitialState, normalizeState, checkpointGachaCount, regionMultiplier,
     applyMoney, assetValue, updateNetWorth, chooseJob, propertyDefinition, updateMarket, processPaydays,
     advanceServerState, applyOpenRoll, buildOpenId
   };
