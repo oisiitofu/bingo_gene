@@ -364,33 +364,115 @@
     return item;
   }
 
+  function batchStaticScenery(group) {
+    group.updateMatrixWorld(true);
+    const batches = new Map();
+    const originals = new Set();
+    const inverse = group.matrixWorld.clone().invert();
+    group.traverse(object => {
+      if (!object.isMesh) return;
+      const geometry = object.geometry.index ? object.geometry.toNonIndexed() : object.geometry.clone();
+      geometry.applyMatrix4(new THREE.Matrix4().multiplyMatrices(inverse, object.matrixWorld));
+      if (!batches.has(object.material)) batches.set(object.material, []);
+      batches.get(object.material).push(geometry);
+      originals.add(object.geometry);
+    });
+    group.clear();
+    // Bake static details by material, keeping draw calls independent of window/branch count.
+    for (const [material, geometries] of batches) {
+      const merged = new THREE.BufferGeometry();
+      for (const [name, size] of [["position", 3], ["normal", 3], ["uv", 2]]) {
+        const count = geometries.reduce((sum, geometry) => sum + geometry.attributes.position.count, 0);
+        const array = new Float32Array(count * size);
+        let offset = 0;
+        for (const geometry of geometries) {
+          const attribute = geometry.getAttribute(name);
+          if (attribute) array.set(attribute.array, offset);
+          offset += geometry.attributes.position.count * size;
+        }
+        merged.setAttribute(name, new THREE.BufferAttribute(array, size));
+      }
+      merged.computeBoundingSphere();
+      group.add(new THREE.Mesh(merged, material));
+      geometries.forEach(geometry => geometry.dispose());
+    }
+    originals.forEach(geometry => geometry.dispose());
+  }
+
   function makeRegionScenery() {
+    const materialFrom = (name,color,roughness=.82,metalness=0) => {
+      const map=new THREE.TextureLoader().load(`images/life/scenery/${name}.png`);
+      map.colorSpace=THREE.SRGBColorSpace||"srgb";
+      map.wrapS=map.wrapT=THREE.RepeatWrapping;
+      map.anisotropy=Math.min(8,renderer.capabilities.getMaxAnisotropy());
+      return new THREE.MeshStandardMaterial({map,color,roughness,metalness});
+    };
     waterTexture = new THREE.TextureLoader().load("images/city/textures/terrain-water.png");
     waterTexture.wrapS = waterTexture.wrapT = THREE.RepeatWrapping;
     waterTexture.repeat.set(4,4);
     waterTexture.colorSpace = THREE.SRGBColorSpace || "srgb";
     const dark = new THREE.MeshStandardMaterial({ color: 0x151b23, roughness: .72, metalness: .28 });
-    const stone = new THREE.MeshStandardMaterial({ color: 0x84909c, roughness: .82, metalness: .06 });
+    const stone = materialFrom("masonry",0xd2d1c9);
+    const plaster = materialFrom("stucco",0xf0e9db);
+    const slate = materialFrom("roof",0x9caebc,.68,.1);
+    const facade = materialFrom("glass",0xc5e3e8,.32,.35);
+    const windowGlass = new THREE.MeshStandardMaterial({color:0x29495e,roughness:.22,metalness:.48});
     const gold = new THREE.MeshStandardMaterial({ color: 0xe5bc4c, emissive: 0x6b4c09, emissiveIntensity: .42, roughness: .32, metalness: .72 });
-    const green = new THREE.MeshStandardMaterial({ color: 0x3d8754, roughness: .9 });
-    const trunk = new THREE.MeshStandardMaterial({ color: 0x795332, roughness: 1 });
+    const green = materialFrom("foliage",0xb4d18f,.95);
+    const trunk = materialFrom("bark",0xd1b395,1);
     const white = new THREE.MeshStandardMaterial({ color: 0xe9edf1, roughness: .64, metalness: .08 });
 
     function addTree(group, x, z, scale = 1) {
-      sceneryMesh(group, new THREE.CylinderGeometry(.16 * scale, .24 * scale, 1.45 * scale, 7), trunk, { x, y: .72 * scale, z });
-      for (let leaf=0;leaf<3;leaf++) sceneryMesh(group, new THREE.IcosahedronGeometry(.75 * scale, 1), green, { x:x+Math.sin(leaf*2.1)*.36*scale, y: (1.5+leaf*.3)*scale, z:z+Math.cos(leaf*2.1)*.3*scale });
+      sceneryMesh(group, new THREE.CylinderGeometry(.10 * scale, .23 * scale, 2.1 * scale, 12), trunk, { x, y: 1.05 * scale, z });
+      for (let leaf=0;leaf<5;leaf++) {
+        const angle=leaf*2.399+x*.1;
+        const dx=Math.sin(angle)*.56*scale,dz=Math.cos(angle)*.56*scale;
+        const branch=sceneryMesh(group,new THREE.CylinderGeometry(.045*scale,.085*scale,.9*scale,7),trunk,{x:x+dx*.5,y:1.55*scale,z:z+dz*.5});
+        branch.quaternion.setFromUnitVectors(new THREE.Vector3(0,1,0),new THREE.Vector3(dx,.6*scale,dz).normalize());
+        sceneryMesh(group,new THREE.IcosahedronGeometry((.60+leaf%2*.12)*scale,2),green,{x:x+dx,y:(1.85+leaf*.12)*scale,z:z+dz},null,{x:1,y:.87,z:1});
+      }
+    }
+
+    function addWindow(group,x,y,z,yaw=0) {
+      const window=new THREE.Group();window.position.set(x,y,z);window.rotation.y=yaw;group.add(window);
+      sceneryMesh(window,new THREE.BoxGeometry(.5,.58,.09),white,{x:0,y:0,z:0});
+      sceneryMesh(window,new THREE.BoxGeometry(.39,.46,.10),windowGlass,{x:0,y:0,z:.018});
+      sceneryMesh(window,new THREE.BoxGeometry(.035,.47,.13),white,{x:0,y:0,z:.035});
+      sceneryMesh(window,new THREE.BoxGeometry(.4,.035,.13),white,{x:0,y:0,z:.035});
+      sceneryMesh(window,new THREE.BoxGeometry(.59,.08,.2),stone,{x:0,y:-.31,z:.06});
     }
 
     function addHouse(group, x, z, scale, accent) {
-      sceneryMesh(group, new THREE.BoxGeometry(1.7 * scale, 1.35 * scale, 1.45 * scale), white, { x, y: .68 * scale, z });
-      sceneryMesh(group, new THREE.ConeGeometry(1.35 * scale, .9 * scale, 4), accent, { x, y: 1.78 * scale, z }, { y: Math.PI / 4 });
-      sceneryMesh(group, new THREE.BoxGeometry(.42 * scale, .72 * scale, .12), dark, { x, y: .36 * scale, z: z - .79 * scale });
-      [-.57, .57].forEach((offset) => {
-        sceneryMesh(group, new THREE.BoxGeometry(.4 * scale, .48 * scale, .1), dark, { x: x + offset * scale, y: .85 * scale, z: z - .76 * scale });
-        sceneryMesh(group, new THREE.BoxGeometry(.025, .48 * scale, .13), white, { x: x + offset * scale, y: .85 * scale, z: z - .78 * scale });
-      });
-      sceneryMesh(group, new THREE.BoxGeometry(1.9 * scale, .16, 1.65 * scale), stone, { x, y: .02, z });
-      sceneryMesh(group, new THREE.BoxGeometry(.23 * scale, .7 * scale, .25 * scale), stone, { x: x + .45 * scale, y: 1.95 * scale, z: z + .25 * scale });
+      const house=new THREE.Group();house.position.set(x,0,z);house.scale.setScalar(scale);group.add(house);
+      sceneryMesh(house,new THREE.BoxGeometry(2.16,.16,1.98),stone,{x:0,y:.08,z:0});
+      sceneryMesh(house,new THREE.BoxGeometry(1.9,1.45,1.7),plaster,{x:0,y:.88,z:0});
+      const roofShape=new THREE.Shape();roofShape.moveTo(-1.1,0);roofShape.lineTo(0,.78);roofShape.lineTo(1.1,0);roofShape.closePath();
+      sceneryMesh(house,new THREE.ExtrudeGeometry(roofShape,{depth:2,bevelEnabled:true,bevelSize:.035,bevelThickness:.025,bevelSegments:2,steps:1}),slate,{x:0,y:1.6,z:-1});
+      for(const side of [-1,1]) {
+        sceneryMesh(house,new THREE.BoxGeometry(.08,.1,2.06),white,{x:side*1.06,y:1.59,z:0});
+        addWindow(house,side*.57,.95,.87);
+        addWindow(house,side*.57,.95,-.87,Math.PI);
+        addWindow(house,side*.97,.95,0,side*Math.PI/2);
+      }
+      sceneryMesh(house,new THREE.BoxGeometry(.39,.85,.13),accent,{x:0,y:.59,z:.9});
+      sceneryMesh(house,new THREE.SphereGeometry(.035,8,6),gold,{x:.12,y:.59,z:.98});
+      sceneryMesh(house,new THREE.BoxGeometry(.66,.10,.55),stone,{x:0,y:.16,z:1.08});
+      sceneryMesh(house,new THREE.BoxGeometry(.72,.10,.49),slate,{x:0,y:1.13,z:1.08},{x:.13});
+      sceneryMesh(house,new THREE.BoxGeometry(.27,.88,.30),stone,{x:.56,y:2.05,z:-.35});
+      sceneryMesh(house,new THREE.BoxGeometry(.37,.09,.40),dark,{x:.56,y:2.52,z:-.35});
+    }
+
+    function addOffice(group,x,z,height,width=2.6) {
+      const body=new THREE.BoxGeometry(width,height,width);
+      const uv=body.attributes.uv;
+      for(let i=0;i<uv.count;i++)if(i<8||i>=16)uv.setY(i,uv.getY(i)*height/2.2);
+      sceneryMesh(group,body,facade,{x,y:height/2+.3,z});
+      sceneryMesh(group,new THREE.BoxGeometry(width+.5,.35,width+.5),stone,{x,y:.16,z});
+      sceneryMesh(group,new THREE.BoxGeometry(width+.15,.15,width+.15),white,{x,y:height+.34,z});
+      for(const side of [-1,1])sceneryMesh(group,new THREE.BoxGeometry(.12,height+.2,.12),white,{x:x+side*width/2,y:height/2+.3,z:z+width/2});
+      sceneryMesh(group,new THREE.BoxGeometry(.7,.45,.9),stone,{x:x+.2,y:height+.64,z});
+      sceneryMesh(group,new THREE.BoxGeometry(.9,1.2,.12),windowGlass,{x,y:.85,z:z+width/2+.03});
+      sceneryMesh(group,new THREE.BoxGeometry(1.3,.08,.65),white,{x,y:1.55,z:z+width/2+.22});
     }
 
     function addCar(group, x, z, scale, accent, rotation) {
@@ -411,7 +493,9 @@
 
     function addLamp(group, x, z, scale, accent) {
       sceneryMesh(group, new THREE.CylinderGeometry(.08 * scale, .12 * scale, 2.1 * scale, 8), dark, { x, y: 1.05 * scale, z });
-      sceneryMesh(group, new THREE.SphereGeometry(.24 * scale, 10, 8), accent, { x, y: 2.2 * scale, z });
+      sceneryMesh(group, new THREE.BoxGeometry(.32*scale,.46*scale,.32*scale),accent,{x,y:2.22*scale,z});
+      sceneryMesh(group,new THREE.ConeGeometry(.32*scale,.22*scale,4),dark,{x,y:2.56*scale,z},{y:Math.PI/4});
+      for(const dx of [-.16,.16])for(const dz of [-.16,.16])sceneryMesh(group,new THREE.BoxGeometry(.035*scale,.5*scale,.035*scale),dark,{x:x+dx*scale,y:2.22*scale,z:z+dz*scale});
     }
 
     function addCoin(group, x, z, scale) {
@@ -491,8 +575,7 @@
         const scale = 1.1 + (propIndex%3)*.25;
         if ([2,3,6].includes(index)) {
           const height=2.5+(propIndex*7%9);
-          sceneryMesh(group,new THREE.BoxGeometry(2.6,height,2.8),propIndex%2?stone:dark,{x:propX,y:height/2,z:propZ});
-          for(let level=1;level<height;level+=1.1) sceneryMesh(group,new THREE.BoxGeometry(2.3,.28,2.85),accent,{x:propX,y:level,z:propZ});
+          addOffice(group,propX,propZ,height);
         } else if (propIndex%3===0 && index!==5) addHouse(group,propX,propZ,scale,accent);
         else addTree(group,propX,propZ,scale);
       }
@@ -516,8 +599,7 @@
 
       if (region.theme === "town") {
         [-1.8, 0, 1.8].forEach((offset, itemIndex) => {
-          sceneryMesh(group, new THREE.BoxGeometry(1.5, 1.4 + itemIndex * .25, 1.35), itemIndex === 1 ? accent : stone, { x: x + offset, y: .95 + itemIndex * .12, z });
-          sceneryMesh(group, new THREE.ConeGeometry(1.18, .9, 4), gold, { x: x + offset, y: 2.05 + itemIndex * .25, z }, { y: Math.PI / 4 });
+          addHouse(group,x+offset*1.5,z,.95+itemIndex*.1,accent);
         });
       } else if (region.theme === "campus") {
         sceneryMesh(group, new THREE.BoxGeometry(5.2, .42, .58), accent, { x, y: 3.45, z });
@@ -526,8 +608,7 @@
       } else if (region.theme === "business" || region.theme === "metro") {
         [-1.8, 0, 1.7].forEach((offset, itemIndex) => {
           const height = region.theme === "metro" ? [4.2, 7.1, 5.4][itemIndex] : [3.8, 5.8, 4.6][itemIndex];
-          sceneryMesh(group, new THREE.BoxGeometry(1.45, height, 1.45), itemIndex === 1 ? accent : dark, { x: x + offset, y: height / 2 + .35, z });
-          sceneryMesh(group, new THREE.BoxGeometry(1.05, .1, 1.5), glow, { x: x + offset, y: height * .66, z: z - .73 });
+          addOffice(group,x+offset*1.25,z,height,1.6);
         });
       } else if (region.theme === "coast") {
         sceneryMesh(group, new THREE.CylinderGeometry(3.45, 3.75, .18, 24), new THREE.MeshStandardMaterial({ color: 0x3e9ea9, emissive: 0x164d61, emissiveIntensity: .35, roughness: .24 }), { x, y: .42, z });
@@ -547,7 +628,12 @@
         sceneryMesh(group, new THREE.BoxGeometry(4.5, 3.5, 2.1), stone, { x, y: 2.05, z });
         [-2.2, 2.2].forEach((offset) => {
           sceneryMesh(group, new THREE.CylinderGeometry(.76, .92, 4.5, 10), stone, { x: x + offset, y: 2.55, z });
-          sceneryMesh(group, new THREE.ConeGeometry(1.15, 1.7, 10), accent, { x: x + offset, y: 5.65, z });
+          sceneryMesh(group, new THREE.ConeGeometry(1.15, 1.7, 24), slate, { x: x + offset, y: 5.65, z });
+          for(let merlon=0;merlon<8;merlon++) {
+            const angle=merlon*Math.PI/4;
+            sceneryMesh(group,new THREE.BoxGeometry(.26,.42,.26),stone,{x:x+offset+Math.sin(angle)*.74,y:4.9,z:z+Math.cos(angle)*.74});
+          }
+          for(const side of [-1,1])addWindow(group,x+offset,2.8,z+side*.91,side===1?0:Math.PI);
         });
         sceneryMesh(group, new THREE.BoxGeometry(1.1, 2.2, .35), dark, { x, y: 1.35, z: z - 1.14 });
       } else if (region.theme === "space") {
@@ -559,6 +645,7 @@
         sceneryMesh(group, new THREE.BoxGeometry(5.4, .5, .72), accent, { x, y: 6.3, z });
         sceneryMesh(group, new THREE.TorusGeometry(1.65, .22, 10, 32), gold, { x, y: 4.7, z }, { y: Math.PI / 2 });
       }
+      batchStaticScenery(group);
       scene.add(group);
     });
   }

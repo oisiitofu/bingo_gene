@@ -1,11 +1,11 @@
 {
   "version": 1,
-  "generatedAt": "2026-09-06T05:22:42.683Z",
+  "generatedAt": "2026-09-06T05:39:54.775Z",
   "totals": {
-    "all": 1019,
-    "images": 856,
+    "all": 1025,
+    "images": 862,
     "audio": 163,
-    "bytes": 745890225
+    "bytes": 763100772
   },
   "assets": [
     {
@@ -1705,6 +1705,42 @@
       "type": "image",
       "category": "images/life/roads",
       "bytes": 3428994
+    },
+    {
+      "path": "images/life/scenery/bark.png",
+      "type": "image",
+      "category": "images/life/scenery",
+      "bytes": 3618926
+    },
+    {
+      "path": "images/life/scenery/foliage.png",
+      "type": "image",
+      "category": "images/life/scenery",
+      "bytes": 3156830
+    },
+    {
+      "path": "images/life/scenery/glass.png",
+      "type": "image",
+      "category": "images/life/scenery",
+      "bytes": 1330920
+    },
+    {
+      "path": "images/life/scenery/masonry.png",
+      "type": "image",
+      "category": "images/life/scenery",
+      "bytes": 3378933
+    },
+    {
+      "path": "images/life/scenery/roof.png",
+      "type": "image",
+      "category": "images/life/scenery",
+      "bytes": 2690277
+    },
+    {
+      "path": "images/life/scenery/stucco.png",
+      "type": "image",
+      "category": "images/life/scenery",
+      "bytes": 3034661
     },
     {
       "path": "images/life/tile-porcelain-v1.png",
