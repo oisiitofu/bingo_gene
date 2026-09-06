@@ -1,11 +1,11 @@
 {
   "version": 1,
-  "generatedAt": "2026-09-06T06:24:29.734Z",
+  "generatedAt": "2026-09-06T06:34:16.230Z",
   "totals": {
-    "all": 1028,
-    "images": 865,
+    "all": 1030,
+    "images": 867,
     "audio": 163,
-    "bytes": 770906119
+    "bytes": 777228779
   },
   "assets": [
     {
@@ -1725,6 +1725,12 @@
       "bytes": 1886175
     },
     {
+      "path": "images/life/scenery/copper.png",
+      "type": "image",
+      "category": "images/life/scenery",
+      "bytes": 2818811
+    },
+    {
       "path": "images/life/scenery/foliage.png",
       "type": "image",
       "category": "images/life/scenery",
@@ -1741,6 +1747,12 @@
       "type": "image",
       "category": "images/life/scenery",
       "bytes": 3378933
+    },
+    {
+      "path": "images/life/scenery/paving.png",
+      "type": "image",
+      "category": "images/life/scenery",
+      "bytes": 3503849
     },
     {
       "path": "images/life/scenery/roof.png",

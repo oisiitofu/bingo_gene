@@ -506,6 +506,8 @@
     const brick = materialFrom("brick", 0xf2d5c6);
     const timber = materialFrom("timber", 0xe2d2b9);
     const ceramic = materialFrom("ceramic", 0xd9eef0, .42, .25);
+    const copper = materialFrom("copper", 0xb9d4c4, .7, .25);
+    const paving = materialFrom("paving", 0xd0d3ce);
     const redPaint = new THREE.MeshStandardMaterial({color:0xbc3943,roughness:.65});
     const rockMap = new THREE.TextureLoader().load("images/city/textures/terrain-mountain-rock.png");
     rockMap.colorSpace = THREE.SRGBColorSpace || "srgb";
@@ -617,6 +619,121 @@
       }
     }
 
+    function addRegionalLandmark(group, theme, x, z, accent) {
+      const prop=new THREE.Group();
+      prop.position.set(x,0,z);
+      prop.name=`life-scenery-${theme}-landmark`;
+      group.add(prop);
+      const box=(w,h,d,mat,px,py,pz)=>sceneryMesh(prop,new THREE.BoxGeometry(w,h,d),mat,{x:px,y:py,z:pz});
+      const tube=(rt,rb,h,mat,px,py,pz)=>sceneryMesh(prop,new THREE.CylinderGeometry(rt,rb,h,24),mat,{x:px,y:py,z:pz});
+      const ball=(r,mat,px,py,pz)=>sceneryMesh(prop,new THREE.SphereGeometry(r,24,16),mat,{x:px,y:py,z:pz});
+      const roof=(width,height,depth,mat,y)=>{
+        const shape=new THREE.Shape();shape.moveTo(-width/2,0);shape.lineTo(0,height);shape.lineTo(width/2,0);shape.closePath();
+        sceneryMesh(prop,new THREE.ExtrudeGeometry(shape,{depth,bevelEnabled:false}),mat,{x:0,y,z:-depth/2});
+      };
+      box(7,.12,6,paving,0,-.02,0);
+      if(theme==="town") {
+        box(4.8,2.2,2.4,brick,0,1.1,0);
+        roof(5.5,1.1,3,copper,2.2);
+        for(const wx of [-1.7,-.85,.85,1.7])addWindow(prop,wx,1.3,1.24);
+        box(.65,1.65,.1,timber,0,.83,1.26);
+        box(6,.15,1.4,slate,0,1.9,1.9);
+        for(const px of [-2.7,2.7])tube(.065,.065,1.9,white,px,.95,2.4);
+        box(1.1,.34,.06,accent,0,2.4,1.55);
+        for(const rz of [-2,-2.55])box(6,.07,.06,dark,0,.1,rz);
+        for(let i=0;i<15;i++)box(.14,.04,.8,timber,-2.8+i*.4,.1,-2.28);
+      } else if(theme==="campus") {
+        box(4.8,.45,3,brick,0,.22,0);
+        box(4.7,1.9,2.9,facade,0,1.35,0);
+        roof(4.8,1.3,3,facade,2.3);
+        for(const px of [-2.35,-1.18,0,1.18,2.35]) {
+          for(const side of [-1,1])box(.07,2.1,.07,white,px,1.3,side*1.48);
+        }
+        for(const y of [.5,1.6,2.3])for(const side of [-1,1])box(4.8,.07,.07,white,0,y,side*1.48);
+        box(.08,.08,3.1,white,0,3.6,0);
+        for(const side of [-1,1])for(const pz of [-1.5,-.75,0,.75,1.5])sceneryMesh(prop,new THREE.BoxGeometry(2.75,.08,.06),white,{x:side*1.2,y:2.95,z:pz},{z:-side*.495});
+        for(const px of [-1.5,1.5]){tube(.45,.3,.55,timber,px,.65,0);ball(.65,green,px,1.25,0);}
+      } else if(theme==="business") {
+        box(4.8,2.5,3.1,white,0,1.25,0);
+        box(4.5,1.8,.08,windowGlass,0,1.25,1.6);
+        roof(5.4,1,3.6,copper,2.5);
+        for(const px of [-2,-1,0,1,2])box(.08,2.3,.12,stone,px,1.3,1.65);
+        for(const side of [-1,1]) {
+          tube(.45,.45,.7,stone,side*2.7,.4,2.1);
+          ball(.6,green,side*2.7,1.1,2.1);
+        }
+        box(2,.4,.12,gold,0,2.5,1.82);
+      } else if(theme==="metro") {
+        box(5.6,.3,2.6,stone,0,.15,0);
+        box(5.8,.2,2.9,copper,0,2.9,0);
+        for(const px of [-2.5,0,2.5])tube(.085,.085,2.8,dark,px,1.5,-1.1);
+        box(5.2,2.5,.1,windowGlass,0,1.5,-1.1);
+        box(4.7,1.2,1.6,accent,0,1,0);
+        box(4.1,.7,1.5,windowGlass,0,1.9,0);
+        box(4.7,.14,1.7,white,0,2.3,0);
+        for(const px of [-1.5,1.5])for(const side of [-1,1])sceneryMesh(prop,new THREE.CylinderGeometry(.35,.35,.16,16),dark,{x:px,y:.55,z:side*.79},{x:Math.PI/2});
+        for(const px of [-1.3,0,1.3])box(.06,.75,1.53,white,px,1.9,0);
+      } else if(theme==="coast") {
+        for(let i=0;i<12;i++)box(3.1,.16,.37,timber,0,.35,-2.4+i*.42);
+        for(const px of [-1.35,1.35])for(const pz of [-2,0,2]){tube(.09,.12,1.2,trunk,px,.5,pz);ball(.14,white,px,1.14,pz);}
+        box(2.6,1.4,1.8,white,0,1.2,-1.1);
+        roof(3,1,2.2,copper,1.9);
+        addWindow(prop,-.65,1.35,-.15);addWindow(prop,.65,1.35,-.15);
+        for(const px of [-2.5,2.5])sceneryMesh(prop,new THREE.TorusGeometry(.43,.12,10,24),redPaint,{x:px,y:.4,z:1.5},{x:Math.PI/2});
+      } else if(theme==="mountain") {
+        tube(.9,1.4,4.8,stone,0,2.4,0);
+        sceneryMesh(prop,new THREE.ConeGeometry(1.3,1.7,24),copper,{x:0,y:5.65,z:0});
+        const rotor=new THREE.Group();rotor.position.set(0,4,1);rotor.rotation.z=.4;prop.add(rotor);
+        for(let blade=0;blade<4;blade++) {
+          const arm=new THREE.Group();arm.rotation.z=blade*Math.PI/2;rotor.add(arm);
+          sceneryMesh(arm,new THREE.BoxGeometry(.13,2.8,.14),timber,{x:0,y:1.3,z:0});
+          sceneryMesh(arm,new THREE.BoxGeometry(.65,1.8,.08),white,{x:.26,y:1.7,z:.08});
+          for(let rib=0;rib<6;rib++)sceneryMesh(arm,new THREE.BoxGeometry(.7,.045,.1),timber,{x:.26,y:1+rib*.29,z:.14});
+        }
+        ball(.23,gold,0,4,1.15);
+        box(.7,1.5,.1,timber,0,.75,1.32);
+      } else if(theme==="technology") {
+        box(3.4,2.1,2.5,ceramic,0,1.05,0);
+        for(const side of [-1,1])tube(.45,.55,3.3,ceramic,side*2.3,1.65,0);
+        box(3.2,.4,2.55,facade,0,1.45,0);
+        tube(.2,.3,3,white,0,3.5,0);
+        const dish=sceneryMesh(prop,new THREE.SphereGeometry(1.7,32,16,0,Math.PI*2,0,1.2),copper,{x:0,y:5,z:0},{z:.8});
+        dish.material.side=THREE.DoubleSide;
+        sceneryMesh(prop,new THREE.CylinderGeometry(.045,.045,2,16),white,{x:.55,y:5.8,z:0},{z:-.65});
+        ball(.15,accent,1.1,6.55,0);
+      } else if(theme==="kingdom") {
+        for(const px of [-2.6,2.6]) {
+          tube(.8,.95,4.1,stone,px,2.05,0);
+          sceneryMesh(prop,new THREE.ConeGeometry(1.12,1.6,24),copper,{x:px,y:4.9,z:0});
+          box(.7,1.8,.12,accent,px,2.5,1);
+        }
+        box(4.7,.7,1.5,stone,0,3.6,0);
+        for(const px of [-1.7,-.85,0,.85,1.7])box(.15,2.8,.15,timber,px,2.2,0);
+        box(4.8,.13,2.7,timber,0,.1,1.5);
+        for(let i=0;i<11;i++)box(4.8,.04,.04,dark,0,.19,.3+i*.24);
+      } else if(theme==="space") {
+        box(3.8,1.8,2.8,ceramic,0,1.1,0);
+        box(3.2,.6,.1,windowGlass,0,1.35,1.45);
+        for(const px of [-1.3,1.3])for(const pz of [-1.55,1.55])sceneryMesh(prop,new THREE.CylinderGeometry(.6,.6,.38,20),dark,{x:px,y:.65,z:pz},{x:Math.PI/2});
+        box(4,.1,3,facade,0,2.1,0);
+        tube(.055,.08,2.5,white,.9,3.1,0);
+        ball(.17,gold,.9,4.4,0);
+        for(const px of [-1.2,1.2])ball(.18,white,px,1,1.55);
+      } else {
+        tube(2.9,3,.2,stone,0,.1,0);
+        for(let column=0;column<8;column++){const a=column*Math.PI/4;tube(.1,.14,2.5,white,Math.cos(a)*2.2,1.4,Math.sin(a)*2.2);}
+        sceneryMesh(prop,new THREE.ConeGeometry(3.2,1.6,8),copper,{x:0,y:3.45,z:0});
+        ball(.25,gold,0,4.4,0);
+        tube(.8,.95,.2,timber,0,.4,0);
+      }
+      // Small furnishings bind each landmark to its plaza without covering the route.
+      for(const side of [-1,1]) {
+        box(1.1,.12,.42,timber,side*2.6,.55,-2.4);
+        box(1.1,.42,.07,timber,side*2.6,.82,-2.58);
+        for(const leg of [-.4,.4])box(.07,.5,.3,dark,side*2.6+leg,.25,-2.4);
+      }
+    }
+
     System.REGIONS.forEach((region, index) => {
       const group = new THREE.Group();
       group.name = `life-region-${region.id}`;
@@ -691,11 +808,13 @@
         const urban=[2,3,6].includes(index);
         const propX = center.x - 32 + (propIndex%6)*12 + (urban?0:Math.sin(propIndex*7.3)*3);
         const propZ = center.z - 34 + Math.floor(propIndex/6)*13 + (urban?0:Math.cos(propIndex*4.7)*3);
-        if (TRACK_POINTS.some((tile) => Math.hypot(tile.x-propX,tile.z-propZ)<4)) continue;
+        if (TRACK_POINTS.some((tile) => Math.hypot(tile.x-propX,tile.z-propZ)<(propIndex%4===1?5.8:4))) continue;
         if (index===4 && Math.hypot(propX-center.x,propZ-center.z)<37) continue;
         if (index===1 && Math.hypot(propX-center.x,propZ-center.z)<20) continue;
         const scale = 1.1 + (propIndex%3)*.25;
-        if (index===5 || index===6 || index===8 || propIndex%3===0) {
+        if (propIndex%4===1) {
+          addRegionalLandmark(group,region.theme,propX,propZ,accent);
+        } else if (index===5 || index===6 || index===8 || propIndex%3===0) {
           addRegionalProp(group,region.theme,propX,propZ,propIndex,accent);
         } else if ([2,3].includes(index)) {
           const height=2.5+(propIndex*7%9);
